@@ -14,6 +14,8 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH on)
 
 find_package(Qt6 COMPONENTS Core Gui Widgets Concurrent)
 
+add_compile_options(-O4)
+
 add_executable(transcode main.cpp)
 
 target_link_libraries(transcode Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets avformat avfilter avutil avcodec avdevice swscale swresample AV)

@@ -101,6 +101,7 @@ namespace AV {
         QIODevice *m_outputDevice;
         QQueue<Frame *> m_frameQueue;
         QMutex m_frameQueueMutex;
+        QMutex m_encoderMutex;
 
         uint8_t m_cbType = 0;
         QMutex m_cbTypeMutex;

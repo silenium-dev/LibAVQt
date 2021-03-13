@@ -1,12 +1,22 @@
-#include <QtCore>
 #include "AV/DecoderVAAPI.h"
 #include "AV/EncoderVAAPI.h"
 #include "AV/FrameSaver.h"
 
-int main(int argc, char *argv[]) {
-    qInfo() << "Hello, World!";
+#include <QtCore>
+#include <csignal>
 
-    auto *app = new QCoreApplication(argc, argv);
+QCoreApplication *app;
+
+void signalHandler(int sigNum) {
+    app->quit();
+}
+
+int main(int argc, char *argv[]) {
+    signal(SIGINT, &signalHandler);
+    signal(SIGTERM, &signalHandler);
+    signal(SIGQUIT, &signalHandler);
+
+    app = new QCoreApplication(argc, argv);
 
     QFile file("/home/silas/1080p60.mkv");
     file.open(QIODevice::ReadWrite);
@@ -28,7 +38,7 @@ int main(int argc, char *argv[]) {
     encoderVaapi->start();
     decoderVaapi->start();
 
-    QTimer::singleShot(20000, [&] {
+    QObject::connect(app, &QCoreApplication::aboutToQuit, [&] {
         qDebug() << "Stopping...";
         decoderVaapi->stop();
         encoderVaapi->stop();
@@ -36,7 +46,6 @@ int main(int argc, char *argv[]) {
         delete decoderVaapi;
         delete encoderVaapi;
         delete framesaver;
-        app->quit();
     });
 
 

@@ -228,8 +228,7 @@ namespace AV {
 //                            ret = av_hwframe_map(pCurrentFrame, hwFrame, 0);
                             ret = av_hwframe_transfer_data(pCurrentFrame, hwFrame, 0);
                             if (ret < 0) {
-                                qWarning() << "Error mapping frame from gpu:" << av_make_error_string(new char[128], 128, ret);
-                                return;
+                                qFatal("%d: Error mapping frame from gpu: %s", ret, av_make_error_string(new char[128], 128, ret));
                             }
 //                            qDebug() << hwFrame->hw_frames_ctx->data;
                         } else {
@@ -260,6 +259,7 @@ namespace AV {
                             av_image_alloc(pCurrentBGRAFrame->data, pCurrentBGRAFrame->linesize, pCurrentFrame->width,
                                            pCurrentFrame->height, AV_PIX_FMT_BGRA, 1);
 
+                            qDebug() << "Scaling...";
                             sws_scale(pSwsContext, pCurrentFrame->data, pCurrentFrame->linesize, 0, pCurrentFrame->height,
                                       pCurrentBGRAFrame->data,
                                       pCurrentBGRAFrame->linesize);
@@ -271,7 +271,8 @@ namespace AV {
 //                                }, frame.copy());
                             }
                             av_freep(pCurrentBGRAFrame->data);
-                            av_frame_free(&pCurrentFrame);
+                            av_frame_free(&pCurrentBGRAFrame);
+                            pCurrentBGRAFrame = nullptr;
                         }
 
                         if (!m_avfCallbacks.isEmpty()) {
@@ -294,11 +295,12 @@ namespace AV {
 //                                QtConcurrent::run([&](AVFrame *avFrame) {
                                 cb->onFrame(cbFrame, pVideoCodecCtx->time_base, pVideoCodecCtx->framerate);
 //                                }, cbFrame);
+                                av_frame_unref(cbFrame);
                             }
                         }
 
                         av_frame_free(&hwFrame);
-                        pCurrentBGRAFrame = nullptr;
+                        av_frame_free(&pCurrentFrame);
                         pCurrentFrame = nullptr;
                         hwFrame = nullptr;
                     }
