@@ -4,15 +4,19 @@
 
 #include "IFrameSink.h"
 
-#include <QtGui>
-
 #ifndef TRANSCODE_FRAMESAVER_H
 #define TRANSCODE_FRAMESAVER_H
 
+
 namespace AV {
+    class FrameSaverPrivate;
+
     class FrameSaver : public QObject, public IFrameSink {
     Q_OBJECT
         Q_INTERFACES(AV::IFrameSink)
+
+        Q_DECLARE_PRIVATE(AV::FrameSaver)
+
     public:
         explicit FrameSaver(QObject *parent = nullptr);
 
@@ -29,12 +33,12 @@ namespace AV {
 
         Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate) override;
 
-        Q_INVOKABLE void
-        onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) override;
 
-    private:
-        std::atomic_uint64_t frame_number = 0;
-        std::atomic_bool isPaused = false;
+    protected:
+        explicit FrameSaver(FrameSaverPrivate &p);
+
+        FrameSaverPrivate *d_ptr;
     };
 }
 

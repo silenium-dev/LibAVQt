@@ -2,14 +2,14 @@
 // Created by silas on 3/1/21.
 //
 
-#include "IFrameSink.h"
-
-#include <QtCore>
+#include <QObject>
 
 #ifndef TRANSCODE_IFRAMESOURCE_H
 #define TRANSCODE_IFRAMESOURCE_H
 
 namespace AV {
+    class IFrameSink;
+
     class IFrameSource {
     public:
         static constexpr uint8_t CB_AVFRAME = 0x01;

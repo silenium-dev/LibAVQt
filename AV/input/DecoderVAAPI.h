@@ -23,9 +23,14 @@ extern "C" {
 #define TRANSCODE_DECODERVAAPI_H
 
 namespace AV {
+    struct DecoderVAAPIPrivate;
+
     class DecoderVAAPI : public QThread, public IFrameSource {
     Q_OBJECT
         Q_INTERFACES(AV::IFrameSource)
+
+        Q_DECLARE_PRIVATE(AV::DecoderVAAPI)
+
     public:
         explicit DecoderVAAPI(QIODevice *inputDevice, QObject *parent = nullptr);
 
@@ -54,33 +59,10 @@ namespace AV {
 
         void stopped() override;
 
-    private:
-        static int readFromIO(void *opaque, uint8_t *buf, int bufSize);
+    protected:
+        explicit DecoderVAAPI(DecoderVAAPIPrivate &p);
 
-        static int64_t seekIO(void *opaque, int64_t pos, int whence);
-
-        uint8_t *pIOBuffer = nullptr;
-        AVIOContext *pInputCtx = nullptr;
-        AVFormatContext *pFormatCtx = nullptr;
-        AVCodec *pVideoCodec = nullptr, *pAudioCodec = nullptr;
-        AVCodecContext *pVideoCodecCtx = nullptr, *pAudioCodecCtx = nullptr;
-        AVBufferRef *pDeviceCtx = nullptr;
-        AVBufferRef *pFramesCtx = nullptr;
-        AVFrame *pCurrentFrame = nullptr;
-        AVFrame *pCurrentBGRAFrame = nullptr;
-
-        int videoIndex = 0, audioIndex = 0;
-
-        SwsContext *pSwsContext = nullptr;
-
-        QIODevice *m_inputDevice;
-
-        // Callback stuff
-        QList<IFrameSink *> m_avfCallbacks, m_qiCallbacks;
-
-        // Threading stuff
-        std::atomic_bool isRunning = false;
-        std::atomic_bool isPaused = false;
+        DecoderVAAPIPrivate *d_ptr;
     };
 
 }

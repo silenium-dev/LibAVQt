@@ -2,21 +2,14 @@
 // Created by silas on 3/1/21.
 //
 
-#include <QtCore>
-
-extern "C" {
-#include <libavutil/avutil.h>
-#include <libavfilter/avfilter.h>
-#include <libavformat/avformat.h>
-#include <libavdevice/avdevice.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
-#include <libswresample/swresample.h>
-#include <libavutil/imgutils.h>
-}
+#include <QImage>
+#include <QObject>
 
 #ifndef TRANSCODE_IFRAMESINK_H
 #define TRANSCODE_IFRAMESINK_H
+
+struct AVFrame;
+struct AVRational;
 
 namespace AV {
     class IFrameSink {

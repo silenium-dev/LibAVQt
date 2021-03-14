@@ -1,6 +1,6 @@
-#include "AV/DecoderVAAPI.h"
-#include "AV/EncoderVAAPI.h"
-#include "AV/FrameSaver.h"
+#include "AV/input/DecoderVAAPI.h"
+#include "AV/output/EncoderVAAPI.h"
+#include "AV/output/FrameSaver.h"
 
 #include <QtCore>
 #include <csignal>
@@ -8,7 +8,8 @@
 QCoreApplication *app;
 
 void signalHandler(int sigNum) {
-    app->quit();
+    Q_UNUSED(sigNum)
+    QCoreApplication::quit();
 }
 
 int main(int argc, char *argv[]) {
@@ -49,5 +50,5 @@ int main(int argc, char *argv[]) {
     });
 
 
-    return app->exec();
+    return QCoreApplication::exec();
 }
