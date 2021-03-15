@@ -1,0 +1,229 @@
+\hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private}{}\doxysection{AVQt\+::Decoder\+VAAPIPrivate Struct Reference}
+\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private}\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+
+
+{\ttfamily \#include $<$Decoder\+VAAPI\+\_\+p.\+h$>$}
+
+
+
+Collaboration diagram for AVQt\+::Decoder\+VAAPIPrivate\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a4bb258fbfc39df6061bce7af54e4db02}{Decoder\+VAAPIPrivate}} (\mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i}{Decoder\+VAAPI}} $\ast$q)
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static int \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_aad414d8c063d6252bc818fff29252c86}{read\+From\+IO}} (void $\ast$opaque, uint8\+\_\+t $\ast$buf, int buf\+Size)
+\item 
+static int64\+\_\+t \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8e7658d66024fa5734cbdfeb801b3729}{seek\+IO}} (void $\ast$opaque, int64\+\_\+t pos, int whence)
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i}{Decoder\+VAAPI}} $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ad5b8d6a13839b5a44870ab87d4506885}{q\+\_\+ptr}}
+\item 
+uint8\+\_\+t $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ae53fa750e9187d1926587928c48042a3}{m\+\_\+p\+IOBuffer}} = nullptr
+\item 
+AVIOContext $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ac581d29e353cd0ec57d3ceb5e4978c80}{m\+\_\+p\+Input\+Ctx}} = nullptr
+\item 
+AVFormat\+Context $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a1d92034d588ba1b18ae9b3be593b5a1a}{m\+\_\+p\+Format\+Ctx}} = nullptr
+\item 
+AVCodec $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a93a5d95b88ca570df5e1f32463745f60}{m\+\_\+p\+Audio\+Codec}} = nullptr
+\item 
+AVCodec $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a36e494e292d58ee69cc7d460788d97ba}{m\+\_\+p\+Video\+Codec}} = nullptr
+\item 
+AVCodec\+Context $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a47b2e50f2063b9e14965c0317dfb7647}{m\+\_\+p\+Audio\+Codec\+Ctx}} = nullptr
+\item 
+AVCodec\+Context $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a26575058277b28968ae4da60fce8b988}{m\+\_\+p\+Video\+Codec\+Ctx}} = nullptr
+\item 
+AVBuffer\+Ref $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ac21f3f0fef7e2ff1b034c3a2db92aa15}{m\+\_\+p\+Device\+Ctx}} = nullptr
+\item 
+AVFrame $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8b5e0a065ab43853e279305f39c76765}{m\+\_\+p\+Current\+Frame}} = nullptr
+\item 
+AVFrame $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_abff8d3ae9bf74fa7879d7c7013a70286}{m\+\_\+p\+Current\+BGRAFrame}} = nullptr
+\item 
+int \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a40bbe0702045443ddb50d7a4a9ee5da0}{m\+\_\+video\+Index}} = 0
+\item 
+int \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a46982455f244b34d77ec56ded51e8389}{m\+\_\+audio\+Index}} = 0
+\item 
+Sws\+Context $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a466fc0394a9209a99c514702b0c03c5e}{m\+\_\+p\+Sws\+Context}} = nullptr
+\item 
+QIODevice $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a7d0afba0685021865fee9cf1c447b328}{m\+\_\+input\+Device}} = nullptr
+\item 
+QList$<$ \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$ $>$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ae5998bf429ea2e8686c0972541321d64}{m\+\_\+avf\+Callbacks}}
+\item 
+QList$<$ \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$ $>$ \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_adc436f170972e7cc4936d99a016253e8}{m\+\_\+qi\+Callbacks}}
+\item 
+std\+::atomic\+\_\+bool \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a9dd0df1ada97709fa3a6764d5b24cec4}{m\+\_\+is\+Running}} = false
+\item 
+std\+::atomic\+\_\+bool \mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a3eb2960ca00494d4fc44baf9bd6d48a1}{m\+\_\+is\+Paused}} = false
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a4bb258fbfc39df6061bce7af54e4db02}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a4bb258fbfc39df6061bce7af54e4db02}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!DecoderVAAPIPrivate@{DecoderVAAPIPrivate}}
+\index{DecoderVAAPIPrivate@{DecoderVAAPIPrivate}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{DecoderVAAPIPrivate()}{DecoderVAAPIPrivate()}}
+{\footnotesize\ttfamily AVQt\+::\+Decoder\+VAAPIPrivate\+::\+Decoder\+VAAPIPrivate (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i}{Decoder\+VAAPI}} $\ast$}]{q }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [explicit]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_aad414d8c063d6252bc818fff29252c86}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_aad414d8c063d6252bc818fff29252c86}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!readFromIO@{readFromIO}}
+\index{readFromIO@{readFromIO}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{readFromIO()}{readFromIO()}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPIPrivate\+::read\+From\+IO (\begin{DoxyParamCaption}\item[{void $\ast$}]{opaque,  }\item[{uint8\+\_\+t $\ast$}]{buf,  }\item[{int}]{buf\+Size }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_aad414d8c063d6252bc818fff29252c86_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8e7658d66024fa5734cbdfeb801b3729}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8e7658d66024fa5734cbdfeb801b3729}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!seekIO@{seekIO}}
+\index{seekIO@{seekIO}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{seekIO()}{seekIO()}}
+{\footnotesize\ttfamily int64\+\_\+t AVQt\+::\+Decoder\+VAAPIPrivate\+::seek\+IO (\begin{DoxyParamCaption}\item[{void $\ast$}]{opaque,  }\item[{int64\+\_\+t}]{pos,  }\item[{int}]{whence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8e7658d66024fa5734cbdfeb801b3729_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a46982455f244b34d77ec56ded51e8389}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a46982455f244b34d77ec56ded51e8389}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_audioIndex@{m\_audioIndex}}
+\index{m\_audioIndex@{m\_audioIndex}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_audioIndex}{m\_audioIndex}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+audio\+Index = 0}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ae5998bf429ea2e8686c0972541321d64}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ae5998bf429ea2e8686c0972541321d64}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_avfCallbacks@{m\_avfCallbacks}}
+\index{m\_avfCallbacks@{m\_avfCallbacks}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_avfCallbacks}{m\_avfCallbacks}}
+{\footnotesize\ttfamily QList$<$\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$$>$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+avf\+Callbacks}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a7d0afba0685021865fee9cf1c447b328}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a7d0afba0685021865fee9cf1c447b328}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_inputDevice@{m\_inputDevice}}
+\index{m\_inputDevice@{m\_inputDevice}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_inputDevice}{m\_inputDevice}}
+{\footnotesize\ttfamily QIODevice$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+input\+Device = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a3eb2960ca00494d4fc44baf9bd6d48a1}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a3eb2960ca00494d4fc44baf9bd6d48a1}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_isPaused@{m\_isPaused}}
+\index{m\_isPaused@{m\_isPaused}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_isPaused}{m\_isPaused}}
+{\footnotesize\ttfamily std\+::atomic\+\_\+bool AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+is\+Paused = false}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a9dd0df1ada97709fa3a6764d5b24cec4}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a9dd0df1ada97709fa3a6764d5b24cec4}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_isRunning@{m\_isRunning}}
+\index{m\_isRunning@{m\_isRunning}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_isRunning}{m\_isRunning}}
+{\footnotesize\ttfamily std\+::atomic\+\_\+bool AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+is\+Running = false}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a93a5d95b88ca570df5e1f32463745f60}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a93a5d95b88ca570df5e1f32463745f60}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pAudioCodec@{m\_pAudioCodec}}
+\index{m\_pAudioCodec@{m\_pAudioCodec}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pAudioCodec}{m\_pAudioCodec}}
+{\footnotesize\ttfamily AVCodec$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Audio\+Codec = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a47b2e50f2063b9e14965c0317dfb7647}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a47b2e50f2063b9e14965c0317dfb7647}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pAudioCodecCtx@{m\_pAudioCodecCtx}}
+\index{m\_pAudioCodecCtx@{m\_pAudioCodecCtx}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pAudioCodecCtx}{m\_pAudioCodecCtx}}
+{\footnotesize\ttfamily AVCodec\+Context$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Audio\+Codec\+Ctx = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_abff8d3ae9bf74fa7879d7c7013a70286}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_abff8d3ae9bf74fa7879d7c7013a70286}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pCurrentBGRAFrame@{m\_pCurrentBGRAFrame}}
+\index{m\_pCurrentBGRAFrame@{m\_pCurrentBGRAFrame}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pCurrentBGRAFrame}{m\_pCurrentBGRAFrame}}
+{\footnotesize\ttfamily AVFrame$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Current\+BGRAFrame = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8b5e0a065ab43853e279305f39c76765}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a8b5e0a065ab43853e279305f39c76765}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pCurrentFrame@{m\_pCurrentFrame}}
+\index{m\_pCurrentFrame@{m\_pCurrentFrame}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pCurrentFrame}{m\_pCurrentFrame}}
+{\footnotesize\ttfamily AVFrame$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Current\+Frame = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ac21f3f0fef7e2ff1b034c3a2db92aa15}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ac21f3f0fef7e2ff1b034c3a2db92aa15}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pDeviceCtx@{m\_pDeviceCtx}}
+\index{m\_pDeviceCtx@{m\_pDeviceCtx}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pDeviceCtx}{m\_pDeviceCtx}}
+{\footnotesize\ttfamily AVBuffer\+Ref$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Device\+Ctx = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a1d92034d588ba1b18ae9b3be593b5a1a}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a1d92034d588ba1b18ae9b3be593b5a1a}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pFormatCtx@{m\_pFormatCtx}}
+\index{m\_pFormatCtx@{m\_pFormatCtx}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pFormatCtx}{m\_pFormatCtx}}
+{\footnotesize\ttfamily AVFormat\+Context$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Format\+Ctx = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ac581d29e353cd0ec57d3ceb5e4978c80}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ac581d29e353cd0ec57d3ceb5e4978c80}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pInputCtx@{m\_pInputCtx}}
+\index{m\_pInputCtx@{m\_pInputCtx}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pInputCtx}{m\_pInputCtx}}
+{\footnotesize\ttfamily AVIOContext$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Input\+Ctx = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ae53fa750e9187d1926587928c48042a3}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ae53fa750e9187d1926587928c48042a3}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pIOBuffer@{m\_pIOBuffer}}
+\index{m\_pIOBuffer@{m\_pIOBuffer}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pIOBuffer}{m\_pIOBuffer}}
+{\footnotesize\ttfamily uint8\+\_\+t$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+IOBuffer = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a466fc0394a9209a99c514702b0c03c5e}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a466fc0394a9209a99c514702b0c03c5e}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pSwsContext@{m\_pSwsContext}}
+\index{m\_pSwsContext@{m\_pSwsContext}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pSwsContext}{m\_pSwsContext}}
+{\footnotesize\ttfamily Sws\+Context$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Sws\+Context = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a36e494e292d58ee69cc7d460788d97ba}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a36e494e292d58ee69cc7d460788d97ba}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pVideoCodec@{m\_pVideoCodec}}
+\index{m\_pVideoCodec@{m\_pVideoCodec}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pVideoCodec}{m\_pVideoCodec}}
+{\footnotesize\ttfamily AVCodec$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Video\+Codec = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a26575058277b28968ae4da60fce8b988}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a26575058277b28968ae4da60fce8b988}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_pVideoCodecCtx@{m\_pVideoCodecCtx}}
+\index{m\_pVideoCodecCtx@{m\_pVideoCodecCtx}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_pVideoCodecCtx}{m\_pVideoCodecCtx}}
+{\footnotesize\ttfamily AVCodec\+Context$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+p\+Video\+Codec\+Ctx = nullptr}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_adc436f170972e7cc4936d99a016253e8}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_adc436f170972e7cc4936d99a016253e8}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_qiCallbacks@{m\_qiCallbacks}}
+\index{m\_qiCallbacks@{m\_qiCallbacks}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_qiCallbacks}{m\_qiCallbacks}}
+{\footnotesize\ttfamily QList$<$\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$$>$ AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+qi\+Callbacks}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a40bbe0702045443ddb50d7a4a9ee5da0}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_a40bbe0702045443ddb50d7a4a9ee5da0}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!m\_videoIndex@{m\_videoIndex}}
+\index{m\_videoIndex@{m\_videoIndex}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{m\_videoIndex}{m\_videoIndex}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPIPrivate\+::m\+\_\+video\+Index = 0}
+
+\mbox{\Hypertarget{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ad5b8d6a13839b5a44870ab87d4506885}\label{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private_ad5b8d6a13839b5a44870ab87d4506885}} 
+\index{AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}!q\_ptr@{q\_ptr}}
+\index{q\_ptr@{q\_ptr}!AVQt::DecoderVAAPIPrivate@{AVQt::DecoderVAAPIPrivate}}
+\doxysubsubsection{\texorpdfstring{q\_ptr}{q\_ptr}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i}{Decoder\+VAAPI}}$\ast$ AVQt\+::\+Decoder\+VAAPIPrivate\+::q\+\_\+ptr}
+
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/input/private/\mbox{\hyperlink{_decoder_v_a_a_p_i__p_8h}{Decoder\+VAAPI\+\_\+p.\+h}}\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/input/\mbox{\hyperlink{_decoder_v_a_a_p_i_8cpp}{Decoder\+VAAPI.\+cpp}}\end{DoxyCompactItemize}

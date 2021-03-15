@@ -1,0 +1,160 @@
+\hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i}{}\doxysection{AVQt\+::Decoder\+VAAPI Class Reference}
+\label{class_a_v_qt_1_1_decoder_v_a_a_p_i}\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+
+
+{\ttfamily \#include $<$Decoder\+VAAPI.\+h$>$}
+
+
+
+Inheritance diagram for AVQt\+::Decoder\+VAAPI\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{class_a_v_qt_1_1_decoder_v_a_a_p_i__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for AVQt\+::Decoder\+VAAPI\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{class_a_v_qt_1_1_decoder_v_a_a_p_i__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Slots}
+\begin{DoxyCompactItemize}
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_ad765368c47d0774fdcac5a769be3a798}{init}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a74f3e183413e4fd07ce186de0c331edb}{deinit}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a24e64a6e286579316786379a21bd1d56}{start}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a9288f1259c6860ec130569e317417458}{stop}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a697a517da6e0ae35e3beb5d4705e216d}{pause}} (bool pause) override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a7f14f672187f116025bb87da3a6dd427}{register\+Callback}} (\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$frame\+Sink, uint8\+\_\+t type) override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_aca4a28db4a154a2939d96e7f085fd4a3}{unregister\+Callback}} (\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$frame\+Sink) override
+\end{DoxyCompactItemize}
+\doxysubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a6b5f5ae032c862ec96d69fda2989293d}{started}} () override
+\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_aca7cf14532503dc13b41064e2fb6ba71}{stopped}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a67e2657aa9027c0de102f1fb0c7a2a12}{Decoder\+VAAPI}} (QIODevice $\ast$input\+Device, QObject $\ast$parent=nullptr)
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a43a45aeaf2b881514852944ff35a9eb9}{$\sim$\+Decoder\+VAAPI}} () override=default
+\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a1c149f410932486f749f91f19301d8a6}{run}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a6d28afe44d780f44662f80719af12e6e}{Decoder\+VAAPI}} (\mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private}{Decoder\+VAAPIPrivate}} \&p)
+\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a67e2657aa9027c0de102f1fb0c7a2a12}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a67e2657aa9027c0de102f1fb0c7a2a12}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!DecoderVAAPI@{DecoderVAAPI}}
+\index{DecoderVAAPI@{DecoderVAAPI}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{DecoderVAAPI()}{DecoderVAAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily AVQt\+::\+Decoder\+VAAPI\+::\+Decoder\+VAAPI (\begin{DoxyParamCaption}\item[{QIODevice $\ast$}]{input\+Device,  }\item[{QObject $\ast$}]{parent = {\ttfamily nullptr} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a43a45aeaf2b881514852944ff35a9eb9}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a43a45aeaf2b881514852944ff35a9eb9}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!````~DecoderVAAPI@{$\sim$DecoderVAAPI}}
+\index{````~DecoderVAAPI@{$\sim$DecoderVAAPI}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{$\sim$DecoderVAAPI()}{~DecoderVAAPI()}}
+{\footnotesize\ttfamily AVQt\+::\+Decoder\+VAAPI\+::$\sim$\+Decoder\+VAAPI (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [default]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a6d28afe44d780f44662f80719af12e6e}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a6d28afe44d780f44662f80719af12e6e}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!DecoderVAAPI@{DecoderVAAPI}}
+\index{DecoderVAAPI@{DecoderVAAPI}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{DecoderVAAPI()}{DecoderVAAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily AVQt\+::\+Decoder\+VAAPI\+::\+Decoder\+VAAPI (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_a_v_qt_1_1_decoder_v_a_a_p_i_private}{Decoder\+VAAPIPrivate}} \&}]{p }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}, {\ttfamily [protected]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a74f3e183413e4fd07ce186de0c331edb}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a74f3e183413e4fd07ce186de0c331edb}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!deinit@{deinit}}
+\index{deinit@{deinit}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{deinit}{deinit}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::deinit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_ad765368c47d0774fdcac5a769be3a798}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_ad765368c47d0774fdcac5a769be3a798}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!init@{init}}
+\index{init@{init}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{init}{init}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_a_v_qt_1_1_decoder_v_a_a_p_i_ad765368c47d0774fdcac5a769be3a798_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a697a517da6e0ae35e3beb5d4705e216d}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a697a517da6e0ae35e3beb5d4705e216d}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!pause@{pause}}
+\index{pause@{pause}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{pause}{pause}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a7f14f672187f116025bb87da3a6dd427}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a7f14f672187f116025bb87da3a6dd427}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!registerCallback@{registerCallback}}
+\index{registerCallback@{registerCallback}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{registerCallback}{registerCallback}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::register\+Callback (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$}]{frame\+Sink,  }\item[{uint8\+\_\+t}]{type }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a1c149f410932486f749f91f19301d8a6}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a1c149f410932486f749f91f19301d8a6}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!run@{run}}
+\index{run@{run}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily void AVQt\+::\+Decoder\+VAAPI\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a24e64a6e286579316786379a21bd1d56}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a24e64a6e286579316786379a21bd1d56}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!start@{start}}
+\index{start@{start}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{start}{start}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a6b5f5ae032c862ec96d69fda2989293d}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a6b5f5ae032c862ec96d69fda2989293d}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!started@{started}}
+\index{started@{started}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{started}{started}}
+{\footnotesize\ttfamily void AVQt\+::\+Decoder\+VAAPI\+::started (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_a9288f1259c6860ec130569e317417458}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_a9288f1259c6860ec130569e317417458}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!stop@{stop}}
+\index{stop@{stop}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{stop}{stop}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::stop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_aca7cf14532503dc13b41064e2fb6ba71}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_aca7cf14532503dc13b41064e2fb6ba71}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!stopped@{stopped}}
+\index{stopped@{stopped}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{stopped}{stopped}}
+{\footnotesize\ttfamily void AVQt\+::\+Decoder\+VAAPI\+::stopped (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_decoder_v_a_a_p_i_aca4a28db4a154a2939d96e7f085fd4a3}\label{class_a_v_qt_1_1_decoder_v_a_a_p_i_aca4a28db4a154a2939d96e7f085fd4a3}} 
+\index{AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}!unregisterCallback@{unregisterCallback}}
+\index{unregisterCallback@{unregisterCallback}!AVQt::DecoderVAAPI@{AVQt::DecoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{unregisterCallback}{unregisterCallback}}
+{\footnotesize\ttfamily int AVQt\+::\+Decoder\+VAAPI\+::unregister\+Callback (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$}]{frame\+Sink }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/input/\mbox{\hyperlink{_decoder_v_a_a_p_i_8h}{Decoder\+VAAPI.\+h}}\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/input/\mbox{\hyperlink{_decoder_v_a_a_p_i_8cpp}{Decoder\+VAAPI.\+cpp}}\end{DoxyCompactItemize}

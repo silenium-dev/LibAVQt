@@ -1,0 +1,237 @@
+\hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i}{}\doxysection{AVQt\+::Encoder\+VAAPI Class Reference}
+\label{class_a_v_qt_1_1_encoder_v_a_a_p_i}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+
+
+{\ttfamily \#include $<$Encoder\+VAAPI.\+h$>$}
+
+
+
+Inheritance diagram for AVQt\+::Encoder\+VAAPI\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=258pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for AVQt\+::Encoder\+VAAPI\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=258pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum class \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{VIDEO\+\_\+\+CODEC}} \{ \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09}{H264}}
+, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1}{HEVC}}
+, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723}{VP9}}
+ \}
+\item 
+enum class \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AUDIO\+\_\+\+CODEC}} \{ \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b}{AAC}}
+, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716}{OGG}}
+, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9}{OPUS}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Slots}
+\begin{DoxyCompactItemize}
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}{init}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990}{deinit}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}{start}} () override
+\item 
+Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}{stop}} () override
+\item 
+Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}{pause}} (bool pause) override
+\item 
+bool \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_aa0d67236ce5821c60c01f0236f734624}{is\+Paused}} () override
+\item 
+Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_aedd1475224c1fbe7f5cd486335561ad5}{on\+Frame}} (QImage frame, AVRational timebase, AVRational framerate) override
+\item 
+Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a09ec36fde99f78820afd04db85abed72}{on\+Frame}} (AVFrame $\ast$frame, AVRational timebase, AVRational framerate) override
+\end{DoxyCompactItemize}
+\doxysubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a50ce856ea4f3393069cf1917842e322b}{started}} () override
+\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8889e577f5f9c9d0895dc75a2061fd6c}{stopped}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a18ecc094514d5f673a3436c12070a871}{Encoder\+VAAPI}} (QIODevice $\ast$output\+Device, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{VIDEO\+\_\+\+CODEC}} video\+Codec, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AUDIO\+\_\+\+CODEC}} audio\+Codec, int width, int height, AVRational framerate, int bitrate, QObject $\ast$parent=nullptr)
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c}{$\sim$\+Encoder\+VAAPI}} () override
+\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df424158ca24}{run}} () override
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}{Encoder\+VAAPI}} (\mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private}{Encoder\+VAAPIPrivate}} \&p)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Enumeration Documentation}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!AUDIO\_CODEC@{AUDIO\_CODEC}}
+\index{AUDIO\_CODEC@{AUDIO\_CODEC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{AUDIO\_CODEC}{AUDIO\_CODEC}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AVQt\+::\+Encoder\+VAAPI\+::\+AUDIO\+\_\+\+CODEC}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{AAC@{AAC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!AAC@{AAC}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b}} 
+AAC&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{OGG@{OGG}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!OGG@{OGG}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716}} 
+OGG&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{OPUS@{OPUS}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!OPUS@{OPUS}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9}} 
+OPUS&\\
+\hline
+
+\end{DoxyEnumFields}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!VIDEO\_CODEC@{VIDEO\_CODEC}}
+\index{VIDEO\_CODEC@{VIDEO\_CODEC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{VIDEO\_CODEC}{VIDEO\_CODEC}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{AVQt\+::\+Encoder\+VAAPI\+::\+VIDEO\+\_\+\+CODEC}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{H264@{H264}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!H264@{H264}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09}} 
+H264&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{HEVC@{HEVC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!HEVC@{HEVC}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1}} 
+HEVC&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{VP9@{VP9}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!VP9@{VP9}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723}} 
+VP9&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a18ecc094514d5f673a3436c12070a871}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a18ecc094514d5f673a3436c12070a871}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!EncoderVAAPI@{EncoderVAAPI}}
+\index{EncoderVAAPI@{EncoderVAAPI}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{EncoderVAAPI()}{EncoderVAAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::\+Encoder\+VAAPI (\begin{DoxyParamCaption}\item[{QIODevice $\ast$}]{output\+Device,  }\item[{\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{VIDEO\+\_\+\+CODEC}}}]{video\+Codec,  }\item[{\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AUDIO\+\_\+\+CODEC}}}]{audio\+Codec,  }\item[{int}]{width,  }\item[{int}]{height,  }\item[{AVRational}]{framerate,  }\item[{int}]{bitrate,  }\item[{QObject $\ast$}]{parent = {\ttfamily nullptr} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!````~EncoderVAAPI@{$\sim$EncoderVAAPI}}
+\index{````~EncoderVAAPI@{$\sim$EncoderVAAPI}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{$\sim$EncoderVAAPI()}{~EncoderVAAPI()}}
+{\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::$\sim$\+Encoder\+VAAPI (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!EncoderVAAPI@{EncoderVAAPI}}
+\index{EncoderVAAPI@{EncoderVAAPI}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{EncoderVAAPI()}{EncoderVAAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::\+Encoder\+VAAPI (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private}{Encoder\+VAAPIPrivate}} \&}]{p }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}, {\ttfamily [protected]}}
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!deinit@{deinit}}
+\index{deinit@{deinit}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{deinit}{deinit}}
+{\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::deinit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!init@{init}}
+\index{init@{init}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{init}{init}}
+{\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_aa0d67236ce5821c60c01f0236f734624}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_aa0d67236ce5821c60c01f0236f734624}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!isPaused@{isPaused}}
+\index{isPaused@{isPaused}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{isPaused}{isPaused}}
+{\footnotesize\ttfamily bool AVQt\+::\+Encoder\+VAAPI\+::is\+Paused (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a09ec36fde99f78820afd04db85abed72}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a09ec36fde99f78820afd04db85abed72}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!onFrame@{onFrame}}
+\index{onFrame@{onFrame}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{onFrame}{onFrame}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::on\+Frame (\begin{DoxyParamCaption}\item[{AVFrame $\ast$}]{frame,  }\item[{AVRational}]{timebase,  }\item[{AVRational}]{framerate }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_aedd1475224c1fbe7f5cd486335561ad5}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_aedd1475224c1fbe7f5cd486335561ad5}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!onFrame@{onFrame}}
+\index{onFrame@{onFrame}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{onFrame}{onFrame}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::on\+Frame (\begin{DoxyParamCaption}\item[{QImage}]{frame,  }\item[{AVRational}]{timebase,  }\item[{AVRational}]{framerate }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!pause@{pause}}
+\index{pause@{pause}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{pause}{pause}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df424158ca24}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df424158ca24}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!run@{run}}
+\index{run@{run}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!start@{start}}
+\index{start@{start}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{start}{start}}
+{\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a50ce856ea4f3393069cf1917842e322b}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a50ce856ea4f3393069cf1917842e322b}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!started@{started}}
+\index{started@{started}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{started}{started}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::started (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!stop@{stop}}
+\index{stop@{stop}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{stop}{stop}}
+{\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::stop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8889e577f5f9c9d0895dc75a2061fd6c}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8889e577f5f9c9d0895dc75a2061fd6c}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!stopped@{stopped}}
+\index{stopped@{stopped}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{stopped}{stopped}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::stopped (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/output/\mbox{\hyperlink{_encoder_v_a_a_p_i_8h}{Encoder\+VAAPI.\+h}}\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/output/\mbox{\hyperlink{_encoder_v_a_a_p_i_8cpp}{Encoder\+VAAPI.\+cpp}}\end{DoxyCompactItemize}
