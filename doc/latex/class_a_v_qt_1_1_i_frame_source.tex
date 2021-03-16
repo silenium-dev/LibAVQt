@@ -1,5 +1,10 @@
-\hypertarget{class_a_v_qt_1_1_i_frame_source}{}\doxysection{AVQt\+::IFrame\+Source Class Reference}
+\hypertarget{class_a_v_qt_1_1_i_frame_source}{}\doxysection{AVQt\+::IFrame\+Source Interface Reference}
 \label{class_a_v_qt_1_1_i_frame_source}\index{AVQt::IFrameSource@{AVQt::IFrameSource}}
+
+
+Base class for every frame sink.  
+
+
 
 
 {\ttfamily \#include $<$IFrame\+Source.\+h$>$}
@@ -16,70 +21,67 @@ Inheritance diagram for AVQt\+::IFrame\+Source\+:\nopagebreak
 \doxysubsection*{Public Types}
 \begin{DoxyCompactItemize}
 \item 
-enum \+: int8\+\_\+t \{ \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7}{CB\+\_\+\+NONE}} = -\/1
-, \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7abe2e781f25792ee1446b4a7b05b5430a}{CB\+\_\+\+QIMAGE}} = 0
-, \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a8a0375d1ec8ae1f4899d23fcccd94153}{CB\+\_\+\+AVFRAME}} = 1
- \}
-\end{DoxyCompactItemize}
+enum \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9}{CB\+\_\+\+TYPE}} \+: int8\+\_\+t \{  \}
+\begin{DoxyCompactList}\small\item\em Used to define accepted callback types of a frame source or filter. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Slots}
 \begin{DoxyCompactItemize}
 \item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a0d8558c56ce93e03865647125a507f74}{init}} ()=0
-\item 
+\begin{DoxyCompactList}\small\item\em Initialize frame source (e.\+g. open files, allocate buffers). \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a813ebcdcce58aa4cabd41038a1998efe}{deinit}} ()=0
-\item 
+\begin{DoxyCompactList}\small\item\em Clean up frame source (e.\+g. close network connections, free buffers). \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4388d4f4782c5970eb721151e43a0958}{start}} ()=0
-\item 
+\begin{DoxyCompactList}\small\item\em Starts frame source (e.\+g. Start processing thread, activate camera). \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a225bcf3c25acf52358a1898dcf8abfbd}{stop}} ()=0
-\item 
-virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_ad59ce00452d4e0bf92c3a7c4988de8be}{pause}} (bool pause)=0
-\item 
+\begin{DoxyCompactList}\small\item\em Stops frame source (e.\+g. Interrupt processing thread, free camera). \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a8adc3c97c319c26a456b99c7db76c2b5}{pause}} (bool pause)=0
+\begin{DoxyCompactList}\small\item\em Sets paused flag of frame source. \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a0b5172f65568d0183789e744ca95f5b8}{register\+Callback}} (\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$frame\+Sink, uint8\+\_\+t type)=0
-\item 
+\begin{DoxyCompactList}\small\item\em Register frame callback {\ttfamily frame\+Sink} with given {\ttfamily type}. \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a7a31d67d2120a810e7fd1a3fc381eeeb}{unregister\+Callback}} (\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$frame\+Sink)=0
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Removes frame callback {\ttfamily frame\+Sink} from registry. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Signals}
 \begin{DoxyCompactItemize}
 \item 
 virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a8325db13fdc2797f13424fcbf2dc917b}{started}} ()=0
-\item 
+\begin{DoxyCompactList}\small\item\em Emitted when started. \end{DoxyCompactList}\item 
 virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4a42c3d03c5ad9f7963cc1a07736fdd1}{stopped}} ()=0
+\begin{DoxyCompactList}\small\item\em Emitted when stopped. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a1e536ea506281302e56d19d20f41db5c}{paused}} (bool \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a8adc3c97c319c26a456b99c7db76c2b5}{pause}})=0
 \end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-virtual \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a7906d64f994d2a062bf6b8076d6db4cd}{$\sim$\+IFrame\+Source}} ()=default
-\end{DoxyCompactItemize}
+virtual bool \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a5135e8df03b4b624d7e2d751634863ad}{is\+Paused}} ()=0
+\begin{DoxyCompactList}\small\item\em Returns, whether the frame source is currently paused. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
+
+\doxysubsection{Detailed Description}
+Base class for every frame sink. 
+
+All subclasses of \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source}{IFrame\+Source}} represent a possible start of a frame processing pipeline (e.\+g. a decoder, a desktop/window capture, camera). 
 
 \doxysubsection{Member Enumeration Documentation}
-\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7}\label{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7}} 
-\doxysubsubsection{\texorpdfstring{anonymous enum}{anonymous enum}}
-{\footnotesize\ttfamily anonymous enum \+: int8\+\_\+t}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9}\label{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9}} 
+\index{AVQt::IFrameSource@{AVQt::IFrameSource}!CB\_TYPE@{CB\_TYPE}}
+\index{CB\_TYPE@{CB\_TYPE}!AVQt::IFrameSource@{AVQt::IFrameSource}}
+\doxysubsubsection{\texorpdfstring{CB\_TYPE}{CB\_TYPE}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9}{AVQt\+::\+IFrame\+Source\+::\+CB\+\_\+\+TYPE}} \+: int8\+\_\+t}
 
-\begin{DoxyEnumFields}{Enumerator}
-\raisebox{\heightof{T}}[0pt][0pt]{\index{CB\_NONE@{CB\_NONE}!AVQt::IFrameSource@{AVQt::IFrameSource}}\index{AVQt::IFrameSource@{AVQt::IFrameSource}!CB\_NONE@{CB\_NONE}}}\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7}\label{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7}} 
-CB\+\_\+\+NONE&\\
+
+
+Used to define accepted callback types of a frame source or filter. 
+
+Can be linked with bitwise or to set multiple types \begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{CB\_QIMAGE@{CB\_QIMAGE}!AVQt::IFrameSource@{AVQt::IFrameSource}}\index{AVQt::IFrameSource@{AVQt::IFrameSource}!CB\_QIMAGE@{CB\_QIMAGE}}}\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9abe2e781f25792ee1446b4a7b05b5430a}\label{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9abe2e781f25792ee1446b4a7b05b5430a}} 
+CB\+\_\+\+QIMAGE&Callback type\+: QImage. When registered with this type, the on\+Frame(\+QImage, ...) method will be called. \\
 \hline
 
-\raisebox{\heightof{T}}[0pt][0pt]{\index{CB\_QIMAGE@{CB\_QIMAGE}!AVQt::IFrameSource@{AVQt::IFrameSource}}\index{AVQt::IFrameSource@{AVQt::IFrameSource}!CB\_QIMAGE@{CB\_QIMAGE}}}\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7abe2e781f25792ee1446b4a7b05b5430a}\label{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7abe2e781f25792ee1446b4a7b05b5430a}} 
-CB\+\_\+\+QIMAGE&\\
-\hline
-
-\raisebox{\heightof{T}}[0pt][0pt]{\index{CB\_AVFRAME@{CB\_AVFRAME}!AVQt::IFrameSource@{AVQt::IFrameSource}}\index{AVQt::IFrameSource@{AVQt::IFrameSource}!CB\_AVFRAME@{CB\_AVFRAME}}}\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a8a0375d1ec8ae1f4899d23fcccd94153}\label{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a8a0375d1ec8ae1f4899d23fcccd94153}} 
-CB\+\_\+\+AVFRAME&\\
+\raisebox{\heightof{T}}[0pt][0pt]{\index{CB\_AVFRAME@{CB\_AVFRAME}!AVQt::IFrameSource@{AVQt::IFrameSource}}\index{AVQt::IFrameSource@{AVQt::IFrameSource}!CB\_AVFRAME@{CB\_AVFRAME}}}\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9a8a0375d1ec8ae1f4899d23fcccd94153}\label{class_a_v_qt_1_1_i_frame_source_a3fd19f9a4a566d40c1b6d9a45602a9e9a8a0375d1ec8ae1f4899d23fcccd94153}} 
+CB\+\_\+\+AVFRAME&Callback type\+: AVFrame. When registered with this type, the on\+Frame(\+AVFrame, ...) method will be called. {\itshape {\bfseries{Important\+:}}} The AVFrame can be every possible software pixel format, so the frame sink/filter has to be able to convert the pixel format if necessary. It has to be freed after usage. If the source processes frames on the GPU, it has to be downloaded to CPU memory before passing to callbacks. \\
 \hline
 
 \end{DoxyEnumFields}
-
-
-\doxysubsection{Constructor \& Destructor Documentation}
-\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a7906d64f994d2a062bf6b8076d6db4cd}\label{class_a_v_qt_1_1_i_frame_source_a7906d64f994d2a062bf6b8076d6db4cd}} 
-\index{AVQt::IFrameSource@{AVQt::IFrameSource}!````~IFrameSource@{$\sim$IFrameSource}}
-\index{````~IFrameSource@{$\sim$IFrameSource}!AVQt::IFrameSource@{AVQt::IFrameSource}}
-\doxysubsubsection{\texorpdfstring{$\sim$IFrameSource()}{~IFrameSource()}}
-{\footnotesize\ttfamily virtual AVQt\+::\+IFrame\+Source\+::$\sim$\+IFrame\+Source (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}, {\ttfamily [default]}}
-
 
 
 \doxysubsection{Member Function Documentation}
@@ -89,17 +91,66 @@ CB\+\_\+\+AVFRAME&\\
 \doxysubsubsection{\texorpdfstring{deinit}{deinit}}
 {\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Source\+::deinit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
 
+
+
+Clean up frame source (e.\+g. close network connections, free buffers). 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a0d8558c56ce93e03865647125a507f74}\label{class_a_v_qt_1_1_i_frame_source_a0d8558c56ce93e03865647125a507f74}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!init@{init}}
 \index{init@{init}!AVQt::IFrameSource@{AVQt::IFrameSource}}
 \doxysubsubsection{\texorpdfstring{init}{init}}
 {\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Source\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
 
-\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_ad59ce00452d4e0bf92c3a7c4988de8be}\label{class_a_v_qt_1_1_i_frame_source_ad59ce00452d4e0bf92c3a7c4988de8be}} 
+
+
+Initialize frame source (e.\+g. open files, allocate buffers). 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a5135e8df03b4b624d7e2d751634863ad}\label{class_a_v_qt_1_1_i_frame_source_a5135e8df03b4b624d7e2d751634863ad}} 
+\index{AVQt::IFrameSource@{AVQt::IFrameSource}!isPaused@{isPaused}}
+\index{isPaused@{isPaused}!AVQt::IFrameSource@{AVQt::IFrameSource}}
+\doxysubsubsection{\texorpdfstring{isPaused()}{isPaused()}}
+{\footnotesize\ttfamily virtual bool AVQt\+::\+IFrame\+Source\+::is\+Paused (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Returns, whether the frame source is currently paused. 
+
+\begin{DoxyReturn}{Returns}
+Paused state 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{class_a_v_qt_1_1_decoder_v_a_a_p_i_a5c19df23399606530cb002f28691cbc7}{AVQt\+::\+Decoder\+VAAPI}}.
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a8adc3c97c319c26a456b99c7db76c2b5}\label{class_a_v_qt_1_1_i_frame_source_a8adc3c97c319c26a456b99c7db76c2b5}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!pause@{pause}}
 \index{pause@{pause}!AVQt::IFrameSource@{AVQt::IFrameSource}}
 \doxysubsubsection{\texorpdfstring{pause}{pause}}
-{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Source\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE void AVQt\+::\+IFrame\+Source\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Sets paused flag of frame source. 
+
+If set to true, the frame source suspends providing any more frames until it is set to false again. 
+\begin{DoxyParams}{Parameters}
+{\em pause} & Paused flag \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a1e536ea506281302e56d19d20f41db5c}\label{class_a_v_qt_1_1_i_frame_source_a1e536ea506281302e56d19d20f41db5c}} 
+\index{AVQt::IFrameSource@{AVQt::IFrameSource}!paused@{paused}}
+\index{paused@{paused}!AVQt::IFrameSource@{AVQt::IFrameSource}}
+\doxysubsubsection{\texorpdfstring{paused}{paused}}
+{\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Source\+::paused (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
 
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a0b5172f65568d0183789e744ca95f5b8}\label{class_a_v_qt_1_1_i_frame_source_a0b5172f65568d0183789e744ca95f5b8}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!registerCallback@{registerCallback}}
@@ -107,17 +158,42 @@ CB\+\_\+\+AVFRAME&\\
 \doxysubsubsection{\texorpdfstring{registerCallback}{registerCallback}}
 {\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Source\+::register\+Callback (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} $\ast$}]{frame\+Sink,  }\item[{uint8\+\_\+t}]{type }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
 
+
+
+Register frame callback {\ttfamily frame\+Sink} with given {\ttfamily type}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em frame\+Sink} & IFrame\+Sink/\+IFrame\+Filter based object, its on\+Frame method with type {\ttfamily type} is called for every generated frame \\
+\hline
+{\em type} & Callback type, can be linked with bitwise or to set multiple options \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a4388d4f4782c5970eb721151e43a0958}\label{class_a_v_qt_1_1_i_frame_source_a4388d4f4782c5970eb721151e43a0958}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!start@{start}}
 \index{start@{start}!AVQt::IFrameSource@{AVQt::IFrameSource}}
 \doxysubsubsection{\texorpdfstring{start}{start}}
 {\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Source\+::start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
 
+
+
+Starts frame source (e.\+g. Start processing thread, activate camera). 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a8325db13fdc2797f13424fcbf2dc917b}\label{class_a_v_qt_1_1_i_frame_source_a8325db13fdc2797f13424fcbf2dc917b}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!started@{started}}
 \index{started@{started}!AVQt::IFrameSource@{AVQt::IFrameSource}}
 \doxysubsubsection{\texorpdfstring{started}{started}}
 {\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Source\+::started (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
+
+
+
+Emitted when started. 
 
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a225bcf3c25acf52358a1898dcf8abfbd}\label{class_a_v_qt_1_1_i_frame_source_a225bcf3c25acf52358a1898dcf8abfbd}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!stop@{stop}}
@@ -125,11 +201,22 @@ CB\+\_\+\+AVFRAME&\\
 \doxysubsubsection{\texorpdfstring{stop}{stop}}
 {\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Source\+::stop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
 
+
+
+Stops frame source (e.\+g. Interrupt processing thread, free camera). 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a4a42c3d03c5ad9f7963cc1a07736fdd1}\label{class_a_v_qt_1_1_i_frame_source_a4a42c3d03c5ad9f7963cc1a07736fdd1}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!stopped@{stopped}}
 \index{stopped@{stopped}!AVQt::IFrameSource@{AVQt::IFrameSource}}
 \doxysubsubsection{\texorpdfstring{stopped}{stopped}}
 {\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Source\+::stopped (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
+
+
+
+Emitted when stopped. 
 
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_source_a7a31d67d2120a810e7fd1a3fc381eeeb}\label{class_a_v_qt_1_1_i_frame_source_a7a31d67d2120a810e7fd1a3fc381eeeb}} 
 \index{AVQt::IFrameSource@{AVQt::IFrameSource}!unregisterCallback@{unregisterCallback}}
@@ -139,6 +226,18 @@ CB\+\_\+\+AVFRAME&\\
 
 
 
-The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+Removes frame callback {\ttfamily frame\+Sink} from registry. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em frame\+Sink} & Frame sink/filter to be removed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Previous position of the item, is -\/1 when not in registry 
+\end{DoxyReturn}
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
 /home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/input/\mbox{\hyperlink{_i_frame_source_8h}{IFrame\+Source.\+h}}\end{DoxyCompactItemize}

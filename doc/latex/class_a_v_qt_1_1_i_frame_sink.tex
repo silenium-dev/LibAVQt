@@ -11,7 +11,8 @@ Base class for every frame sink.
 
 
 
-Inheritance diagram for AVQt\+::IFrame\+Sink\+:\nopagebreak
+Inheritance diagram for AVQt\+::IFrame\+Sink\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -29,7 +30,7 @@ virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_ac
 \begin{DoxyCompactList}\small\item\em Starts frame sink (e.\+g. start processing thread) \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_af9e853a9398db0e1c48894f970e902e1}{stop}} ()=0
 \begin{DoxyCompactList}\small\item\em Stops frame sink (e.\+g interrupt processing thread, flush buffers) \end{DoxyCompactList}\item 
-virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_afabc16034cae92260d213c9bff81b020}{pause}} (bool paused)=0
+virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}{pause}} (bool pause)=0
 \begin{DoxyCompactList}\small\item\em Sets paused flag, which can be retrieved with {\ttfamily \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a012852b4c1e215bf2bcc35f0ee06a136}{is\+Paused()}}} override. \end{DoxyCompactList}\item 
 virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a9c7fdbb7713742ecbad76f4d1ee17368}{on\+Frame}} (QImage frame, AVRational timebase, AVRational framerate)=0
 \begin{DoxyCompactList}\small\item\em Image process method, is invoked in objects thread for every frame. \end{DoxyCompactList}\item 
@@ -41,7 +42,9 @@ virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a
 virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a8e8f1b28dc9c949608f4871cfefae489}{started}} ()=0
 \begin{DoxyCompactList}\small\item\em Emitted when started. \end{DoxyCompactList}\item 
 virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a9dfe37374afb38a1d3c3172f7d41ec41}{stopped}} ()=0
-\begin{DoxyCompactList}\small\item\em Emitted when stopped. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Emitted when stopped. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a5ee18e22f23456445ab8963493f81a13}{paused}} (bool \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}{pause}})=0
+\begin{DoxyCompactList}\small\item\em Emitted when paused state changes. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -136,11 +139,11 @@ Image process method, is invoked in objects thread for every frame.
 {\em framerate} & Source stream framerate \\
 \hline
 \end{DoxyParams}
-\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_afabc16034cae92260d213c9bff81b020}\label{class_a_v_qt_1_1_i_frame_sink_afabc16034cae92260d213c9bff81b020}} 
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}\label{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}} 
 \index{AVQt::IFrameSink@{AVQt::IFrameSink}!pause@{pause}}
 \index{pause@{pause}!AVQt::IFrameSink@{AVQt::IFrameSink}}
 \doxysubsubsection{\texorpdfstring{pause}{pause}}
-{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE void AVQt\+::\+IFrame\+Sink\+::pause (\begin{DoxyParamCaption}\item[{bool}]{paused }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE void AVQt\+::\+IFrame\+Sink\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
 
 
 
@@ -148,7 +151,22 @@ Sets paused flag, which can be retrieved with {\ttfamily \mbox{\hyperlink{class_
 
 When Set to true, the frame sink should not process any frames, instead they should be freed immediately 
 \begin{DoxyParams}{Parameters}
-{\em paused} & New paused state \\
+{\em pause} & New paused state \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a5ee18e22f23456445ab8963493f81a13}\label{class_a_v_qt_1_1_i_frame_sink_a5ee18e22f23456445ab8963493f81a13}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!paused@{paused}}
+\index{paused@{paused}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{paused}{paused}}
+{\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Sink\+::paused (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
+
+
+
+Emitted when paused state changes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pause} & \\
 \hline
 \end{DoxyParams}
 \mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_ac387914e7e1be35bc51b5e21b471f46f}\label{class_a_v_qt_1_1_i_frame_sink_ac387914e7e1be35bc51b5e21b471f46f}} 

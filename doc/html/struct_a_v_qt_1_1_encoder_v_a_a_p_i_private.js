@@ -1,6 +1,5 @@
 var struct_a_v_qt_1_1_encoder_v_a_a_p_i_private =
 [
-    [ "Frame", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame.html", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame" ],
     [ "EncoderVAAPIPrivate", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#acede0078779ce897ba7c145737568040", null ],
     [ "m_audioCodec", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a6323c6e7f028b626c423c333a5e647de", null ],
     [ "m_bitrate", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a4318ea26831d37ad6c72f831ff55298f", null ],

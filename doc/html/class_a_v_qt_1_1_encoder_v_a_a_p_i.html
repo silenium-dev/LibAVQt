@@ -95,15 +95,29 @@ $(document).ready(function(){initNavTree('class_a_v_qt_1_1_encoder_v_a_a_p_i.htm
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="_encoder_v_a_a_p_i_8h_source.html">EncoderVAAPI.h</a>&gt;</code></p>
-<div class="dynheader">
-Inheritance diagram for AVQt::EncoderVAAPI:</div>
-<div class="dyncontent">
-<div class="center"><img src="class_a_v_qt_1_1_encoder_v_a_a_p_i__inherit__graph.png" border="0" usemap="#a_a_v_qt_1_1_encoder_v_a_a_p_i_inherit__map" alt="Inheritance graph"/></div>
-<map name="a_a_v_qt_1_1_encoder_v_a_a_p_i_inherit__map" id="a_a_v_qt_1_1_encoder_v_a_a_p_i_inherit__map">
-<area shape="rect" title=" " alt="" coords="33,80,185,107"/>
-<area shape="rect" title=" " alt="" coords="5,5,83,32"/>
-<area shape="rect" href="class_a_v_qt_1_1_i_frame_sink.html" title="Base class for every frame sink." alt="" coords="107,5,242,32"/>
+    <p>VAAPI accelerated video encoder.
+        <a href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#details">More...</a>
+    </p>
+
+    <p><code>#include &lt;<a class="el"
+                             href="_encoder_v_a_a_p_i_8h_source.html">EncoderVAAPI.h</a>&gt;</code>
+    </p>
+    <div class="dynheader">
+        Inheritance diagram for AVQt::EncoderVAAPI:
+    </div>
+    <div class="dyncontent">
+        <div class="center"><img
+                src="class_a_v_qt_1_1_encoder_v_a_a_p_i__inherit__graph.png"
+                border="0" usemap="#a_a_v_qt_1_1_encoder_v_a_a_p_i_inherit__map"
+                alt="Inheritance graph"/></div>
+        <map name="a_a_v_qt_1_1_encoder_v_a_a_p_i_inherit__map"
+             id="a_a_v_qt_1_1_encoder_v_a_a_p_i_inherit__map">
+            <area alt="" coords="33,80,185,107" shape="rect"
+                  title="VAAPI accelerated video encoder."/>
+            <area shape="rect" title=" " alt="" coords="5,5,83,32"/>
+            <area shape="rect" href="class_a_v_qt_1_1_i_frame_sink.html"
+                  title="Base class for every frame sink." alt=""
+                  coords="107,5,242,32"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
@@ -111,7 +125,8 @@ Collaboration diagram for AVQt::EncoderVAAPI:</div>
 <div class="dyncontent">
 <div class="center"><img src="class_a_v_qt_1_1_encoder_v_a_a_p_i__coll__graph.png" border="0" usemap="#a_a_v_qt_1_1_encoder_v_a_a_p_i_coll__map" alt="Collaboration graph"/></div>
 <map name="a_a_v_qt_1_1_encoder_v_a_a_p_i_coll__map" id="a_a_v_qt_1_1_encoder_v_a_a_p_i_coll__map">
-<area shape="rect" title=" " alt="" coords="33,80,185,107"/>
+    <area alt="" coords="33,80,185,107" shape="rect"
+          title="VAAPI accelerated video encoder."/>
 <area shape="rect" title=" " alt="" coords="5,5,83,32"/>
 <area shape="rect" href="class_a_v_qt_1_1_i_frame_sink.html" title="Base class for every frame sink." alt="" coords="107,5,242,32"/>
 </map>
@@ -123,113 +138,459 @@ Public Types</h2></td></tr>
 , <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1">HEVC</a>
 , <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723">VP9</a>
  }</td></tr>
+    <tr class="memdesc:a5a1cbe7bfbaeeda438c21c39901e88dc">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Enum for video codec. <a
+                href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dc">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:a5a1cbe7bfbaeeda438c21c39901e88dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5e1b8a75fde7cd737032bea08684b7c"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7c">AUDIO_CODEC</a> { <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b">AAC</a>
 , <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716">OGG</a>
 , <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9">OPUS</a>
  }</td></tr>
+    <tr class="memdesc:ac5e1b8a75fde7cd737032bea08684b7c">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Currently unused. <a
+                href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7c">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:ac5e1b8a75fde7cd737032bea08684b7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-slots"></a>
 Public Slots</h2></td></tr>
 <tr class="memitem:a94e5feee994a6aeb0fcca935b87e1b04"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a94e5feee994a6aeb0fcca935b87e1b04">init</a> () override</td></tr>
+    <tr class="memdesc:a94e5feee994a6aeb0fcca935b87e1b04">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Initialize encoder. <a
+                href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a94e5feee994a6aeb0fcca935b87e1b04">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:a94e5feee994a6aeb0fcca935b87e1b04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4889e6dd02a5625f6a577a5be85cd990"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a4889e6dd02a5625f6a577a5be85cd990">deinit</a> () override</td></tr>
+    <tr class="memdesc:a4889e6dd02a5625f6a577a5be85cd990">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Clean up encoder, encoder will be stopped before,
+            if running. <a
+                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a4889e6dd02a5625f6a577a5be85cd990">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:a4889e6dd02a5625f6a577a5be85cd990"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6eb460015f1ca131325ff15d92855ff"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac6eb460015f1ca131325ff15d92855ff">start</a> () override</td></tr>
+    <tr class="memdesc:ac6eb460015f1ca131325ff15d92855ff">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Start encoder thread. <a
+                href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac6eb460015f1ca131325ff15d92855ff">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:ac6eb460015f1ca131325ff15d92855ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf8e2bc869ddd725d3762e794f58409e"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#acf8e2bc869ddd725d3762e794f58409e">stop</a> () override</td></tr>
+    <tr class="memdesc:acf8e2bc869ddd725d3762e794f58409e">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Interrupt encoder thread and waits for it to
+            finish. <a
+                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#acf8e2bc869ddd725d3762e794f58409e">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:acf8e2bc869ddd725d3762e794f58409e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1494a35d0c991176b117c25b801f23d"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ae1494a35d0c991176b117c25b801f23d">pause</a> (bool pause) override</td></tr>
+    <tr class="memdesc:ae1494a35d0c991176b117c25b801f23d">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Sets paused flag to value of <code>pause</code>.
+            <a href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ae1494a35d0c991176b117c25b801f23d">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:ae1494a35d0c991176b117c25b801f23d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0d67236ce5821c60c01f0236f734624"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#aa0d67236ce5821c60c01f0236f734624">isPaused</a> () override</td></tr>
+    <tr class="memdesc:aa0d67236ce5821c60c01f0236f734624">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Returns current paused state. <a
+                href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#aa0d67236ce5821c60c01f0236f734624">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:aa0d67236ce5821c60c01f0236f734624"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aedd1475224c1fbe7f5cd486335561ad5"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#aedd1475224c1fbe7f5cd486335561ad5">onFrame</a> (QImage frame, AVRational timebase, AVRational framerate) override</td></tr>
+    <tr class="memdesc:aedd1475224c1fbe7f5cd486335561ad5">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Add frame to encode queue, blocks if queue is
+            full. <a
+                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#aedd1475224c1fbe7f5cd486335561ad5">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:aedd1475224c1fbe7f5cd486335561ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a09ec36fde99f78820afd04db85abed72"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a09ec36fde99f78820afd04db85abed72">onFrame</a> (AVFrame *frame, AVRational timebase, AVRational framerate) override</td></tr>
+    <tr class="memdesc:a09ec36fde99f78820afd04db85abed72">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Add frame to encode queue, blocks if queue is
+            full. <a
+                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a09ec36fde99f78820afd04db85abed72">More...</a><br/>
+        </td>
+    </tr>
 <tr class="separator:a09ec36fde99f78820afd04db85abed72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_slots_class_a_v_qt_1_1_i_frame_sink"><td colspan="2" onclick="javascript:toggleInherit('pub_slots_class_a_v_qt_1_1_i_frame_sink')"><img src="closed.png" alt="-"/>&#160;Public Slots inherited from <a class="el" href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a></td></tr>
 <tr class="memitem:ad435fa334c028336c8aca182a1e3d3c6 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#ad435fa334c028336c8aca182a1e3d3c6">init</a> ()=0</td></tr>
 <tr class="memdesc:ad435fa334c028336c8aca182a1e3d3c6 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize frame sink (e.g. allocate contexts, open streams)  <a href="class_a_v_qt_1_1_i_frame_sink.html#ad435fa334c028336c8aca182a1e3d3c6">More...</a><br /></td></tr>
-<tr class="separator:ad435fa334c028336c8aca182a1e3d3c6 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6bd40ff0c728b583503824b5388d240a inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a6bd40ff0c728b583503824b5388d240a">deinit</a> ()=0</td></tr>
-<tr class="memdesc:a6bd40ff0c728b583503824b5388d240a inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up frame sink (e.g. free buffers, close files)  <a href="class_a_v_qt_1_1_i_frame_sink.html#a6bd40ff0c728b583503824b5388d240a">More...</a><br /></td></tr>
-<tr class="separator:a6bd40ff0c728b583503824b5388d240a inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac387914e7e1be35bc51b5e21b471f46f inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#ac387914e7e1be35bc51b5e21b471f46f">start</a> ()=0</td></tr>
-<tr class="memdesc:ac387914e7e1be35bc51b5e21b471f46f inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts frame sink (e.g. start processing thread)  <a href="class_a_v_qt_1_1_i_frame_sink.html#ac387914e7e1be35bc51b5e21b471f46f">More...</a><br /></td></tr>
-<tr class="separator:ac387914e7e1be35bc51b5e21b471f46f inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9e853a9398db0e1c48894f970e902e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">stop</a> ()=0</td></tr>
-<tr class="memdesc:af9e853a9398db0e1c48894f970e902e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops frame sink (e.g interrupt processing thread, flush buffers)  <a href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">More...</a><br /></td></tr>
-<tr class="separator:af9e853a9398db0e1c48894f970e902e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afabc16034cae92260d213c9bff81b020 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#afabc16034cae92260d213c9bff81b020">pause</a> (bool paused)=0</td></tr>
-<tr class="memdesc:afabc16034cae92260d213c9bff81b020 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets paused flag, which can be retrieved with <code><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136" title="Retrieve paused state of frame sink.">isPaused()</a></code> override.  <a href="class_a_v_qt_1_1_i_frame_sink.html#afabc16034cae92260d213c9bff81b020">More...</a><br /></td></tr>
-<tr class="separator:afabc16034cae92260d213c9bff81b020 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c7fdbb7713742ecbad76f4d1ee17368 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">onFrame</a> (QImage frame, AVRational timebase, AVRational framerate)=0</td></tr>
-<tr class="memdesc:a9c7fdbb7713742ecbad76f4d1ee17368 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Image process method, is invoked in objects thread for every frame.  <a href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">More...</a><br /></td></tr>
-<tr class="separator:a9c7fdbb7713742ecbad76f4d1ee17368 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6732817a967a7278f00ec206cb3e153d inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">onFrame</a> (AVFrame *frame, AVRational timebase, AVRational framerate)=0</td></tr>
-<tr class="memdesc:a6732817a967a7278f00ec206cb3e153d inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Image process method, is invoked in objects thread for every frame.  <a href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">More...</a><br /></td></tr>
-<tr class="separator:a6732817a967a7278f00ec206cb3e153d inherit pub_slots_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="signals"></a>
-Signals</h2></td></tr>
-<tr class="memitem:a50ce856ea4f3393069cf1917842e322b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a50ce856ea4f3393069cf1917842e322b">started</a> () override</td></tr>
-<tr class="separator:a50ce856ea4f3393069cf1917842e322b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8889e577f5f9c9d0895dc75a2061fd6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a8889e577f5f9c9d0895dc75a2061fd6c">stopped</a> () override</td></tr>
-<tr class="separator:a8889e577f5f9c9d0895dc75a2061fd6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header signals_class_a_v_qt_1_1_i_frame_sink"><td colspan="2" onclick="javascript:toggleInherit('signals_class_a_v_qt_1_1_i_frame_sink')"><img src="closed.png" alt="-"/>&#160;Signals inherited from <a class="el" href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a></td></tr>
-<tr class="memitem:a8e8f1b28dc9c949608f4871cfefae489 inherit signals_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">started</a> ()=0</td></tr>
-<tr class="memdesc:a8e8f1b28dc9c949608f4871cfefae489 inherit signals_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted when started.  <a href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">More...</a><br /></td></tr>
-<tr class="separator:a8e8f1b28dc9c949608f4871cfefae489 inherit signals_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9dfe37374afb38a1d3c3172f7d41ec41 inherit signals_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">stopped</a> ()=0</td></tr>
-<tr class="memdesc:a9dfe37374afb38a1d3c3172f7d41ec41 inherit signals_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Emitted when stopped.  <a href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">More...</a><br /></td></tr>
-<tr class="separator:a9dfe37374afb38a1d3c3172f7d41ec41 inherit signals_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a18ecc094514d5f673a3436c12070a871"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a18ecc094514d5f673a3436c12070a871">EncoderVAAPI</a> (QIODevice *outputDevice, <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dc">VIDEO_CODEC</a> videoCodec, <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7c">AUDIO_CODEC</a> audioCodec, int width, int height, AVRational framerate, int bitrate, QObject *parent=nullptr)</td></tr>
-<tr class="separator:a18ecc094514d5f673a3436c12070a871"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62f2d04a74ce58981fbd636d496fad4c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a62f2d04a74ce58981fbd636d496fad4c">~EncoderVAAPI</a> () override</td></tr>
-<tr class="separator:a62f2d04a74ce58981fbd636d496fad4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72055f7611a20d68e9f3df424158ca24"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a72055f7611a20d68e9f3df424158ca24">run</a> () override</td></tr>
-<tr class="separator:a72055f7611a20d68e9f3df424158ca24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_a_v_qt_1_1_i_frame_sink"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_a_v_qt_1_1_i_frame_sink')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a></td></tr>
-<tr class="memitem:a012852b4c1e215bf2bcc35f0ee06a136 inherit pub_methods_class_a_v_qt_1_1_i_frame_sink"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136">isPaused</a> ()=0</td></tr>
-<tr class="memdesc:a012852b4c1e215bf2bcc35f0ee06a136 inherit pub_methods_class_a_v_qt_1_1_i_frame_sink"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve paused state of frame sink.  <a href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136">More...</a><br /></td></tr>
-<tr class="separator:a012852b4c1e215bf2bcc35f0ee06a136 inherit pub_methods_class_a_v_qt_1_1_i_frame_sink"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
-Protected Member Functions</h2></td></tr>
-<tr class="memitem:a8da85138668cfcdd68d3870c32f69dbe"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a8da85138668cfcdd68d3870c32f69dbe">EncoderVAAPI</a> (<a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html">EncoderVAAPIPrivate</a> &amp;p)</td></tr>
-<tr class="separator:a8da85138668cfcdd68d3870c32f69dbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+    <tr class="separator:ad435fa334c028336c8aca182a1e3d3c6 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
+    <tr class="memitem:a6bd40ff0c728b583503824b5388d240a inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE
+            int&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="class_a_v_qt_1_1_i_frame_sink.html#a6bd40ff0c728b583503824b5388d240a">deinit</a>
+            ()=0
+        </td>
+    </tr>
+    <tr class="memdesc:a6bd40ff0c728b583503824b5388d240a inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Clean up frame sink (e.g. free buffers, close
+            files) <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a6bd40ff0c728b583503824b5388d240a">More...</a><br/>
+        </td>
+    </tr>
+    <tr class="separator:a6bd40ff0c728b583503824b5388d240a inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
+    <tr class="memitem:ac387914e7e1be35bc51b5e21b471f46f inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE
+            int&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="class_a_v_qt_1_1_i_frame_sink.html#ac387914e7e1be35bc51b5e21b471f46f">start</a>
+            ()=0
+        </td>
+    </tr>
+    <tr class="memdesc:ac387914e7e1be35bc51b5e21b471f46f inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Starts frame sink (e.g. start processing thread)
+            <a href="class_a_v_qt_1_1_i_frame_sink.html#ac387914e7e1be35bc51b5e21b471f46f">More...</a><br/>
+        </td>
+    </tr>
+    <tr class="separator:ac387914e7e1be35bc51b5e21b471f46f inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
+    <tr class="memitem:af9e853a9398db0e1c48894f970e902e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE
+            int&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">stop</a>
+            ()=0
+        </td>
+    </tr>
+    <tr class="memdesc:af9e853a9398db0e1c48894f970e902e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Stops frame sink (e.g interrupt processing
+            thread, flush buffers) <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">More...</a><br/>
+        </td>
+    </tr>
+    <tr class="separator:af9e853a9398db0e1c48894f970e902e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
+    <tr class="memitem:a3abca3620314c701570e151ba777b1e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td align="right" class="memItemLeft" valign="top">virtual Q_INVOKABLE
+            void&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">pause</a>
+            (bool pause)=0
+        </td>
+    </tr>
+    <tr class="memdesc:a3abca3620314c701570e151ba777b1e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Sets paused flag, which can be retrieved with
+            <code><a class="el"
+                     href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136"
+                     title="Retrieve paused state of frame sink.">isPaused()</a></code>
+            override. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">More...</a><br/>
+        </td>
+    </tr>
+    <tr class="separator:a3abca3620314c701570e151ba777b1e1 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
+    <tr class="memitem:a9c7fdbb7713742ecbad76f4d1ee17368 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE
+            void&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">onFrame</a>
+            (QImage frame, AVRational timebase, AVRational framerate)=0
+        </td>
+    </tr>
+    <tr class="memdesc:a9c7fdbb7713742ecbad76f4d1ee17368 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Image process method, is invoked in objects
+            thread for every frame. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">More...</a><br/>
+        </td>
+    </tr>
+    <tr class="separator:a9c7fdbb7713742ecbad76f4d1ee17368 inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
+    <tr class="memitem:a6732817a967a7278f00ec206cb3e153d inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memItemLeft" align="right" valign="top">virtual Q_INVOKABLE
+            void&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">onFrame</a>
+            (AVFrame *frame, AVRational timebase, AVRational framerate)=0
+        </td>
+    </tr>
+    <tr class="memdesc:a6732817a967a7278f00ec206cb3e153d inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="mdescLeft">&#160;</td>
+        <td class="mdescRight">Image process method, is invoked in objects
+            thread for every frame. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">More...</a><br/>
+        </td>
+    </tr>
+    <tr class="separator:a6732817a967a7278f00ec206cb3e153d inherit pub_slots_class_a_v_qt_1_1_i_frame_sink">
+        <td class="memSeparator" colspan="2">&#160;</td>
+    </tr>
 </table>
-<h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="ac5e1b8a75fde7cd737032bea08684b7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac5e1b8a75fde7cd737032bea08684b7c">&#9670;&nbsp;</a></span>AUDIO_CODEC</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7c">AVQt::EncoderVAAPI::AUDIO_CODEC</a></td>
+    <table class="memberdecls">
+        <tr class="heading">
+            <td colspan="2"><h2 class="groupheader"><a name="signals"></a>
+                Signals</h2></td>
         </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b"></a>AAC&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716"></a>OGG&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9"></a>OPUS&#160;</td><td class="fielddoc"></td></tr>
-</table>
+        <tr class="memitem:a50ce856ea4f3393069cf1917842e322b">
+            <td class="memItemLeft" align="right" valign="top">void&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a50ce856ea4f3393069cf1917842e322b">started</a>
+                () override
+            </td>
+        </tr>
+        <tr class="memdesc:a50ce856ea4f3393069cf1917842e322b">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Emitted after <a class="el"
+                                                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac6eb460015f1ca131325ff15d92855ff"
+                                                    title="Start encoder thread.">start()</a>
+                finished. <a
+                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a50ce856ea4f3393069cf1917842e322b">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a50ce856ea4f3393069cf1917842e322b">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+        <tr class="memitem:a8889e577f5f9c9d0895dc75a2061fd6c">
+            <td class="memItemLeft" align="right" valign="top">void&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a8889e577f5f9c9d0895dc75a2061fd6c">stopped</a>
+                () override
+            </td>
+        </tr>
+        <tr class="memdesc:a8889e577f5f9c9d0895dc75a2061fd6c">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Emitted after <a class="el"
+                                                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#acf8e2bc869ddd725d3762e794f58409e"
+                                                    title="Interrupt encoder thread and waits for it to finish.">stop()</a>
+                finished. <a
+                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a8889e577f5f9c9d0895dc75a2061fd6c">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a8889e577f5f9c9d0895dc75a2061fd6c">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+        <tr class="memitem:a1766e35a4a925c8378b87b209afa6f14">
+            <td align="right" class="memItemLeft" valign="top">void&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a1766e35a4a925c8378b87b209afa6f14">paused</a>
+                (bool <a class="el"
+                         href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ae1494a35d0c991176b117c25b801f23d">pause</a>)
+                override
+            </td>
+        </tr>
+        <tr class="separator:a1766e35a4a925c8378b87b209afa6f14">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+        <tr class="inherit_header signals_class_a_v_qt_1_1_i_frame_sink">
+            <td colspan="2"
+                onclick="javascript:toggleInherit('signals_class_a_v_qt_1_1_i_frame_sink')">
+                <img src="closed.png" alt="-"/>&#160;Signals inherited from <a
+                    class="el" href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a>
+            </td>
+        </tr>
+        <tr class="memitem:a8e8f1b28dc9c949608f4871cfefae489 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memItemLeft" align="right" valign="top">virtual void&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">started</a>
+                ()=0
+            </td>
+        </tr>
+        <tr class="memdesc:a8e8f1b28dc9c949608f4871cfefae489 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Emitted when started. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a8e8f1b28dc9c949608f4871cfefae489 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+        <tr class="memitem:a9dfe37374afb38a1d3c3172f7d41ec41 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memItemLeft" align="right" valign="top">virtual void&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">stopped</a>
+                ()=0
+            </td>
+        </tr>
+        <tr class="memdesc:a9dfe37374afb38a1d3c3172f7d41ec41 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Emitted when stopped. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a9dfe37374afb38a1d3c3172f7d41ec41 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+        <tr class="memitem:a5ee18e22f23456445ab8963493f81a13 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td align="right" class="memItemLeft" valign="top">virtual void&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_i_frame_sink.html#a5ee18e22f23456445ab8963493f81a13">paused</a>
+                (bool <a class="el"
+                         href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">pause</a>)=0
+            </td>
+        </tr>
+        <tr class="memdesc:a5ee18e22f23456445ab8963493f81a13 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Emitted when paused state changes. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a5ee18e22f23456445ab8963493f81a13">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a5ee18e22f23456445ab8963493f81a13 inherit signals_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+    </table>
+    <table class="memberdecls">
+        <tr class="heading">
+            <td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+                Public Member Functions</h2></td>
+        </tr>
+        <tr class="memitem:a18ecc094514d5f673a3436c12070a871">
+            <td class="memItemLeft" align="right" valign="top">&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a18ecc094514d5f673a3436c12070a871">EncoderVAAPI</a>
+                (QIODevice *outputDevice, <a class="el"
+                                             href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dc">VIDEO_CODEC</a>
+                videoCodec, <a class="el"
+                               href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7c">AUDIO_CODEC</a>
+                audioCodec, int width, int height, AVRational framerate, int
+                bitrate, QObject *parent=nullptr)
+            </td>
+        </tr>
+        <tr class="memdesc:a18ecc094514d5f673a3436c12070a871">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Standard public contructor. <a
+                    href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a18ecc094514d5f673a3436c12070a871">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a18ecc094514d5f673a3436c12070a871">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+        <tr class="inherit_header pub_methods_class_a_v_qt_1_1_i_frame_sink">
+            <td colspan="2"
+                onclick="javascript:toggleInherit('pub_methods_class_a_v_qt_1_1_i_frame_sink')">
+                <img src="closed.png" alt="-"/>&#160;Public Member Functions
+                inherited from <a class="el"
+                                  href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a>
+            </td>
+        </tr>
+        <tr class="memitem:a012852b4c1e215bf2bcc35f0ee06a136 inherit pub_methods_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136">isPaused</a>
+                ()=0
+            </td>
+        </tr>
+        <tr class="memdesc:a012852b4c1e215bf2bcc35f0ee06a136 inherit pub_methods_class_a_v_qt_1_1_i_frame_sink">
+            <td class="mdescLeft">&#160;</td>
+            <td class="mdescRight">Retrieve paused state of frame sink. <a
+                    href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136">More...</a><br/>
+            </td>
+        </tr>
+        <tr class="separator:a012852b4c1e215bf2bcc35f0ee06a136 inherit pub_methods_class_a_v_qt_1_1_i_frame_sink">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+    </table>
+    <table class="memberdecls">
+        <tr class="heading">
+            <td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+                Protected Member Functions</h2></td>
+        </tr>
+        <tr class="memitem:a8da85138668cfcdd68d3870c32f69dbe">
+            <td align="right" class="memItemLeft" valign="top">&#160;</td>
+            <td class="memItemRight" valign="bottom"><a class="el"
+                                                        href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a8da85138668cfcdd68d3870c32f69dbe">EncoderVAAPI</a>
+                (EncoderVAAPIPrivate &amp;p)
+            </td>
+        </tr>
+        <tr class="separator:a8da85138668cfcdd68d3870c32f69dbe">
+            <td class="memSeparator" colspan="2">&#160;</td>
+        </tr>
+    </table>
+    <a id="details" name="details"></a>
+    <h2 class="groupheader">Detailed Description</h2>
+    <div class="textblock"><p>VAAPI accelerated video encoder. </p>
+        <p>Sink for encoding every type of frame into mpegts file with provided
+            codecs. Same instance cannot be used as callback of both types. <em><b>Requires
+                constant frame input or else the output will be scrambled. This
+                is preliminary and will be subject to later changes.</b></em>
+        </p>
+    </div>
+    <h2 class="groupheader">Member Enumeration Documentation</h2>
+    <a id="ac5e1b8a75fde7cd737032bea08684b7c"></a>
+    <h2 class="memtitle"><span class="permalink"><a
+            href="#ac5e1b8a75fde7cd737032bea08684b7c">&#9670;&nbsp;</a></span>AUDIO_CODEC
+    </h2>
 
-</div>
+    <div class="memitem">
+        <div class="memproto">
+            <table class="mlabels">
+                <tr>
+                    <td class="mlabels-left">
+                        <table class="memname">
+                            <tr>
+                                <td class="memname">enum <a class="el"
+                                                            href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac5e1b8a75fde7cd737032bea08684b7c">AVQt::EncoderVAAPI::AUDIO_CODEC</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="mlabels-right">
+                        <span class="mlabels"><span class="mlabel">strong</span></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="memdoc">
+
+            <p>Currently unused. </p>
+            <table class="fieldtable">
+                <tr>
+                    <th colspan="2">Enumerator</th>
+                </tr>
+                <tr>
+                    <td class="fieldname"><a
+                            id="ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b"></a>AAC&#160;
+                    </td>
+                    <td class="fielddoc"></td>
+                </tr>
+                <tr>
+                    <td class="fieldname"><a
+                            id="ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716"></a>OGG&#160;
+                    </td>
+                    <td class="fielddoc"></td>
+                </tr>
+                <tr>
+                    <td class="fieldname"><a
+                            id="ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9"></a>OPUS&#160;
+                    </td>
+                    <td class="fielddoc"></td>
+                </tr>
+            </table>
+
+        </div>
 </div>
 <a id="a5a1cbe7bfbaeeda438c21c39901e88dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a1cbe7bfbaeeda438c21c39901e88dc">&#9670;&nbsp;</a></span>VIDEO_CODEC</h2>
@@ -240,23 +601,56 @@ Protected Member Functions</h2></td></tr>
   <tr>
   <td class="mlabels-left">
       <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dc">AVQt::EncoderVAAPI::VIDEO_CODEC</a></td>
-        </tr>
+          <tr>
+              <td class="memname">enum <a class="el"
+                                          href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dc">AVQt::EncoderVAAPI::VIDEO_CODEC</a>
+              </td>
+          </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">strong</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09"></a>H264&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1"></a>HEVC&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723"></a>VP9&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
 </div>
+    <div class="memdoc">
+
+        <p>Enum for video codec. </p>
+        <table class="fieldtable">
+            <tr>
+                <th colspan="2">Enumerator</th>
+            </tr>
+            <tr>
+                <td class="fieldname"><a
+                        id="a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09"></a>H264&#160;
+                </td>
+                <td class="fielddoc"><p>Selects video codec
+                    <code>h264_vaapi</code> for encoding video. </p>
+                </td>
+            </tr>
+            <tr>
+                <td class="fieldname"><a
+                        id="a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1"></a>HEVC&#160;
+                </td>
+                <td class="fielddoc"><p>Selects video codec
+                    <code>hevc_vaapi</code> for encoding video. </p>
+                </td>
+            </tr>
+            <tr>
+                <td class="fieldname"><a
+                        id="a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723"></a>VP9&#160;
+                </td>
+                <td class="fielddoc"><p>Selects video codec
+                    <code>vp9_vaapi</code> for encoding video. </p>
+                    <p><em><b>Important:</b></em> On intel CPUs this only works
+                        for Braswell - Kabylake with the i965 VAAPI driver, as
+                        the iHD driver does not contain support for VP9 encoding
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+    </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a18ecc094514d5f673a3436c12070a871"></a>
@@ -319,51 +713,74 @@ Protected Member Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+            <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">explicit</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
+</div>
+    <div class="memdoc">
 
-</div>
-</div>
-<a id="a62f2d04a74ce58981fbd636d496fad4c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62f2d04a74ce58981fbd636d496fad4c">&#9670;&nbsp;</a></span>~EncoderVAAPI()</h2>
+        <p>Standard public contructor. </p>
+        <p>Creates encoder with output QIODevice <code>outputDevice</code>,
+            video encoder <code>videoCodec</code>, audio encoder <code>audioCodec</code>
+            and the given video parameters. If the video parameters are
+            different to the input frames, the frames will be scaled or dropped.
+        </p>
+        <dl class="params">
+            <dt>Parameters</dt>
+            <dd>
+                <table class="params">
+                    <tr>
+                        <td class="paramname">outputDevice</td>
+                        <td>QIODevice, either already opened for write access or
+                            closed. If closed, it will be opened for write
+                            access in <a class="el"
+                                         href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a94e5feee994a6aeb0fcca935b87e1b04"
+                                         title="Initialize encoder.">init()</a>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">videoCodec</td>
+                        <td>Video encoder from <code>VIDEO_CODEC</code></td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">audioCodec</td>
+                        <td>Audio encoder from <code>AUDIO_CODEC</code>
+                            (currently unused)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">width</td>
+                        <td>Target video width (currently unused)</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">height</td>
+                        <td>Target video height (currently unused)</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">framerate</td>
+                        <td>Target video framerate (currently unused)</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">bitrate</td>
+                        <td>Target video bitrate</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">parent</td>
+                        <td>Pointer to parent QObject for Qt's meta object
+                            system
+                        </td>
+                    </tr>
+                </table>
+            </dd>
+        </dl>
 
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">AVQt::EncoderVAAPI::~EncoderVAAPI </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c_cgraph.png" border="0" usemap="#aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c_cgraph" alt=""/></div>
-<map name="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c_cgraph" id="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,157,47"/>
-<area shape="rect" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a4889e6dd02a5625f6a577a5be85cd990" title=" " alt="" coords="205,5,357,47"/>
-</map>
-</div>
-
-</div>
+    </div>
 </div>
 <a id="a8da85138668cfcdd68d3870c32f69dbe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8da85138668cfcdd68d3870c32f69dbe">&#9670;&nbsp;</a></span>EncoderVAAPI() <span class="overload">[2/2]</span></h2>
@@ -377,19 +794,35 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">AVQt::EncoderVAAPI::EncoderVAAPI </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html">EncoderVAAPIPrivate</a> &amp;&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
-          <td></td>
+            <td class="paramtype">EncoderVAAPIPrivate &amp;&#160;</td>
+            <td class="paramname"><em>p</em></td>
+            <td>)</td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">explicit</span><span class="mlabel">protected</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">explicit</span><span
+                  class="mlabel">protected</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+        <p>Protected constructor for use in derived classes to initialize
+            private struct </p>
+        <dl class="params">
+            <dt>Parameters</dt>
+            <dd>
+                <table class="params">
+                    <tr>
+                        <td class="paramname">p</td>
+                        <td>Private struct</td>
+                    </tr>
+                </table>
+            </dd>
+        </dl>
+
+    </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a4889e6dd02a5625f6a577a5be85cd990"></a>
@@ -404,27 +837,47 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">int AVQt::EncoderVAAPI::deinit </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td class="paramname"></td>
+            <td>)</td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_icgraph.png" border="0" usemap="#aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_icgraph" alt=""/></div>
-<map name="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_icgraph" id="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_icgraph">
-<area shape="rect" title=" " alt="" coords="205,5,357,47"/>
-<area shape="rect" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a62f2d04a74ce58981fbd636d496fad4c" title=" " alt="" coords="5,5,157,47"/>
-</map>
 </div>
+    <div class="memdoc">
 
-</div>
+        <p>Clean up encoder, encoder will be stopped before, if running. </p>
+        <dl class="section return">
+            <dt>Returns</dt>
+            <dd>Status code (0 = Success, LibAV error codes, use
+                av_make_error_string() to get an error message)
+            </dd>
+        </dl>
+        <div class="dynheader">
+            Here is the call graph for this function:
+        </div>
+        <div class="dyncontent">
+            <div class="center"><img alt="" border="0"
+                                     src="class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_cgraph.png"
+                                     usemap="#aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_cgraph"/>
+            </div>
+            <map id="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_cgraph"
+                 name="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_cgraph">
+                <area alt="" coords="5,5,157,47" shape="rect"
+                      title="Clean up encoder, encoder will be stopped before, if running."/>
+                <area alt="" coords="205,5,357,47"
+                      href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#acf8e2bc869ddd725d3762e794f58409e"
+                      shape="rect"
+                      title="Interrupt encoder thread and waits for it to finish."/>
+            </map>
+        </div>
+
+    </div>
 </div>
 <a id="a94e5feee994a6aeb0fcca935b87e1b04"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a94e5feee994a6aeb0fcca935b87e1b04">&#9670;&nbsp;</a></span>init</h2>
@@ -438,27 +891,30 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">int AVQt::EncoderVAAPI::init </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td class="paramname"></td>
+            <td>)</td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04_cgraph.png" border="0" usemap="#aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04_cgraph" alt=""/></div>
-<map name="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04_cgraph" id="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,157,47"/>
-<area shape="rect" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#aab4dc8c3f3f8e9c93208d1863a286705" title=" " alt="" coords="205,5,404,47"/>
-</map>
 </div>
+    <div class="memdoc">
 
-</div>
+        <p>Initialize encoder. </p>
+        <p>Opens output device, if necessary and creates output context. </p>
+        <dl class="section return">
+            <dt>Returns</dt>
+            <dd>Status code (0 = Success, LibAV error codes, use
+                av_make_error_string() to get an error message)
+            </dd>
+        </dl>
+
+    </div>
 </div>
 <a id="aa0d67236ce5821c60c01f0236f734624"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0d67236ce5821c60c01f0236f734624">&#9670;&nbsp;</a></span>isPaused</h2>
@@ -473,17 +929,25 @@ Here is the call graph for this function:</div>
           <td class="memname">bool AVQt::EncoderVAAPI::isPaused </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Returns current paused state. </p>
+        <dl class="section return">
+            <dt>Returns</dt>
+            <dd>Current paused state</dd>
+        </dl>
+
+    </div>
 </div>
 <a id="a09ec36fde99f78820afd04db85abed72"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a09ec36fde99f78820afd04db85abed72">&#9670;&nbsp;</a></span>onFrame <span class="overload">[1/2]</span></h2>
@@ -515,17 +979,41 @@ Here is the call graph for this function:</div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+            <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Add frame to encode queue, blocks if queue is full. </p>
+        <dl class="params">
+            <dt>Parameters</dt>
+            <dd>
+                <table class="params">
+                    <tr>
+                        <td class="paramname">frame</td>
+                        <td>Frame to add</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">timebase</td>
+                        <td>decode timebase (<em><b>Unstable API</b></em>)</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">framerate</td>
+                        <td>decode framerate (<em><b>Unstable API</b></em>)</td>
+                    </tr>
+                </table>
+            </dd>
+        </dl>
+
+    </div>
 </div>
 <a id="aedd1475224c1fbe7f5cd486335561ad5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aedd1475224c1fbe7f5cd486335561ad5">&#9670;&nbsp;</a></span>onFrame <span class="overload">[2/2]</span></h2>
@@ -557,17 +1045,41 @@ Here is the call graph for this function:</div>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td>
+            <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Add frame to encode queue, blocks if queue is full. </p>
+        <dl class="params">
+            <dt>Parameters</dt>
+            <dd>
+                <table class="params">
+                    <tr>
+                        <td class="paramname">frame</td>
+                        <td>Frame to add</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">timebase</td>
+                        <td>decode timebase (<em><b>Unstable API</b></em>)</td>
+                    </tr>
+                    <tr>
+                        <td class="paramname">framerate</td>
+                        <td>decode framerate (<em><b>Unstable API</b></em>)</td>
+                    </tr>
+                </table>
+            </dd>
+        </dl>
+
+    </div>
 </div>
 <a id="ae1494a35d0c991176b117c25b801f23d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae1494a35d0c991176b117c25b801f23d">&#9670;&nbsp;</a></span>pause</h2>
@@ -583,42 +1095,97 @@ Here is the call graph for this function:</div>
           <td>(</td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>pause</em></td><td>)</td>
-          <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
-</div>
-<a id="a72055f7611a20d68e9f3df424158ca24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72055f7611a20d68e9f3df424158ca24">&#9670;&nbsp;</a></span>run()</h2>
+    <div class="memdoc">
 
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void AVQt::EncoderVAAPI::run </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
+        <p>Sets paused flag to value of <code>pause</code>. </p>
+        <p>If the paused flag is set, the encoder thread will suspend. The frame
+            queue will be emptied every 4 ms if paused. </p>
+        <dl class="params">
+            <dt>Parameters</dt>
+            <dd>
+                <table class="params">
+                    <tr>
+                        <td class="paramname">pause</td>
+                        <td>New paused state</td>
+                    </tr>
+                </table>
+            </dd>
+        </dl>
 
+    </div>
 </div>
+    <a id="a1766e35a4a925c8378b87b209afa6f14"></a>
+    <h2 class="memtitle"><span class="permalink"><a
+            href="#a1766e35a4a925c8378b87b209afa6f14">&#9670;&nbsp;</a></span>paused
+    </h2>
+
+    <div class="memitem">
+        <div class="memproto">
+            <table class="mlabels">
+                <tr>
+                    <td class="mlabels-left">
+                        <table class="memname">
+                            <tr>
+                                <td class="memname">void
+                                    AVQt::EncoderVAAPI::paused
+                                </td>
+                                <td>(</td>
+                                <td class="paramtype">bool&#160;</td>
+                                <td class="paramname"><em>pause</em></td>
+                                <td>)</td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="mlabels-right">
+                        <span class="mlabels"><span
+                                class="mlabel">override</span><span
+                                class="mlabel">signal</span></span></td>
+                </tr>
+            </table>
+        </div>
+        <div class="memdoc">
+            <p>Emitted when paused state changes </p>
+            <dl class="params">
+                <dt>Parameters</dt>
+                <dd>
+                    <table class="params">
+                        <tr>
+                            <td class="paramname">pause</td>
+                            <td>Current paused state</td>
+                        </tr>
+                    </table>
+                </dd>
+            </dl>
+            <div class="dynheader">
+                Here is the caller graph for this function:
+            </div>
+            <div class="dyncontent">
+                <div class="center"><img alt="" border="0"
+                                         src="class_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14_icgraph.png"
+                                         usemap="#aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14_icgraph"/>
+                </div>
+                <map id="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14_icgraph"
+                     name="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14_icgraph">
+                    <area alt="" coords="205,5,357,47" shape="rect" title=" "/>
+                    <area alt="" coords="5,5,157,47"
+                          href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ae1494a35d0c991176b117c25b801f23d"
+                          shape="rect"
+                          title="Sets paused flag to value of pause."/>
+                </map>
+            </div>
+
+        </div>
 </div>
 <a id="ac6eb460015f1ca131325ff15d92855ff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac6eb460015f1ca131325ff15d92855ff">&#9670;&nbsp;</a></span>start</h2>
@@ -633,17 +1200,27 @@ Here is the call graph for this function:</div>
           <td class="memname">int AVQt::EncoderVAAPI::start </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Start encoder thread. </p>
+        <dl class="section return">
+            <dt>Returns</dt>
+            <dd>Status code (0 = Success, LibAV error codes, use
+                av_make_error_string() to get an error message)
+            </dd>
+        </dl>
+
+    </div>
 </div>
 <a id="a50ce856ea4f3393069cf1917842e322b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a50ce856ea4f3393069cf1917842e322b">&#9670;&nbsp;</a></span>started</h2>
@@ -658,17 +1235,24 @@ Here is the call graph for this function:</div>
           <td class="memname">void AVQt::EncoderVAAPI::started </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">signal</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">signal</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Emitted after <a class="el"
+                            href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac6eb460015f1ca131325ff15d92855ff"
+                            title="Start encoder thread.">start()</a> finished.
+        </p>
+
+    </div>
 </div>
 <a id="acf8e2bc869ddd725d3762e794f58409e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acf8e2bc869ddd725d3762e794f58409e">&#9670;&nbsp;</a></span>stop</h2>
@@ -683,17 +1267,45 @@ Here is the call graph for this function:</div>
           <td class="memname">int AVQt::EncoderVAAPI::stop </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">slot</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">slot</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Interrupt encoder thread and waits for it to finish. </p>
+        <dl class="section return">
+            <dt>Returns</dt>
+            <dd>Status code (0 = Success, LibAV error codes, use
+                av_make_error_string() to get an error message)
+            </dd>
+        </dl>
+        <div class="dynheader">
+            Here is the caller graph for this function:
+        </div>
+        <div class="dyncontent">
+            <div class="center"><img alt="" border="0"
+                                     src="class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e_icgraph.png"
+                                     usemap="#aclass_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e_icgraph"/>
+            </div>
+            <map id="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e_icgraph"
+                 name="aclass_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e_icgraph">
+                <area alt="" coords="205,5,357,47" shape="rect"
+                      title="Interrupt encoder thread and waits for it to finish."/>
+                <area alt="" coords="5,5,157,47"
+                      href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a4889e6dd02a5625f6a577a5be85cd990"
+                      shape="rect"
+                      title="Clean up encoder, encoder will be stopped before, if running."/>
+            </map>
+        </div>
+
+    </div>
 </div>
 <a id="a8889e577f5f9c9d0895dc75a2061fd6c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8889e577f5f9c9d0895dc75a2061fd6c">&#9670;&nbsp;</a></span>stopped</h2>
@@ -708,17 +1320,24 @@ Here is the call graph for this function:</div>
           <td class="memname">void AVQt::EncoderVAAPI::stopped </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+            <td></td>
         </tr>
       </table>
   </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">signal</span></span>  </td>
+      <td class="mlabels-right">
+          <span class="mlabels"><span class="mlabel">override</span><span
+                  class="mlabel">signal</span></span></td>
   </tr>
 </table>
-</div><div class="memdoc">
-
 </div>
+    <div class="memdoc">
+
+        <p>Emitted after <a class="el"
+                            href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#acf8e2bc869ddd725d3762e794f58409e"
+                            title="Interrupt encoder thread and waits for it to finish.">stop()</a>
+            finished. </p>
+
+    </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>/home/silas/CLionProjects/libAVQt/AVQt/output/<a class="el" href="_encoder_v_a_a_p_i_8h_source.html">EncoderVAAPI.h</a></li>

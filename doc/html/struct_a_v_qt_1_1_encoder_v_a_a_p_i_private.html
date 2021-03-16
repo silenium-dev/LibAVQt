@@ -101,17 +101,14 @@ Collaboration diagram for AVQt::EncoderVAAPIPrivate:</div>
 <div class="center"><img src="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private__coll__graph.png" border="0" usemap="#a_a_v_qt_1_1_encoder_v_a_a_p_i_private_coll__map" alt="Collaboration graph"/></div>
 <map name="a_a_v_qt_1_1_encoder_v_a_a_p_i_private_coll__map" id="a_a_v_qt_1_1_encoder_v_a_a_p_i_private_coll__map">
 <area shape="rect" title=" " alt="" coords="10,171,209,197"/>
-<area shape="rect" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html" title=" " alt="" coords="33,81,185,108"/>
+<area alt="" coords="33,81,185,108"
+      href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html" shape="rect"
+      title="VAAPI accelerated video encoder."/>
 <area shape="rect" title=" " alt="" coords="5,5,83,32"/>
 <area shape="rect" href="class_a_v_qt_1_1_i_frame_sink.html" title="Base class for every frame sink." alt="" coords="107,5,242,32"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame.html">Frame</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acede0078779ce897ba7c145737568040"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#acede0078779ce897ba7c145737568040">EncoderVAAPIPrivate</a> (<a class="el" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html">EncoderVAAPI</a> *q)</td></tr>
@@ -174,11 +171,24 @@ Public Attributes</h2></td></tr>
 <tr class="separator:af5f9257d87ddab686ca8cdf665d2bdc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5cff7cc5c2ab2a80541ae5d2d39c9c78"><td class="memItemLeft" align="right" valign="top">QIODevice *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a5cff7cc5c2ab2a80541ae5d2d39c9c78">m_outputDevice</a> = nullptr</td></tr>
 <tr class="separator:a5cff7cc5c2ab2a80541ae5d2d39c9c78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe750cb59d20463e0a146cfaeafe5e08"><td class="memItemLeft" align="right" valign="top">QQueue&lt; <a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame.html">Frame</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#afe750cb59d20463e0a146cfaeafe5e08">m_frameQueue</a></td></tr>
+    <tr class="memitem:afe750cb59d20463e0a146cfaeafe5e08">
+        <td align="right" class="memItemLeft" valign="top">QQueue&lt; Frame *
+            &gt;&#160;
+        </td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#afe750cb59d20463e0a146cfaeafe5e08">m_frameQueue</a>
+        </td>
+    </tr>
 <tr class="separator:afe750cb59d20463e0a146cfaeafe5e08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d1652c3f778c32d2bc61f51cd05ead3"><td class="memItemLeft" align="right" valign="top">QMutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a9d1652c3f778c32d2bc61f51cd05ead3">m_frameQueueMutex</a></td></tr>
 <tr class="separator:a9d1652c3f778c32d2bc61f51cd05ead3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f0c8cf56f31ee90a0c9bb1e5dfe8304"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a7f0c8cf56f31ee90a0c9bb1e5dfe8304">m_cbType</a> = <a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7">IFrameSource::CB_NONE</a></td></tr>
+    <tr class="memitem:a7f0c8cf56f31ee90a0c9bb1e5dfe8304">
+        <td align="right" class="memItemLeft" valign="top">int8_t&#160;</td>
+        <td class="memItemRight" valign="bottom"><a class="el"
+                                                    href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a7f0c8cf56f31ee90a0c9bb1e5dfe8304">m_cbType</a>
+            = IFrameSource::CB_NONE
+        </td>
+    </tr>
 <tr class="separator:a7f0c8cf56f31ee90a0c9bb1e5dfe8304"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95252116a084c645957504e434d8bb39"><td class="memItemLeft" align="right" valign="top">QMutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a95252116a084c645957504e434d8bb39">m_cbTypeMutex</a></td></tr>
 <tr class="separator:a95252116a084c645957504e434d8bb39"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -340,7 +350,9 @@ Here is the caller graph for this function:</div>
 <div class="center"><img src="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_aab4dc8c3f3f8e9c93208d1863a286705_icgraph.png" border="0" usemap="#astruct_a_v_qt_1_1_encoder_v_a_a_p_i_private_aab4dc8c3f3f8e9c93208d1863a286705_icgraph" alt=""/></div>
 <map name="astruct_a_v_qt_1_1_encoder_v_a_a_p_i_private_aab4dc8c3f3f8e9c93208d1863a286705_icgraph" id="astruct_a_v_qt_1_1_encoder_v_a_a_p_i_private_aab4dc8c3f3f8e9c93208d1863a286705_icgraph">
 <area shape="rect" title=" " alt="" coords="205,5,404,47"/>
-<area shape="rect" href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a94e5feee994a6aeb0fcca935b87e1b04" title=" " alt="" coords="5,5,157,47"/>
+    <area alt="" coords="5,5,157,47"
+          href="class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a94e5feee994a6aeb0fcca935b87e1b04"
+          shape="rect" title="Initialize encoder."/>
 </map>
 </div>
 
@@ -382,7 +394,9 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int8_t AVQt::EncoderVAAPIPrivate::m_cbType = <a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7">IFrameSource::CB_NONE</a></td>
+            <td class="memname">int8_t AVQt::EncoderVAAPIPrivate::m_cbType =
+                IFrameSource::CB_NONE
+            </td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -424,7 +438,9 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">QQueue&lt;<a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame.html">Frame</a> *&gt; AVQt::EncoderVAAPIPrivate::m_frameQueue</td>
+            <td class="memname">QQueue&lt;Frame *&gt;
+                AVQt::EncoderVAAPIPrivate::m_frameQueue
+            </td>
         </tr>
       </table>
 </div><div class="memdoc">

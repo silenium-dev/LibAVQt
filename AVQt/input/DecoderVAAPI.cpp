@@ -122,13 +122,11 @@ namespace AVQt {
         }
     }
 
-    int DecoderVAAPI::pause(bool pause) {
+    void DecoderVAAPI::pause(bool pause) {
         Q_D(AVQt::DecoderVAAPI);
-        if (d->m_isRunning) {
+        if (d->m_isRunning.load() != pause) {
             d->m_isPaused.store(pause);
-            return 0;
-        } else {
-            return -1;
+            paused(pause);
         }
     }
 
@@ -260,7 +258,8 @@ namespace AVQt {
 
                         if (!d->m_pSwsContext) {
                             d->m_pSwsContext = sws_getContext(d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
-                                                              static_cast<AVPixelFormat>(d->m_pCurrentFrame->format), d->m_pCurrentFrame->width,
+                                                              static_cast<AVPixelFormat>(d->m_pCurrentFrame->format),
+                                                              d->m_pCurrentFrame->width,
                                                               d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 0, nullptr, nullptr, nullptr);
                         }
 
@@ -276,7 +275,8 @@ namespace AVQt {
                                            d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 1);
 
                             qDebug() << "Scaling...";
-                            sws_scale(d->m_pSwsContext, d->m_pCurrentFrame->data, d->m_pCurrentFrame->linesize, 0, d->m_pCurrentFrame->height,
+                            sws_scale(d->m_pSwsContext, d->m_pCurrentFrame->data, d->m_pCurrentFrame->linesize, 0,
+                                      d->m_pCurrentFrame->height,
                                       d->m_pCurrentBGRAFrame->data,
                                       d->m_pCurrentBGRAFrame->linesize);
                             QImage frame(d->m_pCurrentBGRAFrame->data[0], d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
@@ -329,5 +329,10 @@ namespace AVQt {
                 msleep(2);
             }
         }
+    }
+
+    bool DecoderVAAPI::isPaused() {
+        Q_D(AVQt::DecoderVAAPI);
+        return d->m_isPaused.load();
     }
 }

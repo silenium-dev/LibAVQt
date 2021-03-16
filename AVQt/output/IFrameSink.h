@@ -61,9 +61,9 @@ namespace AVQt {
          * \brief Sets paused flag, which can be retrieved with \c isPaused() override.
          *
          * When Set to true, the frame sink should not process any frames, instead they should be freed immediately
-         * \param paused New paused state
+         * \param pause New paused state
          */
-        Q_INVOKABLE virtual void pause(bool paused) = 0;
+        Q_INVOKABLE virtual void pause(bool pause) = 0;
 
         /*!
          * \brief Image process method, is invoked in objects thread for every frame
@@ -96,6 +96,12 @@ namespace AVQt {
          * \brief Emitted when stopped
          */
         virtual void stopped() = 0;
+
+        /*!
+         * \brief Emitted when paused state changes
+         * @param pause
+         */
+        virtual void paused(bool pause) = 0;
     };
 }
 

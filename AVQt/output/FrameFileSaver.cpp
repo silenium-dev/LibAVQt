@@ -68,9 +68,12 @@ namespace AVQt {
         av_frame_unref(frame);
     }
 
-    void FrameFileSaver::pause(bool paused) {
+    void FrameFileSaver::pause(bool pause) {
         Q_D(AVQt::FrameFileSaver);
-        d->m_isPaused.store(paused);
+        if (d->m_isPaused.load() != pause) {
+            d->m_isPaused.store(pause);
+            paused(pause);
+        }
     }
 
     bool FrameFileSaver::isPaused() {

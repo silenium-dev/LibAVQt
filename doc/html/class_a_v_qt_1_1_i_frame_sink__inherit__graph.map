@@ -1,6 +1,6 @@
 <map id="AVQt::IFrameSink" name="AVQt::IFrameSink">
 <area shape="rect" id="node1" title="Base class for every frame sink." alt="" coords="195,5,330,32"/>
-<area shape="rect" id="node2" href="$class_a_v_qt_1_1_encoder_v_a_a_p_i.html" title=" " alt="" coords="5,80,157,107"/>
-<area shape="rect" id="node3" href="$class_a_v_qt_1_1_frame_file_saver.html" title="This class is a simple IFrameSink implementation, that saves every n&#45;th frame to BMP files." alt="" coords="181,80,344,107"/>
+<area shape="rect" id="node2" href="$class_a_v_qt_1_1_encoder_v_a_a_p_i.html" title="VAAPI accelerated video encoder." alt="" coords="5,80,157,107"/>
+<area shape="rect" id="node3" href="$class_a_v_qt_1_1_frame_file_saver.html" title="This class is a simple IFrameSink implementation that saves every n&#45;th frame to BMP files." alt="" coords="181,80,344,107"/>
 <area shape="rect" id="node4" href="$class_a_v_qt_1_1_open_g_l_widget_renderer.html" title=" " alt="" coords="369,80,586,107"/>
 </map>

@@ -29,7 +29,7 @@ namespace AVQt {
 
         Q_INVOKABLE int stop() override;
 
-        Q_INVOKABLE void pause(bool paused) override;
+        Q_INVOKABLE void pause(bool pause) override;
 
         Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate) override;
 

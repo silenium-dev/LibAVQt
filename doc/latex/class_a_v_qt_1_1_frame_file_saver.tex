@@ -2,7 +2,7 @@
 \label{class_a_v_qt_1_1_frame_file_saver}\index{AVQt::FrameFileSaver@{AVQt::FrameFileSaver}}
 
 
-This class is a simple \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} implementation, that saves every n-\/th frame to BMP files.  
+This class is a simple \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} implementation that saves every n-\/th frame to BMP files.  
 
 
 
@@ -11,7 +11,8 @@ This class is a simple \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+S
 
 
 
-Inheritance diagram for AVQt\+::Frame\+File\+Saver\+:\nopagebreak
+Inheritance diagram for AVQt\+::Frame\+File\+Saver\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -20,7 +21,8 @@ Inheritance diagram for AVQt\+::Frame\+File\+Saver\+:\nopagebreak
 \end{figure}
 
 
-Collaboration diagram for AVQt\+::Frame\+File\+Saver\+:\nopagebreak
+Collaboration diagram for AVQt\+::Frame\+File\+Saver\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -38,7 +40,7 @@ Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_ae5696
 \begin{DoxyCompactList}\small\item\em Does nothing. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a35ffcc46c00c0fdaa050c21918493c12}{stop}} () override
 \begin{DoxyCompactList}\small\item\em Does nothing. \end{DoxyCompactList}\item 
-Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a361fc15d533c8704bf468a1c62f4c748}{pause}} (bool paused) override
+Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_acc44aad16b472214e03a875a3b975aaa}{pause}} (bool pause) override
 \begin{DoxyCompactList}\small\item\em Sets paused flag, which can be retrieved with {\ttfamily \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_af250ca0203f7fbe22f1327e220405665}{Frame\+File\+Saver\+::is\+Paused()}}} override. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a193a9b313f75fc11ae140da3e2361885}{on\+Frame}} (QImage frame, AVRational timebase, AVRational framerate) override
 \begin{DoxyCompactList}\small\item\em Saves frame, if internal frame counter modulo given interval is 0. \end{DoxyCompactList}\item 
@@ -48,9 +50,11 @@ Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a7249
 \begin{DoxyCompactItemize}
 \item 
 void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a6b169a88d0a06eed24a169d1b38ecf56}{started}} () override
-\begin{DoxyCompactList}\small\item\em Emitted when \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_ae5696b4ccd375222167462ddf85653e8}{start()}} is called. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_ae5696b4ccd375222167462ddf85653e8}{start()}} finished. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a96c4802a22376d90196b667e78b1116e}{stopped}} () override
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a35ffcc46c00c0fdaa050c21918493c12}{stop()}} finished. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_ab2a3c18221ba8aa927c7e4180183086d}{paused}} (bool \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_acc44aad16b472214e03a875a3b975aaa}{pause}}) override
+\begin{DoxyCompactList}\small\item\em Emitted when paused flag changes. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -66,7 +70,7 @@ bool \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_af250ca0203f7fbe22f1327e
 
 
 \doxysubsection{Detailed Description}
-This class is a simple \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} implementation, that saves every n-\/th frame to BMP files. 
+This class is a simple \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} implementation that saves every n-\/th frame to BMP files. 
 
 \begin{DoxySince}{Since}
 0.\+1-\/dev
@@ -175,11 +179,11 @@ Saves frame, if internal frame counter modulo given interval is 0.
 {\em framerate} & Source framerate as rational number \\
 \hline
 \end{DoxyParams}
-\mbox{\Hypertarget{class_a_v_qt_1_1_frame_file_saver_a361fc15d533c8704bf468a1c62f4c748}\label{class_a_v_qt_1_1_frame_file_saver_a361fc15d533c8704bf468a1c62f4c748}} 
+\mbox{\Hypertarget{class_a_v_qt_1_1_frame_file_saver_acc44aad16b472214e03a875a3b975aaa}\label{class_a_v_qt_1_1_frame_file_saver_acc44aad16b472214e03a875a3b975aaa}} 
 \index{AVQt::FrameFileSaver@{AVQt::FrameFileSaver}!pause@{pause}}
 \index{pause@{pause}!AVQt::FrameFileSaver@{AVQt::FrameFileSaver}}
 \doxysubsubsection{\texorpdfstring{pause}{pause}}
-{\footnotesize\ttfamily void AVQt\+::\+Frame\+File\+Saver\+::pause (\begin{DoxyParamCaption}\item[{bool}]{paused }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
+{\footnotesize\ttfamily void AVQt\+::\+Frame\+File\+Saver\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
 
 
@@ -187,9 +191,31 @@ Sets paused flag, which can be retrieved with {\ttfamily \mbox{\hyperlink{class_
 
 When set to true, the frame handler won\textquotesingle{}t save any frames until called again with paused set to false 
 \begin{DoxyParams}{Parameters}
-{\em paused} & new paused state \\
+{\em pause} & new paused state \\
 \hline
 \end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_frame_file_saver_ab2a3c18221ba8aa927c7e4180183086d}\label{class_a_v_qt_1_1_frame_file_saver_ab2a3c18221ba8aa927c7e4180183086d}} 
+\index{AVQt::FrameFileSaver@{AVQt::FrameFileSaver}!paused@{paused}}
+\index{paused@{paused}!AVQt::FrameFileSaver@{AVQt::FrameFileSaver}}
+\doxysubsubsection{\texorpdfstring{paused}{paused}}
+{\footnotesize\ttfamily void AVQt\+::\+Frame\+File\+Saver\+::paused (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+
+
+Emitted when paused flag changes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pause} & Current paused state \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_a_v_qt_1_1_frame_file_saver_ab2a3c18221ba8aa927c7e4180183086d_icgraph}
+\end{center}
+\end{figure}
 \mbox{\Hypertarget{class_a_v_qt_1_1_frame_file_saver_ae5696b4ccd375222167462ddf85653e8}\label{class_a_v_qt_1_1_frame_file_saver_ae5696b4ccd375222167462ddf85653e8}} 
 \index{AVQt::FrameFileSaver@{AVQt::FrameFileSaver}!start@{start}}
 \index{start@{start}!AVQt::FrameFileSaver@{AVQt::FrameFileSaver}}
@@ -208,7 +234,7 @@ Does nothing.
 
 
 
-Emitted when \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_ae5696b4ccd375222167462ddf85653e8}{start()}} is called. 
+Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_ae5696b4ccd375222167462ddf85653e8}{start()}} finished. 
 
 Here is the caller graph for this function\+:\nopagebreak
 \begin{figure}[H]
@@ -232,6 +258,10 @@ Does nothing.
 \index{stopped@{stopped}!AVQt::FrameFileSaver@{AVQt::FrameFileSaver}}
 \doxysubsubsection{\texorpdfstring{stopped}{stopped}}
 {\footnotesize\ttfamily void AVQt\+::\+Frame\+File\+Saver\+::stopped (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+
+
+Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_a35ffcc46c00c0fdaa050c21918493c12}{stop()}} finished. 
 
 Here is the caller graph for this function\+:\nopagebreak
 \begin{figure}[H]

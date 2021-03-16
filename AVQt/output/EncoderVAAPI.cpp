@@ -87,6 +87,9 @@ namespace AVQt {
 
     int EncoderVAAPI::deinit() {
         Q_D(AVQt::EncoderVAAPI);
+        if (d->m_isRunning.load()) {
+            stop();
+        }
         if (d->pCurrentFrame) {
             av_frame_free(&d->pCurrentFrame);
         }
@@ -140,7 +143,10 @@ namespace AVQt {
 
     void EncoderVAAPI::pause(bool pause) {
         Q_D(AVQt::EncoderVAAPI);
-        d->m_isPaused.store(pause);
+        if (d->m_isPaused.load() != pause) {
+            d->m_isPaused.store(pause);
+            paused(pause);
+        }
     }
 
     bool EncoderVAAPI::isPaused() {
@@ -162,6 +168,7 @@ namespace AVQt {
             while (d->m_frameQueue.size() >= 100) {
                 QThread::msleep(1);
             }
+            frame = frame.convertToFormat(QImage::Format_ARGB32);
             av_image_copy_plane(nextFrame->frame->data[0], nextFrame->frame->linesize[0], frame.constBits(), frame.sizeInBytes(),
                                 frame.bytesPerLine(), frame.height());
             QMutexLocker queueLock(&d->m_frameQueueMutex);
@@ -216,6 +223,13 @@ namespace AVQt {
                 }
             } else {
                 msleep(4);
+                continue;
+            }
+
+            if (d->m_isPaused.load()) {
+                av_frame_free(&queueFrame->frame);
+                delete queueFrame;
+                msleep(4); // Sleep some time to consume as little energy as possible
                 continue;
             }
 
@@ -331,7 +345,8 @@ namespace AVQt {
                             } else {
                                 packet->stream_index = d->pVideoStream->index;
                                 // Calculate pts and dts from framenumber, framerate and timebase
-                                packet->duration = av_q2d(av_inv_q(d->pVideoStream->avg_frame_rate)) / av_q2d(d->pVideoStream->time_base) / 2.0;
+                                packet->duration =
+                                        av_q2d(av_inv_q(d->pVideoStream->avg_frame_rate)) / av_q2d(d->pVideoStream->time_base) / 2.0;
                                 packet->dts = packet->duration * 2.0 * (d->m_frameNumber.load() - 0.5);
                                 packet->dts = packet->dts < 0 ? 0 : packet->dts;
                                 packet->pts = packet->duration * 2.0 * d->m_frameNumber++;

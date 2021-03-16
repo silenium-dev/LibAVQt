@@ -1,6 +1,6 @@
 <map id="AVQt::EncoderVAAPIPrivate" name="AVQt::EncoderVAAPIPrivate">
 <area shape="rect" id="node1" title=" " alt="" coords="10,171,209,197"/>
-<area shape="rect" id="node2" href="$class_a_v_qt_1_1_encoder_v_a_a_p_i.html" title=" " alt="" coords="33,81,185,108"/>
+<area shape="rect" id="node2" href="$class_a_v_qt_1_1_encoder_v_a_a_p_i.html" title="VAAPI accelerated video encoder." alt="" coords="33,81,185,108"/>
 <area shape="rect" id="node3" title=" " alt="" coords="5,5,83,32"/>
 <area shape="rect" id="node4" href="$class_a_v_qt_1_1_i_frame_sink.html" title="Base class for every frame sink." alt="" coords="107,5,242,32"/>
 </map>

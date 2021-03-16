@@ -118,7 +118,13 @@ $(document).ready(function(){initNavTree('_open_g_l_widget_renderer_8h_source.ht
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        Q_INVOKABLE <span class="keywordtype">int</span> <a class="code" href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#ac5f3f1c6298ae8edaa188ce28eb82e49">stop</a>() <span class="keyword">override</span>;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        Q_INVOKABLE <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a426f2a7a10c3da7bc34bb6dc2693c3c9">pause</a>(<span class="keywordtype">bool</span> paused) <span class="keyword">override</span>;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;
+    Q_INVOKABLE <span class="keywordtype">void</span> <a class="code"
+                                                         href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a9eafc153433643b423653348dcb3102a">pause</a>(<span
+            class="keywordtype">bool</span> <a class="code"
+                                               href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a9eafc153433643b423653348dcb3102a">pause</a>)
+    <span class="keyword">override</span>;
+</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;        Q_INVOKABLE <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#ab2fc4d70093a7365ebc1cdfc460641cf">onFrame</a>(QImage frame, AVRational timebase, AVRational framerate) <span class="keyword">override</span>;</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
@@ -143,9 +149,16 @@ $(document).ready(function(){initNavTree('_open_g_l_widget_renderer_8h_source.ht
 <div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a></div><div class="ttdoc">Base class for every frame sink.</div><div class="ttdef"><b>Definition:</b> IFrameSink.h:21</div></div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html">AVQt::OpenGLWidgetRenderer</a></div><div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.h:14</div></div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_a2510f4263d58b06bedd0755a2f84de2f"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a2510f4263d58b06bedd0755a2f84de2f">AVQt::OpenGLWidgetRenderer::started</a></div><div class="ttdeci">void started() override</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_a426f2a7a10c3da7bc34bb6dc2693c3c9"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a426f2a7a10c3da7bc34bb6dc2693c3c9">AVQt::OpenGLWidgetRenderer::pause</a></div><div class="ttdeci">Q_INVOKABLE void pause(bool paused) override</div><div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.cpp:47</div></div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_a4bbf870f955052db5a0031713a53a748"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a4bbf870f955052db5a0031713a53a748">AVQt::OpenGLWidgetRenderer::stopped</a></div><div class="ttdeci">void stopped() override</div></div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_a84dd8f2b6c8625fc5d53c9c615c2995d"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a84dd8f2b6c8625fc5d53c9c615c2995d">AVQt::OpenGLWidgetRenderer::init</a></div><div class="ttdeci">Q_INVOKABLE int init() override</div><div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.cpp:29</div></div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_a9eafc153433643b423653348dcb3102a">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#a9eafc153433643b423653348dcb3102a">AVQt::OpenGLWidgetRenderer::pause</a>
+        </div>
+        <div class="ttdeci">Q_INVOKABLE void pause(bool pause) override</div>
+        <div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.cpp:47</div>
+    </div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_ab2fc4d70093a7365ebc1cdfc460641cf"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#ab2fc4d70093a7365ebc1cdfc460641cf">AVQt::OpenGLWidgetRenderer::onFrame</a></div><div class="ttdeci">Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate) override</div><div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.cpp:50</div></div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_ac5f3f1c6298ae8edaa188ce28eb82e49"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#ac5f3f1c6298ae8edaa188ce28eb82e49">AVQt::OpenGLWidgetRenderer::stop</a></div><div class="ttdeci">Q_INVOKABLE int stop() override</div><div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.cpp:43</div></div>
 <div class="ttc" id="aclass_a_v_qt_1_1_open_g_l_widget_renderer_html_acbee9de2e04c4e05b8dd6324e6741474"><div class="ttname"><a href="class_a_v_qt_1_1_open_g_l_widget_renderer.html#acbee9de2e04c4e05b8dd6324e6741474">AVQt::OpenGLWidgetRenderer::start</a></div><div class="ttdeci">Q_INVOKABLE int start() override</div><div class="ttdef"><b>Definition:</b> OpenGLWidgetRenderer.cpp:39</div></div>

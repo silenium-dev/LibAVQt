@@ -117,35 +117,198 @@ $(document).ready(function(){initNavTree('_i_frame_sink_8h_source.html',''); ini
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
 <div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">   58</a></span>&#160;        Q_INVOKABLE <span class="keyword">virtual</span> <span class="keywordtype">int</span> <a class="code" href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">stop</a>() = 0;</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="class_a_v_qt_1_1_i_frame_sink.html#afabc16034cae92260d213c9bff81b020">   66</a></span>&#160;        Q_INVOKABLE <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_i_frame_sink.html#afabc16034cae92260d213c9bff81b020">pause</a>(<span class="keywordtype">bool</span> paused) = 0;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">   76</a></span>&#160;        Q_INVOKABLE <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">onFrame</a>(QImage frame, AVRational timebase, AVRational framerate) = 0;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00086"></a><span class="lineno"><a class="line" href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">   86</a></span>&#160;        Q_INVOKABLE <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">onFrame</a>(AVFrame *frame, AVRational timebase, AVRational framerate) = 0;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160; </div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    signals:</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">   93</a></span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">started</a>() = 0;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00098"></a><span class="lineno"><a class="line" href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">   98</a></span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">stopped</a>() = 0;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    };</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;}</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;Q_DECLARE_INTERFACE(<a class="code" href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a>, <span class="stringliteral">&quot;IFrameSink&quot;</span>)</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="preprocessor">#endif </span><span class="comment">//TRANSCODE_IFRAMESINK_H</span></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a></div><div class="ttdoc">Base class for every frame sink.</div><div class="ttdef"><b>Definition:</b> IFrameSink.h:21</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_a012852b4c1e215bf2bcc35f0ee06a136"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136">AVQt::IFrameSink::isPaused</a></div><div class="ttdeci">virtual bool isPaused()=0</div><div class="ttdoc">Retrieve paused state of frame sink.</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_a6732817a967a7278f00ec206cb3e153d"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">AVQt::IFrameSink::onFrame</a></div><div class="ttdeci">virtual Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate)=0</div><div class="ttdoc">Image process method, is invoked in objects thread for every frame.</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_a6bd40ff0c728b583503824b5388d240a"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#a6bd40ff0c728b583503824b5388d240a">AVQt::IFrameSink::deinit</a></div><div class="ttdeci">virtual Q_INVOKABLE int deinit()=0</div><div class="ttdoc">Clean up frame sink (e.g. free buffers, close files)</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_a8e8f1b28dc9c949608f4871cfefae489"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">AVQt::IFrameSink::started</a></div><div class="ttdeci">virtual void started()=0</div><div class="ttdoc">Emitted when started.</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_a9c7fdbb7713742ecbad76f4d1ee17368"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">AVQt::IFrameSink::onFrame</a></div><div class="ttdeci">virtual Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate)=0</div><div class="ttdoc">Image process method, is invoked in objects thread for every frame.</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_a9dfe37374afb38a1d3c3172f7d41ec41"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">AVQt::IFrameSink::stopped</a></div><div class="ttdeci">virtual void stopped()=0</div><div class="ttdoc">Emitted when stopped.</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_ac387914e7e1be35bc51b5e21b471f46f"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#ac387914e7e1be35bc51b5e21b471f46f">AVQt::IFrameSink::start</a></div><div class="ttdeci">virtual Q_INVOKABLE int start()=0</div><div class="ttdoc">Starts frame sink (e.g. start processing thread)</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_ad435fa334c028336c8aca182a1e3d3c6"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#ad435fa334c028336c8aca182a1e3d3c6">AVQt::IFrameSink::init</a></div><div class="ttdeci">virtual Q_INVOKABLE int init()=0</div><div class="ttdoc">Initialize frame sink (e.g. allocate contexts, open streams)</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_af9e853a9398db0e1c48894f970e902e1"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">AVQt::IFrameSink::stop</a></div><div class="ttdeci">virtual Q_INVOKABLE int stop()=0</div><div class="ttdoc">Stops frame sink (e.g interrupt processing thread, flush buffers)</div></div>
-<div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html_afabc16034cae92260d213c9bff81b020"><div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html#afabc16034cae92260d213c9bff81b020">AVQt::IFrameSink::pause</a></div><div class="ttdeci">virtual Q_INVOKABLE void pause(bool paused)=0</div><div class="ttdoc">Sets paused flag, which can be retrieved with isPaused() override.</div></div>
-<div class="ttc" id="anamespace_a_v_qt_html"><div class="ttname"><a href="namespace_a_v_qt.html">AVQt</a></div><div class="ttdef"><b>Definition:</b> DecoderVAAPI.cpp:11</div></div>
+<div class="line"><a name="l00066"></a><span class="lineno"><a class="line"
+                                                               href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">   66</a></span>&#160;
+    Q_INVOKABLE <span class="keyword">virtual</span> <span class="keywordtype">void</span>
+    <a class="code"
+       href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">pause</a>(<span
+            class="keywordtype">bool</span> <a class="code"
+                                               href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">pause</a>)
+    = 0;
+</div>
+    <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;
+    </div>
+    <div class="line"><a name="l00076"></a><span class="lineno"><a class="line"
+                                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">   76</a></span>&#160;
+        Q_INVOKABLE <span class="keyword">virtual</span> <span
+                class="keywordtype">void</span> <a class="code"
+                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">onFrame</a>(QImage
+        frame, AVRational timebase, AVRational framerate) = 0;
+    </div>
+    <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;
+    </div>
+    <div class="line"><a name="l00086"></a><span class="lineno"><a class="line"
+                                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">   86</a></span>&#160;
+        Q_INVOKABLE <span class="keyword">virtual</span> <span
+                class="keywordtype">void</span> <a class="code"
+                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">onFrame</a>(AVFrame
+        *frame, AVRational timebase, AVRational framerate) = 0;
+    </div>
+    <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;
+    </div>
+    <div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;
+        signals:
+    </div>
+    <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;
+    </div>
+    <div class="line"><a name="l00093"></a><span class="lineno"><a class="line"
+                                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">   93</a></span>&#160;
+        <span class="keyword">virtual</span> <span
+                class="keywordtype">void</span> <a class="code"
+                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">started</a>()
+        = 0;
+    </div>
+    <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;
+    </div>
+    <div class="line"><a name="l00098"></a><span class="lineno"><a class="line"
+                                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">   98</a></span>&#160;
+        <span class="keyword">virtual</span> <span
+                class="keywordtype">void</span> <a class="code"
+                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">stopped</a>()
+        = 0;
+    </div>
+    <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;
+    </div>
+    <div class="line"><a name="l00104"></a><span class="lineno"><a class="line"
+                                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a5ee18e22f23456445ab8963493f81a13">  104</a></span>&#160;
+        <span class="keyword">virtual</span> <span
+                class="keywordtype">void</span> <a class="code"
+                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a5ee18e22f23456445ab8963493f81a13">paused</a>(<span
+                class="keywordtype">bool</span> <a class="code"
+                                                   href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">pause</a>)
+        = 0;
+    </div>
+    <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;
+        };
+    </div>
+    <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;}
+    </div>
+    <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;
+    </div>
+    <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;Q_DECLARE_INTERFACE(<a
+            class="code" href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a>,
+        <span class="stringliteral">&quot;IFrameSink&quot;</span>)
+    </div>
+    <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;
+    </div>
+    <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span
+            class="preprocessor">#endif </span><span class="comment">//TRANSCODE_IFRAMESINK_H</span>
+    </div>
+    <div class="ttc" id="aclass_a_v_qt_1_1_i_frame_sink_html">
+        <div class="ttname"><a href="class_a_v_qt_1_1_i_frame_sink.html">AVQt::IFrameSink</a>
+        </div>
+        <div class="ttdoc">Base class for every frame sink.</div>
+        <div class="ttdef"><b>Definition:</b> IFrameSink.h:21</div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a012852b4c1e215bf2bcc35f0ee06a136">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a012852b4c1e215bf2bcc35f0ee06a136">AVQt::IFrameSink::isPaused</a>
+        </div>
+        <div class="ttdeci">virtual bool isPaused()=0</div>
+        <div class="ttdoc">Retrieve paused state of frame sink.</div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a3abca3620314c701570e151ba777b1e1">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a3abca3620314c701570e151ba777b1e1">AVQt::IFrameSink::pause</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE void pause(bool pause)=0</div>
+        <div class="ttdoc">Sets paused flag, which can be retrieved with
+            isPaused() override.
+        </div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a5ee18e22f23456445ab8963493f81a13">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a5ee18e22f23456445ab8963493f81a13">AVQt::IFrameSink::paused</a>
+        </div>
+        <div class="ttdeci">virtual void paused(bool pause)=0</div>
+        <div class="ttdoc">Emitted when paused state changes.</div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a6732817a967a7278f00ec206cb3e153d">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a6732817a967a7278f00ec206cb3e153d">AVQt::IFrameSink::onFrame</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE void onFrame(AVFrame *frame,
+            AVRational timebase, AVRational framerate)=0
+        </div>
+        <div class="ttdoc">Image process method, is invoked in objects thread
+            for every frame.
+        </div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a6bd40ff0c728b583503824b5388d240a">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a6bd40ff0c728b583503824b5388d240a">AVQt::IFrameSink::deinit</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE int deinit()=0</div>
+        <div class="ttdoc">Clean up frame sink (e.g. free buffers, close
+            files)
+        </div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a8e8f1b28dc9c949608f4871cfefae489">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a8e8f1b28dc9c949608f4871cfefae489">AVQt::IFrameSink::started</a>
+        </div>
+        <div class="ttdeci">virtual void started()=0</div>
+        <div class="ttdoc">Emitted when started.</div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a9c7fdbb7713742ecbad76f4d1ee17368">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a9c7fdbb7713742ecbad76f4d1ee17368">AVQt::IFrameSink::onFrame</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE void onFrame(QImage frame,
+            AVRational timebase, AVRational framerate)=0
+        </div>
+        <div class="ttdoc">Image process method, is invoked in objects thread
+            for every frame.
+        </div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_a9dfe37374afb38a1d3c3172f7d41ec41">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#a9dfe37374afb38a1d3c3172f7d41ec41">AVQt::IFrameSink::stopped</a>
+        </div>
+        <div class="ttdeci">virtual void stopped()=0</div>
+        <div class="ttdoc">Emitted when stopped.</div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_ac387914e7e1be35bc51b5e21b471f46f">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#ac387914e7e1be35bc51b5e21b471f46f">AVQt::IFrameSink::start</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE int start()=0</div>
+        <div class="ttdoc">Starts frame sink (e.g. start processing thread)
+        </div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_ad435fa334c028336c8aca182a1e3d3c6">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#ad435fa334c028336c8aca182a1e3d3c6">AVQt::IFrameSink::init</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE int init()=0</div>
+        <div class="ttdoc">Initialize frame sink (e.g. allocate contexts, open
+            streams)
+        </div>
+    </div>
+    <div class="ttc"
+         id="aclass_a_v_qt_1_1_i_frame_sink_html_af9e853a9398db0e1c48894f970e902e1">
+        <div class="ttname"><a
+                href="class_a_v_qt_1_1_i_frame_sink.html#af9e853a9398db0e1c48894f970e902e1">AVQt::IFrameSink::stop</a>
+        </div>
+        <div class="ttdeci">virtual Q_INVOKABLE int stop()=0</div>
+        <div class="ttdoc">Stops frame sink (e.g interrupt processing thread,
+            flush buffers)
+        </div>
+    </div>
+    <div class="ttc" id="anamespace_a_v_qt_html">
+        <div class="ttname"><a href="namespace_a_v_qt.html">AVQt</a></div>
+        <div class="ttdef"><b>Definition:</b> DecoderVAAPI.cpp:11</div>
+    </div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

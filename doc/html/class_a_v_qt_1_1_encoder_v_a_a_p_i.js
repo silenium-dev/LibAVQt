@@ -11,7 +11,6 @@ var class_a_v_qt_1_1_encoder_v_a_a_p_i =
       [ "VP9", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723", null ]
     ] ],
     [ "EncoderVAAPI", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a18ecc094514d5f673a3436c12070a871", null ],
-    [ "~EncoderVAAPI", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a62f2d04a74ce58981fbd636d496fad4c", null ],
     [ "EncoderVAAPI", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a8da85138668cfcdd68d3870c32f69dbe", null ],
     [ "deinit", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a4889e6dd02a5625f6a577a5be85cd990", null ],
     [ "init", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a94e5feee994a6aeb0fcca935b87e1b04", null ],
@@ -19,7 +18,7 @@ var class_a_v_qt_1_1_encoder_v_a_a_p_i =
     [ "onFrame", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a09ec36fde99f78820afd04db85abed72", null ],
     [ "onFrame", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#aedd1475224c1fbe7f5cd486335561ad5", null ],
     [ "pause", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ae1494a35d0c991176b117c25b801f23d", null ],
-    [ "run", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a72055f7611a20d68e9f3df424158ca24", null ],
+    [ "paused", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a1766e35a4a925c8378b87b209afa6f14", null ],
     [ "start", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#ac6eb460015f1ca131325ff15d92855ff", null ],
     [ "started", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a50ce856ea4f3393069cf1917842e322b", null ],
     [ "stop", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html#acf8e2bc869ddd725d3762e794f58409e", null ],

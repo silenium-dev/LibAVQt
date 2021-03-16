@@ -2,6 +2,11 @@
 \label{class_a_v_qt_1_1_encoder_v_a_a_p_i}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 
 
+VAAPI accelerated video encoder.  
+
+
+
+
 {\ttfamily \#include $<$Encoder\+VAAPI.\+h$>$}
 
 
@@ -29,53 +34,56 @@ enum class \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda4
 , \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1}{HEVC}}
 , \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723}{VP9}}
  \}
-\item 
+\begin{DoxyCompactList}\small\item\em Enum for video codec. \end{DoxyCompactList}\item 
 enum class \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AUDIO\+\_\+\+CODEC}} \{ \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b}{AAC}}
 , \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7cae94afc367f47e1aaf16533e4ecbc8716}{OGG}}
 , \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca4c2223596711a6a941bc19e8067ceef9}{OPUS}}
  \}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Currently unused. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Public Slots}
 \begin{DoxyCompactItemize}
 \item 
 Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}{init}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em Initialize encoder. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990}{deinit}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em Clean up encoder, encoder will be stopped before, if running. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}{start}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em Start encoder thread. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}{stop}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em Interrupt encoder thread and waits for it to finish. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}{pause}} (bool pause) override
-\item 
+\begin{DoxyCompactList}\small\item\em Sets paused flag to value of {\ttfamily pause}. \end{DoxyCompactList}\item 
 bool \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_aa0d67236ce5821c60c01f0236f734624}{is\+Paused}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em Returns current paused state. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_aedd1475224c1fbe7f5cd486335561ad5}{on\+Frame}} (QImage frame, AVRational timebase, AVRational framerate) override
-\item 
+\begin{DoxyCompactList}\small\item\em Add frame to encode queue, blocks if queue is full. \end{DoxyCompactList}\item 
 Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a09ec36fde99f78820afd04db85abed72}{on\+Frame}} (AVFrame $\ast$frame, AVRational timebase, AVRational framerate) override
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Add frame to encode queue, blocks if queue is full. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Signals}
 \begin{DoxyCompactItemize}
 \item 
 void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a50ce856ea4f3393069cf1917842e322b}{started}} () override
-\item 
+\begin{DoxyCompactList}\small\item\em Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}{start()}} finished. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8889e577f5f9c9d0895dc75a2061fd6c}{stopped}} () override
+\begin{DoxyCompactList}\small\item\em Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}{stop()}} finished. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14}{paused}} (bool \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}{pause}}) override
 \end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
 \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a18ecc094514d5f673a3436c12070a871}{Encoder\+VAAPI}} (QIODevice $\ast$output\+Device, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{VIDEO\+\_\+\+CODEC}} video\+Codec, \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AUDIO\+\_\+\+CODEC}} audio\+Codec, int width, int height, AVRational framerate, int bitrate, QObject $\ast$parent=nullptr)
-\item 
-\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c}{$\sim$\+Encoder\+VAAPI}} () override
-\item 
-void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df424158ca24}{run}} () override
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Standard public contructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}{Encoder\+VAAPI}} (\mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private}{Encoder\+VAAPIPrivate}} \&p)
+\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}{Encoder\+VAAPI}} (Encoder\+VAAPIPrivate \&p)
 \end{DoxyCompactItemize}
 
+
+\doxysubsection{Detailed Description}
+VAAPI accelerated video encoder. 
+
+Sink for encoding every type of frame into mpegts file with provided codecs. Same instance cannot be used as callback of both types. {\itshape {\bfseries{Requires constant frame input or else the output will be scrambled. This is preliminary and will be subject to later changes.}}} 
 
 \doxysubsection{Member Enumeration Documentation}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}} 
@@ -83,6 +91,10 @@ void \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df
 \index{AUDIO\_CODEC@{AUDIO\_CODEC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{AUDIO\_CODEC}{AUDIO\_CODEC}}
 {\footnotesize\ttfamily enum \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AVQt\+::\+Encoder\+VAAPI\+::\+AUDIO\+\_\+\+CODEC}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+
+
+Currently unused. 
 
 \begin{DoxyEnumFields}{Enumerator}
 \raisebox{\heightof{T}}[0pt][0pt]{\index{AAC@{AAC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!AAC@{AAC}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7ca6409dac0c80c79ddf61858be7f2c699b}} 
@@ -104,17 +116,21 @@ OPUS&\\
 \doxysubsubsection{\texorpdfstring{VIDEO\_CODEC}{VIDEO\_CODEC}}
 {\footnotesize\ttfamily enum \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{AVQt\+::\+Encoder\+VAAPI\+::\+VIDEO\+\_\+\+CODEC}}\hspace{0.3cm}{\ttfamily [strong]}}
 
+
+
+Enum for video codec. 
+
 \begin{DoxyEnumFields}{Enumerator}
 \raisebox{\heightof{T}}[0pt][0pt]{\index{H264@{H264}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!H264@{H264}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dca8ba63b54352f7053b055235a9ec7ac09}} 
-H264&\\
+H264&Selects video codec {\ttfamily h264\+\_\+vaapi} for encoding video. \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{HEVC@{HEVC}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!HEVC@{HEVC}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaedc93b70a6a3d160422ba8e728919af1}} 
-HEVC&\\
+HEVC&Selects video codec {\ttfamily hevc\+\_\+vaapi} for encoding video. \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{VP9@{VP9}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!VP9@{VP9}}}\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723}} 
-VP9&\\
+VP9&Selects video codec {\ttfamily vp9\+\_\+vaapi} for encoding video. {\itshape {\bfseries{Important\+:}}} On intel CPUs this only works for Braswell -\/ Kabylake with the i965 VAAPI driver, as the i\+HD driver does not contain support for VP9 encoding \\
 \hline
 
 \end{DoxyEnumFields}
@@ -127,25 +143,40 @@ VP9&\\
 \doxysubsubsection{\texorpdfstring{EncoderVAAPI()}{EncoderVAAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::\+Encoder\+VAAPI (\begin{DoxyParamCaption}\item[{QIODevice $\ast$}]{output\+Device,  }\item[{\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a5a1cbe7bfbaeeda438c21c39901e88dc}{VIDEO\+\_\+\+CODEC}}}]{video\+Codec,  }\item[{\mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac5e1b8a75fde7cd737032bea08684b7c}{AUDIO\+\_\+\+CODEC}}}]{audio\+Codec,  }\item[{int}]{width,  }\item[{int}]{height,  }\item[{AVRational}]{framerate,  }\item[{int}]{bitrate,  }\item[{QObject $\ast$}]{parent = {\ttfamily nullptr} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
 
-\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c}} 
-\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!````~EncoderVAAPI@{$\sim$EncoderVAAPI}}
-\index{````~EncoderVAAPI@{$\sim$EncoderVAAPI}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
-\doxysubsubsection{\texorpdfstring{$\sim$EncoderVAAPI()}{~EncoderVAAPI()}}
-{\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::$\sim$\+Encoder\+VAAPI (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a62f2d04a74ce58981fbd636d496fad4c_cgraph}
-\end{center}
-\end{figure}
+
+Standard public contructor. 
+
+Creates encoder with output QIODevice {\ttfamily output\+Device}, video encoder {\ttfamily video\+Codec}, audio encoder {\ttfamily audio\+Codec} and the given video parameters. If the video parameters are different to the input frames, the frames will be scaled or dropped. 
+\begin{DoxyParams}{Parameters}
+{\em output\+Device} & QIODevice, either already opened for write access or closed. If closed, it will be opened for write access in \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}{init()}}. \\
+\hline
+{\em video\+Codec} & Video encoder from {\ttfamily VIDEO\+\_\+\+CODEC} \\
+\hline
+{\em audio\+Codec} & Audio encoder from {\ttfamily AUDIO\+\_\+\+CODEC} (currently unused) \\
+\hline
+{\em width} & Target video width (currently unused) \\
+\hline
+{\em height} & Target video height (currently unused) \\
+\hline
+{\em framerate} & Target video framerate (currently unused) \\
+\hline
+{\em bitrate} & Target video bitrate \\
+\hline
+{\em parent} & Pointer to parent QObject for Qt\textquotesingle{}s meta object system \\
+\hline
+\end{DoxyParams}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8da85138668cfcdd68d3870c32f69dbe}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!EncoderVAAPI@{EncoderVAAPI}}
 \index{EncoderVAAPI@{EncoderVAAPI}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{EncoderVAAPI()}{EncoderVAAPI()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
-{\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::\+Encoder\+VAAPI (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private}{Encoder\+VAAPIPrivate}} \&}]{p }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}, {\ttfamily [protected]}}
+{\footnotesize\ttfamily AVQt\+::\+Encoder\+VAAPI\+::\+Encoder\+VAAPI (\begin{DoxyParamCaption}\item[{Encoder\+VAAPIPrivate \&}]{p }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}, {\ttfamily [protected]}}
 
+Protected constructor for use in derived classes to initialize private struct 
+\begin{DoxyParams}{Parameters}
+{\em p} & Private struct \\
+\hline
+\end{DoxyParams}
 
 
 \doxysubsection{Member Function Documentation}
@@ -155,11 +186,18 @@ Here is the call graph for this function\+:\nopagebreak
 \doxysubsubsection{\texorpdfstring{deinit}{deinit}}
 {\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::deinit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
-Here is the caller graph for this function\+:\nopagebreak
+
+
+Clean up encoder, encoder will be stopped before, if running. 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success, Lib\+AV error codes, use av\+\_\+make\+\_\+error\+\_\+string() to get an error message) 
+\end{DoxyReturn}
+Here is the call graph for this function\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_icgraph}
+\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a4889e6dd02a5625f6a577a5be85cd990_cgraph}
 \end{center}
 \end{figure}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04}} 
@@ -168,54 +206,119 @@ Here is the caller graph for this function\+:\nopagebreak
 \doxysubsubsection{\texorpdfstring{init}{init}}
 {\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a94e5feee994a6aeb0fcca935b87e1b04_cgraph}
-\end{center}
-\end{figure}
+
+
+Initialize encoder. 
+
+Opens output device, if necessary and creates output context. \begin{DoxyReturn}{Returns}
+Status code (0 = Success, Lib\+AV error codes, use av\+\_\+make\+\_\+error\+\_\+string() to get an error message) 
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_aa0d67236ce5821c60c01f0236f734624}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_aa0d67236ce5821c60c01f0236f734624}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!isPaused@{isPaused}}
 \index{isPaused@{isPaused}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{isPaused}{isPaused}}
 {\footnotesize\ttfamily bool AVQt\+::\+Encoder\+VAAPI\+::is\+Paused (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
+
+
+Returns current paused state. 
+
+\begin{DoxyReturn}{Returns}
+Current paused state 
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a09ec36fde99f78820afd04db85abed72}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a09ec36fde99f78820afd04db85abed72}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!onFrame@{onFrame}}
 \index{onFrame@{onFrame}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{onFrame}{onFrame}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::on\+Frame (\begin{DoxyParamCaption}\item[{AVFrame $\ast$}]{frame,  }\item[{AVRational}]{timebase,  }\item[{AVRational}]{framerate }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
+
+
+Add frame to encode queue, blocks if queue is full. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em frame} & Frame to add \\
+\hline
+{\em timebase} & decode timebase ({\itshape {\bfseries{Unstable API}}}) \\
+\hline
+{\em framerate} & decode framerate ({\itshape {\bfseries{Unstable API}}}) \\
+\hline
+\end{DoxyParams}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_aedd1475224c1fbe7f5cd486335561ad5}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_aedd1475224c1fbe7f5cd486335561ad5}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!onFrame@{onFrame}}
 \index{onFrame@{onFrame}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{onFrame}{onFrame}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
 {\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::on\+Frame (\begin{DoxyParamCaption}\item[{QImage}]{frame,  }\item[{AVRational}]{timebase,  }\item[{AVRational}]{framerate }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
+
+
+Add frame to encode queue, blocks if queue is full. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em frame} & Frame to add \\
+\hline
+{\em timebase} & decode timebase ({\itshape {\bfseries{Unstable API}}}) \\
+\hline
+{\em framerate} & decode framerate ({\itshape {\bfseries{Unstable API}}}) \\
+\hline
+\end{DoxyParams}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ae1494a35d0c991176b117c25b801f23d}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!pause@{pause}}
 \index{pause@{pause}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{pause}{pause}}
 {\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
-\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df424158ca24}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a72055f7611a20d68e9f3df424158ca24}} 
-\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!run@{run}}
-\index{run@{run}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
-\doxysubsubsection{\texorpdfstring{run()}{run()}}
-{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}}
 
+
+Sets paused flag to value of {\ttfamily pause}. 
+
+If the paused flag is set, the encoder thread will suspend. The frame queue will be emptied every 4 ms if paused. 
+\begin{DoxyParams}{Parameters}
+{\em pause} & New paused state \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14}} 
+\index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!paused@{paused}}
+\index{paused@{paused}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
+\doxysubsubsection{\texorpdfstring{paused}{paused}}
+{\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::paused (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+Emitted when paused state changes 
+\begin{DoxyParams}{Parameters}
+{\em pause} & Current paused state \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_a1766e35a4a925c8378b87b209afa6f14_icgraph}
+\end{center}
+\end{figure}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!start@{start}}
 \index{start@{start}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{start}{start}}
 {\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
+
+
+Start encoder thread. 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success, Lib\+AV error codes, use av\+\_\+make\+\_\+error\+\_\+string() to get an error message) 
+\end{DoxyReturn}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a50ce856ea4f3393069cf1917842e322b}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a50ce856ea4f3393069cf1917842e322b}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!started@{started}}
 \index{started@{started}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{started}{started}}
 {\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::started (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+
+
+Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_ac6eb460015f1ca131325ff15d92855ff}{start()}} finished. 
 
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!stop@{stop}}
@@ -223,11 +326,29 @@ Here is the call graph for this function\+:\nopagebreak
 \doxysubsubsection{\texorpdfstring{stop}{stop}}
 {\footnotesize\ttfamily int AVQt\+::\+Encoder\+VAAPI\+::stop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [slot]}}
 
+
+
+Interrupt encoder thread and waits for it to finish. 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success, Lib\+AV error codes, use av\+\_\+make\+\_\+error\+\_\+string() to get an error message) 
+\end{DoxyReturn}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=344pt]{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e_icgraph}
+\end{center}
+\end{figure}
 \mbox{\Hypertarget{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8889e577f5f9c9d0895dc75a2061fd6c}\label{class_a_v_qt_1_1_encoder_v_a_a_p_i_a8889e577f5f9c9d0895dc75a2061fd6c}} 
 \index{AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}!stopped@{stopped}}
 \index{stopped@{stopped}!AVQt::EncoderVAAPI@{AVQt::EncoderVAAPI}}
 \doxysubsubsection{\texorpdfstring{stopped}{stopped}}
 {\footnotesize\ttfamily void AVQt\+::\+Encoder\+VAAPI\+::stopped (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [signal]}}
+
+
+
+Emitted after \mbox{\hyperlink{class_a_v_qt_1_1_encoder_v_a_a_p_i_acf8e2bc869ddd725d3762e794f58409e}{stop()}} finished. 
 
 
 

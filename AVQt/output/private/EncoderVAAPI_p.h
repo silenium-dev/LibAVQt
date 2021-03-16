@@ -24,11 +24,17 @@ extern "C" {
 
 
 namespace AVQt {
+    /*!
+     * \private
+     */
     struct EncoderVAAPIPrivate {
         explicit EncoderVAAPIPrivate(EncoderVAAPI *q) : q_ptr(q) {}
 
         EncoderVAAPI *q_ptr;
 
+        /*!
+         * \private
+         */
         struct Frame {
             AVFrame *frame;
             AVRational timeBase, framerate;

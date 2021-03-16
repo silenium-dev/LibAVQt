@@ -9,7 +9,7 @@ namespace AVQt {
 
     /*!
      * \class FrameFileSaver
-     * \brief This class is a simple IFrameSink implementation, that saves every n-th frame to BMP files
+     * \brief This class is a simple IFrameSink implementation that saves every n-th frame to BMP files
      * \since 0.1-dev
      * \ingroup frame-output
      *
@@ -64,9 +64,9 @@ namespace AVQt {
          * \brief Sets paused flag, which can be retrieved with \c FrameFileSaver::isPaused() override.
          *
          * When set to true, the frame handler won't save any frames until called again with paused set to false
-         * \param paused new paused state
+         * \param pause new paused state
          */
-        Q_INVOKABLE void pause(bool paused) override;
+        Q_INVOKABLE void pause(bool pause) override;
 
         /*!
         * \brief Saves frame, if internal frame counter modulo given interval is 0
@@ -84,14 +84,20 @@ namespace AVQt {
     signals:
 
         /*!
-         * \brief Emitted when start() is called
+         * \brief Emitted after start() finished
          */
         void started() override;
 
-        /*
-       * \brief Emitted when stop() is called
-       */
+        /*!
+         * \brief Emitted after stop() finished
+         */
         void stopped() override;
+
+        /*!
+         * \brief Emitted when paused flag changes
+         * @param pause Current paused state
+         */
+        void paused(bool pause) override;
 
     protected:
         /*!

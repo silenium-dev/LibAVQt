@@ -8,6 +8,9 @@
 #define TRANSCODE_DECODERVAAPI_P_H
 
 namespace AVQt {
+    /*!
+     * \private
+     */
     struct DecoderVAAPIPrivate {
         explicit DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q) {};
 

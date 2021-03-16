@@ -90,19 +90,149 @@ $(document).ready(function(){initNavTree('class_a_v_qt_1_1_i_frame_source.html',
 
 <p>This is the complete list of members for <a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>, including all inherited members.</p>
 <table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4c83a3b834cccc1e0da3f35707dadaf7a8a0375d1ec8ae1f4899d23fcccd94153">CB_AVFRAME</a> enum value</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7">CB_NONE</a> enum value</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4c83a3b834cccc1e0da3f35707dadaf7abe2e781f25792ee1446b4a7b05b5430a">CB_QIMAGE</a> enum value</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a813ebcdcce58aa4cabd41038a1998efe">deinit</a>()=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a0d8558c56ce93e03865647125a507f74">init</a>()=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#ad59ce00452d4e0bf92c3a7c4988de8be">pause</a>(bool pause)=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a0b5172f65568d0183789e744ca95f5b8">registerCallback</a>(IFrameSink *frameSink, uint8_t type)=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4388d4f4782c5970eb721151e43a0958">start</a>()=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a8325db13fdc2797f13424fcbf2dc917b">started</a>()=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">signal</span></td></tr>
-  <tr><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a225bcf3c25acf52358a1898dcf8abfbd">stop</a>()=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a4a42c3d03c5ad9f7963cc1a07736fdd1">stopped</a>()=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">signal</span></td></tr>
-  <tr><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a7a31d67d2120a810e7fd1a3fc381eeeb">unregisterCallback</a>(IFrameSink *frameSink)=0</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">pure virtual</span><span class="mlabel">slot</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html#a7906d64f994d2a062bf6b8076d6db4cd">~IFrameSource</a>()=default</td><td class="entry"><a class="el" href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a3fd19f9a4a566d40c1b6d9a45602a9e9a8a0375d1ec8ae1f4899d23fcccd94153">CB_AVFRAME</a>
+            enum value
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a3fd19f9a4a566d40c1b6d9a45602a9e9abe2e781f25792ee1446b4a7b05b5430a">CB_QIMAGE</a>
+            enum value
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"></td>
+    </tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a3fd19f9a4a566d40c1b6d9a45602a9e9">CB_TYPE</a>
+            enum name
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a813ebcdcce58aa4cabd41038a1998efe">deinit</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a0d8558c56ce93e03865647125a507f74">init</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a5135e8df03b4b624d7e2d751634863ad">isPaused</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span></td>
+    </tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a8adc3c97c319c26a456b99c7db76c2b5">pause</a>(bool
+            pause)=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a1e536ea506281302e56d19d20f41db5c">paused</a>(bool
+            pause)=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">signal</span></td>
+    </tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a0b5172f65568d0183789e744ca95f5b8">registerCallback</a>(IFrameSink
+            *frameSink, uint8_t type)=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a4388d4f4782c5970eb721151e43a0958">start</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a8325db13fdc2797f13424fcbf2dc917b">started</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">signal</span></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a225bcf3c25acf52358a1898dcf8abfbd">stop</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
+    <tr class="even">
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a4a42c3d03c5ad9f7963cc1a07736fdd1">stopped</a>()=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">signal</span></td>
+    </tr>
+    <tr>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html#a7a31d67d2120a810e7fd1a3fc381eeeb">unregisterCallback</a>(IFrameSink
+            *frameSink)=0
+        </td>
+        <td class="entry"><a class="el"
+                             href="class_a_v_qt_1_1_i_frame_source.html">AVQt::IFrameSource</a>
+        </td>
+        <td class="entry"><span class="mlabel">pure virtual</span><span
+                class="mlabel">slot</span></td>
+    </tr>
 </table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

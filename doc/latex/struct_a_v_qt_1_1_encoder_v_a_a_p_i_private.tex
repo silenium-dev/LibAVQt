@@ -13,11 +13,6 @@ Collaboration diagram for AVQt\+::Encoder\+VAAPIPrivate\+:\nopagebreak
 \includegraphics[width=258pt]{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private__coll__graph}
 \end{center}
 \end{figure}
-\doxysubsection*{Classes}
-\begin{DoxyCompactItemize}
-\item 
-struct \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame}{Frame}}
-\end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -81,11 +76,11 @@ Sws\+Context $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private
 \item 
 QIODevice $\ast$ \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a5cff7cc5c2ab2a80541ae5d2d39c9c78}{m\+\_\+output\+Device}} = nullptr
 \item 
-QQueue$<$ \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame}{Frame}} $\ast$ $>$ \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_afe750cb59d20463e0a146cfaeafe5e08}{m\+\_\+frame\+Queue}}
+QQueue$<$ Frame $\ast$ $>$ \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_afe750cb59d20463e0a146cfaeafe5e08}{m\+\_\+frame\+Queue}}
 \item 
 QMutex \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a9d1652c3f778c32d2bc61f51cd05ead3}{m\+\_\+frame\+Queue\+Mutex}}
 \item 
-int8\+\_\+t \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a7f0c8cf56f31ee90a0c9bb1e5dfe8304}{m\+\_\+cb\+Type}} = \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7}{IFrame\+Source\+::\+CB\+\_\+\+NONE}}
+int8\+\_\+t \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a7f0c8cf56f31ee90a0c9bb1e5dfe8304}{m\+\_\+cb\+Type}} = IFrame\+Source\+::\+CB\+\_\+\+NONE
 \item 
 QMutex \mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a95252116a084c645957504e434d8bb39}{m\+\_\+cb\+Type\+Mutex}}
 \item 
@@ -151,7 +146,7 @@ Here is the caller graph for this function\+:\nopagebreak
 \index{AVQt::EncoderVAAPIPrivate@{AVQt::EncoderVAAPIPrivate}!m\_cbType@{m\_cbType}}
 \index{m\_cbType@{m\_cbType}!AVQt::EncoderVAAPIPrivate@{AVQt::EncoderVAAPIPrivate}}
 \doxysubsubsection{\texorpdfstring{m\_cbType}{m\_cbType}}
-{\footnotesize\ttfamily int8\+\_\+t AVQt\+::\+Encoder\+VAAPIPrivate\+::m\+\_\+cb\+Type = \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_source_a4c83a3b834cccc1e0da3f35707dadaf7a7547f7b691620dd070a3ee8951ec74f7}{IFrame\+Source\+::\+CB\+\_\+\+NONE}}}
+{\footnotesize\ttfamily int8\+\_\+t AVQt\+::\+Encoder\+VAAPIPrivate\+::m\+\_\+cb\+Type = IFrame\+Source\+::\+CB\+\_\+\+NONE}
 
 \mbox{\Hypertarget{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a95252116a084c645957504e434d8bb39}\label{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a95252116a084c645957504e434d8bb39}} 
 \index{AVQt::EncoderVAAPIPrivate@{AVQt::EncoderVAAPIPrivate}!m\_cbTypeMutex@{m\_cbTypeMutex}}
@@ -169,7 +164,7 @@ Here is the caller graph for this function\+:\nopagebreak
 \index{AVQt::EncoderVAAPIPrivate@{AVQt::EncoderVAAPIPrivate}!m\_frameQueue@{m\_frameQueue}}
 \index{m\_frameQueue@{m\_frameQueue}!AVQt::EncoderVAAPIPrivate@{AVQt::EncoderVAAPIPrivate}}
 \doxysubsubsection{\texorpdfstring{m\_frameQueue}{m\_frameQueue}}
-{\footnotesize\ttfamily QQueue$<$\mbox{\hyperlink{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_1_1_frame}{Frame}} $\ast$$>$ AVQt\+::\+Encoder\+VAAPIPrivate\+::m\+\_\+frame\+Queue}
+{\footnotesize\ttfamily QQueue$<$Frame $\ast$$>$ AVQt\+::\+Encoder\+VAAPIPrivate\+::m\+\_\+frame\+Queue}
 
 \mbox{\Hypertarget{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a9d1652c3f778c32d2bc61f51cd05ead3}\label{struct_a_v_qt_1_1_encoder_v_a_a_p_i_private_a9d1652c3f778c32d2bc61f51cd05ead3}} 
 \index{AVQt::EncoderVAAPIPrivate@{AVQt::EncoderVAAPIPrivate}!m\_frameQueueMutex@{m\_frameQueueMutex}}

@@ -44,7 +44,7 @@ namespace AVQt {
         return 0;
     }
 
-    void OpenGLWidgetRenderer::pause(bool paused) {
+    void OpenGLWidgetRenderer::pause(bool pause) {
     }
 
     void OpenGLWidgetRenderer::onFrame(QImage frame, AVRational timebase, AVRational framerate) {
