@@ -1,0 +1,5 @@
+<map id="AVQt::DecoderVAAPI::init" name="AVQt::DecoderVAAPI::init">
+<area shape="rect" id="node1" title="Initialize decoder. Opens input device, creates input contexts." alt="" coords="5,39,160,80"/>
+<area shape="rect" id="node2" href="$struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#aad414d8c063d6252bc818fff29252c86" title=" " alt="" coords="208,5,408,47"/>
+<area shape="rect" id="node3" href="$struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a8e7658d66024fa5734cbdfeb801b3729" title=" " alt="" coords="208,71,408,112"/>
+</map>

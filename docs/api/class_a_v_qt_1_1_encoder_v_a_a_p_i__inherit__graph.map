@@ -1,0 +1,5 @@
+<map id="AVQt::EncoderVAAPI" name="AVQt::EncoderVAAPI">
+<area shape="rect" id="node1" title="VAAPI accelerated video encoder." alt="" coords="33,80,185,107"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,83,32"/>
+<area shape="rect" id="node3" href="$class_a_v_qt_1_1_i_frame_sink.html" title="Base class for every frame sink." alt="" coords="107,5,242,32"/>
+</map>
