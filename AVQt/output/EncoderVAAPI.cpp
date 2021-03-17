@@ -16,9 +16,11 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define NOW() std::chrono::high_resolution_clock::now()
 #define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>((t2) - (t1)).count()
 #define TIME_S(t1, t2) std::chrono::duration_cast<std::chrono::seconds>((t2) - (t1)).count()
+#endif
 
 #include <QtConcurrent>
 

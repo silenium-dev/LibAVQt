@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['unregistercallback_40',['unregisterCallback',['../class_a_v_qt_1_1_decoder_v_a_a_p_i.html#aca4a28db4a154a2939d96e7f085fd4a3',1,'AVQt::DecoderVAAPI::unregisterCallback()'],['../class_a_v_qt_1_1_i_frame_source.html#a7a31d67d2120a810e7fd1a3fc381eeeb',1,'AVQt::IFrameSource::unregisterCallback()']]]
+  ['video_5fcodec_41',['VIDEO_CODEC',['../class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dc',1,'AVQt::EncoderVAAPI']]],
+  ['vp9_42',['VP9',['../class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a5a1cbe7bfbaeeda438c21c39901e88dcaae4cfaa9283a4f2150ac3da08e388723',1,'AVQt::EncoderVAAPI']]]
 ];

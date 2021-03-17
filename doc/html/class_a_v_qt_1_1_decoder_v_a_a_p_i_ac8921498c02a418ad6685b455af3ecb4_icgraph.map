@@ -1,4 +1,0 @@
-<map id="AVQt::DecoderVAAPI::paused" name="AVQt::DecoderVAAPI::paused">
-<area shape="rect" id="node1" title="Emitted when paused state changes." alt="" coords="208,5,363,47"/>
-<area shape="rect" id="node2" href="$class_a_v_qt_1_1_decoder_v_a_a_p_i.html#a608fd83592ab9f0103cdb7bf50fb2ecc" title="Sets paused flag. When set to true, decoder thread will suspend after processing current frame." alt="" coords="5,5,160,47"/>
-</map>

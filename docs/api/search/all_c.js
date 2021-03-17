@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['time_5fs_38',['TIME_S',['../_encoder_v_a_a_p_i_8cpp.html#a1f5903e977abdcbbd199238fb848c64f',1,'EncoderVAAPI.cpp']]],
-  ['time_5fus_39',['TIME_US',['../_encoder_v_a_a_p_i_8cpp.html#ab3f545ed4b1dfe82e4b494e41c1a477d',1,'EncoderVAAPI.cpp']]]
+  ['unregistercallback_40',['unregisterCallback',['../class_a_v_qt_1_1_decoder_v_a_a_p_i.html#aca4a28db4a154a2939d96e7f085fd4a3',1,'AVQt::DecoderVAAPI::unregisterCallback()'],['../class_a_v_qt_1_1_i_frame_source.html#a7a31d67d2120a810e7fd1a3fc381eeeb',1,'AVQt::IFrameSource::unregisterCallback()']]]
 ];

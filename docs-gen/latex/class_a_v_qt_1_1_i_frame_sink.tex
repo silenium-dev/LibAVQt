@@ -1,0 +1,221 @@
+\hypertarget{class_a_v_qt_1_1_i_frame_sink}{}\doxysection{AVQt\+::IFrame\+Sink Interface Reference}
+\label{class_a_v_qt_1_1_i_frame_sink}\index{AVQt::IFrameSink@{AVQt::IFrameSink}}
+
+
+Base class for every frame sink.  
+
+
+
+
+{\ttfamily \#include $<$IFrame\+Sink.\+h$>$}
+
+
+
+Inheritance diagram for AVQt\+::IFrame\+Sink\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{class_a_v_qt_1_1_i_frame_sink__inherit__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Slots}
+\begin{DoxyCompactItemize}
+\item 
+virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_ad435fa334c028336c8aca182a1e3d3c6}{init}} ()=0
+\begin{DoxyCompactList}\small\item\em Initialize frame sink (e.\+g. allocate contexts, open streams) \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a6bd40ff0c728b583503824b5388d240a}{deinit}} ()=0
+\begin{DoxyCompactList}\small\item\em Clean up frame sink (e.\+g. free buffers, close files) \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_ac387914e7e1be35bc51b5e21b471f46f}{start}} ()=0
+\begin{DoxyCompactList}\small\item\em Starts frame sink (e.\+g. start processing thread) \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE int \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_af9e853a9398db0e1c48894f970e902e1}{stop}} ()=0
+\begin{DoxyCompactList}\small\item\em Stops frame sink (e.\+g interrupt processing thread, flush buffers) \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}{pause}} (bool pause)=0
+\begin{DoxyCompactList}\small\item\em Sets paused flag, which can be retrieved with {\ttfamily \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a012852b4c1e215bf2bcc35f0ee06a136}{is\+Paused()}}} override. \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_ad3517b88414645ae276a182a1779c2de}{on\+Frame}} (QImage frame, AVRational timebase, AVRational framerate, int64\+\_\+t duration)=0
+\begin{DoxyCompactList}\small\item\em Image process method, is invoked in objects thread for every frame. \end{DoxyCompactList}\item 
+virtual Q\+\_\+\+INVOKABLE void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_aa7095a64a40c73e22fb3542ae1743a0d}{on\+Frame}} (AVFrame $\ast$frame, AVRational timebase, AVRational framerate, int64\+\_\+t duration)=0
+\begin{DoxyCompactList}\small\item\em Image process method, is invoked in objects thread for every frame. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a8e8f1b28dc9c949608f4871cfefae489}{started}} ()=0
+\begin{DoxyCompactList}\small\item\em Emitted when started. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a9dfe37374afb38a1d3c3172f7d41ec41}{stopped}} ()=0
+\begin{DoxyCompactList}\small\item\em Emitted when stopped. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a5ee18e22f23456445ab8963493f81a13}{paused}} (bool \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}{pause}})=0
+\begin{DoxyCompactList}\small\item\em Emitted when paused state changes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual bool \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a012852b4c1e215bf2bcc35f0ee06a136}{is\+Paused}} ()=0
+\begin{DoxyCompactList}\small\item\em Retrieve paused state of frame sink. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Base class for every frame sink. 
+
+Every subclass of \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink}{IFrame\+Sink}} represents the end of a video processing pipeline. This can be e.\+g. an encoder, an image file output or a renderer 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a6bd40ff0c728b583503824b5388d240a}\label{class_a_v_qt_1_1_i_frame_sink_a6bd40ff0c728b583503824b5388d240a}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!deinit@{deinit}}
+\index{deinit@{deinit}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{deinit}{deinit}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Sink\+::deinit (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Clean up frame sink (e.\+g. free buffers, close files) 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_ad435fa334c028336c8aca182a1e3d3c6}\label{class_a_v_qt_1_1_i_frame_sink_ad435fa334c028336c8aca182a1e3d3c6}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!init@{init}}
+\index{init@{init}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{init}{init}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Sink\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Initialize frame sink (e.\+g. allocate contexts, open streams) 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a012852b4c1e215bf2bcc35f0ee06a136}\label{class_a_v_qt_1_1_i_frame_sink_a012852b4c1e215bf2bcc35f0ee06a136}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!isPaused@{isPaused}}
+\index{isPaused@{isPaused}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{isPaused()}{isPaused()}}
+{\footnotesize\ttfamily virtual bool AVQt\+::\+IFrame\+Sink\+::is\+Paused (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Retrieve paused state of frame sink. 
+
+\begin{DoxyReturn}{Returns}
+Paused state 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{class_a_v_qt_1_1_open_g_l_widget_renderer_a9f1c209f53b01cc31a35e0799abb928f}{AVQt\+::\+Open\+GLWidget\+Renderer}}, and \mbox{\hyperlink{class_a_v_qt_1_1_frame_file_saver_af250ca0203f7fbe22f1327e220405665}{AVQt\+::\+Frame\+File\+Saver}}.
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_aa7095a64a40c73e22fb3542ae1743a0d}\label{class_a_v_qt_1_1_i_frame_sink_aa7095a64a40c73e22fb3542ae1743a0d}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!onFrame@{onFrame}}
+\index{onFrame@{onFrame}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{onFrame}{onFrame}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE void AVQt\+::\+IFrame\+Sink\+::on\+Frame (\begin{DoxyParamCaption}\item[{AVFrame $\ast$}]{frame,  }\item[{AVRational}]{timebase,  }\item[{AVRational}]{framerate,  }\item[{int64\+\_\+t}]{duration }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Image process method, is invoked in objects thread for every frame. 
+
+{\itshape {\bfseries{Disclaimer\+:}}} Image processing should be moved to separate thread to prevent sources and filters from blocking 
+\begin{DoxyParams}{Parameters}
+{\em frame} & Source frame in any possible pixel format, processing code has to be able to handle every format \\
+\hline
+{\em timebase} & Source stream time base, if you don\textquotesingle{}t know what this means, you probably don\textquotesingle{}t want to use it. \\
+\hline
+{\em framerate} & Source stream framerate \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_ad3517b88414645ae276a182a1779c2de}\label{class_a_v_qt_1_1_i_frame_sink_ad3517b88414645ae276a182a1779c2de}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!onFrame@{onFrame}}
+\index{onFrame@{onFrame}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{onFrame}{onFrame}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE void AVQt\+::\+IFrame\+Sink\+::on\+Frame (\begin{DoxyParamCaption}\item[{QImage}]{frame,  }\item[{AVRational}]{timebase,  }\item[{AVRational}]{framerate,  }\item[{int64\+\_\+t}]{duration }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Image process method, is invoked in objects thread for every frame. 
+
+{\itshape {\bfseries{Disclaimer\+:}}} Image processing should be moved to separate thread to prevent sources and filters from blocking 
+\begin{DoxyParams}{Parameters}
+{\em frame} & Source image in RGBA pixel format \\
+\hline
+{\em timebase} & Source stream time base, if you don\textquotesingle{}t know what this means, you probably don\textquotesingle{}t want to use it. \\
+\hline
+{\em framerate} & Source stream framerate \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}\label{class_a_v_qt_1_1_i_frame_sink_a3abca3620314c701570e151ba777b1e1}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!pause@{pause}}
+\index{pause@{pause}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{pause}{pause}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE void AVQt\+::\+IFrame\+Sink\+::pause (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Sets paused flag, which can be retrieved with {\ttfamily \mbox{\hyperlink{class_a_v_qt_1_1_i_frame_sink_a012852b4c1e215bf2bcc35f0ee06a136}{is\+Paused()}}} override. 
+
+When Set to true, the frame sink should not process any frames, instead they should be freed immediately 
+\begin{DoxyParams}{Parameters}
+{\em pause} & New paused state \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a5ee18e22f23456445ab8963493f81a13}\label{class_a_v_qt_1_1_i_frame_sink_a5ee18e22f23456445ab8963493f81a13}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!paused@{paused}}
+\index{paused@{paused}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{paused}{paused}}
+{\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Sink\+::paused (\begin{DoxyParamCaption}\item[{bool}]{pause }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
+
+
+
+Emitted when paused state changes. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pause} & \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_ac387914e7e1be35bc51b5e21b471f46f}\label{class_a_v_qt_1_1_i_frame_sink_ac387914e7e1be35bc51b5e21b471f46f}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!start@{start}}
+\index{start@{start}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{start}{start}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Sink\+::start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Starts frame sink (e.\+g. start processing thread) 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a8e8f1b28dc9c949608f4871cfefae489}\label{class_a_v_qt_1_1_i_frame_sink_a8e8f1b28dc9c949608f4871cfefae489}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!started@{started}}
+\index{started@{started}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{started}{started}}
+{\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Sink\+::started (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
+
+
+
+Emitted when started. 
+
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_af9e853a9398db0e1c48894f970e902e1}\label{class_a_v_qt_1_1_i_frame_sink_af9e853a9398db0e1c48894f970e902e1}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!stop@{stop}}
+\index{stop@{stop}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{stop}{stop}}
+{\footnotesize\ttfamily virtual Q\+\_\+\+INVOKABLE int AVQt\+::\+IFrame\+Sink\+::stop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [slot]}}
+
+
+
+Stops frame sink (e.\+g interrupt processing thread, flush buffers) 
+
+\begin{DoxyReturn}{Returns}
+Status code (0 = Success) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_a_v_qt_1_1_i_frame_sink_a9dfe37374afb38a1d3c3172f7d41ec41}\label{class_a_v_qt_1_1_i_frame_sink_a9dfe37374afb38a1d3c3172f7d41ec41}} 
+\index{AVQt::IFrameSink@{AVQt::IFrameSink}!stopped@{stopped}}
+\index{stopped@{stopped}!AVQt::IFrameSink@{AVQt::IFrameSink}}
+\doxysubsubsection{\texorpdfstring{stopped}{stopped}}
+{\footnotesize\ttfamily virtual void AVQt\+::\+IFrame\+Sink\+::stopped (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}, {\ttfamily [signal]}}
+
+
+
+Emitted when stopped. 
+
+
+
+The documentation for this interface was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/silas/\+CLion\+Projects/lib\+AVQt/\+AVQt/output/\mbox{\hyperlink{_i_frame_sink_8h}{IFrame\+Sink.\+h}}\end{DoxyCompactItemize}

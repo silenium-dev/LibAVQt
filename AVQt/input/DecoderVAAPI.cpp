@@ -9,9 +9,10 @@
 #include <QApplication>
 #include <QImage>
 
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define NOW() std::chrono::high_resolution_clock::now();
 #define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
+#endif
 
 namespace AVQt {
     DecoderVAAPI::DecoderVAAPI(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {

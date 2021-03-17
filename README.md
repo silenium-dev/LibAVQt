@@ -1,6 +1,6 @@
 # LibAVQt
 
-A object-oriented Qt interface for FFmpeg.
+An object-oriented Qt interface for FFmpeg.
 
 ## Features
 

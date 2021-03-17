@@ -1,5 +1,0 @@
-<map id="AVQt::FrameFileSaver" name="AVQt::FrameFileSaver">
-<area shape="rect" id="node1" title="This class is a simple IFrameSink implementation that saves every n&#45;th frame to BMP files." alt="" coords="25,80,188,107"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,80,32"/>
-<area shape="rect" id="node3" href="$class_a_v_qt_1_1_i_frame_sink.html" title="Base class for every frame sink." alt="" coords="105,5,239,32"/>
-</map>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>LibAVQt: Main Page</title>
+<title>LibAVQt: Introduction to LibAVQt</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -19,17 +19,19 @@
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<div id="top"><!-- do not remove this div, it is closed by Doxygen! -->
-<div id="titlearea">
-<table cellspacing="0" cellpadding="0">
- <tbody>
- <tr style="height: 56px;">
-  <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">LibAVQt
-   &#160;<span id="projectnumber">0.1-dev</span>
-   </div>
-   <div id="projectbrief">A object-oriented Qt interface for FFmpeg</div>
-  </td>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+    <div id="titlearea">
+        <table cellspacing="0" cellpadding="0">
+            <tbody>
+            <tr style="height: 56px;">
+                <td id="projectalign" style="padding-left: 0.5em;">
+                    <div id="projectname">LibAVQt
+                        &#160;<span id="projectnumber">0.1-dev</span>
+                    </div>
+                    <div id="projectbrief">A object-oriented Qt interface for
+                        FFmpeg
+                    </div>
+                </td>
  </tr>
  </tbody>
 </table>
@@ -82,12 +84,104 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </iframe>
 </div>
 
-<div class="header">
-  <div class="headertitle">
-<div class="title">LibAVQt Documentation</div>  </div>
-</div><!--header-->
-<div class="contents">
-</div><!-- contents -->
+    <div class="PageDoc">
+        <div class="header">
+            <div class="headertitle">
+                <div class="title">Introduction to LibAVQt</div>
+            </div>
+        </div><!--header-->
+        <div class="contents">
+            <div class="textblock"><h2><a class="anchor" id="autotoc_md0"></a>
+                Description</h2>
+                <p>An object-oriented Qt interface for FFmpeg.</p>
+                <h2><a class="anchor" id="autotoc_md1"></a>
+                    Features</h2>
+                <h3><a class="anchor" id="autotoc_md2"></a>
+                    Current</h3>
+                <ul>
+                    <li>VAAPI accelerated encode/decode</li>
+                    <li>Frame sink for saving every 60th frame to file</li>
+                    <li>QOpenGLWidget based renderer (<em><b>WIP</b></em>)</li>
+                </ul>
+                <h3><a class="anchor" id="autotoc_md3"></a>
+                    Planned</h3>
+                <ul>
+                    <li>Reliable API Reference</li>
+                    <li>Audio encode/decode</li>
+                    <li>Other hardware accelerations</li>
+                    <li>Frame filters for e.g. scaling or color &lt;-&gt;
+                        greyscale
+                    </li>
+                    <li>Other renderers (e.g. QWidget, QGraphicsItem)</li>
+                    <li>CMake module</li>
+                </ul>
+                <h2><a class="anchor" id="autotoc_md4"></a>
+                    Build from source</h2>
+                <h3><a class="anchor" id="autotoc_md5"></a>
+                    Prequisites</h3>
+                <ul>
+                    <li>CMake</li>
+                    <li>C++ Development environment</li>
+                    <li>Vulkan + headers (In Qt6 QML defaults to Vulkan instead
+                        of OpenGL for rendering)
+                    </li>
+                    <li>Correctly configured Qt6 installation
+                        <ul>
+                            <li>for linux distributions with Qt6 in the package
+                                repositories, just install it with your
+                                distributions package manager
+                            </li>
+                            <li>for linux distributions without Qt6 in the
+                                repositories, Windows and macOS, use the
+                                installer from the Qt website: (you have to
+                                create an Qt account in order to install Qt): <a
+                                        href="https://www.qt.io/download-qt-installer">https://www.qt.io/download-qt-installer</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3><a class="anchor" id="autotoc_md6"></a>
+                    Clone the repo</h3>
+                <div class="fragment">
+                    <div class="line">git clone https:<span class="comment">//github.com/sdcieo0330/LibAVQt.git</span>
+                    </div>
+                    <div class="line">cd LibAVQt</div>
+                </div><!-- fragment --><h3><a class="anchor"
+                                              id="autotoc_md7"></a>
+                    Run CMake and build</h3>
+                <div class="fragment">
+                    <div class="line">mkdir build &amp;&amp; cd build</div>
+                    <div class="line">cmake ..</div>
+                    <div class="line">cmake --build . -j4</div>
+                </div><!-- fragment --><h2><a class="anchor"
+                                              id="autotoc_md8"></a>
+                    Use with CMake</h2>
+                <p>Add the following lines to your <code>CMakeLists.txt</code>
+                    (the <code>&lt;path&gt;</code> must be replaced with the
+                    path to the cloned repository):</p>
+                <div class="fragment">
+                    <div class="line">include_directories(&lt;path&gt;)</div>
+                    <div class="line">link_directories(&lt;path&gt;/build/<a
+                            class="code" href="namespace_a_v_qt.html">AVQt</a>)
+                    </div>
+                    <div class="ttc" id="anamespace_a_v_qt_html">
+                        <div class="ttname"><a
+                                href="namespace_a_v_qt.html">AVQt</a></div>
+                        <div class="ttdef"><b>Definition:</b>
+                            DecoderVAAPI.cpp:17
+                        </div>
+                    </div>
+                </div><!-- fragment --><h2><a class="anchor"
+                                              id="autotoc_md9"></a>
+                    Examples</h2>
+                <p>A simple example for transcoding and saving every 60th frame
+                    to a BMP file can be found in main.cpp. It takes two files
+                    as parameters the first is the input file and must already
+                    exist, the second is the output file and will be
+                    overwritten </p>
+            </div>
+        </div><!-- PageDoc -->
+    </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
