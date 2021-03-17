@@ -327,7 +327,7 @@ namespace AVQt {
                                             cbFrame->pkt_duration * av_q2d(d->m_pFormatCtx->streams[d->m_videoIndex]->time_base) * 1000.0);
 //                                }, cbFrame);
                                 auto t4 = NOW();
-                                printf("CB time: %ld us\n", TIME_US(t3, t4));
+                                qDebug("CB time: %ld us", TIME_US(t3, t4));
                                 av_frame_unref(cbFrame);
                             }
                         }
@@ -336,8 +336,7 @@ namespace AVQt {
                         auto duration = hwFrame->pkt_duration * 1000000.0 *
                                         av_q2d(d->m_pFormatCtx->streams[packet->stream_index]->time_base) - TIME_US(t1, t2);
                         duration = (duration < 0 ? 0 : duration);
-                        printf("Decoder: Frametime %ld us; Sleeping: %f us\n", TIME_US(t1, t2), duration);
-                        fflush(stdout);
+                        qDebug("Decoder: Frametime %ld us; Sleeping: %f us", TIME_US(t1, t2), duration);
                         usleep(duration);
 
                         av_frame_free(&hwFrame);

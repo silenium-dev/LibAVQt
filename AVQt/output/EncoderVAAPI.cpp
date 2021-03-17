@@ -252,8 +252,8 @@ namespace AVQt {
                     qFatal("Could not allocate AVHWFramesContext");
                 }
 
-                printf("Source framerate: %d/%d\n", queueFrame->framerate.num, queueFrame->framerate.den);
-                printf("Source timebase: %d/%d\n", queueFrame->timeBase.num, queueFrame->timeBase.den);
+                qDebug("Source framerate: %d/%d", queueFrame->framerate.num, queueFrame->framerate.den);
+                qDebug("Source timebase: %d/%d", queueFrame->timeBase.num, queueFrame->timeBase.den);
 
                 auto framesCtx = reinterpret_cast<AVHWFramesContext *>(d->pFramesCtx->data);
 
@@ -307,8 +307,8 @@ namespace AVQt {
                            av_make_error_string(strBuf, strBufSize, ret));
                 }
 
-                printf("Encoder framerate: %d/%d\n", d->pVideoStream->avg_frame_rate.num, d->pVideoStream->avg_frame_rate.den);
-                printf("Encoder timebase: %d/%d\n", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
+                qDebug("Encoder framerate: %d/%d", d->pVideoStream->avg_frame_rate.num, d->pVideoStream->avg_frame_rate.den);
+                qDebug("Encoder timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
 
                 // Create frame on GPU
                 d->pHWFrame = av_frame_alloc();
@@ -331,7 +331,7 @@ namespace AVQt {
                                                     d->pVideoCodecCtx->height, framesCtx->sw_format, 0, nullptr, nullptr, nullptr);
                 }
 
-                printf("\n");
+                qDebug("");
                 QtConcurrent::run([&] {
                     // Receive and write all encoded packets
                     AVPacket *packet = av_packet_alloc();
@@ -356,11 +356,11 @@ namespace AVQt {
                                     qWarning("%d: Could not write packet to output: %s", ret, av_make_error_string(strBuf, 64, ret));
                                 }
                                 if ((d->m_frameNumber.load() - 1) % 60 == 0) {
-                                    printf("Encoded frame %lu\n", d->m_frameNumber.load() - 1);
-                                    printf("Encoder framerate: %d/%d\n", d->pVideoStream->avg_frame_rate.num,
+                                    qDebug("Encoded frame %lu", d->m_frameNumber.load() - 1);
+                                    qDebug("Encoder framerate: %d/%d", d->pVideoStream->avg_frame_rate.num,
                                            d->pVideoStream->avg_frame_rate.den);
-                                    printf("Encoder timebase: %d/%d\n", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
-                                    printf("Packet pts, duration: %ld, %ld\n", packet->pts, packet->duration);
+                                    qDebug("Encoder timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
+                                    qDebug("Packet pts, duration: %ld, %ld", packet->pts, packet->duration);
                                     fflush(stdout);
                                 }
                                 av_packet_unref(packet);
@@ -414,7 +414,7 @@ namespace AVQt {
 
             avcodec_send_frame(d->pVideoCodecCtx, d->pHWFrame);
         }
-        printf("Stats\n Average FPS: %0.2f\nAverage frame time: %0.2f us\n", d->m_frameNumber.load() * 1.0 / TIME_S(startPoint, NOW()),
+        qDebug("Stats\n Average FPS: %0.2f\nAverage frame time: %0.2f us", d->m_frameNumber.load() * 1.0 / TIME_S(startPoint, NOW()),
                TIME_US(startPoint, NOW()) * 1.0 / d->m_frameNumber.load());
     }
 

@@ -19,6 +19,10 @@ namespace AVQt {
         Q_DECLARE_PRIVATE(AVQt::OpenGLWidgetRenderer)
 
     public:
+        /*!
+         * \brief Standard public constructor
+         * @param parent Pointer to parent QWidget for building GUIs, if nullptr, it will be shown in its own window
+         */
         explicit OpenGLWidgetRenderer(QWidget *parent = nullptr);
 
         ~OpenGLWidgetRenderer();

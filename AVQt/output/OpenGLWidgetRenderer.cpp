@@ -83,6 +83,7 @@ namespace AVQt {
         double scale = std::min(width() * 1.0 / frame.width(), height() * 1.0 / frame.height());
         imageRect.setHeight(scale < 1.0 ? scale * frame.height() : frame.height());
         imageRect.setWidth(scale < 1.0 ? scale * frame.width() : frame.width());
+        imageRect.translate((width() - imageRect.width()) / 2.0, (height() - imageRect.height()) / 2.0);
 //        imageRect.setTop((rect().height() - imageRect.height()) / 2);
 //        imageRect.setWidth((rect().width() - imageRect.width()) / 2);
 
@@ -109,6 +110,7 @@ namespace AVQt {
         double scale = std::min(width() * 1.0 / frame->width, height() * 1.0 / frame->height);
         imageRect.setHeight(scale < 1.0 ? scale * frame->height : frame->height);
         imageRect.setWidth(scale < 1.0 ? scale * frame->width : frame->width);
+        imageRect.translate((width() - imageRect.width()) / 2.0, (height() - imageRect.height()) / 2.0);
 //        imageRect.setTop((rect().height() - imageRect.height()) / 2);
 //        imageRect.setWidth((rect().width() - imageRect.width()) / 2);
 
@@ -142,14 +144,14 @@ namespace AVQt {
                 f[0] = newRect;
             }
         }
-        {
-            QMutexLocker lock(&m_currentImageMutex);
-            QRect newRect = m_currentImage.rect();
-            double scale = std::min(q_ptr->width() * 1.0 / newRect.width(), q_ptr->height() * 1.0 / newRect.height());
-            newRect.setHeight(scale < 1.0 ? scale * newRect.height() : newRect.height());
-            newRect.setWidth(scale < 1.0 ? scale * newRect.width() : newRect.width());
-            m_currentImageRect = newRect;
-        }
+//        {
+//            QMutexLocker lock(&m_currentImageMutex);
+//            QRect newRect = m_currentImage.rect();
+//            double scale = std::min(q_ptr->width() * 1.0 / newRect.width(), q_ptr->height() * 1.0 / newRect.height());
+//            newRect.setHeight(scale < 1.0 ? scale * newRect.height() : newRect.height());
+//            newRect.setWidth(scale < 1.0 ? scale * newRect.width() : newRect.width());
+//            m_currentImageRect = newRect;
+//        }
     }
 
     void OpenGLWidgetRenderer::resizeEvent(QResizeEvent *event) {
@@ -164,6 +166,9 @@ namespace AVQt {
         Q_D(AVQt::OpenGLWidgetRenderer);
         auto t1 = NOW();
         QPainter p(this);
+        p.setRenderHint(QPainter::SmoothPixmapTransform);
+        p.setRenderHint(QPainter::LosslessImageRendering);
+        p.setRenderHint(QPainter::Antialiasing);
         p.fillRect(rect(), Qt::black);
         if (!d->m_isPaused.load() && d->m_isRunning.load()) {
 //        qDebug("Time since last paint: %ld", TIME_US(d->m_lastNewFrame, std::chrono::high_resolution_clock::now()));
@@ -188,6 +193,14 @@ namespace AVQt {
                 d->m_currentTimeout = frame[2].toUInt();
             }
 
+            if (d->m_currentImageRect.width() != width() && d->m_currentImageRect.height() != height()) {
+                auto &imageRect = d->m_currentImageRect;
+                double scale = std::min(width() * 1.0 / d->m_currentImage.width(), height() * 1.0 / d->m_currentImage.height());
+                imageRect.setHeight(scale < 1.0 ? scale * d->m_currentImage.height() : d->m_currentImage.height());
+                imageRect.setWidth(scale < 1.0 ? scale * d->m_currentImage.width() : d->m_currentImage.width());
+                imageRect.translate((width() - imageRect.width()) / 2.0, (height() - imageRect.height()) / 2.0);
+            }
+
 //        if (!d->m_updateTimer) {
 //            qDebug() << "Init timer";
 //            d->m_updateTimer = new QTimer;
@@ -204,7 +217,7 @@ namespace AVQt {
         }
         auto t2 = NOW();
         qDebug("Render time: %ld us", TIME_US(t1, t2));
-        update();
+        QTimer::singleShot(d->m_currentTimeout - (TIME_US(t1, t2) / 1000.0), this, SLOT(update()));
     }
 
     bool OpenGLWidgetRenderer::isPaused() {
