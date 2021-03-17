@@ -87,9 +87,9 @@ namespace AVQt {
 
     int EncoderVAAPI::deinit() {
         Q_D(AVQt::EncoderVAAPI);
-        if (d->m_isRunning.load()) {
-            stop();
-        }
+//        if (d->m_isPaused.load()) {
+//            stop();
+//        }
         if (d->pCurrentFrame) {
             av_frame_free(&d->pCurrentFrame);
         }
@@ -154,7 +154,7 @@ namespace AVQt {
         return d->m_isPaused.load();
     }
 
-    void EncoderVAAPI::onFrame(QImage frame, AVRational timebase, AVRational framerate) {
+    void EncoderVAAPI::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
         Q_D(AVQt::EncoderVAAPI);
         QMutexLocker lock(&d->m_cbTypeMutex);
         if (d->m_cbType == IFrameSource::CB_NONE || d->m_cbType == IFrameSource::CB_QIMAGE) {
@@ -184,7 +184,7 @@ namespace AVQt {
         }
     }
 
-    void EncoderVAAPI::onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) {
+    void EncoderVAAPI::onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) {
         Q_D(AVQt::EncoderVAAPI);
         QMutexLocker lock(&d->m_cbTypeMutex);
         if (d->m_cbType == IFrameSource::CB_NONE || d->m_cbType == IFrameSource::CB_AVFRAME) {
@@ -450,12 +450,12 @@ namespace AVQt {
 
     EncoderVAAPI::~EncoderVAAPI() {
         Q_D(AVQt::EncoderVAAPI);
-        deinit();
         for (const auto &e: d->m_frameQueue) {
             av_frame_free(&e->frame);
         }
         qDeleteAll(d->m_frameQueue);
         d->m_frameQueue.clear();
+        delete d_ptr;
+        d_ptr = nullptr;
     }
-
 }

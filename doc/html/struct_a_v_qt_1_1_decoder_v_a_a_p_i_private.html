@@ -158,7 +158,14 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ae5998bf429ea2e8686c0972541321d64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc436f170972e7cc4936d99a016253e8"><td class="memItemLeft" align="right" valign="top">QList&lt; <a class="el" href="class_a_v_qt_1_1_i_frame_sink.html">IFrameSink</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#adc436f170972e7cc4936d99a016253e8">m_qiCallbacks</a></td></tr>
 <tr class="separator:adc436f170972e7cc4936d99a016253e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9dd0df1ada97709fa3a6764d5b24cec4"><td class="memItemLeft" align="right" valign="top">std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a9dd0df1ada97709fa3a6764d5b24cec4">m_isRunning</a> = false</td></tr>
+<tr class="memitem:a9dd0df1ada97709fa3a6764d5b24cec4">
+    <td align="right" class="memItemLeft" valign="top">std::atomic_bool&#160;
+    </td>
+    <td class="memItemRight" valign="bottom"><a class="el"
+                                                href="struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a9dd0df1ada97709fa3a6764d5b24cec4">m_isPaused</a>
+        = false
+    </td>
+</tr>
 <tr class="separator:a9dd0df1ada97709fa3a6764d5b24cec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3eb2960ca00494d4fc44baf9bd6d48a1"><td class="memItemLeft" align="right" valign="top">std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a3eb2960ca00494d4fc44baf9bd6d48a1">m_isPaused</a> = false</td></tr>
 <tr class="separator:a3eb2960ca00494d4fc44baf9bd6d48a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -357,13 +364,17 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <a id="a9dd0df1ada97709fa3a6764d5b24cec4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9dd0df1ada97709fa3a6764d5b24cec4">&#9670;&nbsp;</a></span>m_isRunning</h2>
+    <h2 class="memtitle"><span class="permalink"><a
+            href="#a9dd0df1ada97709fa3a6764d5b24cec4">&#9670;&nbsp;</a></span>m_isPaused
+    </h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic_bool AVQt::DecoderVAAPIPrivate::m_isRunning = false</td>
+            <td class="memname">std::atomic_bool
+                AVQt::DecoderVAAPIPrivate::m_isPaused = false
+            </td>
         </tr>
       </table>
 </div><div class="memdoc">

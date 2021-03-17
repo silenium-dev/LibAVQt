@@ -34,6 +34,11 @@ namespace AVQt {
         explicit FrameFileSaver(quint64 interval, QString filePrefix, QObject *parent = nullptr);
 
         /*!
+         * \private
+         */
+        ~FrameFileSaver() override;
+
+        /*!
          * \brief Returns whether the frame saver is currently paused or not
          */
         bool isPaused() override;
@@ -74,12 +79,12 @@ namespace AVQt {
         * \param timebase FFmpeg stream time base as rational number, if you don't know, what this means, you probably don't need it
         * \param framerate Source framerate as rational number
         */
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 
         /*!
         * Does nothing except of freeing the frame
         */
-        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 
     signals:
 

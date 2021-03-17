@@ -4,3 +4,4 @@
 #include "output/FrameFileSaver.h"
 #include "input/IFrameSource.h"
 #include "input/DecoderVAAPI.h"
+#include "output/OpenGLWidgetRenderer.h"

@@ -6,21 +6,27 @@
 #include "DecoderVAAPI.h"
 #include "../output/IFrameSink.h"
 
+#include <QApplication>
 #include <QImage>
+
+
+#define NOW() std::chrono::high_resolution_clock::now();
+#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
 
 namespace AVQt {
     DecoderVAAPI::DecoderVAAPI(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {
         Q_D(AVQt::DecoderVAAPI);
 
         d->m_inputDevice = inputDevice;
-
-        connect(this, &QThread::finished, [&] {
-            QCoreApplication::quit();
-        });
     }
 
     DecoderVAAPI::DecoderVAAPI(DecoderVAAPIPrivate &p) : d_ptr(&p) {
 
+    }
+
+    DecoderVAAPI::~DecoderVAAPI() {
+        delete d_ptr;
+        d_ptr = nullptr;
     }
 
     int DecoderVAAPI::init() {
@@ -87,7 +93,6 @@ namespace AVQt {
             avcodec_open2(d->m_pAudioCodecCtx, d->m_pAudioCodec, nullptr);
         }
 
-
         return 0;
     }
 
@@ -95,6 +100,7 @@ namespace AVQt {
         Q_D(AVQt::DecoderVAAPI);
         avformat_close_input(&d->m_pFormatCtx);
         avio_context_free(&d->m_pInputCtx);
+//        qDebug() << "DecoderVAAPI deinitialized";
         return 0;
     }
 
@@ -113,9 +119,8 @@ namespace AVQt {
         Q_D(AVQt::DecoderVAAPI);
         if (d->m_isRunning) {
             d->m_isRunning.store(false);
-            while (!isFinished()) {
-                QThread::msleep(1);
-            }
+            wait();
+//            qDebug() << "DecoderVAAPI stopped";
             return 0;
         } else {
             return -1;
@@ -128,6 +133,11 @@ namespace AVQt {
             d->m_isPaused.store(pause);
             paused(pause);
         }
+    }
+
+    bool DecoderVAAPI::isPaused() {
+        Q_D(AVQt::DecoderVAAPI);
+        return d->m_isPaused.load();
     }
 
     int DecoderVAAPI::registerCallback(IFrameSink *frameSink, uint8_t type) {
@@ -217,6 +227,7 @@ namespace AVQt {
                         return;
                     }
                     while (true) {
+                        auto t1 = NOW();
                         if (!(hwFrame = av_frame_alloc()) || !(d->m_pCurrentFrame = av_frame_alloc())) {
                             av_packet_free(&packet);
                             qWarning() << "Error allocating frames";
@@ -256,15 +267,14 @@ namespace AVQt {
 //                        qDebug() << "Sw Frame format:"
 //                                 << av_get_pix_fmt_string(strbuf, 32, static_cast<AVPixelFormat>(d->m_pCurrentFrame->format));
 
-                        if (!d->m_pSwsContext) {
-                            d->m_pSwsContext = sws_getContext(d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
-                                                              static_cast<AVPixelFormat>(d->m_pCurrentFrame->format),
-                                                              d->m_pCurrentFrame->width,
-                                                              d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 0, nullptr, nullptr, nullptr);
-                        }
-
-
                         if (!d->m_qiCallbacks.isEmpty()) {
+                            if (!d->m_pSwsContext) {
+                                d->m_pSwsContext = sws_getContext(d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
+                                                                  static_cast<AVPixelFormat>(d->m_pCurrentFrame->format),
+                                                                  d->m_pCurrentFrame->width,
+                                                                  d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 0, nullptr, nullptr,
+                                                                  nullptr);
+                            }
                             d->m_pCurrentBGRAFrame = av_frame_alloc();
 
                             d->m_pCurrentBGRAFrame->width = hwFrame->width;
@@ -274,7 +284,7 @@ namespace AVQt {
                             av_image_alloc(d->m_pCurrentBGRAFrame->data, d->m_pCurrentBGRAFrame->linesize, d->m_pCurrentFrame->width,
                                            d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 1);
 
-                            qDebug() << "Scaling...";
+//                            qDebug() << "Scaling...";
                             sws_scale(d->m_pSwsContext, d->m_pCurrentFrame->data, d->m_pCurrentFrame->linesize, 0,
                                       d->m_pCurrentFrame->height,
                                       d->m_pCurrentBGRAFrame->data,
@@ -284,7 +294,8 @@ namespace AVQt {
 
                             for (const auto &cb: d->m_qiCallbacks) {
 //                                QtConcurrent::run([&](const QImage &image) {
-                                cb->onFrame(frame.copy(), d->m_pVideoCodecCtx->time_base, d->m_pVideoCodecCtx->framerate);
+                                cb->onFrame(frame.copy(), d->m_pFormatCtx->streams[d->m_videoIndex]->time_base,
+                                            d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate, d->m_pCurrentFrame->pkt_duration);
 //                                }, frame.copy());
                             }
                             av_freep(d->m_pCurrentBGRAFrame->data);
@@ -310,11 +321,24 @@ namespace AVQt {
                                 cbFrame->pkt_pos = hwFrame->pkt_pos;
                                 cbFrame->pts = hwFrame->pts;
 //                                QtConcurrent::run([&](AVFrame *avFrame) {
-                                cb->onFrame(cbFrame, d->m_pVideoCodecCtx->time_base, d->m_pVideoCodecCtx->framerate);
+                                auto t3 = NOW();
+                                cb->onFrame(cbFrame, d->m_pFormatCtx->streams[d->m_videoIndex]->time_base,
+                                            d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate,
+                                            cbFrame->pkt_duration * av_q2d(d->m_pFormatCtx->streams[d->m_videoIndex]->time_base) * 1000.0);
 //                                }, cbFrame);
+                                auto t4 = NOW();
+                                printf("CB time: %ld us\n", TIME_US(t3, t4));
                                 av_frame_unref(cbFrame);
                             }
                         }
+
+                        auto t2 = NOW();
+                        auto duration = hwFrame->pkt_duration * 1000000.0 *
+                                        av_q2d(d->m_pFormatCtx->streams[packet->stream_index]->time_base) - TIME_US(t1, t2);
+                        duration = (duration < 0 ? 0 : duration);
+                        printf("Decoder: Frametime %ld us; Sleeping: %f us\n", TIME_US(t1, t2), duration);
+                        fflush(stdout);
+                        usleep(duration);
 
                         av_frame_free(&hwFrame);
                         av_frame_free(&d->m_pCurrentFrame);
@@ -329,10 +353,5 @@ namespace AVQt {
                 msleep(2);
             }
         }
-    }
-
-    bool DecoderVAAPI::isPaused() {
-        Q_D(AVQt::DecoderVAAPI);
-        return d->m_isPaused.load();
     }
 }

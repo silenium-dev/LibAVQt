@@ -51,7 +51,7 @@ namespace AVQt {
         /*!
          * \private
          */
-        ~DecoderVAAPI() override = default;
+        ~DecoderVAAPI() override;
 
         /*!
          * \brief Returns paused state of decoder

@@ -77,148 +77,179 @@ $(document).ready(function(){initNavTree('_decoder_v_a_a_p_i__p_8h_source.html',
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
-<iframe src="javascript:void(0)" frameborder="0" 
+<iframe src="javascript:void(0)" frameborder="0"
         name="MSearchResults" id="MSearchResults">
 </iframe>
 </div>
 
-<div class="header">
-  <div class="headertitle">
-<div class="title">DecoderVAAPI_p.h</div>  </div>
-</div><!--header-->
-<div class="contents">
-<a href="_decoder_v_a_a_p_i__p_8h.html">Go to the documentation of this
-    file.</a>
-    <div class="fragment">
-        <div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;
+    <div class="header">
+        <div class="headertitle">
+            <div class="title">DecoderVAAPI_p.h</div>
         </div>
-        <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span
-                class="preprocessor">#include &quot;../DecoderVAAPI.h&quot;</span>
-        </div>
-        <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;
-        </div>
-        <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span
-                class="preprocessor">#ifndef TRANSCODE_DECODERVAAPI_P_H</span>
-        </div>
-        <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span
-                class="preprocessor">#define TRANSCODE_DECODERVAAPI_P_H</span>
-        </div>
-        <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;
-        </div>
-        <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span
-                class="keyword">namespace </span><a class="code"
-                                                    href="namespace_a_v_qt.html">AVQt</a>
-            {
-        </div>
-        <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;
-            <span class="keyword">struct </span>DecoderVAAPIPrivate {
-        </div>
-        <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;
-            <span class="keyword">explicit</span>
-            DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q) {};
-        </div>
-        <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;
-        </div>
-        <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;
-            DecoderVAAPI *q_ptr;
-        </div>
-        <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;
-        </div>
-        <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;
-            <span class="keyword">static</span> <span
-                    class="keywordtype">int</span> readFromIO(<span
-                    class="keywordtype">void</span> *opaque, uint8_t *buf, <span
-                    class="keywordtype">int</span> bufSize);
-        </div>
-        <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;
-        </div>
-        <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;
-            <span class="keyword">static</span> int64_t seekIO(<span
-                    class="keywordtype">void</span> *opaque, int64_t pos, <span
-                    class="keywordtype">int</span> whence);
-        </div>
-        <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;
-        </div>
-        <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;
-            uint8_t *m_pIOBuffer = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;
-            AVIOContext *m_pInputCtx = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;
-            AVFormatContext *m_pFormatCtx = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;
-            AVCodec *m_pAudioCodec = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;
-            AVCodec *m_pVideoCodec = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;
-            AVCodecContext *m_pAudioCodecCtx = <span
-                    class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;
-            AVCodecContext *m_pVideoCodecCtx = <span
-                    class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;
-            AVBufferRef *m_pDeviceCtx = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;
-            AVFrame *m_pCurrentFrame = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;
-            AVFrame *m_pCurrentBGRAFrame = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;
-        </div>
-        <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;
-            <span class="keywordtype">int</span> m_videoIndex = 0, m_audioIndex
-            = 0;
-        </div>
-        <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;
-        </div>
-        <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;
-            SwsContext *m_pSwsContext = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;
-        </div>
-        <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;
-            QIODevice *m_inputDevice = <span class="keyword">nullptr</span>;
-        </div>
-        <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;
-        </div>
-        <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;
-            <span class="comment">// Callback stuff</span></div>
-        <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;
-            QList&lt;IFrameSink *&gt; m_avfCallbacks, m_qiCallbacks;
-        </div>
-        <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;
-        </div>
-        <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;
-            <span class="comment">// Threading stuff</span></div>
-        <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;
-            std::atomic_bool m_isRunning = <span class="keyword">false</span>;
-        </div>
-        <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;
-            std::atomic_bool m_isPaused = <span class="keyword">false</span>;
-        </div>
-        <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;
-            };
-        </div>
-        <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;}
-        </div>
-        <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;
-        </div>
-        <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span
-                class="preprocessor">#endif </span><span class="comment">//TRANSCODE_DECODERVAAPI_P_H</span>
-        </div>
-        <div class="ttc" id="anamespace_a_v_qt_html">
-            <div class="ttname"><a href="namespace_a_v_qt.html">AVQt</a></div>
-            <div class="ttdef"><b>Definition:</b> DecoderVAAPI.cpp:11</div>
-        </div>
-    </div><!-- fragment --></div><!-- contents -->
+    </div><!--header-->
+    <div class="contents">
+        <a href="_decoder_v_a_a_p_i__p_8h.html">Go to the documentation of this
+            file.</a>
+        <div class="fragment">
+            <div class="line"><a name="l00001"></a><span
+                    class="lineno">    1</span>&#160;
+            </div>
+            <div class="line"><a name="l00006"></a><span
+                    class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;../DecoderVAAPI.h&quot;</span>
+            </div>
+            <div class="line"><a name="l00007"></a><span
+                    class="lineno">    7</span>&#160;
+            </div>
+            <div class="line"><a name="l00008"></a><span
+                    class="lineno">    8</span>&#160;<span class="preprocessor">#ifndef TRANSCODE_DECODERVAAPI_P_H</span>
+            </div>
+            <div class="line"><a name="l00009"></a><span
+                    class="lineno">    9</span>&#160;<span class="preprocessor">#define TRANSCODE_DECODERVAAPI_P_H</span>
+            </div>
+            <div class="line"><a name="l00010"></a><span
+                    class="lineno">   10</span>&#160;
+            </div>
+            <div class="line"><a name="l00011"></a><span
+                    class="lineno">   11</span>&#160;<span class="keyword">namespace </span><a
+                    class="code" href="namespace_a_v_qt.html">AVQt</a> {
+            </div>
+            <div class="line"><a name="l00015"></a><span
+                    class="lineno">   15</span>&#160; <span class="keyword">struct </span>DecoderVAAPIPrivate
+                {
+            </div>
+            <div class="line"><a name="l00016"></a><span
+                    class="lineno">   16</span>&#160; <span class="keyword">explicit</span>
+                DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q) {};
+            </div>
+            <div class="line"><a name="l00017"></a><span
+                    class="lineno">   17</span>&#160;
+            </div>
+            <div class="line"><a name="l00018"></a><span
+                    class="lineno">   18</span>&#160; DecoderVAAPI *q_ptr;
+            </div>
+            <div class="line"><a name="l00019"></a><span
+                    class="lineno">   19</span>&#160;
+            </div>
+            <div class="line"><a name="l00020"></a><span
+                    class="lineno">   20</span>&#160; <span class="keyword">static</span>
+                <span class="keywordtype">int</span> readFromIO(<span
+                        class="keywordtype">void</span> *opaque, uint8_t *buf,
+                <span class="keywordtype">int</span> bufSize);
+            </div>
+            <div class="line"><a name="l00021"></a><span
+                    class="lineno">   21</span>&#160;
+            </div>
+            <div class="line"><a name="l00022"></a><span
+                    class="lineno">   22</span>&#160; <span class="keyword">static</span>
+                int64_t seekIO(<span class="keywordtype">void</span> *opaque,
+                int64_t pos, <span class="keywordtype">int</span> whence);
+            </div>
+            <div class="line"><a name="l00023"></a><span
+                    class="lineno">   23</span>&#160;
+            </div>
+            <div class="line"><a name="l00024"></a><span
+                    class="lineno">   24</span>&#160; uint8_t *m_pIOBuffer =
+                <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00025"></a><span
+                    class="lineno">   25</span>&#160; AVIOContext *m_pInputCtx =
+                <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00026"></a><span
+                    class="lineno">   26</span>&#160; AVFormatContext
+                *m_pFormatCtx = <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00027"></a><span
+                    class="lineno">   27</span>&#160; AVCodec *m_pAudioCodec =
+                <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00028"></a><span
+                    class="lineno">   28</span>&#160; AVCodec *m_pVideoCodec =
+                <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00029"></a><span
+                    class="lineno">   29</span>&#160; AVCodecContext
+                *m_pAudioCodecCtx = <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00030"></a><span
+                    class="lineno">   30</span>&#160; AVCodecContext
+                *m_pVideoCodecCtx = <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00031"></a><span
+                    class="lineno">   31</span>&#160; AVBufferRef *m_pDeviceCtx
+                = <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00032"></a><span
+                    class="lineno">   32</span>&#160; AVFrame *m_pCurrentFrame =
+                <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00033"></a><span
+                    class="lineno">   33</span>&#160; AVFrame
+                *m_pCurrentBGRAFrame = <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00034"></a><span
+                    class="lineno">   34</span>&#160;
+            </div>
+            <div class="line"><a name="l00035"></a><span
+                    class="lineno">   35</span>&#160; <span class="keywordtype">int</span>
+                m_videoIndex = 0, m_audioIndex = 0;
+            </div>
+            <div class="line"><a name="l00036"></a><span
+                    class="lineno">   36</span>&#160;
+            </div>
+            <div class="line"><a name="l00037"></a><span
+                    class="lineno">   37</span>&#160; SwsContext *m_pSwsContext
+                = <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00038"></a><span
+                    class="lineno">   38</span>&#160;
+            </div>
+            <div class="line"><a name="l00039"></a><span
+                    class="lineno">   39</span>&#160; QIODevice *m_inputDevice =
+                <span class="keyword">nullptr</span>;
+            </div>
+            <div class="line"><a name="l00040"></a><span
+                    class="lineno">   40</span>&#160;
+            </div>
+            <div class="line"><a name="l00041"></a><span
+                    class="lineno">   41</span>&#160; <span class="comment">// Callback stuff</span>
+            </div>
+            <div class="line"><a name="l00042"></a><span
+                    class="lineno">   42</span>&#160; QList&lt;IFrameSink *&gt;
+                m_avfCallbacks, m_qiCallbacks;
+            </div>
+            <div class="line"><a name="l00043"></a><span
+                    class="lineno">   43</span>&#160;
+            </div>
+            <div class="line"><a name="l00044"></a><span
+                    class="lineno">   44</span>&#160; <span class="comment">// Threading stuff</span>
+            </div>
+            <div class="line"><a name="l00045"></a><span
+                    class="lineno">   45</span>&#160; std::atomic_bool
+                m_isPaused = <span class="keyword">false</span>;
+            </div>
+            <div class="line"><a name="l00046"></a><span
+                    class="lineno">   46</span>&#160; std::atomic_bool
+                m_isPaused = <span class="keyword">false</span>;
+            </div>
+            <div class="line"><a name="l00047"></a><span
+                    class="lineno">   47</span>&#160; };
+            </div>
+            <div class="line"><a name="l00048"></a><span
+                    class="lineno">   48</span>&#160;}
+            </div>
+            <div class="line"><a name="l00049"></a><span
+                    class="lineno">   49</span>&#160;
+            </div>
+            <div class="line"><a name="l00050"></a><span
+                    class="lineno">   50</span>&#160;<span class="preprocessor">#endif </span><span
+                    class="comment">//TRANSCODE_DECODERVAAPI_P_H</span></div>
+            <div class="ttc" id="anamespace_a_v_qt_html">
+                <div class="ttname"><a href="namespace_a_v_qt.html">AVQt</a>
+                </div>
+                <div class="ttdef"><b>Definition:</b> DecoderVAAPI.cpp:11</div>
+            </div>
+        </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -131,7 +131,7 @@ namespace AVQt {
          * @param timebase decode timebase (***Unstable API***)
          * @param framerate decode framerate (***Unstable API***)
          */
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 
         /*!
          * \brief Add frame to encode queue, blocks if queue is full
@@ -139,7 +139,7 @@ namespace AVQt {
          * @param timebase decode timebase (***Unstable API***)
          * @param framerate decode framerate (***Unstable API***)
          */
-        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 
     signals:
 

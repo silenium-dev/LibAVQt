@@ -1,5 +1,6 @@
 /*!
  * \private
+ * \internal
  */
 #include "../FrameFileSaver.h"
 

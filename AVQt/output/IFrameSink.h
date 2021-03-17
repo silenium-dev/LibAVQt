@@ -73,7 +73,7 @@ namespace AVQt {
          * @param timebase Source stream time base, if you don't know what this means, you probably don't want to use it.
          * @param framerate Source stream framerate
          */
-        Q_INVOKABLE virtual void onFrame(QImage frame, AVRational timebase, AVRational framerate) = 0;
+        Q_INVOKABLE virtual void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) = 0;
 
         /*!
          * \brief Image process method, is invoked in objects thread for every frame
@@ -83,7 +83,7 @@ namespace AVQt {
          * @param timebase Source stream time base, if you don't know what this means, you probably don't want to use it.
          * @param framerate Source stream framerate
          */
-        Q_INVOKABLE virtual void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) = 0;
+        Q_INVOKABLE virtual void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) = 0;
 
     signals:
 

@@ -3,6 +3,7 @@
 //
 
 #include "IFrameSink.h"
+
 #include <QtOpenGLWidgets>
 
 #ifndef TRANSCODE_OPENGLWIDGETRENDERER_H
@@ -20,6 +21,12 @@ namespace AVQt {
     public:
         explicit OpenGLWidgetRenderer(QWidget *parent = nullptr);
 
+        ~OpenGLWidgetRenderer();
+
+        bool isPaused() override;
+
+        void run();
+
     public slots:
         Q_INVOKABLE int init() override;
 
@@ -31,9 +38,9 @@ namespace AVQt {
 
         Q_INVOKABLE void pause(bool pause) override;
 
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 
-        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) override;
+        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 
     signals:
 
@@ -41,8 +48,20 @@ namespace AVQt {
 
         void stopped() override;
 
+        void paused(bool pause) override;
+
     protected:
         explicit OpenGLWidgetRenderer(OpenGLWidgetRendererPrivate &p);
+
+        /*!
+         * \private
+         */
+        void paintEvent(QPaintEvent *event) override;
+
+        /*!
+         * \private
+         */
+        void resizeEvent(QResizeEvent *event) override;
 
         /*!
          * \private

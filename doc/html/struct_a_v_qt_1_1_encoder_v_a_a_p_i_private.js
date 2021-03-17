@@ -12,7 +12,7 @@ var struct_a_v_qt_1_1_encoder_v_a_a_p_i_private =
     [ "m_height", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a4981381b7c84db9b175d7beefa5698bf", null ],
     [ "m_isFirstFrame", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a7043b3f2dee20c2e65d8cd3dce3e9389", null ],
     [ "m_isPaused", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#af470355697530cbfdfe9c63f38c489a7", null ],
-    [ "m_isRunning", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a92d5229e09fb405616a363747fb6791e", null ],
+    [ "m_isPaused", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a92d5229e09fb405616a363747fb6791e", null ],
     [ "m_outputDevice", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a5cff7cc5c2ab2a80541ae5d2d39c9c78", null ],
     [ "m_videoCodec", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#ae1c7dbaa2a51c18276d221e333ed248d", null ],
     [ "m_width", "struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a7971e25766dccb971643d1f0ab7046b3", null ],

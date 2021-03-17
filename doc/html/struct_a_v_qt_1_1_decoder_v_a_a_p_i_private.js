@@ -5,7 +5,7 @@ var struct_a_v_qt_1_1_decoder_v_a_a_p_i_private =
     [ "m_avfCallbacks", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#ae5998bf429ea2e8686c0972541321d64", null ],
     [ "m_inputDevice", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a7d0afba0685021865fee9cf1c447b328", null ],
     [ "m_isPaused", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a3eb2960ca00494d4fc44baf9bd6d48a1", null ],
-    [ "m_isRunning", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a9dd0df1ada97709fa3a6764d5b24cec4", null ],
+    [ "m_isPaused", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a9dd0df1ada97709fa3a6764d5b24cec4", null ],
     [ "m_pAudioCodec", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a93a5d95b88ca570df5e1f32463745f60", null ],
     [ "m_pAudioCodecCtx", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#a47b2e50f2063b9e14965c0317dfb7647", null ],
     [ "m_pCurrentBGRAFrame", "struct_a_v_qt_1_1_decoder_v_a_a_p_i_private.html#abff8d3ae9bf74fa7879d7c7013a70286", null ],

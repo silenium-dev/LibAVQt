@@ -1,6 +1,5 @@
 var dir_59ca59df20242c4b3a7e1795593e9617 =
 [
-    [ "private", "dir_6aa36777f48736a4cef766f670448573.html", "dir_6aa36777f48736a4cef766f670448573" ],
     [ "EncoderVAAPI.cpp", "_encoder_v_a_a_p_i_8cpp.html", "_encoder_v_a_a_p_i_8cpp" ],
     [ "EncoderVAAPI.h", "_encoder_v_a_a_p_i_8h.html", [
       [ "EncoderVAAPI", "class_a_v_qt_1_1_encoder_v_a_a_p_i.html", "class_a_v_qt_1_1_encoder_v_a_a_p_i" ]

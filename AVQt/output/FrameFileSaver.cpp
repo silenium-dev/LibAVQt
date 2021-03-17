@@ -49,7 +49,7 @@ namespace AVQt {
         return 0;
     }
 
-    void FrameFileSaver::onFrame(QImage frame, AVRational timebase, AVRational framerate) {
+    void FrameFileSaver::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
         Q_D(AVQt::FrameFileSaver);
         Q_UNUSED(timebase)
         Q_UNUSED(framerate)
@@ -58,13 +58,13 @@ namespace AVQt {
             qDebug() << "Saving frame" << d->m_frameNumber.load();
             char filename[32];
             snprintf(filename, 32, "frame-%lu.bmp", d->m_frameNumber++);
-            frame.save(d->m_filePrefix + filename);
+            frame.save(d->m_filePrefix + "-" + filename);
         } else {
             ++d->m_frameNumber;
         }
     }
 
-    void FrameFileSaver::onFrame(AVFrame *frame, AVRational timebase, AVRational framerate) {
+    void FrameFileSaver::onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) {
         av_frame_unref(frame);
     }
 
@@ -79,6 +79,11 @@ namespace AVQt {
     bool FrameFileSaver::isPaused() {
         Q_D(AVQt::FrameFileSaver);
         return d->m_isPaused.load();
+    }
+
+    FrameFileSaver::~FrameFileSaver() {
+        delete d_ptr;
+        d_ptr = nullptr;
     }
 
 }

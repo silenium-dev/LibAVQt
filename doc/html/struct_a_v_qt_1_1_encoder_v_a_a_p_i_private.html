@@ -192,7 +192,14 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a7f0c8cf56f31ee90a0c9bb1e5dfe8304"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95252116a084c645957504e434d8bb39"><td class="memItemLeft" align="right" valign="top">QMutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a95252116a084c645957504e434d8bb39">m_cbTypeMutex</a></td></tr>
 <tr class="separator:a95252116a084c645957504e434d8bb39"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a92d5229e09fb405616a363747fb6791e"><td class="memItemLeft" align="right" valign="top">std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a92d5229e09fb405616a363747fb6791e">m_isRunning</a> = false</td></tr>
+<tr class="memitem:a92d5229e09fb405616a363747fb6791e">
+    <td align="right" class="memItemLeft" valign="top">std::atomic_bool&#160;
+    </td>
+    <td class="memItemRight" valign="bottom"><a class="el"
+                                                href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#a92d5229e09fb405616a363747fb6791e">m_isPaused</a>
+        = false
+    </td>
+</tr>
 <tr class="separator:a92d5229e09fb405616a363747fb6791e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af470355697530cbfdfe9c63f38c489a7"><td class="memItemLeft" align="right" valign="top">std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_a_v_qt_1_1_encoder_v_a_a_p_i_private.html#af470355697530cbfdfe9c63f38c489a7">m_isPaused</a> = false</td></tr>
 <tr class="separator:af470355697530cbfdfe9c63f38c489a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -518,13 +525,17 @@ Here is the caller graph for this function:</div>
 </div>
 </div>
 <a id="a92d5229e09fb405616a363747fb6791e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a92d5229e09fb405616a363747fb6791e">&#9670;&nbsp;</a></span>m_isRunning</h2>
+    <h2 class="memtitle"><span class="permalink"><a
+            href="#a92d5229e09fb405616a363747fb6791e">&#9670;&nbsp;</a></span>m_isPaused
+    </h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic_bool AVQt::EncoderVAAPIPrivate::m_isRunning = false</td>
+            <td class="memname">std::atomic_bool
+                AVQt::EncoderVAAPIPrivate::m_isPaused = false
+            </td>
         </tr>
       </table>
 </div><div class="memdoc">
