@@ -63,6 +63,7 @@ namespace AVQt {
         int m_bitrate = 0, m_width = 0, m_height = 0;
         AVRational m_frameRate = av_make_q(0, 1);
         std::atomic_uint64_t m_frameNumber = 0;
+        std::atomic_uint64_t m_packetNumber = 0;
 
         SwsContext *pSwsContext = nullptr;
 
@@ -77,6 +78,7 @@ namespace AVQt {
         std::atomic_bool m_isRunning = false;
         std::atomic_bool m_isPaused = false;
         std::atomic_bool m_isFirstFrame = true;
+        QMutex m_codecMutex;
     };
 }
 

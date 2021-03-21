@@ -18,5 +18,5 @@ if (${CMAKE_BUILD_TYPE} EQUAL "Release")
     add_compile_options(-O3)
 endif ()
 
-add_library(AVQt SHARED AVQt input/IFrameSource.h output/IFrameSink.h input/DecoderVAAPI.cpp input/DecoderVAAPI.h output/FrameFileSaver.cpp output/FrameFileSaver.h output/EncoderVAAPI.cpp output/EncoderVAAPI.h output/OpenGLWidgetRenderer.cpp output/OpenGLWidgetRenderer.h output/private/OpenGLWidgetRenderer_p.h output/private/EncoderVAAPI_p.h output/private/FrameFileSaver_p.h input/private/DecoderVAAPI_p.h)
-target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample)
+add_library(AVQt SHARED resources.qrc AVQt input/IFrameSource.h output/IFrameSink.h input/DecoderVAAPI.cpp input/DecoderVAAPI.h output/FrameFileSaver.cpp output/FrameFileSaver.h output/EncoderVAAPI.cpp output/EncoderVAAPI.h output/OpenGLWidgetRenderer.cpp output/OpenGLWidgetRenderer.h output/private/OpenGLWidgetRenderer_p.h output/private/EncoderVAAPI_p.h output/private/FrameFileSaver_p.h input/private/DecoderVAAPI_p.h input/IAudioSource.h output/IAudioSink.h output/AOAudioRenderer.cpp output/AOAudioRenderer.h output/private/AOAudioRenderer_p.h output/OpenGLRenderer.cpp output/OpenGLRenderer.h output/private/OpenGLRenderer_p.h)
+target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL ao)

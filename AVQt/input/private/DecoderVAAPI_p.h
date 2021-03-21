@@ -29,17 +29,20 @@ namespace AVQt {
         AVCodecContext *m_pAudioCodecCtx = nullptr;
         AVCodecContext *m_pVideoCodecCtx = nullptr;
         AVBufferRef *m_pDeviceCtx = nullptr;
-        AVFrame *m_pCurrentFrame = nullptr;
+        AVFrame *m_pCurrentVideoFrame = nullptr;
+        AVFrame *m_pCurrentAudioFrame = nullptr;
         AVFrame *m_pCurrentBGRAFrame = nullptr;
 
-        int m_videoIndex = 0, m_audioIndex = 0;
+        int m_videoIndex = -1, m_audioIndex = -1;
 
         SwsContext *m_pSwsContext = nullptr;
 
         QIODevice *m_inputDevice = nullptr;
 
         // Callback stuff
+        QMutex m_avfMutex, m_qiMutex, m_audioMutex;
         QList<IFrameSink *> m_avfCallbacks, m_qiCallbacks;
+        QList<IAudioSink *> m_audioCallbacks;
 
         // Threading stuff
         std::atomic_bool m_isRunning = false;

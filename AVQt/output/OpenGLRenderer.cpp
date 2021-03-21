@@ -1,0 +1,395 @@
+//
+// Created by silas on 3/21/21.
+//
+
+#include "private/OpenGLRenderer_p.h"
+#include "OpenGLRenderer.h"
+
+#include <QtGui>
+
+extern "C" {
+#include <libavutil/frame.h>
+#include <libavutil/imgutils.h>
+}
+
+void loadResources() {
+    Q_INIT_RESOURCE(resources);
+}
+
+namespace AVQt {
+    OpenGLRenderer::OpenGLRenderer(QWindow *parent) : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, parent),
+                                                      d_ptr(new OpenGLRendererPrivate(this)) {
+//        setAttribute(Qt::WA_TranslucentBackground);
+    }
+
+    OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
+    }
+
+    OpenGLRenderer::~OpenGLRenderer() noexcept {
+        Q_D(AVQt::OpenGLRenderer);
+
+//        d->m_updateTimer->stop();
+//        delete d->m_updateTimer;
+
+        {
+            QMutexLocker lock(&d->m_renderQueueMutex);
+
+            for (auto &e: d->m_renderQueue) {
+                av_frame_unref(e.first);
+            }
+
+            d->m_renderQueue.clear();
+        }
+    }
+
+    int OpenGLRenderer::init() {
+        return 0;
+    }
+
+    int OpenGLRenderer::deinit() {
+        return 0;
+    }
+
+    int OpenGLRenderer::start() {
+        Q_D(AVQt::OpenGLRenderer);
+
+        d->m_running.store(true);
+        d->m_paused.store(false);
+        update();
+        started();
+        return 0;
+    }
+
+    int OpenGLRenderer::stop() {
+        Q_D(AVQt::OpenGLRenderer);
+
+        d->m_running.store(false);
+        d->m_paused.store(true);
+        stopped();
+        return 0;
+    }
+
+    void OpenGLRenderer::pause(bool pause) {
+        Q_D(AVQt::OpenGLRenderer);
+
+        qDebug("pause() called");
+
+        if (d->m_paused.load() != pause) {
+            d->m_paused.store(pause);
+            paused(pause);
+            update();
+        }
+    }
+
+    bool OpenGLRenderer::isPaused() {
+        Q_D(AVQt::OpenGLRenderer);
+
+        return d->m_paused.load();
+    }
+
+    void OpenGLRenderer::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
+        Q_UNUSED(timebase);
+        Q_UNUSED(framerate);
+
+        Q_D(AVQt::OpenGLRenderer);
+
+        QPair<AVFrame *, int64_t> newFrame;
+
+        AVFrame *avFrame = av_frame_alloc();
+        avFrame->width = frame.width();
+        avFrame->height = frame.height();
+        avFrame->format = AV_PIX_FMT_BGRA;
+
+        av_image_alloc(avFrame->data, avFrame->linesize, avFrame->width, avFrame->height, static_cast<AVPixelFormat>(avFrame->format), 1);
+        av_image_copy_plane(avFrame->data[0], avFrame->linesize[0], frame.mirrored(true, false).constBits(), frame.bytesPerLine(),
+                            frame.bytesPerLine(),
+                            frame.height());
+
+        newFrame.first = avFrame;
+        newFrame.second = av_q2d(av_inv_q(framerate)) * 1000.0;
+
+        while (d->m_renderQueue.size() >= 100) {
+            QThread::msleep(4);
+        }
+
+        QMutexLocker lock(&d->m_renderQueueMutex);
+        d->m_renderQueue.enqueue(newFrame);
+    }
+
+    void OpenGLRenderer::onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) {
+        Q_UNUSED(timebase);
+        Q_UNUSED(framerate);
+
+        Q_D(AVQt::OpenGLRenderer);
+
+        QPair<AVFrame *, int64_t> newFrame;
+
+//        AVFrame *avFrame = av_frame_alloc();
+//        av_frame_ref(avFrame, frame);
+//        av_frame_unref(frame);
+
+        newFrame.first = frame;
+        newFrame.second = duration;
+
+        while (d->m_renderQueue.size() >= 100) {
+            QThread::msleep(4);
+        }
+
+        QMutexLocker lock(&d->m_renderQueueMutex);
+        d->m_renderQueue.enqueue(newFrame);
+    }
+
+    void OpenGLRenderer::initializeGL() {
+        Q_D(AVQt::OpenGLRenderer);
+
+        loadResources();
+
+        d->m_yTexture = new QOpenGLTexture(QImage(":/images/frame.bmp").mirrored(true, false));
+        d->m_uvTexture = new QOpenGLTexture(QImage(":/images/frame.bmp").mirrored(true, false));
+
+        d->m_program = new QOpenGLShaderProgram();
+
+        if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/texture.vsh")) {
+            qDebug() << "Vertex shader errors:\n" << d->m_program->log();
+        }
+
+        if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/texture.fsh")) {
+            qDebug() << "Fragment shader errors:\n" << d->m_program->log();
+        }
+
+        d->m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
+        d->m_program->bindAttributeLocation("texCoord", OpenGLRendererPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
+
+        if (!d->m_program->link()) {
+            qDebug() << "Shader linkers errors:\n" << d->m_program->log();
+        }
+
+        d->m_program->bind();
+        d->m_program->setUniformValue("texture", 0);
+//        d->m_program->setUniformValue("textureUV", 1);
+        d->m_program->release();
+
+        float vertices[] = {
+                1, 1, 0,   // top right
+                1, -1, 0,   // bottom right
+                -1, -1, 0,  // bottom left
+                -1, 1, 0   // top left
+        };
+
+        float vertTexCoords[] = {
+                0, 0,
+                1, 1,
+                0, 1,
+                1, 0
+        };
+
+//    QColor vertexColors[] = {
+//        QColor(0xf6, 0xa5, 0x09, 128),
+//        QColor(0xcb, 0x2d, 0xde, 128),
+//        QColor(0x0e, 0xee, 0xd1, 128),
+//        QColor(0x06, 0x89, 0x18, 128)
+//    };
+
+        std::vector<float> vertexBufferData(5 * 4);  // 8 entries per vertex * 4 vertices
+
+        float *buf = vertexBufferData.data();
+
+        for (int v = 0; v < 4; ++v, buf += 5) {
+            buf[0] = vertices[3 * v];
+            buf[1] = vertices[3 * v + 1];
+            buf[2] = vertices[3 * v + 2];
+
+            buf[3] = vertTexCoords[v];
+            buf[4] = vertTexCoords[v + 1];
+        }
+
+        d->m_vbo = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+        d->m_vbo.create();
+        d->m_vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+        d->m_vbo.bind();
+
+        d->m_vbo.allocate(vertexBufferData.data(), vertexBufferData.size() * sizeof(float));
+
+        d->m_vao.create();
+        d->m_vao.bind();
+
+        uint indices[] = {
+                0, 1, 3, // first tri
+                1, 2, 3  // second tri
+        };
+
+        d->m_ibo = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+        d->m_ibo.create();
+        d->m_ibo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+        d->m_ibo.bind();
+        d->m_ibo.allocate(indices, sizeof(indices));
+
+
+        int stride = 5 * sizeof(float);
+
+        // layout location 0 - vec3 with coords
+        d->m_program->enableAttributeArray(0);
+        d->m_program->setAttributeBuffer(0, GL_FLOAT, 0, 3, stride);
+
+        // layout location 1 - vec3 with colors
+//    d->m_program->enableAttributeArray(1);
+//    int colorOffset = 3 * sizeof(float);
+//    d->m_program->setAttributeBuffer(1, GL_FLOAT, colorOffset, 3, stride);
+
+        // layout location 1 - vec2 with texture coordinates
+        d->m_program->enableAttributeArray(1);
+        int texCoordsOffset = 3 * sizeof(float);
+        d->m_program->setAttributeBuffer(1, GL_FLOAT, texCoordsOffset, 2, stride);
+
+        // layout location 2 - int with texture id
+        d->m_program->enableAttributeArray(2);
+        d->m_program->setAttributeValue(2, d->m_yTexture->textureId());
+
+        // Release (unbind) all
+
+        d->m_vbo.release();
+        d->m_vao.release();
+    }
+
+    void OpenGLRenderer::paintGL() {
+        Q_D(AVQt::OpenGLRenderer);
+        auto t1 = std::chrono::high_resolution_clock::now();
+
+        // Clear background
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        if (d->m_running.load()) {
+            if (!d->m_paused.load()) {
+                if (d->m_updateTimer) {
+                    if (!d->m_updateTimer->isActive()) {
+                        d->m_updateTimer->start();
+                    }
+                }
+                QMutexLocker lock(&d->m_currentFrameMutex);
+                if (d->m_currentFrame) {
+                    av_freep(&d->m_currentFrame->data[0]);
+                    av_frame_free(&d->m_currentFrame);
+                    d->m_currentFrame = nullptr;
+                }
+                if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
+                    d->m_updateRequired.store(false);
+                    QMutexLocker lock2(&d->m_renderQueueMutex);
+                    auto frame = d->m_renderQueue.dequeue();
+                    d->m_currentFrame = frame.first;
+                    d->m_currentFrameTimeout = frame.second;
+                }
+            } else if (d->m_updateTimer) {
+                if (d->m_updateTimer->isActive()) {
+                    d->m_updateTimer->stop();
+                }
+            }
+
+            if (!d->m_updateTimer) {
+                d->m_updateTimer = new QTimer;
+                d->m_updateTimer->setInterval(d->m_currentFrameTimeout - 3);
+                d->m_updateTimer->setSingleShot(false);
+                connect(d->m_updateTimer, &QTimer::timeout, [=] {
+                    d->m_updateRequired.store(true);
+                });
+                d->m_updateTimer->start();
+            }
+
+            if (d->m_updateTimer->interval() != d->m_currentFrameTimeout) {
+                d->m_updateTimer->setInterval(d->m_currentFrameTimeout - 3);
+            }
+
+            d->m_program->bind();
+            d->m_vao.bind();
+            d->m_ibo.bind();
+
+            d->m_yTexture->bind();
+            {
+                QMutexLocker lock(&d->m_currentFrameMutex);
+                if (d->m_currentFrame) {
+                    d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8, d->m_currentFrame->data[0]);
+//                    d->m_uvTexture->setData(QOpenGLTexture::PixelFormat::RG, QOpenGLTexture::UInt8, d->m_currentFrame->data[1]);
+                }
+            }
+//    d->m_program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
+//    d->m_program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
+//    d->m_program->setAttributeBuffer(PROGRAM_VERTEX_ATTRIBUTE, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
+//    d->m_program->setAttributeBuffer(PROGRAM_TEXCOORD_ATTRIBUTE, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
+
+//            d->m_uvTexture->bind();
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+            d->m_vao.release();
+
+//            int height = this->height();
+//
+//            GLdouble model[4][4], proj[4][4];
+//            GLint view[4];
+//            glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
+//            glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
+//            glGetIntegerv(GL_VIEWPORT, &view[0]);
+//            GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+//
+//            d->project(-0.9f, 0.8f, 0.0f, &model[0][0], &proj[0][0], &view[0],
+//                       &textPosX, &textPosY, &textPosZ);
+//
+//            textPosY = height - textPosY; // y is inverted
+//
+//            QPainter p(this);
+//
+//            p.setPen(QPen(Qt::black, 2.0));
+//            p.setFont(QFont("Roboto", 24));
+//            p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+//            p.drawText(textPosX, textPosY, "Overlay");
+//            p.end();
+            auto t2 = std::chrono::high_resolution_clock::now();
+            qDebug("Render frametime: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
+//            QTimer::singleShot(d->m_currentFrameTimeout - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count(),
+//                               [&] { update(); });
+            if (!d->m_paused.load()) {
+                update();
+            }
+        }
+    }
+
+    void OpenGLRenderer::mouseReleaseEvent(QMouseEvent *event) {
+        if (event->button() == Qt::LeftButton) {
+            pause(!isPaused());
+        }
+    }
+
+    GLint OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
+                                         const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz) {
+        GLdouble in[4], out[4];
+
+        in[0] = objx;
+        in[1] = objy;
+        in[2] = objz;
+        in[3] = 1.0;
+        transformPoint(out, model, in);
+        transformPoint(in, proj, out);
+
+        if (in[3] == 0.0)
+            return GL_FALSE;
+
+        in[0] /= in[3];
+        in[1] /= in[3];
+        in[2] /= in[3];
+
+        *winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
+        *winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
+
+        *winz = (1 + in[2]) / 2;
+        return GL_TRUE;
+    }
+
+    void OpenGLRendererPrivate::transformPoint(GLdouble *out, const GLdouble *m, const GLdouble *in) {
+#define M(row, col)  m[col*4+row]
+        out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
+        out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
+        out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
+        out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
+#undef M
+    }
+
+}

@@ -55,7 +55,7 @@ namespace AVQt {
         Q_UNUSED(framerate)
         if (!d->m_isPaused.load() && d->m_frameNumber.load() % d->m_frameInterval == 0) {
 //        if (!d->m_isPaused.load()) {
-            qDebug() << "Saving frame" << d->m_frameNumber.load();
+//            qDebug() << "Saving frame" << d->m_frameNumber.load();
             char filename[32];
             snprintf(filename, 32, "frame-%lu.bmp", d->m_frameNumber++);
             frame.save(d->m_filePrefix + "-" + filename);

@@ -3,6 +3,7 @@
 //
 
 #include "IFrameSource.h"
+#include "IAudioSource.h"
 
 #include <QtCore>
 #include <QtGui>
@@ -33,9 +34,10 @@ namespace AVQt {
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class DecoderVAAPI : public QThread, public IFrameSource {
+    class DecoderVAAPI : public QThread, public IFrameSource, public IAudioSource {
     Q_OBJECT
         Q_INTERFACES(AVQt::IFrameSource)
+        Q_INTERFACES(AVQt::IAudioSource)
 
         Q_DECLARE_PRIVATE(AVQt::DecoderVAAPI)
 
@@ -58,6 +60,25 @@ namespace AVQt {
          * @return Paused state
          */
         bool isPaused() override;
+
+        /*!
+         * \brief Register frame sink/filter with given callback type \c type
+         * @param frameSink Frame sink/filter to be added
+         * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
+         * @return Current position in callback list
+         */
+        Q_INVOKABLE int registerCallback(IFrameSink *frameSink, uint8_t type) override;
+
+        Q_INVOKABLE int registerCallback(IAudioSink *audioSink) override;
+
+        /*!
+         * \brief Removes frame sink/filter from registry
+         * @param frameSink Frame sink/filter to be removed
+         * @return Last position in callback list, -1 when not found
+         */
+        Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) override;
+
+        Q_INVOKABLE int unregisterCallback(IAudioSink *audioSink) override;
 
     public slots:
         /*!
@@ -89,21 +110,6 @@ namespace AVQt {
          * @param pause New paused flag state
          */
         Q_INVOKABLE void pause(bool pause) override;
-
-        /*!
-         * \brief Register frame sink/filter with given callback type \c type
-         * @param frameSink Frame sink/filter to be added
-         * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
-         * @return Current position in callback list
-         */
-        Q_INVOKABLE int registerCallback(IFrameSink *frameSink, uint8_t type) override;
-
-        /*!
-         * \brief Removes frame sink/filter from registry
-         * @param frameSink Frame sink/filter to be removed
-         * @return Last position in callback list, -1 when not found
-         */
-        Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) override;
 
     signals:
 

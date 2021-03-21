@@ -46,15 +46,31 @@ namespace AVQt {
         };
 
         /*!
+         * \private
+         */
+        virtual ~IFrameSource() = default;
+
+        /*!
          * \brief Returns, whether the frame source is currently paused.
          * @return Paused state
          */
         virtual bool isPaused() = 0;
 
+
         /*!
-         * \private
+         * \brief Register frame callback \c frameSink with given \c type
+         * @param frameSink IFrameSink/IFrameFilter based object, its onFrame method with type \c type is called for every generated frame
+         * @param type Callback type, can be linked with bitwise or to set multiple options
+         * @return
          */
-        virtual ~IFrameSource() = default;
+        Q_INVOKABLE virtual int registerCallback(IFrameSink *frameSink, uint8_t type) = 0;
+
+        /*!
+         * \brief Removes frame callback \c frameSink from registry
+         * @param frameSink Frame sink/filter to be removed
+         * @return Previous position of the item, is -1 when not in registry
+         */
+        Q_INVOKABLE virtual int unregisterCallback(IFrameSink *frameSink) = 0;
 
     public slots:
         /*!
@@ -89,21 +105,6 @@ namespace AVQt {
          * @return
          */
         Q_INVOKABLE virtual void pause(bool pause) = 0;
-
-        /*!
-         * \brief Register frame callback \c frameSink with given \c type
-         * @param frameSink IFrameSink/IFrameFilter based object, its onFrame method with type \c type is called for every generated frame
-         * @param type Callback type, can be linked with bitwise or to set multiple options
-         * @return
-         */
-        Q_INVOKABLE virtual int registerCallback(IFrameSink *frameSink, uint8_t type) = 0;
-
-        /*!
-         * \brief Removes frame callback \c frameSink from registry
-         * @param frameSink Frame sink/filter to be removed
-         * @return Previous position of the item, is -1 when not in registry
-         */
-        Q_INVOKABLE virtual int unregisterCallback(IFrameSink *frameSink) = 0;
 
     signals:
 

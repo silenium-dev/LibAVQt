@@ -5,6 +5,7 @@
 #include "private/DecoderVAAPI_p.h"
 #include "DecoderVAAPI.h"
 #include "../output/IFrameSink.h"
+#include "../output/IAudioSink.h"
 
 #include <QApplication>
 #include <QImage>
@@ -13,6 +14,35 @@
 #define NOW() std::chrono::high_resolution_clock::now();
 #define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
 #endif
+
+void ffmpeg_dump_yuv(const char *filename, AVFrame *avFrame) {
+    FILE *fDump = fopen(filename, "ab");
+
+    uint32_t pitchY = avFrame->linesize[0];
+    uint32_t pitchU = avFrame->linesize[1];
+    uint32_t pitchV = avFrame->linesize[2];
+
+    uint8_t *avY = avFrame->data[0];
+    uint8_t *avU = avFrame->data[1];
+    uint8_t *avV = avFrame->data[2];
+
+    for (uint32_t i = 0; i < avFrame->height; i++) {
+        fwrite(avY, avFrame->width, 1, fDump);
+        avY += pitchY;
+    }
+
+    for (uint32_t i = 0; i < avFrame->height / 2; i++) {
+        fwrite(avU, avFrame->width / 2, 1, fDump);
+        avU += pitchU;
+    }
+
+    for (uint32_t i = 0; i < avFrame->height / 2; i++) {
+        fwrite(avV, avFrame->width / 2, 1, fDump);
+        avV += pitchV;
+    }
+
+    fclose(fDump);
+}
 
 namespace AVQt {
     DecoderVAAPI::DecoderVAAPI(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {
@@ -53,6 +83,8 @@ namespace AVQt {
 //        int m_videoIndex = -1, d->m_audioIndex = -1;
 
         for (int i = 0; i < d->m_pFormatCtx->nb_streams; ++i) {
+            qDebug("Stream %d has content type: %s", i,
+                   (d->m_pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO ? "Video" : "Audio"));
             if (d->m_pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
                 d->m_videoIndex = i;
                 if (d->m_audioIndex >= 0) {
@@ -85,6 +117,8 @@ namespace AVQt {
 //            auto hwconstrains = av_hwdevice_get_hwframe_constraints(d->m_pDeviceCtx, hwconfig);
 
             avcodec_open2(d->m_pVideoCodecCtx, d->m_pVideoCodec, nullptr);
+            qDebug("Decoder timebase: %d/%d", d->m_pVideoCodecCtx->time_base.num, d->m_pVideoCodecCtx->time_base.den);
+            qDebug("Decoder framerate: %d/%d", d->m_pVideoCodecCtx->framerate.num, d->m_pVideoCodecCtx->framerate.den);
         }
 
         if (d->m_audioIndex >= 0) {
@@ -99,7 +133,12 @@ namespace AVQt {
 
     int DecoderVAAPI::deinit() {
         Q_D(AVQt::DecoderVAAPI);
+        avcodec_close(d->m_pAudioCodecCtx);
+        avcodec_free_context(&d->m_pAudioCodecCtx);
+        avcodec_free_context(&d->m_pVideoCodecCtx);
+        avcodec_close(d->m_pVideoCodecCtx);
         avformat_close_input(&d->m_pFormatCtx);
+        avformat_free_context(d->m_pFormatCtx);
         avio_context_free(&d->m_pInputCtx);
 //        qDebug() << "DecoderVAAPI deinitialized";
         return 0;
@@ -145,10 +184,12 @@ namespace AVQt {
         Q_D(AVQt::DecoderVAAPI);
         int result = -1;
         if (type & CB_AVFRAME) {
+            QMutexLocker lock(&d->m_avfMutex);
             d->m_avfCallbacks.append(frameSink);
             result = static_cast<int>(d->m_avfCallbacks.indexOf(frameSink));
         }
         if (type & CB_QIMAGE) {
+            QMutexLocker lock(&d->m_qiMutex);
             if (result == -1) {
                 result = 0;
             }
@@ -160,8 +201,23 @@ namespace AVQt {
 
     int DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderVAAPI);
+        QMutexLocker lock(&d->m_avfMutex);
         int count = d->m_avfCallbacks.removeAll(frameSink);
+        count += d->m_qiCallbacks.removeAll(frameSink);
         return count + static_cast<int>(d->m_qiCallbacks.removeAll(frameSink));
+    }
+
+    int DecoderVAAPI::registerCallback(IAudioSink *audioSink) {
+        Q_D(AVQt::DecoderVAAPI);
+        QMutexLocker lock(&d->m_audioMutex);
+        d->m_audioCallbacks.append(audioSink);
+        return d->m_audioCallbacks.indexOf(audioSink);
+    }
+
+    int DecoderVAAPI::unregisterCallback(IAudioSink *audioSink) {
+        Q_D(AVQt::DecoderVAAPI);
+        QMutexLocker lock(&d->m_audioMutex);
+        return d->m_audioCallbacks.removeAll(audioSink);
     }
 
     int DecoderVAAPIPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
@@ -210,6 +266,7 @@ namespace AVQt {
         Q_D(AVQt::DecoderVAAPI);
         while (d->m_isRunning.load()) {
             if (!d->m_isPaused.load()) {
+                auto t1 = NOW();
                 AVPacket *packet = av_packet_alloc();
                 AVFrame *hwFrame = av_frame_alloc();
 
@@ -224,14 +281,14 @@ namespace AVQt {
                     ret = avcodec_send_packet(d->m_pVideoCodecCtx, packet);
                     if (ret < 0) {
                         av_packet_free(&packet);
-                        qWarning() << "Error sending packet to decoder:" << av_make_error_string(new char[128], 128, ret);
+                        qWarning() << "Error sending packet to video decoder:" << av_make_error_string(new char[128], 128, ret);
                         return;
                     }
                     while (true) {
-                        auto t1 = NOW();
-                        if (!(hwFrame = av_frame_alloc()) || !(d->m_pCurrentFrame = av_frame_alloc())) {
+                        auto t3 = NOW();
+                        if (!(hwFrame = av_frame_alloc()) || !(d->m_pCurrentVideoFrame = av_frame_alloc())) {
                             av_packet_free(&packet);
-                            qWarning() << "Error allocating frames";
+                            qFatal("Error allocating frames");
                             return;
                         }
 
@@ -239,7 +296,8 @@ namespace AVQt {
                         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                             av_frame_free(&hwFrame);
 //                            av_freep(hwFrame->data[0]);
-                            av_frame_free(&d->m_pCurrentFrame);
+                            av_frame_free(&d->m_pCurrentVideoFrame);
+                            av_packet_free(&packet);
                             break;
                         } else if (ret < 0) {
                             av_packet_free(&packet);
@@ -252,28 +310,34 @@ namespace AVQt {
 
                         if (hwFrame->format == AV_PIX_FMT_VAAPI) {
 //                            ret = av_hwframe_map(d->m_pCurrentFrame, hwFrame, 0);
-                            ret = av_hwframe_transfer_data(d->m_pCurrentFrame, hwFrame, 0);
+                            ret = av_hwframe_transfer_data(d->m_pCurrentVideoFrame, hwFrame, 0);
                             if (ret < 0) {
                                 qFatal("%d: Error mapping frame from gpu: %s", ret, av_make_error_string(new char[128], 128, ret));
                             }
 //                            qDebug() << hwFrame->hw_frames_ctx->data;
                         } else {
                             qDebug() << "No hw frame";
-                            av_frame_free(&d->m_pCurrentFrame);
-                            d->m_pCurrentFrame = hwFrame;
+                            av_frame_free(&d->m_pCurrentVideoFrame);
+                            d->m_pCurrentVideoFrame = hwFrame;
                         }
+                        auto t4 = NOW();
+                        qDebug("Decoder frametime: %ld us", TIME_US(t3, t4));
 
 //                        char strbuf[32];
 //                        qDebug() << "                " << av_get_pix_fmt_string(strbuf, 32, AV_PIX_FMT_NONE);
 //                        qDebug() << "Sw Frame format:"
 //                                 << av_get_pix_fmt_string(strbuf, 32, static_cast<AVPixelFormat>(d->m_pCurrentFrame->format));
 
+//                        ffmpeg_dump_yuv("frame.yuv", d->m_pCurrentVideoFrame);
+
+//                        qFatal("");
+
                         if (!d->m_qiCallbacks.isEmpty()) {
                             if (!d->m_pSwsContext) {
-                                d->m_pSwsContext = sws_getContext(d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
-                                                                  static_cast<AVPixelFormat>(d->m_pCurrentFrame->format),
-                                                                  d->m_pCurrentFrame->width,
-                                                                  d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 0, nullptr, nullptr,
+                                d->m_pSwsContext = sws_getContext(d->m_pCurrentVideoFrame->width, d->m_pCurrentVideoFrame->height,
+                                                                  static_cast<AVPixelFormat>(d->m_pCurrentVideoFrame->format),
+                                                                  d->m_pCurrentVideoFrame->width,
+                                                                  d->m_pCurrentVideoFrame->height, AV_PIX_FMT_BGRA, 0, nullptr, nullptr,
                                                                   nullptr);
                             }
                             d->m_pCurrentBGRAFrame = av_frame_alloc();
@@ -282,21 +346,22 @@ namespace AVQt {
                             d->m_pCurrentBGRAFrame->height = hwFrame->height;
                             d->m_pCurrentBGRAFrame->format = AV_PIX_FMT_BGRA;
 
-                            av_image_alloc(d->m_pCurrentBGRAFrame->data, d->m_pCurrentBGRAFrame->linesize, d->m_pCurrentFrame->width,
-                                           d->m_pCurrentFrame->height, AV_PIX_FMT_BGRA, 1);
+                            av_image_alloc(d->m_pCurrentBGRAFrame->data, d->m_pCurrentBGRAFrame->linesize, d->m_pCurrentVideoFrame->width,
+                                           d->m_pCurrentVideoFrame->height, AV_PIX_FMT_BGRA, 1);
 
 //                            qDebug() << "Scaling...";
-                            sws_scale(d->m_pSwsContext, d->m_pCurrentFrame->data, d->m_pCurrentFrame->linesize, 0,
-                                      d->m_pCurrentFrame->height,
+                            sws_scale(d->m_pSwsContext, d->m_pCurrentVideoFrame->data, d->m_pCurrentVideoFrame->linesize, 0,
+                                      d->m_pCurrentVideoFrame->height,
                                       d->m_pCurrentBGRAFrame->data,
                                       d->m_pCurrentBGRAFrame->linesize);
-                            QImage frame(d->m_pCurrentBGRAFrame->data[0], d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
+                            QImage frame(d->m_pCurrentBGRAFrame->data[0], d->m_pCurrentVideoFrame->width, d->m_pCurrentVideoFrame->height,
                                          QImage::Format_ARGB32);
 
                             for (const auto &cb: d->m_qiCallbacks) {
 //                                QtConcurrent::run([&](const QImage &image) {
                                 cb->onFrame(frame.copy(), d->m_pFormatCtx->streams[d->m_videoIndex]->time_base,
-                                            d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate, d->m_pCurrentFrame->pkt_duration);
+                                            d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate,
+                                            d->m_pCurrentVideoFrame->pkt_duration);
 //                                }, frame.copy());
                             }
                             av_freep(d->m_pCurrentBGRAFrame->data);
@@ -307,48 +372,84 @@ namespace AVQt {
                         if (!d->m_avfCallbacks.isEmpty()) {
                             for (const auto &cb: d->m_avfCallbacks) {
                                 AVFrame *cbFrame = av_frame_alloc();
-                                av_frame_ref(cbFrame, d->m_pCurrentFrame);
+                                av_frame_ref(cbFrame, d->m_pCurrentVideoFrame);
 //                        cbFrame->hw_frames_ctx = av_buffer_ref(hwFrame->hw_frames_ctx);
 //                        av_image_alloc(cbFrame->data, cbFrame->linesize, d->m_pCurrentFrame->width, d->m_pCurrentFrame->height,
 //                                       static_cast<AVPixelFormat>(d->m_pCurrentFrame->format), 1);
 //                        av_frame_copy_props(cbFrame, d->m_pCurrentFrame);
 //                        av_frame_copy(cbFrame, d->m_pCurrentFrame);
-                                cbFrame->format = d->m_pCurrentFrame->format;
-                                cbFrame->width = d->m_pCurrentFrame->width;
-                                cbFrame->height = d->m_pCurrentFrame->height;
+                                cbFrame->format = d->m_pCurrentVideoFrame->format;
+                                cbFrame->width = d->m_pCurrentVideoFrame->width;
+                                cbFrame->height = d->m_pCurrentVideoFrame->height;
                                 cbFrame->pkt_dts = hwFrame->pkt_dts;
                                 cbFrame->pkt_size = hwFrame->pkt_size;
                                 cbFrame->pkt_duration = hwFrame->pkt_duration;
                                 cbFrame->pkt_pos = hwFrame->pkt_pos;
                                 cbFrame->pts = hwFrame->pts;
 //                                QtConcurrent::run([&](AVFrame *avFrame) {
-                                auto t3 = NOW();
-                                cb->onFrame(cbFrame, d->m_pFormatCtx->streams[d->m_videoIndex]->time_base,
-                                            d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate,
-                                            cbFrame->pkt_duration * av_q2d(d->m_pFormatCtx->streams[d->m_videoIndex]->time_base) * 1000.0);
+                                t3 = NOW();
+                                cb->onFrame(cbFrame, d->m_pVideoCodecCtx->time_base, d->m_pVideoCodecCtx->framerate,
+                                            av_q2d(av_inv_q(d->m_pVideoCodecCtx->framerate)) * 1000.0);
 //                                }, cbFrame);
-                                auto t4 = NOW();
+                                t4 = NOW();
                                 qDebug("CB time: %ld us", TIME_US(t3, t4));
                                 av_frame_unref(cbFrame);
                             }
                         }
 
-                        auto t2 = NOW();
-                        auto duration = hwFrame->pkt_duration * 1000000.0 *
-                                        av_q2d(d->m_pFormatCtx->streams[packet->stream_index]->time_base) - TIME_US(t1, t2);
-                        duration = (duration < 0 ? 0 : duration);
-                        qDebug("Decoder: Frametime %ld us; Sleeping: %f us", TIME_US(t1, t2), duration);
-                        usleep(duration);
-
                         av_frame_free(&hwFrame);
-                        av_frame_free(&d->m_pCurrentFrame);
-                        d->m_pCurrentFrame = nullptr;
+                        av_frame_unref(d->m_pCurrentVideoFrame);
+                        d->m_pCurrentVideoFrame = nullptr;
                         hwFrame = nullptr;
                     }
                 } else if (packet->stream_index == d->m_audioIndex) {
-                    qDebug() << "Audio processing not implemented, discarding packet ...";
+//                    qDebug() << "Audio packet";
+//                    ret = avcodec_send_packet(d->m_pAudioCodecCtx, packet);
+//                    if (ret < 0) {
+//                        av_packet_free(&packet);
+//                        qWarning() << "Error sending packet to audio decoder:" << av_make_error_string(new char[128], 128, ret);
+//                        return;
+//                    }
+//                    while (true) {
+//                        auto t1 = NOW();
+//                        if (!(d->m_pCurrentAudioFrame = av_frame_alloc())) {
+//                            av_packet_free(&packet);
+//                            qFatal("Could not allocate audio frame");
+//                        }
+//
+//                        ret = avcodec_receive_frame(d->m_pAudioCodecCtx, d->m_pCurrentAudioFrame);
+//                        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+//                            av_frame_free(&d->m_pCurrentAudioFrame);
+//                            av_packet_free(&packet);
+//                            break;
+//                        } else if (ret < 0) {
+//                            av_packet_free(&packet);
+//                            qFatal("%d, Error receiving frame from decoder: %s", ret, av_make_error_string(new char[128], 128, ret));
+//                        }
+//
+//                        {
+//                            QMutexLocker lock(&d->m_audioMutex);
+//                            for (const auto &cb: d->m_audioCallbacks) {
+//                                AVFrame *cbFrame = av_frame_alloc();
+//                                av_frame_ref(cbFrame, d->m_pCurrentAudioFrame);
+//                                qDebug("Audio sample format: %s", av_get_sample_fmt_name(d->m_pAudioCodecCtx->sample_fmt));
+//                                cb->onAudioFrame(cbFrame,
+//                                                 cbFrame->pkt_duration * av_q2d(d->m_pFormatCtx->streams[d->m_audioIndex]->time_base) *
+//                                                 1000000.0, d->m_pAudioCodecCtx->sample_fmt);
+//                                av_frame_unref(cbFrame);
+//                            }
+//                        }
+//                    }
                 }
+//                if (packet) {
+                auto t2 = NOW();
+//                    auto duration = packet->duration * 1000000.0 *
+//                                    av_q2d(d->m_pFormatCtx->streams[packet->stream_index]->time_base) - TIME_US(t1, t2);
+//                    duration = (duration < 0 ? 0 : duration);
+                qDebug("Decoder: Frametime %ld us", TIME_US(t1, t2));
+//                    usleep(duration);
                 av_packet_free(&packet);
+//                }
             } else {
                 msleep(2);
             }

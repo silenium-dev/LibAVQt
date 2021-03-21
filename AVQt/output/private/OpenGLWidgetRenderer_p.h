@@ -27,10 +27,12 @@ namespace AVQt {
     private:
         explicit OpenGLWidgetRendererPrivate(OpenGLWidgetRenderer *q) : q_ptr(q) {}
 
-        void resizeFrameRects();
+        void resizeFrameRects(QResizeEvent *event);
+
+        void resizeCurrentFrame(QResizeEvent *event);
 
         OpenGLWidgetRenderer *q_ptr;
-        QMutex m_currentImageMutex;
+        QRecursiveMutex m_currentImageMutex;
         QRect m_currentImageRect;
         QImage m_currentImage;
 
@@ -47,12 +49,14 @@ namespace AVQt {
 
         AVPixelFormat m_swsCtxFormat = AV_PIX_FMT_NONE;
         QTimer *m_updateTimer = nullptr;
+        QTimer *m_cursorTimer = nullptr;
         quint32 m_currentTimeout = 0;
 
         std::atomic_bool m_isPaused = false;
         std::atomic_bool m_isRunning = false;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_lastNewFrame = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_lastUpdate = std::chrono::high_resolution_clock::now();
 
         friend class OpenGLWidgetRenderer;
     };

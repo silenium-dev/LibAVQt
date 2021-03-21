@@ -65,6 +65,27 @@ namespace AVQt {
         /*!
          * \private
          */
+        void mouseDoubleClickEvent(QMouseEvent *event) override;
+
+
+        /*!
+         * \private
+         */
+        void mouseReleaseEvent(QMouseEvent *event) override;
+
+        /*!
+         * \private
+         */
+        void mousePressEvent(QMouseEvent *event) override;
+
+        /*!
+         * \private
+         */
+        void mouseMoveEvent(QMouseEvent *event) override;
+
+        /*!
+         * \private
+         */
         void resizeEvent(QResizeEvent *event) override;
 
         /*!

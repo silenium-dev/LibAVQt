@@ -5,3 +5,5 @@
 #include "input/IFrameSource.h"
 #include "input/DecoderVAAPI.h"
 #include "output/OpenGLWidgetRenderer.h"
+#include "output/AOAudioRenderer.h"
+#include "output/OpenGLRenderer.h"

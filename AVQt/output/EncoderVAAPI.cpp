@@ -55,13 +55,14 @@ namespace AVQt {
                                            &EncoderVAAPIPrivate::writeToIO, nullptr);
 
         if (!d->pOutputCtx) {
-            qFatal("Could not allocate avio contexts");
+            qFatal("Could not allocate AVIOContext");
         }
 
         if (avformat_alloc_output_context2(&d->pFormatCtx, av_guess_format("mpegts", "", nullptr), "mpegts", "") < 0) {
             qFatal("Could not allocate output context");
         }
 
+        d->pOutputCtx->max_packet_size = 1520;
         d->pFormatCtx->pb = d->pOutputCtx;
         d->pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 
@@ -291,10 +292,10 @@ namespace AVQt {
                 // Create new stream in the AVFormatContext
                 d->pVideoStream = avformat_new_stream(d->pFormatCtx, d->pVideoCodec);
                 avcodec_parameters_from_context(d->pVideoStream->codecpar, d->pVideoCodecCtx);
-                d->pVideoStream->time_base = queueFrame->timeBase;
+                d->pVideoStream->time_base = av_inv_q(queueFrame->framerate);
                 d->pVideoStream->avg_frame_rate = queueFrame->framerate;
 
-                if ((ret = avformat_init_output(d->pFormatCtx, nullptr)) < 0) {
+                if ((ret = avformat_write_header(d->pFormatCtx, nullptr)) < 0) {
                     qFatal("%d: Could not open output context: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                 }
 
@@ -302,7 +303,7 @@ namespace AVQt {
                 d->pVideoCodecCtx->hw_device_ctx = av_buffer_ref(d->pDeviceCtx);
                 d->pVideoCodecCtx->hw_frames_ctx = av_buffer_ref(d->pFramesCtx);
                 d->pVideoCodecCtx->framerate = d->pVideoStream->avg_frame_rate;
-                d->pVideoCodecCtx->time_base = d->pVideoStream->time_base;
+                d->pVideoCodecCtx->time_base = av_inv_q(d->pVideoStream->avg_frame_rate);
 
                 if ((ret = avcodec_open2(d->pVideoCodecCtx, d->pVideoCodec, nullptr)) < 0) {
                     qFatal("%d: Could not open video encoder \"%s\": %s", ret, d->pVideoCodec->long_name,
@@ -310,7 +311,8 @@ namespace AVQt {
                 }
 
                 qDebug("Encoder framerate: %d/%d", d->pVideoStream->avg_frame_rate.num, d->pVideoStream->avg_frame_rate.den);
-                qDebug("Encoder timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
+                qDebug("Output timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
+                qDebug("Encoder timebase: %d/%d", d->pVideoCodecCtx->time_base.num, d->pVideoCodecCtx->time_base.den);
 
                 // Create frame on GPU
                 d->pHWFrame = av_frame_alloc();
@@ -334,47 +336,60 @@ namespace AVQt {
                 }
 
                 qDebug("");
-                QtConcurrent::run([&] {
-                    // Receive and write all encoded packets
-                    AVPacket *packet = av_packet_alloc();
-                    while (d->m_isRunning.load()) {
-                        while (true) {
-                            ret = avcodec_receive_packet(d->pVideoCodecCtx, packet);
-                            // If ret != 0, there is no packet available
-                            if (ret != 0) {
-                                av_packet_unref(packet);
-                                break;
-                            } else {
-                                packet->stream_index = d->pVideoStream->index;
-                                // Calculate pts and dts from framenumber, framerate and timebase
-                                packet->duration =
-                                        av_q2d(av_inv_q(d->pVideoStream->avg_frame_rate)) / av_q2d(d->pVideoStream->time_base) / 2.0;
-                                packet->dts = packet->duration * 2.0 * (d->m_frameNumber.load() - 0.5);
-                                packet->dts = packet->dts < 0 ? 0 : packet->dts;
-                                packet->pts = packet->duration * 2.0 * d->m_frameNumber++;
-                                ret = av_write_frame(d->pFormatCtx, packet);
-                                if (ret < 0) {
-                                    char strBuf[64];
-                                    qWarning("%d: Could not write packet to output: %s", ret, av_make_error_string(strBuf, 64, ret));
-                                }
-                                if ((d->m_frameNumber.load() - 1) % 60 == 0) {
-                                    qDebug("Encoded frame %lu", d->m_frameNumber.load() - 1);
-                                    qDebug("Encoder framerate: %d/%d", d->pVideoStream->avg_frame_rate.num,
-                                           d->pVideoStream->avg_frame_rate.den);
-                                    qDebug("Encoder timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
-                                    qDebug("Packet pts, duration: %ld, %ld", packet->pts, packet->duration);
-                                    fflush(stdout);
-                                }
-                                av_packet_unref(packet);
-                            }
-                            av_packet_unref(packet);
-                        }
-                        QThread::msleep(6);
-                    }
-
-                    // Cleanup
-                    av_packet_free(&packet);
-                });
+//                QtConcurrent::run([&] {
+//                    // Receive and write all encoded packets
+//                    while (d->m_isRunning.load()) {
+//                        while (d->m_isRunning.load()) {
+//                            AVPacket *packet = av_packet_alloc();
+//                            {
+////                            QMutexLocker lock(&d->m_codecMutex);
+//                                ret = avcodec_receive_packet(d->pVideoCodecCtx, packet);
+//                            }
+//                            // If ret != 0, there is no packet available
+//                            if (ret != 0) {
+//                                av_packet_free(&packet);
+//                                break;
+//                            } else {
+////                                av_packet_rescale_ts(packet, d->pVideoCodecCtx->time_base, d->pVideoStream->time_base);
+//                                packet->pts = packet->pts * 1.0 / d->pVideoCodecCtx->time_base.den * d->pVideoStream->time_base.den /
+//                                              d->pVideoStream->time_base.num;
+//                                packet->dts = packet->dts * 1.0 / d->pVideoCodecCtx->time_base.den * d->pVideoStream->time_base.den /
+//                                              d->pVideoStream->time_base.num;
+//                                packet->stream_index = d->pVideoStream->index;
+//
+//                                if ((d->m_packetNumber.load()) % 60 == 0) {
+//                                    qDebug("\nWrote packet %lu", d->m_packetNumber.load());
+//                                    qDebug("Stream framerate: %d/%d", d->pVideoStream->avg_frame_rate.num,
+//                                           d->pVideoStream->avg_frame_rate.den);
+//                                    qDebug("Stream timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
+//                                    qDebug("Packet pts: %ld, dts: %ld, duration: %ld\n", packet->pts, packet->dts, packet->duration);
+//                                }
+//
+//                                ret = av_interleaved_write_frame(d->pFormatCtx, packet);
+//                                // Calculate pts and dts from framenumber, framerate and timebase
+////                                packet->dts = packet->duration * (d->m_frameNumber.load() - 0.5);
+////                                packet->dts = packet->dts < 0 ? 0 : packet->dts;
+////                                packet->pts = packet->duration * d->m_frameNumber++;
+//
+////                                packet->duration = av_q2d(av_inv_q(d->pVideoStream->avg_frame_rate)) / av_q2d(d->pVideoStream->time_base);
+////                                packet->pts = packet->duration * d->m_packetNumber.load();
+//                                if (ret < 0) {
+//                                    char strBuf[64];
+//                                    qWarning("%d: Could not write packet to output: %s", ret, av_make_error_string(strBuf, 64, ret));
+//                                }
+//
+//                                ++d->m_packetNumber;
+//
+//                                av_packet_free(&packet);
+//                            }
+//                        }
+//                        QThread::msleep(6);
+//                    }
+//
+//                    // Cleanup
+////                    av_packet_free(&packet);
+//                    av_write_trailer(d->pFormatCtx);
+//                });
                 startPoint = NOW();
             }
 
@@ -403,25 +418,93 @@ namespace AVQt {
             }
 
             // Upload frame to GPU
-            if ((ret = av_hwframe_transfer_data(d->pHWFrame, swFrame, 0)) < 0) {
+            if ((ret = av_hwframe_transfer_data(d->pHWFrame, swFrame, 0)) != 0) {
                 qFatal("%d: Could not map frame to gpu: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
             }
             if (d->pSwsContext) {
                 av_freep(&swFrame->data[0]);
+                av_frame_free(&swFrame);
+            } else {
+                av_frame_unref(swFrame);
+                av_frame_free(&swFrame);
             }
-            av_frame_free(&swFrame);
             av_frame_free(&queueFrame->frame);
             queueFrame->frame = nullptr;
             delete queueFrame;
 
+            d->pHWFrame->pts = d->pVideoCodecCtx->time_base.num * d->m_frameNumber;
+
+            if (d->m_frameNumber.load() % 60 == 0) {
+                qDebug("Encoding frame %lu", d->m_frameNumber.load());
+                qDebug("Encoder framerate: %d/%d", d->pVideoCodecCtx->framerate.num, d->pVideoCodecCtx->framerate.den);
+                qDebug("Encoder timebase: %d/%d", d->pVideoCodecCtx->time_base.num, d->pVideoCodecCtx->time_base.den);
+                qDebug("Frame pts: %ld\n", d->pHWFrame->pts);
+                fflush(stdout);
+            }
+
+            ++d->m_frameNumber;
+
+//            QMutexLocker lock(&d->m_codecMutex);
             avcodec_send_frame(d->pVideoCodecCtx, d->pHWFrame);
+
+            while (d->m_isRunning.load()) {
+                AVPacket *packet = av_packet_alloc();
+                {
+//                            QMutexLocker lock(&d->m_codecMutex);
+//                    ret = avcodec_send_frame(d->pVideoCodecCtx, nullptr);
+//                    if (ret != 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) {
+//                        qFatal("%d: Not able to flush encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+//                    }
+                    ret = avcodec_receive_packet(d->pVideoCodecCtx, packet);
+                }
+                // If ret != 0, there is no packet available
+                if (ret != 0) {
+                    av_packet_free(&packet);
+                    break;
+                } else {
+//                                av_packet_rescale_ts(packet, d->pVideoCodecCtx->time_base, d->pVideoStream->time_base);
+                    packet->pts = packet->pts * 1.0 / d->pVideoCodecCtx->time_base.den * d->pVideoStream->time_base.den /
+                                  d->pVideoStream->time_base.num;
+                    packet->dts = packet->dts * 1.0 / d->pVideoCodecCtx->time_base.den * d->pVideoStream->time_base.den /
+                                  d->pVideoStream->time_base.num;
+                    packet->stream_index = d->pVideoStream->index;
+
+                    if ((d->m_packetNumber.load()) % 60 == 0) {
+                        qDebug("\nWrote packet %lu", d->m_packetNumber.load());
+                        qDebug("Stream framerate: %d/%d", d->pVideoStream->avg_frame_rate.num,
+                               d->pVideoStream->avg_frame_rate.den);
+                        qDebug("Stream timebase: %d/%d", d->pVideoStream->time_base.num, d->pVideoStream->time_base.den);
+                        qDebug("Packet pts: %ld, dts: %ld, duration: %ld\n", packet->pts, packet->dts, packet->duration);
+                    }
+
+                    ret = av_interleaved_write_frame(d->pFormatCtx, packet);
+                    // Calculate pts and dts from framenumber, framerate and timebase
+//                                packet->dts = packet->duration * (d->m_frameNumber.load() - 0.5);
+//                                packet->dts = packet->dts < 0 ? 0 : packet->dts;
+//                                packet->pts = packet->duration * d->m_frameNumber++;
+
+//                                packet->duration = av_q2d(av_inv_q(d->pVideoStream->avg_frame_rate)) / av_q2d(d->pVideoStream->time_base);
+//                                packet->pts = packet->duration * d->m_packetNumber.load();
+                    if (ret < 0) {
+                        char strBuf[64];
+                        qWarning("%d: Could not write packet to output: %s", ret, av_make_error_string(strBuf, 64, ret));
+                    }
+
+                    ++d->m_packetNumber;
+
+                    av_packet_free(&packet);
+                }
+            }
         }
-        qDebug("Stats\n Average FPS: %0.2f\nAverage frame time: %0.2f us", d->m_frameNumber.load() * 1.0 / TIME_S(startPoint, NOW()),
+        qDebug("Stats\nEncoded frames: %ld\nEncoding time: %f ms\nAverage FPS: %0.2f\nAverage frame time: %0.2f us",
+               d->m_frameNumber.load(), TIME_US(startPoint, NOW()) / 1000.0, d->m_frameNumber.load() * 1.0 / TIME_S(startPoint, NOW()),
                TIME_US(startPoint, NOW()) * 1.0 / d->m_frameNumber.load());
     }
 
     int EncoderVAAPIPrivate::writeToIO(void *opaque, uint8_t *buf, int bufSize) {
         auto t1 = NOW();
+
+//        qDebug() << "Writing data...";
 
         auto *outputDevice = static_cast<QIODevice *>(opaque);
         if (!outputDevice->isWritable()) {
