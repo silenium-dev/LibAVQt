@@ -1,4 +1,0 @@
-<map id="AVQt::FrameFileSaver::paused" name="AVQt::FrameFileSaver::paused">
-<area shape="rect" id="node1" title="Emitted when paused flag changes." alt="" coords="200,5,347,47"/>
-<area shape="rect" id="node2" href="$class_a_v_qt_1_1_frame_file_saver.html#acc44aad16b472214e03a875a3b975aaa" title="Sets paused flag, which can be retrieved with FrameFileSaver::isPaused() override." alt="" coords="5,5,152,47"/>
-</map>

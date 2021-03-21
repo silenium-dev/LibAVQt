@@ -1,4 +1,0 @@
-<map id="AVQt::EncoderVAAPI::stop" name="AVQt::EncoderVAAPI::stop">
-<area shape="rect" id="node1" title="Interrupt encoder thread and waits for it to finish." alt="" coords="205,5,357,47"/>
-<area shape="rect" id="node2" href="$class_a_v_qt_1_1_encoder_v_a_a_p_i.html#a4889e6dd02a5625f6a577a5be85cd990" title="Clean up encoder, encoder will be stopped before, if running." alt="" coords="5,5,157,47"/>
-</map>

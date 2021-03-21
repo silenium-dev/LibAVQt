@@ -7,7 +7,7 @@ An object-oriented Qt interface for FFmpeg.
 ### Current
 
 - VAAPI accelerated encode/decode
-- Frame sink for saving every 60th frame to file
+- Frame sink for saving every n-th frame to file
 - QOpenGLWidget based renderer (***WIP***)
 
 ### Planned
