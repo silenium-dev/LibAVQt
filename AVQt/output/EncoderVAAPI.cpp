@@ -48,7 +48,7 @@ namespace AVQt {
 
     }
 
-    int EncoderVAAPI::init() {
+    int EncoderVAAPI::init(int64_t duration) {
         Q_D(AVQt::EncoderVAAPI);
         d->pIOBuffer = reinterpret_cast<uint8_t *>(av_malloc(32 * 1024));
         d->pOutputCtx = avio_alloc_context(d->pIOBuffer, 32 * 1024, 1, d->m_outputDevice, nullptr,
@@ -157,7 +157,7 @@ namespace AVQt {
         return d->m_isPaused.load();
     }
 
-    void EncoderVAAPI::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
+    void EncoderVAAPI::onFrame(QImage frame, int64_t duration) {
         Q_D(AVQt::EncoderVAAPI);
         QMutexLocker lock(&d->m_cbTypeMutex);
         if (d->m_cbType == IFrameSource::CB_NONE || d->m_cbType == IFrameSource::CB_QIMAGE) {
@@ -165,8 +165,8 @@ namespace AVQt {
             lock.unlock();
             auto *nextFrame = new EncoderVAAPIPrivate::Frame;
             nextFrame->frame = av_frame_alloc();
-            nextFrame->timeBase = timebase;
-            nextFrame->framerate = framerate;
+            nextFrame->framerate = av_make_q(1000.0, duration);
+            nextFrame->timeBase = av_inv_q(nextFrame->framerate);
             av_image_alloc(nextFrame->frame->data, nextFrame->frame->linesize, frame.width(), frame.height(), AV_PIX_FMT_BGRA, 1);
             while (d->m_frameQueue.size() >= 100) {
                 QThread::msleep(1);

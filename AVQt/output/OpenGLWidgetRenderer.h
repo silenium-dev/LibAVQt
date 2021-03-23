@@ -32,7 +32,7 @@ namespace AVQt {
         void run();
 
     public slots:
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init(int64_t duration) override;
 
         Q_INVOKABLE int deinit() override;
 
@@ -42,7 +42,7 @@ namespace AVQt {
 
         Q_INVOKABLE void pause(bool pause) override;
 
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) override;
 
         Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) override;
 

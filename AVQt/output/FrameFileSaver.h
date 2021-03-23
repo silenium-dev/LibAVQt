@@ -48,7 +48,7 @@ namespace AVQt {
         /*!
          * \brief Does nothing
          */
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init(int64_t duration) override;
 
         /*!
          * \brief Does nothing
@@ -76,10 +76,10 @@ namespace AVQt {
         /*!
         * \brief Saves frame, if internal frame counter modulo given interval is 0
         * \param frame Frame in a QImage
-        * \param timebase FFmpeg stream time base as rational number, if you don't know, what this means, you probably don't need it
+        * \param entireDuration FFmpeg stream time base as rational number, if you don't know, what this means, you probably don't need it
         * \param framerate Source framerate as rational number
         */
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) override;
 
         /*!
         * Does nothing except of freeing the frame

@@ -103,6 +103,8 @@ namespace AVQt {
             }
         }
 
+        avformat_find_stream_info(d->m_pFormatCtx, nullptr);
+
         if (d->m_videoIndex >= 0) {
             d->m_pVideoCodec = avcodec_find_decoder(d->m_pFormatCtx->streams[d->m_videoIndex]->codecpar->codec_id);
             d->m_pVideoCodecCtx = avcodec_alloc_context3(d->m_pVideoCodec);
@@ -126,6 +128,16 @@ namespace AVQt {
             d->m_pAudioCodecCtx = avcodec_alloc_context3(d->m_pAudioCodec);
             avcodec_parameters_to_context(d->m_pAudioCodecCtx, d->m_pFormatCtx->streams[d->m_audioIndex]->codecpar);
             avcodec_open2(d->m_pAudioCodecCtx, d->m_pAudioCodec, nullptr);
+        }
+
+        for (const auto &cb: d->m_avfCallbacks) {
+            cb->init(d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE);
+        }
+        for (const auto &cb: d->m_qiCallbacks) {
+            cb->init(d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE);
+        }
+        for (const auto &cb: d->m_audioCallbacks) {
+            cb->init(d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE);
         }
 
         return 0;
@@ -278,18 +290,21 @@ namespace AVQt {
                 }
 
                 if (packet->stream_index == d->m_videoIndex) {
+                    auto t10 = NOW();
                     ret = avcodec_send_packet(d->m_pVideoCodecCtx, packet);
                     if (ret < 0) {
                         av_packet_free(&packet);
                         qWarning() << "Error sending packet to video decoder:" << av_make_error_string(new char[128], 128, ret);
                         return;
                     }
+                    auto t11 = NOW();
+                    qDebug("Send time: %ld us", TIME_US(t10, t11));
+
                     while (true) {
                         auto t3 = NOW();
                         if (!(hwFrame = av_frame_alloc()) || !(d->m_pCurrentVideoFrame = av_frame_alloc())) {
                             av_packet_free(&packet);
                             qFatal("Error allocating frames");
-                            return;
                         }
 
                         ret = avcodec_receive_frame(d->m_pVideoCodecCtx, hwFrame);
@@ -304,12 +319,15 @@ namespace AVQt {
                             qWarning() << "Error receiving frame from decoder:" << av_make_error_string(new char[128], 128, ret);
                             return;
                         }
+                        auto t12 = NOW();
+                        qDebug("Receive time: %ld us", TIME_US(t3, t12));
 
-//                        char strbuf[32];
-//                        qDebug("Frame pix fmt: %s", av_get_pix_fmt_string(strbuf, 32, static_cast<AVPixelFormat>(hwFrame->format)));
+                        char strbuf[32];
+                        qDebug("Frame pix fmt: %s", av_get_pix_fmt_string(strbuf, 32,
+                                                                          static_cast<AVPixelFormat>(reinterpret_cast<AVHWFramesContext *>(hwFrame->hw_frames_ctx->data)->sw_format)));
 
                         if (hwFrame->format == AV_PIX_FMT_VAAPI) {
-//                            ret = av_hwframe_map(d->m_pCurrentFrame, hwFrame, 0);
+//                            ret = av_hwframe_map(d->m_pCurrentVideoFrame, hwFrame, AV_HWFRAME_MAP_READ);
                             ret = av_hwframe_transfer_data(d->m_pCurrentVideoFrame, hwFrame, 0);
                             if (ret < 0) {
                                 qFatal("%d: Error mapping frame from gpu: %s", ret, av_make_error_string(new char[128], 128, ret));
@@ -321,7 +339,7 @@ namespace AVQt {
                             d->m_pCurrentVideoFrame = hwFrame;
                         }
                         auto t4 = NOW();
-                        qDebug("Decoder frametime: %ld us", TIME_US(t3, t4));
+                        qDebug("Transfer time: %ld us", TIME_US(t12, t4));
 
 //                        char strbuf[32];
 //                        qDebug() << "                " << av_get_pix_fmt_string(strbuf, 32, AV_PIX_FMT_NONE);
@@ -359,9 +377,8 @@ namespace AVQt {
 
                             for (const auto &cb: d->m_qiCallbacks) {
 //                                QtConcurrent::run([&](const QImage &image) {
-                                cb->onFrame(frame.copy(), d->m_pFormatCtx->streams[d->m_videoIndex]->time_base,
-                                            d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate,
-                                            d->m_pCurrentVideoFrame->pkt_duration);
+                                cb->onFrame(frame.copy(),
+                                            av_q2d(av_inv_q(d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate)) * 1000.0);
 //                                }, frame.copy());
                             }
                             av_freep(d->m_pCurrentBGRAFrame->data);
@@ -389,7 +406,7 @@ namespace AVQt {
 //                                QtConcurrent::run([&](AVFrame *avFrame) {
                                 t3 = NOW();
                                 cb->onFrame(cbFrame, d->m_pVideoCodecCtx->time_base, d->m_pVideoCodecCtx->framerate,
-                                            av_q2d(av_inv_q(d->m_pVideoCodecCtx->framerate)) * 1000.0);
+                                            av_q2d(av_inv_q(d->m_pFormatCtx->streams[d->m_videoIndex]->avg_frame_rate)) * 1000.0);
 //                                }, cbFrame);
                                 t4 = NOW();
                                 qDebug("CB time: %ld us", TIME_US(t3, t4));
@@ -446,7 +463,7 @@ namespace AVQt {
 //                    auto duration = packet->duration * 1000000.0 *
 //                                    av_q2d(d->m_pFormatCtx->streams[packet->stream_index]->time_base) - TIME_US(t1, t2);
 //                    duration = (duration < 0 ? 0 : duration);
-                qDebug("Decoder: Frametime %ld us", TIME_US(t1, t2));
+                qDebug("Decoder Packettime: %ld us", TIME_US(t1, t2));
 //                    usleep(duration);
                 av_packet_free(&packet);
 //                }

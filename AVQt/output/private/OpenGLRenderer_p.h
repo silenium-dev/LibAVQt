@@ -38,6 +38,8 @@ namespace AVQt {
 
         QTimer *m_updateTimer = nullptr;
         int64_t m_currentFrameTimeout = 1;
+        QTime m_duration;
+        QTime m_position;
         std::atomic_bool m_updateRequired = true, m_paused = false, m_running = false, m_firstFrame = true;
         std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
 

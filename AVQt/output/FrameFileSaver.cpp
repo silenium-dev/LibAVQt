@@ -31,7 +31,7 @@ namespace AVQt {
 
     }
 
-    int FrameFileSaver::init() {
+    int FrameFileSaver::init(int64_t duration) {
         return 0;
     }
 
@@ -49,10 +49,8 @@ namespace AVQt {
         return 0;
     }
 
-    void FrameFileSaver::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
+    void FrameFileSaver::onFrame(QImage frame, int64_t duration) {
         Q_D(AVQt::FrameFileSaver);
-        Q_UNUSED(timebase)
-        Q_UNUSED(framerate)
         if (!d->m_isPaused.load() && d->m_frameNumber.load() % d->m_frameInterval == 0) {
 //        if (!d->m_isPaused.load()) {
 //            qDebug() << "Saving frame" << d->m_frameNumber.load();

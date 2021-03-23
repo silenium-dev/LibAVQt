@@ -51,12 +51,20 @@ int main(int argc, char *argv[]) {
 
     AVQt::OpenGLRenderer w;
     w.setMinimumSize(QSize(640, 360));
-    w.showNormal();
-    QFile file("/home/silas/1080p60.mkv");
+    QFile file(QFileDialog::getOpenFileName(nullptr,
+                                            "Select video file",
+                                            QStandardPaths::standardLocations(QStandardPaths::HomeLocation)[0],
+                                            "Video files (*.mp4 *.mkv *.m4v *.ts *.webm)"));
+    if (file.fileName().isEmpty()) {
+        exit(0);
+    }
     file.open(QIODevice::ReadOnly);
     AVQt::DecoderVAAPI decoder(&file);
+    decoder.registerCallback(&w, AVQt::IFrameSource::CB_AVFRAME);
     decoder.init();
-    decoder.registerCallback(&w, AVQt::IFrameSource::CB_QIMAGE);
+//    QWidget *widget = QWidget::createWindowContainer(&w);
+    w.showNormal();
+    w.requestActivate();
     w.start();
     decoder.start();
 //    AVFrame *avFrame = av_frame_alloc();
@@ -75,8 +83,8 @@ int main(int argc, char *argv[]) {
 //    w.onFrame(avFrame, av_make_q(0, 0), av_make_q(0, 0), 1000);
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
-        decoder.stop();
         w.stop();
+        decoder.stop();
         decoder.deinit();
     });
 

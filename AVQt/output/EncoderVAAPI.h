@@ -91,7 +91,7 @@ namespace AVQt {
          * Opens output device, if necessary and creates output context.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init(int64_t duration) override;
 
         /*!
          * \brief Clean up encoder, encoder will be stopped before, if running
@@ -128,10 +128,10 @@ namespace AVQt {
         /*!
          * \brief Add frame to encode queue, blocks if queue is full
          * @param frame Frame to add
-         * @param timebase decode timebase (***Unstable API***)
+         * @param entireDuration decode timebase (***Unstable API***)
          * @param framerate decode framerate (***Unstable API***)
          */
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) override;
 
         /*!
          * \brief Add frame to encode queue, blocks if queue is full

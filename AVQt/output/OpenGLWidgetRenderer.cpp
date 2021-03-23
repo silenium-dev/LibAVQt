@@ -36,7 +36,7 @@ namespace AVQt {
         QMutexLocker queueLock(&d->m_imageInputQueueMutex);
     }
 
-    int OpenGLWidgetRenderer::init() {
+    int OpenGLWidgetRenderer::init(int64_t duration) {
         return 0;
     }
 
@@ -82,7 +82,7 @@ namespace AVQt {
         return d->m_isPaused.load();
     }
 
-    void OpenGLWidgetRenderer::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
+    void OpenGLWidgetRenderer::onFrame(QImage frame, int64_t duration) {
         Q_D(AVQt::OpenGLWidgetRenderer);
 
         auto imageRect = frame.rect();

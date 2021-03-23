@@ -19,7 +19,6 @@ void loadResources() {
 namespace AVQt {
     OpenGLRenderer::OpenGLRenderer(QWindow *parent) : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, parent),
                                                       d_ptr(new OpenGLRendererPrivate(this)) {
-//        setAttribute(Qt::WA_TranslucentBackground);
     }
 
     OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
@@ -27,22 +26,18 @@ namespace AVQt {
 
     OpenGLRenderer::~OpenGLRenderer() noexcept {
         Q_D(AVQt::OpenGLRenderer);
-
-//        d->m_updateTimer->stop();
-//        delete d->m_updateTimer;
-
-        {
-            QMutexLocker lock(&d->m_renderQueueMutex);
-
-            for (auto &e: d->m_renderQueue) {
-                av_frame_unref(e.first);
-            }
-
-            d->m_renderQueue.clear();
-        }
     }
 
-    int OpenGLRenderer::init() {
+    int OpenGLRenderer::init(int64_t duration) {
+        Q_D(AVQt::OpenGLRenderer);
+        int64_t h = duration / 3600000;
+        int64_t m = (duration - h * 3600000) / 60000;
+        int64_t s = (duration - h * 3600000 - m * 60000) / 1000;
+        int64_t ms = duration - h * 3600000 - m * 60000 - s * 1000;
+
+        d->m_duration = QTime(h, m, s, ms);
+        d->m_position = QTime(0, 0, 0, 0);
+        qDebug() << "Duration:" << d->m_duration.toString("hh:mm:ss");
         return 0;
     }
 
@@ -65,6 +60,20 @@ namespace AVQt {
 
         d->m_running.store(false);
         d->m_paused.store(true);
+
+        d->m_updateTimer->stop();
+        delete d->m_updateTimer;
+
+        {
+            QMutexLocker lock(&d->m_renderQueueMutex);
+
+            for (auto &e: d->m_renderQueue) {
+                av_frame_unref(e.first);
+            }
+
+            d->m_renderQueue.clear();
+        }
+
         stopped();
         return 0;
     }
@@ -87,9 +96,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    void OpenGLRenderer::onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) {
-        Q_UNUSED(timebase);
-        Q_UNUSED(framerate);
+    void OpenGLRenderer::onFrame(QImage frame, int64_t duration) {
 
         Q_D(AVQt::OpenGLRenderer);
 
@@ -106,7 +113,7 @@ namespace AVQt {
                             frame.height());
 
         newFrame.first = avFrame;
-        newFrame.second = av_q2d(av_inv_q(framerate)) * 1000.0;
+        newFrame.second = duration;
 
         while (d->m_renderQueue.size() >= 100) {
             QThread::msleep(4);
@@ -124,11 +131,14 @@ namespace AVQt {
 
         QPair<AVFrame *, int64_t> newFrame;
 
-//        AVFrame *avFrame = av_frame_alloc();
-//        av_frame_ref(avFrame, frame);
+        AVFrame *avFrame = av_frame_alloc();
+        av_frame_ref(avFrame, frame);
 //        av_frame_unref(frame);
 
-        newFrame.first = frame;
+        char strBuf[64];
+        qDebug() << "Pixel format:" << av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format));
+
+        newFrame.first = avFrame;
         newFrame.second = duration;
 
         while (d->m_renderQueue.size() >= 100) {
@@ -143,9 +153,6 @@ namespace AVQt {
         Q_D(AVQt::OpenGLRenderer);
 
         loadResources();
-
-        d->m_yTexture = new QOpenGLTexture(QImage(":/images/frame.bmp").mirrored(true, false));
-        d->m_uvTexture = new QOpenGLTexture(QImage(":/images/frame.bmp").mirrored(true, false));
 
         d->m_program = new QOpenGLShaderProgram();
 
@@ -165,8 +172,8 @@ namespace AVQt {
         }
 
         d->m_program->bind();
-        d->m_program->setUniformValue("texture", 0);
-//        d->m_program->setUniformValue("textureUV", 1);
+        d->m_program->setUniformValue("textureY", 0);
+        d->m_program->setUniformValue("textureUV", 1);
         d->m_program->release();
 
         float vertices[] = {
@@ -241,9 +248,9 @@ namespace AVQt {
         int texCoordsOffset = 3 * sizeof(float);
         d->m_program->setAttributeBuffer(1, GL_FLOAT, texCoordsOffset, 2, stride);
 
-        // layout location 2 - int with texture id
-        d->m_program->enableAttributeArray(2);
-        d->m_program->setAttributeValue(2, d->m_yTexture->textureId());
+//                // layout location 2 - int with texture id
+//                d->m_program->enableAttributeArray(2);
+//                d->m_program->setAttributeValue(2, d->m_yTexture->textureId());
 
         // Release (unbind) all
 
@@ -255,7 +262,7 @@ namespace AVQt {
         Q_D(AVQt::OpenGLRenderer);
         auto t1 = std::chrono::high_resolution_clock::now();
 
-        // Clear background
+//         Clear background
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -266,18 +273,86 @@ namespace AVQt {
                         d->m_updateTimer->start();
                     }
                 }
-                QMutexLocker lock(&d->m_currentFrameMutex);
-                if (d->m_currentFrame) {
-                    av_freep(&d->m_currentFrame->data[0]);
-                    av_frame_free(&d->m_currentFrame);
-                    d->m_currentFrame = nullptr;
-                }
                 if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
                     d->m_updateRequired.store(false);
-                    QMutexLocker lock2(&d->m_renderQueueMutex);
-                    auto frame = d->m_renderQueue.dequeue();
-                    d->m_currentFrame = frame.first;
-                    d->m_currentFrameTimeout = frame.second;
+//                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
+                    d->m_position = d->m_position.addMSecs(d->m_currentFrameTimeout);
+                    QPair<AVFrame *, int64_t> frame;
+                    {
+                        QMutexLocker lock2(&d->m_renderQueueMutex);
+                        frame = d->m_renderQueue.dequeue();
+                    }
+
+                    bool firstFrame = true;
+                    bool differentPixFmt = true;
+
+                    {
+                        QMutexLocker lock(&d->m_currentFrameMutex);
+                        firstFrame = !d->m_currentFrame;
+                        if (!firstFrame) {
+                            if (d->m_currentFrame->format == frame.first->format) {
+                                differentPixFmt = false;
+                            }
+                        }
+
+                        if (d->m_currentFrame) {
+                            if (d->m_currentFrame->format == AV_PIX_FMT_BGRA) {
+                                av_freep(&d->m_currentFrame->data[0]);
+                                av_frame_free(&d->m_currentFrame);
+                                d->m_currentFrame = nullptr;
+                            } else {
+                                av_frame_unref(d->m_currentFrame);
+                                av_frame_free(&d->m_currentFrame);
+                                d->m_currentFrame = nullptr;
+                            }
+                        }
+
+                        d->m_currentFrame = frame.first;
+                        d->m_currentFrameTimeout = frame.second;
+                    }
+
+                    if (firstFrame) {
+                        d->m_yTexture = new QOpenGLTexture(
+                                QImage(d->m_currentFrame->width, d->m_currentFrame->height, QImage::Format_ARGB32));
+                        d->m_uvTexture = new QOpenGLTexture(
+                                QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_ARGB32));
+                    }
+//                    qDebug("Frame duration: %ld ms", d->m_currentFrameTimeout);
+                    if (differentPixFmt) {
+                        d->m_program->bind();
+                    }
+                    d->m_yTexture->bind(0);
+                    d->m_uvTexture->bind(1);
+                    switch (d->m_currentFrame->format) {
+                        case AV_PIX_FMT_BGRA:
+                            d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
+                                                   d->m_currentFrame->data[0]);
+                            if (differentPixFmt) {
+                                d->m_program->setUniformValue("inputFormat", 0);
+                            }
+                            break;
+                        case AV_PIX_FMT_YUV420P:
+                        case AV_PIX_FMT_NV12:
+                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, d->m_currentFrame->data[0]);
+                            d->m_uvTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt8, d->m_currentFrame->data[1]);
+                            if (differentPixFmt) {
+                                d->m_program->setUniformValue("inputFormat", 1);
+                            }
+                            break;
+                        case AV_PIX_FMT_YUV420P10:
+                        case AV_PIX_FMT_P010:
+                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[0]);
+                            d->m_uvTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt16, d->m_currentFrame->data[1]);
+                            if (differentPixFmt) {
+                                d->m_program->setUniformValue("inputFormat", 1);
+                            }
+                            break;
+                        default:
+                            qFatal("Pixel format not supported");
+                    }
+                    if (differentPixFmt) {
+                        d->m_program->release();
+                    }
                 }
             } else if (d->m_updateTimer) {
                 if (d->m_updateTimer->isActive()) {
@@ -287,61 +362,75 @@ namespace AVQt {
 
             if (!d->m_updateTimer) {
                 d->m_updateTimer = new QTimer;
-                d->m_updateTimer->setInterval(d->m_currentFrameTimeout - 3);
+                d->m_updateTimer->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
                 d->m_updateTimer->setSingleShot(false);
                 connect(d->m_updateTimer, &QTimer::timeout, [=] {
+                    qDebug("Update required");
                     d->m_updateRequired.store(true);
                 });
+
                 d->m_updateTimer->start();
             }
 
             if (d->m_updateTimer->interval() != d->m_currentFrameTimeout) {
-                d->m_updateTimer->setInterval(d->m_currentFrameTimeout - 3);
+                qDebug("Resetting timer %d != %ld", d->m_updateTimer->interval(), d->m_currentFrameTimeout);
+                d->m_updateTimer->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
+                d->m_updateTimer->stop();
+                d->m_updateTimer->start();
             }
 
-            d->m_program->bind();
-            d->m_vao.bind();
-            d->m_ibo.bind();
-
-            d->m_yTexture->bind();
-            {
-                QMutexLocker lock(&d->m_currentFrameMutex);
-                if (d->m_currentFrame) {
-                    d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8, d->m_currentFrame->data[0]);
-//                    d->m_uvTexture->setData(QOpenGLTexture::PixelFormat::RG, QOpenGLTexture::UInt8, d->m_currentFrame->data[1]);
+            if (d->m_currentFrame) {
+                d->m_program->bind();
+                if (!d->m_yTexture->isBound(0)) {
+                    d->m_yTexture->bind(0);
+                    d->m_uvTexture->bind(1);
                 }
-            }
+
+                d->m_vao.bind();
+                d->m_ibo.bind();
 //    d->m_program->enableAttributeArray(PROGRAM_VERTEX_ATTRIBUTE);
 //    d->m_program->enableAttributeArray(PROGRAM_TEXCOORD_ATTRIBUTE);
 //    d->m_program->setAttributeBuffer(PROGRAM_VERTEX_ATTRIBUTE, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
 //    d->m_program->setAttributeBuffer(PROGRAM_TEXCOORD_ATTRIBUTE, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
 
-//            d->m_uvTexture->bind();
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-            d->m_vao.release();
+                d->m_vao.release();
+                d->m_vbo.release();
+                d->m_program->release();
+                d->m_yTexture->release(0);
+                d->m_uvTexture->release(1);
+            }
 
-//            int height = this->height();
-//
-//            GLdouble model[4][4], proj[4][4];
-//            GLint view[4];
-//            glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
-//            glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
-//            glGetIntegerv(GL_VIEWPORT, &view[0]);
-//            GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
-//
-//            d->project(-0.9f, 0.8f, 0.0f, &model[0][0], &proj[0][0], &view[0],
-//                       &textPosX, &textPosY, &textPosZ);
-//
-//            textPosY = height - textPosY; // y is inverted
-//
-//            QPainter p(this);
-//
-//            p.setPen(QPen(Qt::black, 2.0));
-//            p.setFont(QFont("Roboto", 24));
-//            p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-//            p.drawText(textPosX, textPosY, "Overlay");
-//            p.end();
+            int height = this->height();
+
+            GLdouble model[4][4], proj[4][4];
+            GLint view[4];
+            glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
+            glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
+            glGetIntegerv(GL_VIEWPORT, &view[0]);
+            GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+
+            d->project(-0.9f, 0.8f, 0.0f, &model[0][0], &proj[0][0], &view[0],
+                       &textPosX, &textPosY, &textPosZ);
+
+            textPosY = height - textPosY; // y is inverted
+
+            QPainter p(this);
+
+            p.setPen(QPen(Qt::black, 2.0));
+            p.setFont(QFont("Roboto", 24));
+            p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+            QFont roboto("Roboto Condensed", 24);
+            p.setFont(roboto);
+
+//            qDebug() << "Current timestamp:" << d->m_position.toString("hh:mm:ss.zzz");
+
+            QString overlay(d->m_position.toString("hh:mm:ss") + "/" + d->m_duration.toString("hh:mm:ss"));
+            QFontMetrics fm(roboto);
+            p.fillRect(fm.boundingRect(overlay).translated(textPosX, textPosY).adjusted(-5, -5, 5, 5), QColor(0xFF, 0xFF, 0xFF, 0x48));
+            p.drawText(fm.boundingRect(overlay).translated(textPosX, textPosY), overlay);
+            p.end();
             auto t2 = std::chrono::high_resolution_clock::now();
             qDebug("Render frametime: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
 //            QTimer::singleShot(d->m_currentFrameTimeout - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count(),

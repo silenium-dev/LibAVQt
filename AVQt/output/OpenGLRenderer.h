@@ -30,7 +30,7 @@ namespace AVQt {
          * \brief Initialize frame sink (e.g. allocate contexts, open streams)
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init(int64_t duration) override;
 
         /*!
          * \brief Clean up frame sink (e.g. free buffers, close files)
@@ -63,10 +63,10 @@ namespace AVQt {
          *
          * ***Disclaimer:*** Image processing should be moved to separate thread to prevent sources and filters from blocking
          * @param frame Source image in RGBA pixel format
-         * @param timebase Source stream time base, if you don't know what this means, you probably don't want to use it.
+         * @param entireDuration Source stream time base, if you don't know what this means, you probably don't want to use it.
          * @param framerate Source stream framerate
          */
-        Q_INVOKABLE void onFrame(QImage frame, AVRational timebase, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) override;
 
         /*!
          * \brief Image process method, is invoked in objects thread for every frame
