@@ -88,5 +88,5 @@ int main(int argc, char *argv[]) {
         decoder.deinit();
     });
 
-    return app->exec();
+    return QApplication::exec();
 }
