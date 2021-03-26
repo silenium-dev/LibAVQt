@@ -3,11 +3,17 @@
 //
 
 #include <QObject>
+//#include "input/IPacketSource.h"
+
+extern "C" {
+#include <libavutil/rational.h>
+}
 
 #ifndef LIBAVQT_IPACKETSINK_H
 #define LIBAVQT_IPACKETSINK_H
 
 struct AVPacket;
+struct AVCodecParameters;
 
 namespace AVQt {
     class IPacketSource;
@@ -15,6 +21,8 @@ namespace AVQt {
     class IPacketSink {
     public:
         virtual ~IPacketSink() = default;
+
+        virtual bool isPaused() = 0;
 
     public slots:
         /*!
@@ -26,13 +34,17 @@ namespace AVQt {
          * @param streamDuration Stream duration in ms
          * @param streamTimebase Stream timebase as AVRational
          */
-        Q_INVOKABLE virtual void init(IPacketSource *source, int64_t duration) = 0;
+        Q_INVOKABLE virtual void
+        init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams, AVCodecParameters *aParams,
+             AVCodecParameters *sParams) = 0;
 
         Q_INVOKABLE virtual void deinit(IPacketSource *source) = 0;
 
         Q_INVOKABLE virtual void start(IPacketSource *source) = 0;
 
         Q_INVOKABLE virtual void stop(IPacketSource *source) = 0;
+
+        Q_INVOKABLE virtual void pause(bool paused) = 0;
 
         /*!
          * \brief Callback method, is called for every registered packet type.
@@ -42,7 +54,7 @@ namespace AVQt {
          * @param packet AVPacket, contains all necessary information
          * @param packetType Packet type as IPacketSource::CB_TYPE
          */
-        Q_INVOKABLE virtual void onPacket(IPacketSource *source, AVPacket *packet, IPacketSource::CB_TYPE packetType) = 0;
+        Q_INVOKABLE virtual void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) = 0;
 
     signals:
 
@@ -52,6 +64,6 @@ namespace AVQt {
     };
 }
 
-Q_DECLARE_INTERFACE(AVQt::IPacketSink, "AVQt::IPacketSink");
+Q_DECLARE_INTERFACE(AVQt::IPacketSink, "IPacketSink")
 
 #endif //LIBAVQT_IPACKETSINK_H

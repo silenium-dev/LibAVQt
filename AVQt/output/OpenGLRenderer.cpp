@@ -21,14 +21,16 @@ namespace AVQt {
                                                       d_ptr(new OpenGLRendererPrivate(this)) {
     }
 
-    OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
+    [[maybe_unused]] [[maybe_unused]] OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
     }
 
     OpenGLRenderer::~OpenGLRenderer() noexcept {
         Q_D(AVQt::OpenGLRenderer);
     }
 
-    int OpenGLRenderer::init(int64_t duration) {
+    int OpenGLRenderer::init(IFrameSource *source, AVRational timebase, AVRational framerate, int64_t duration) {
+        Q_UNUSED(timebase);
+        Q_UNUSED(framerate);
         Q_D(AVQt::OpenGLRenderer);
         int64_t h = duration / 3600000;
         int64_t m = (duration - h * 3600000) / 60000;
@@ -41,11 +43,11 @@ namespace AVQt {
         return 0;
     }
 
-    int OpenGLRenderer::deinit() {
+    int OpenGLRenderer::deinit(IFrameSource *source) {
         return 0;
     }
 
-    int OpenGLRenderer::start() {
+    int OpenGLRenderer::start(IFrameSource *source) {
         Q_D(AVQt::OpenGLRenderer);
 
         d->m_running.store(true);
@@ -55,7 +57,7 @@ namespace AVQt {
         return 0;
     }
 
-    int OpenGLRenderer::stop() {
+    int OpenGLRenderer::stop(IFrameSource *source) {
         Q_D(AVQt::OpenGLRenderer);
 
         d->m_running.store(false);
@@ -78,7 +80,7 @@ namespace AVQt {
         return 0;
     }
 
-    void OpenGLRenderer::pause(bool pause) {
+    void OpenGLRenderer::pause(IFrameSource *source, bool pause) {
         Q_D(AVQt::OpenGLRenderer);
 
         qDebug("pause() called");
@@ -96,36 +98,8 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    void OpenGLRenderer::onFrame(QImage frame, int64_t duration) {
-
-        Q_D(AVQt::OpenGLRenderer);
-
-        QPair<AVFrame *, int64_t> newFrame;
-
-        AVFrame *avFrame = av_frame_alloc();
-        avFrame->width = frame.width();
-        avFrame->height = frame.height();
-        avFrame->format = AV_PIX_FMT_BGRA;
-
-        av_image_alloc(avFrame->data, avFrame->linesize, avFrame->width, avFrame->height, static_cast<AVPixelFormat>(avFrame->format), 1);
-        av_image_copy_plane(avFrame->data[0], avFrame->linesize[0], frame.mirrored(true, false).constBits(), frame.bytesPerLine(),
-                            frame.bytesPerLine(),
-                            frame.height());
-
-        newFrame.first = avFrame;
-        newFrame.second = duration;
-
-        while (d->m_renderQueue.size() >= 100) {
-            QThread::msleep(4);
-        }
-
-        QMutexLocker lock(&d->m_renderQueueMutex);
-        d->m_renderQueue.enqueue(newFrame);
-    }
-
-    void OpenGLRenderer::onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) {
-        Q_UNUSED(timebase);
-        Q_UNUSED(framerate);
+    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration) {
+        Q_UNUSED(source);
 
         Q_D(AVQt::OpenGLRenderer);
 
@@ -136,7 +110,7 @@ namespace AVQt {
 //        av_frame_unref(frame);
 
         char strBuf[64];
-        qDebug() << "Pixel format:" << av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format));
+        //qDebug() << "Pixel format:" << av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format));
 
         newFrame.first = avFrame;
         newFrame.second = duration;
@@ -275,7 +249,7 @@ namespace AVQt {
                 }
                 if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
                     d->m_updateRequired.store(false);
-//                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
+                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
                     d->m_position = d->m_position.addMSecs(d->m_currentFrameTimeout);
                     QPair<AVFrame *, int64_t> frame;
                     {
@@ -365,7 +339,7 @@ namespace AVQt {
                 d->m_updateTimer->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
                 d->m_updateTimer->setSingleShot(false);
                 connect(d->m_updateTimer, &QTimer::timeout, [=] {
-                    qDebug("Update required");
+                    //qDebug("Update required");
                     d->m_updateRequired.store(true);
                 });
 
@@ -432,7 +406,7 @@ namespace AVQt {
             p.drawText(fm.boundingRect(overlay).translated(textPosX, textPosY), overlay);
             p.end();
             auto t2 = std::chrono::high_resolution_clock::now();
-            qDebug("Render frametime: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
+            //qDebug("Render frametime: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
 //            QTimer::singleShot(d->m_currentFrameTimeout - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count(),
 //                               [&] { update(); });
             if (!d->m_paused.load()) {
@@ -443,7 +417,7 @@ namespace AVQt {
 
     void OpenGLRenderer::mouseReleaseEvent(QMouseEvent *event) {
         if (event->button() == Qt::LeftButton) {
-            pause(!isPaused());
+            pause(nullptr, !isPaused());
         }
     }
 

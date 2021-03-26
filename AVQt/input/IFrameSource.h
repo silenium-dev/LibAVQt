@@ -63,7 +63,7 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        Q_INVOKABLE virtual int registerCallback(IFrameSink *frameSink, uint8_t type) = 0;
+        Q_INVOKABLE virtual int registerCallback(IFrameSink *frameSink) = 0;
 
         /*!
          * \brief Removes frame callback \c frameSink from registry

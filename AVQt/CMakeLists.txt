@@ -7,6 +7,8 @@ set(CMAKE_AUTOMOC on)
 set(CMAKE_AUTORCC on)
 set(CMAKE_AUTOUIC on)
 
+set(CMAKE_INCLUDE_CURRENT_DIR on)
+
 find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 
 if (WIN32)
@@ -18,15 +20,20 @@ if (${CMAKE_BUILD_TYPE} EQUAL "Release")
     add_compile_options(-O3)
 endif ()
 
-add_library(AVQt SHARED resources.qrc AVQt
-        input/IFrameSource.h
-        output/IFrameSink.h
+add_library(
+        AVQt
+        SHARED
 
-        input/IAudioSource.h
-        output/IAudioSink.h
+        resources.qrc
+
+        AVQt
+
 
         input/IPacketSource.h
+        input/IFrameSource.h
+
         output/IPacketSink.h
+        output/IFrameSink.h
 
 
         input/Demuxer.h
@@ -37,16 +44,17 @@ add_library(AVQt SHARED resources.qrc AVQt
         input/private/DecoderVAAPI_p.h
         input/DecoderVAAPI.cpp
 
-        output/FrameFileSaver.h
-        output/private/FrameFileSaver_p.h
-        output/FrameFileSaver.cpp
+        #        output/FrameFileSaver.h
+        #        output/private/FrameFileSaver_p.h
+        #        output/FrameFileSaver.cpp
 
-        output/EncoderVAAPI.h
-        output/private/EncoderVAAPI_p.h
-        output/EncoderVAAPI.cpp
+        #        output/EncoderVAAPI.h
+        #        output/private/EncoderVAAPI_p.h
+        #        output/EncoderVAAPI.cpp
 
         output/OpenGLRenderer.h
         output/private/OpenGLRenderer_p.h
-        output/OpenGLRenderer.cpp)
+        output/OpenGLRenderer.cpp
+)
 
-target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL ao)
+target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)

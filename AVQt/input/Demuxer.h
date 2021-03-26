@@ -19,7 +19,7 @@ namespace AVQt {
         Q_DECLARE_PRIVATE(AVQt::Demuxer)
 
     public:
-        explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
+        [[maybe_unused]] explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
 
         /*!
          * \private

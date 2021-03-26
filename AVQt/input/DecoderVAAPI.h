@@ -2,8 +2,8 @@
 // Created by silas on 3/1/21.
 //
 
-#include "IFrameSource.h"
-#include "IAudioSource.h"
+#include "input/IFrameSource.h"
+#include "output/IPacketSink.h"
 
 #include <QtCore>
 #include <QtGui>
@@ -24,7 +24,7 @@ extern "C" {
 #define TRANSCODE_DECODERVAAPI_H
 
 namespace AVQt {
-    struct DecoderVAAPIPrivate;
+    class DecoderVAAPIPrivate;
 
     /*!
      * \class DecoderVAAPI
@@ -34,21 +34,22 @@ namespace AVQt {
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class DecoderVAAPI : public QThread, public IFrameSource, public IAudioSource {
+    class DecoderVAAPI : public QThread, public IFrameSource, public IPacketSink {
     Q_OBJECT
         Q_INTERFACES(AVQt::IFrameSource)
-        Q_INTERFACES(AVQt::IAudioSource)
+        Q_INTERFACES(AVQt::IPacketSink)
 
         Q_DECLARE_PRIVATE(AVQt::DecoderVAAPI)
 
     public:
+
         /*!
          * Standard public constructor. Creates new instance with given input device. This device can not be changed afterwards,
          * because the decoder would have to be completely reinitialized thereafter
          * @param inputDevice QIODevice to read video from
          * @param parent Pointer to parent QObject for Qt's meta object system
          */
-        explicit DecoderVAAPI(QIODevice *inputDevice, QObject *parent = nullptr);
+        explicit DecoderVAAPI(QObject *parent = nullptr);
 
         /*!
          * \private
@@ -67,9 +68,7 @@ namespace AVQt {
          * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
          * @return Current position in callback list
          */
-        Q_INVOKABLE int registerCallback(IFrameSink *frameSink, uint8_t type) override;
-
-        Q_INVOKABLE int registerCallback(IAudioSink *audioSink) override;
+        Q_INVOKABLE int registerCallback(IFrameSink *frameSink) override;
 
         /*!
          * \brief Removes frame sink/filter from registry
@@ -77,8 +76,6 @@ namespace AVQt {
          * @return Last position in callback list, -1 when not found
          */
         Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) override;
-
-        Q_INVOKABLE int unregisterCallback(IAudioSink *audioSink) override;
 
     public slots:
         /*!
@@ -111,6 +108,19 @@ namespace AVQt {
          */
         Q_INVOKABLE void pause(bool pause) override;
 
+
+        Q_INVOKABLE void
+        init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams, AVCodecParameters *aParams,
+             AVCodecParameters *sParams) override;
+
+        Q_INVOKABLE void deinit(IPacketSource *source) override;
+
+        Q_INVOKABLE void start(IPacketSource *source) override;
+
+        Q_INVOKABLE void stop(IPacketSource *source) override;
+
+        Q_INVOKABLE void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) override;
+
     signals:
 
         /*!
@@ -134,7 +144,7 @@ namespace AVQt {
          * Protected constructor for use in derived classes to initialize private struct
          * @param p Private struct
          */
-        explicit DecoderVAAPI(DecoderVAAPIPrivate &p);
+        [[maybe_unused]] explicit DecoderVAAPI(DecoderVAAPIPrivate &p);
 
         /*!
          * \private

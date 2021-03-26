@@ -2,13 +2,13 @@
 // Created by silas on 3/25/21.
 //
 
-#include "private/Demuxer_p.h"
 #include "Demuxer.h"
+#include "private/Demuxer_p.h"
 #include "../output/IPacketSink.h"
 
 
 namespace AVQt {
-    Demuxer::Demuxer(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DemuxerPrivate(this)) {
+    [[maybe_unused]] Demuxer::Demuxer(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DemuxerPrivate(this)) {
         Q_D(AVQt::Demuxer);
 
         d->m_inputDevice = inputDevice;
@@ -44,7 +44,32 @@ namespace AVQt {
         lock.unlock();
 
         if (d->m_initialized.load()) {
-            packetSink->init(this, d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE);
+            AVCodecParameters *vParams = nullptr;
+            AVCodecParameters *aParams = nullptr;
+            AVCodecParameters *sParams = nullptr;
+            if (type & CB_VIDEO) {
+                vParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(vParams, d->m_pFormatCtx->streams[d->m_videoStream]->codecpar);
+            }
+            if (type & CB_AUDIO) {
+                aParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(aParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
+            }
+            if (type & CB_SUBTITLE) {
+                sParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
+            }
+            packetSink->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate,
+                             d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, aParams, sParams);
+            if (vParams) {
+                avcodec_parameters_free(&vParams);
+            }
+            if (aParams) {
+                avcodec_parameters_free(&aParams);
+            }
+            if (sParams) {
+                avcodec_parameters_free(&sParams);
+            }
         }
         if (d->m_running.load()) {
             packetSink->start(this);
@@ -120,7 +145,32 @@ namespace AVQt {
         }
 
         for (const auto &cb: d->m_cbMap.keys()) {
-            cb->init(this, d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE);
+            AVCodecParameters *vParams = nullptr;
+            AVCodecParameters *aParams = nullptr;
+            AVCodecParameters *sParams = nullptr;
+            if (d->m_cbMap[cb] & CB_VIDEO) {
+                vParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(vParams, d->m_pFormatCtx->streams[d->m_videoStream]->codecpar);
+            }
+            if (d->m_cbMap[cb] & CB_AUDIO) {
+                aParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(aParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
+            }
+            if (d->m_cbMap[cb] & CB_SUBTITLE) {
+                sParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
+            }
+            cb->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE,
+                     vParams, aParams, sParams);
+            if (vParams) {
+                avcodec_parameters_free(&vParams);
+            }
+            if (aParams) {
+                avcodec_parameters_free(&aParams);
+            }
+            if (sParams) {
+                avcodec_parameters_free(&sParams);
+            }
         }
 
         return 0;
@@ -135,7 +185,7 @@ namespace AVQt {
             cb->deinit(this);
         }
 
-        avio_closep(&d->m_pIOCtx);
+//        avio_closep(&d->m_pIOCtx);
         avformat_close_input(&d->m_pFormatCtx);
         delete[] d->m_pBuffer;
 
@@ -162,8 +212,9 @@ namespace AVQt {
 
             QThread::start();
             started();
+            return 0;
         }
-        return 0;
+        return -1;
     }
 
     int Demuxer::stop() {
@@ -178,14 +229,15 @@ namespace AVQt {
 
             pause(true);
             stopped();
+            return 0;
         }
-        return 0;
+        return -1;
     }
 
     void Demuxer::run() {
         Q_D(AVQt::Demuxer);
 
-        int ret = 0;
+        int ret;
         constexpr size_t strBufSize = 64;
         char strBuf[strBufSize];
 
@@ -200,7 +252,7 @@ namespace AVQt {
                 }
 
                 QList<IPacketSink *> cbList;
-                CB_TYPE type = CB_NONE;
+                CB_TYPE type;
 
                 if (packet->stream_index == d->m_videoStream) {
                     cbList = d->m_cbMap.keys(CB_VIDEO);
