@@ -139,6 +139,10 @@ namespace AVQt {
         QMutexLocker lock(&d->m_cbListMutex);
         if (!d->m_cbList.contains(frameSink)) {
             d->m_cbList.append(frameSink);
+            if (d->m_running.load() && d->m_pVideoCodecCtx) {
+                frameSink->init(this, d->m_pVideoCodecCtx->time_base, d->m_framerate, d->m_duration);
+                frameSink->start(this);
+            }
             return d->m_cbList.indexOf(frameSink);
         }
         return -1;
@@ -150,6 +154,8 @@ namespace AVQt {
         if (d->m_cbList.contains(frameSink)) {
             int result = d->m_cbList.indexOf(frameSink);
             d->m_cbList.removeOne(frameSink);
+            frameSink->stop(this);
+            frameSink->deinit(this);
             return result;
         }
         return -1;
@@ -210,7 +216,7 @@ namespace AVQt {
                         qFatal("%d: Could not get hw frame: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
-                    QMutexLocker lock(&d->m_cbListMutex);
+                    QMutexLocker lock2(&d->m_cbListMutex);
                     for (const auto &cb: d->m_cbList) {
                         qDebug("Calling frame callbacks");
                         AVFrame *cbFrame = av_frame_clone(swFrame);

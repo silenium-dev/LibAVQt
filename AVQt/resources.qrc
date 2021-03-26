@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/shaders">
+        <file>texture.vsh</file>
+        <file>texture.fsh</file>
+        <file>textureNV12.fsh</file>
+        <file>textureP010.fsh</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>frame.bmp</file>
+        <file>frame.yuv</file>
+    </qresource>
+</RCC>

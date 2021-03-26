@@ -50,15 +50,24 @@ namespace AVQt {
     int OpenGLRenderer::start(IFrameSource *source) {
         Q_D(AVQt::OpenGLRenderer);
 
-        d->m_running.store(true);
-        d->m_paused.store(false);
-        update();
-        started();
+        bool stopped = false;
+        if (d->m_running.compare_exchange_strong(stopped, true)) {
+            d->m_paused.store(false);
+            qDebug("Started renderer");
+
+            showNormal();
+            requestActivate();
+
+            update();
+            started();
+        }
         return 0;
     }
 
     int OpenGLRenderer::stop(IFrameSource *source) {
         Q_D(AVQt::OpenGLRenderer);
+
+        hide();
 
         d->m_running.store(false);
         d->m_paused.store(true);
@@ -83,10 +92,11 @@ namespace AVQt {
     void OpenGLRenderer::pause(IFrameSource *source, bool pause) {
         Q_D(AVQt::OpenGLRenderer);
 
-        qDebug("pause() called");
 
-        if (d->m_paused.load() != pause) {
-            d->m_paused.store(pause);
+        bool shouldBeCurrent = !pause;
+
+        if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause)) {
+            qDebug("pause() called");
             paused(pause);
             update();
         }
@@ -240,6 +250,8 @@ namespace AVQt {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        qDebug("paintGL() – Running: %d", d->m_running.load());
+
         if (d->m_running.load()) {
             if (!d->m_paused.load()) {
                 if (d->m_updateTimer) {
@@ -343,6 +355,7 @@ namespace AVQt {
                     d->m_updateRequired.store(true);
                 });
 
+                qDebug("starting timer");
                 d->m_updateTimer->start();
             }
 
