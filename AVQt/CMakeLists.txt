@@ -40,9 +40,14 @@ add_library(
         input/private/Demuxer_p.h
         input/Demuxer.cpp
 
-        input/DecoderVAAPI.h
-        input/private/DecoderVAAPI_p.h
-        input/DecoderVAAPI.cpp
+        filter/DecoderVAAPI.h
+        filter/private/DecoderVAAPI_p.h
+        filter/DecoderVAAPI.cpp
+
+        filter/AudioDecoder.h
+        filter/private/AudioDecoder_p.h
+        filter/private/OpenALErrorHandler.h
+        filter/AudioDecoder.cpp
 
         #        output/FrameFileSaver.h
         #        output/private/FrameFileSaver_p.h
@@ -52,9 +57,17 @@ add_library(
         #        output/private/EncoderVAAPI_p.h
         #        output/EncoderVAAPI.cpp
 
+        output/RenderClock.h
+        output/private/RenderClock_p.h
+        output/RenderClock.cpp
+
         output/OpenGLRenderer.h
         output/private/OpenGLRenderer_p.h
         output/OpenGLRenderer.cpp
+
+        output/OpenALAudioOutput.h
+        output/private/OpenALAudioOutput_p.h
+        output/OpenALAudioOutput.cpp
 )
 
 target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)

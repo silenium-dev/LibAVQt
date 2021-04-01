@@ -14,6 +14,8 @@ extern "C" {
 struct AVFrame;
 
 namespace AVQt {
+    class IAudioSource;
+
     class IAudioSink {
     public:
         virtual ~IAudioSink() = default;
@@ -21,17 +23,17 @@ namespace AVQt {
         virtual bool isPaused() = 0;
 
     public slots:
-        Q_INVOKABLE virtual int init(int64_t duration) = 0;
+        Q_INVOKABLE virtual int init(IAudioSource *source, int64_t duration) = 0;
 
-        Q_INVOKABLE virtual int deinit() = 0;
+        Q_INVOKABLE virtual int deinit(IAudioSource *source) = 0;
 
-        Q_INVOKABLE virtual int start() = 0;
+        Q_INVOKABLE virtual int start(IAudioSource *source) = 0;
 
-        Q_INVOKABLE virtual int stop() = 0;
+        Q_INVOKABLE virtual int stop(IAudioSource *source) = 0;
 
-        Q_INVOKABLE virtual void pause(bool pause) = 0;
+        Q_INVOKABLE virtual void pause(IAudioSource *source, bool pause) = 0;
 
-        Q_INVOKABLE virtual void onAudioFrame(AVFrame *frame, uint32_t duration, AVSampleFormat sampleFormat) = 0;
+        Q_INVOKABLE virtual void onAudioFrame(IAudioSource *source, AVFrame *frame, uint32_t duration) = 0;
 
     signals:
 

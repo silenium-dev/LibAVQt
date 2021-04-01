@@ -62,7 +62,7 @@ namespace AVQt {
         Q_INVOKABLE virtual int stop(IFrameSource *source) = 0;
 
         /*!
-         * \brief Sets paused flag, which can be retrieved with \c isPaused() override.
+         * \brief Sets paused flag, which can be retrieved with \c isPaused() Q_DECL_OVERRIDE.
          *
          * When Set to true, the frame sink should not process any frames, instead they should be freed immediately
          * \param pause New paused state

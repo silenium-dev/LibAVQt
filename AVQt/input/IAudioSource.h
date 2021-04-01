@@ -32,6 +32,14 @@ namespace AVQt {
         Q_INVOKABLE virtual int stop() = 0;
 
         Q_INVOKABLE virtual void pause(bool isPaused) = 0;
+
+    signals:
+
+        virtual void started() = 0;
+
+        virtual void stopped() = 0;
+
+        virtual void paused(bool pause) = 0;
     };
 }
 

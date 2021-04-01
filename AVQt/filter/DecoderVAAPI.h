@@ -54,13 +54,13 @@ namespace AVQt {
         /*!
          * \private
          */
-        ~DecoderVAAPI() override;
+        ~DecoderVAAPI() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns paused state of decoder
          * @return Paused state
          */
-        bool isPaused() override;
+        bool isPaused() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Register frame sink/filter with given callback type \c type
@@ -68,76 +68,76 @@ namespace AVQt {
          * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
          * @return Current position in callback list
          */
-        Q_INVOKABLE int registerCallback(IFrameSink *frameSink) override;
+        Q_INVOKABLE int registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Removes frame sink/filter from registry
          * @param frameSink Frame sink/filter to be removed
          * @return Last position in callback list, -1 when not found
          */
-        Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) override;
+        Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
     public slots:
         /*!
          * \brief Initialize decoder. Opens input device, creates input contexts.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Clean up decoder. Closes input device, destroys input contexts.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int deinit() override;
+        Q_INVOKABLE int deinit() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Starts decoder. Sets running flag and starts decoding thread.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int start() override;
+        Q_INVOKABLE int start() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Stops decoder. Resets running flag and interrupts decoding thread.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int stop() override;
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Sets paused flag. When set to true, decoder thread will suspend after processing current frame
          * @param pause New paused flag state
          */
-        Q_INVOKABLE void pause(bool pause) override;
+        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
 
         Q_INVOKABLE void
         init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams, AVCodecParameters *aParams,
-             AVCodecParameters *sParams) override;
+             AVCodecParameters *sParams) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void deinit(IPacketSource *source) override;
+        Q_INVOKABLE void deinit(IPacketSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void start(IPacketSource *source) override;
+        Q_INVOKABLE void start(IPacketSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void stop(IPacketSource *source) override;
+        Q_INVOKABLE void stop(IPacketSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) override;
+        Q_INVOKABLE void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) Q_DECL_OVERRIDE;
 
     signals:
 
         /*!
          * \brief Emitted after start() finished
          */
-        void started() override;
+        void started() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted after stop() finished
          */
-        void stopped() override;
+        void stopped() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted when paused state changes
          * @param pause Current paused state
          */
-        void paused(bool pause) override;
+        void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
         /*!
@@ -149,7 +149,7 @@ namespace AVQt {
         /*!
          * \private
          */
-        void run() override;
+        void run() Q_DECL_OVERRIDE;
 
         /*!
          * \private

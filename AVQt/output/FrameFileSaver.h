@@ -36,42 +36,42 @@ namespace AVQt {
         /*!
          * \private
          */
-        ~FrameFileSaver() override;
+        ~FrameFileSaver() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns whether the frame saver is currently paused or not
          */
-        bool isPaused() override;
+        bool isPaused() Q_DECL_OVERRIDE;
 
     public slots:
 
         /*!
          * \brief Does nothing
          */
-        Q_INVOKABLE int init(int64_t duration) override;
+        Q_INVOKABLE int init(int64_t duration) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Does nothing
          */
-        Q_INVOKABLE int deinit() override;
+        Q_INVOKABLE int deinit() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Does nothing
          */
-        Q_INVOKABLE int start() override;
+        Q_INVOKABLE int start() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Does nothing
          */
-        Q_INVOKABLE int stop() override;
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE;
 
         /*!
-         * \brief Sets paused flag, which can be retrieved with \c FrameFileSaver::isPaused() override.
+         * \brief Sets paused flag, which can be retrieved with \c FrameFileSaver::isPaused() Q_DECL_OVERRIDE.
          *
          * When set to true, the frame handler won't save any frames until called again with paused set to false
          * \param pause new paused state
          */
-        Q_INVOKABLE void pause(bool pause) override;
+        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
         /*!
         * \brief Saves frame, if internal frame counter modulo given interval is 0
@@ -79,30 +79,30 @@ namespace AVQt {
         * \param entireDuration FFmpeg stream time base as rational number, if you don't know, what this means, you probably don't need it
         * \param framerate Source framerate as rational number
         */
-        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) override;
+        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) Q_DECL_OVERRIDE;
 
         /*!
         * Does nothing except of freeing the frame
         */
-        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) Q_DECL_OVERRIDE;
 
     signals:
 
         /*!
          * \brief Emitted after start() finished
          */
-        void started() override;
+        void started() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted after stop() finished
          */
-        void stopped() override;
+        void stopped() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted when paused flag changes
          * @param pause Current paused state
          */
-        void paused(bool pause) override;
+        void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
         /*!

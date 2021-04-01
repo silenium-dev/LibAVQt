@@ -61,7 +61,6 @@ link_directories(<path>/build/AVQt)
 
 ## Examples
 
-A simple example for transcoding and saving every 60th frame to a BMP file can
-be found in main.cpp. It takes two files as parameters the first is the input
-file and must already exist, the second is the output file and will be
-overwritten
+A simple example for displaying video only with the OpenGLRenderer can be found
+in ``main.cpp``. It will be compiled along with the library by the commands
+above.

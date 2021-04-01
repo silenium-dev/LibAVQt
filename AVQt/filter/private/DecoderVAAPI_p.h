@@ -3,7 +3,7 @@
  * \internal
  */
 
-#include "../DecoderVAAPI.h"
+#include "filter/DecoderVAAPI.h"
 
 extern "C" {
 #include <libavutil/rational.h>
@@ -24,14 +24,13 @@ namespace AVQt {
 
         QMutex m_inputQueueMutex;
         QQueue<AVPacket *> m_inputQueue;
-        AVCodecParameters *m_pCodecParams = nullptr;
         int64_t m_duration = 0;
         AVRational m_framerate;
 
-        AVCodec *m_pVideoCodec = nullptr;
-        AVCodecContext *m_pVideoCodecCtx = nullptr;
+        AVCodec *m_pCodec = nullptr;
+        AVCodecParameters *m_pCodecParams = nullptr;
+        AVCodecContext *m_pCodecCtx = nullptr;
         AVBufferRef *m_pDeviceCtx = nullptr;
-        AVFrame *m_pCurrentVideoFrame = nullptr;
 
         // Callback stuff
         QMutex m_cbListMutex;

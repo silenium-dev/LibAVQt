@@ -26,6 +26,7 @@ namespace AVQt {
 
     OpenGLRenderer::~OpenGLRenderer() noexcept {
         Q_D(AVQt::OpenGLRenderer);
+
     }
 
     int OpenGLRenderer::init(IFrameSource *source, AVRational timebase, AVRational framerate, int64_t duration) {
@@ -44,6 +45,7 @@ namespace AVQt {
     }
 
     int OpenGLRenderer::deinit(IFrameSource *source) {
+
         return 0;
     }
 
@@ -67,26 +69,49 @@ namespace AVQt {
     int OpenGLRenderer::stop(IFrameSource *source) {
         Q_D(AVQt::OpenGLRenderer);
 
-        hide();
+        bool shouldBeCurrent = true;
+        if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
+            hide();
 
-        d->m_running.store(false);
-        d->m_paused.store(true);
+            d->m_clock->stop();
 
-        d->m_updateTimer->stop();
-        delete d->m_updateTimer;
+            {
+                QMutexLocker lock(&d->m_renderQueueMutex);
 
-        {
-            QMutexLocker lock(&d->m_renderQueueMutex);
+                for (auto &e: d->m_renderQueue) {
+                    av_frame_unref(e.first);
+                }
 
-            for (auto &e: d->m_renderQueue) {
-                av_frame_unref(e.first);
+                d->m_renderQueue.clear();
             }
 
-            d->m_renderQueue.clear();
-        }
+            makeCurrent();
 
-        stopped();
-        return 0;
+            delete d->m_program;
+
+            d->m_ibo.destroy();
+            d->m_vbo.destroy();
+            d->m_vao.destroy();
+
+            if (d->m_yTexture) {
+                d->m_yTexture->destroy();
+                delete d->m_uvTexture;
+            }
+
+            if (d->m_uvTexture) {
+                if (d->m_uvTexture->isBound()) {
+                    d->m_uvTexture->release();
+                }
+                if (d->m_uvTexture->isStorageAllocated()) {
+                    d->m_uvTexture->destroy();
+                }
+                delete d->m_uvTexture;
+            }
+
+            stopped();
+            return 0;
+        }
+        return -1;
     }
 
     void OpenGLRenderer::pause(IFrameSource *source, bool pause) {
@@ -115,14 +140,13 @@ namespace AVQt {
 
         QPair<AVFrame *, int64_t> newFrame;
 
-        AVFrame *avFrame = av_frame_alloc();
-        av_frame_ref(avFrame, frame);
+        newFrame.first = av_frame_alloc();
+        av_frame_ref(newFrame.first, frame);
 //        av_frame_unref(frame);
 
-        char strBuf[64];
+//        char strBuf[64];
         //qDebug() << "Pixel format:" << av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format));
 
-        newFrame.first = avFrame;
         newFrame.second = duration;
 
         while (d->m_renderQueue.size() >= 100) {
@@ -250,18 +274,18 @@ namespace AVQt {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        qDebug("paintGL() – Running: %d", d->m_running.load());
+//        qDebug("paintGL() – Running: %d", d->m_running.load());
 
         if (d->m_running.load()) {
             if (!d->m_paused.load()) {
-                if (d->m_updateTimer) {
-                    if (!d->m_updateTimer->isActive()) {
-                        d->m_updateTimer->start();
+                if (d->m_clock) {
+                    if (!d->m_clock->isActive()) {
+                        d->m_clock->start();
                     }
                 }
                 if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
                     d->m_updateRequired.store(false);
-                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
+//                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
                     d->m_position = d->m_position.addMSecs(d->m_currentFrameTimeout);
                     QPair<AVFrame *, int64_t> frame;
                     {
@@ -302,6 +326,9 @@ namespace AVQt {
                                 QImage(d->m_currentFrame->width, d->m_currentFrame->height, QImage::Format_ARGB32));
                         d->m_uvTexture = new QOpenGLTexture(
                                 QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_ARGB32));
+
+                        d->m_yTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
+                        d->m_uvTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
                     }
 //                    qDebug("Frame duration: %ld ms", d->m_currentFrameTimeout);
                     if (differentPixFmt) {
@@ -340,30 +367,25 @@ namespace AVQt {
                         d->m_program->release();
                     }
                 }
-            } else if (d->m_updateTimer) {
-                if (d->m_updateTimer->isActive()) {
-                    d->m_updateTimer->stop();
+            } else if (d->m_clock) {
+                if (d->m_clock->isActive()) {
+                    d->m_clock->stop();
                 }
             }
 
-            if (!d->m_updateTimer) {
-                d->m_updateTimer = new QTimer;
-                d->m_updateTimer->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
-                d->m_updateTimer->setSingleShot(false);
-                connect(d->m_updateTimer, &QTimer::timeout, [=] {
-                    //qDebug("Update required");
-                    d->m_updateRequired.store(true);
-                });
-
+            if (!d->m_clock) {
+                d->m_clock = new RenderClock;
+                d->m_clock->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
+                connect(d->m_clock, &RenderClock::timeout, this, &OpenGLRenderer::triggerUpdate);
                 qDebug("starting timer");
-                d->m_updateTimer->start();
+                d->m_clock->start();
             }
 
-            if (d->m_updateTimer->interval() != d->m_currentFrameTimeout) {
-                qDebug("Resetting timer %d != %ld", d->m_updateTimer->interval(), d->m_currentFrameTimeout);
-                d->m_updateTimer->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
-                d->m_updateTimer->stop();
-                d->m_updateTimer->start();
+            if (d->m_clock->getInterval() != d->m_currentFrameTimeout) {
+                qDebug("Resetting timer %ld != %ld", d->m_clock->getInterval(), d->m_currentFrameTimeout);
+                d->m_clock->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
+                d->m_clock->stop();
+                d->m_clock->start();
             }
 
             if (d->m_currentFrame) {
@@ -432,6 +454,17 @@ namespace AVQt {
         if (event->button() == Qt::LeftButton) {
             pause(nullptr, !isPaused());
         }
+    }
+
+    void OpenGLRenderer::triggerUpdate() {
+        Q_D(AVQt::OpenGLRenderer);
+
+        d->m_updateRequired.store(true);
+    }
+
+    RenderClock *OpenGLRenderer::getClock() {
+        Q_D(AVQt::OpenGLRenderer);
+        return d->m_clock;
     }
 
     GLint OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],

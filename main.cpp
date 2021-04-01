@@ -21,18 +21,33 @@ int main(int argc, char *argv[]) {
                                                             QStandardPaths::standardLocations(QStandardPaths::HomeLocation)[0],
                                                             "Video file (*.mkv *.mp4 *.webm *.m4v *.ts)"));
 
+    if (inputFile->fileName().isEmpty()) {
+        return 0;
+    }
+
     inputFile->open(QIODevice::ReadOnly);
 
     AVQt::Demuxer demuxer(inputFile);
+//    AVQt::AudioDecoder decoder;
+//    AVQt::OpenALAudioOutput output;
+
+//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+//    decoder.registerCallback(&output);
+
     AVQt::DecoderVAAPI decoderVaapi;
     AVQt::OpenGLRenderer renderer;
 
     demuxer.registerCallback(&decoderVaapi, AVQt::IPacketSource::CB_VIDEO);
-
     decoderVaapi.registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
-    renderer.showNormal();
+
+//    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
+//        output.pause(nullptr, paused);
+//    });
+//    QObject::connect(&renderer, &AVQt::OpenGLRenderer::started, [&]() {
+//        output.start(nullptr);
+//    });
 
     demuxer.init();
     demuxer.start();

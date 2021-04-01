@@ -154,7 +154,7 @@ namespace AVQt {
             }
             if (d->m_cbMap[cb] & CB_AUDIO) {
                 aParams = avcodec_parameters_alloc();
-                avcodec_parameters_copy(aParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
+                avcodec_parameters_copy(aParams, d->m_pFormatCtx->streams[d->m_audioStream]->codecpar);
             }
             if (d->m_cbMap[cb] & CB_SUBTITLE) {
                 sParams = avcodec_parameters_alloc();
@@ -221,11 +221,11 @@ namespace AVQt {
         Q_D(AVQt::Demuxer);
         bool running = true;
         if (d->m_running.compare_exchange_strong(running, false)) {
-            wait();
-
             for (const auto &cb: d->m_cbMap.keys()) {
                 cb->stop(this);
             }
+
+            wait();
 
             pause(true);
             stopped();

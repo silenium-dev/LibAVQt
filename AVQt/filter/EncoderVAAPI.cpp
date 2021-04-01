@@ -3,8 +3,8 @@
 //
 
 #include "EncoderVAAPI.h"
-#include "private/EncoderVAAPI_p.h"
-#include "../input/IFrameSource.h"
+#include "filter/private/EncoderVAAPI_p.h"
+#include "input/IFrameSource.h"
 
 extern "C" {
 #include <libavutil/avutil.h>

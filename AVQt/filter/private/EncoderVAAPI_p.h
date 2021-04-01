@@ -3,8 +3,8 @@
  * \internal
  */
 
-#include "../EncoderVAAPI.h"
-#include "../../input/IFrameSource.h"
+#include "filter/EncoderVAAPI.h"
+#include "input/IFrameSource.h"
 
 #include <QtCore>
 

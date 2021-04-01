@@ -24,13 +24,13 @@ namespace AVQt {
         /*!
          * \private
          */
-        void run() override;
+        void run() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns, whether the frame source is currently paused.
          * @return Paused state
          */
-        bool isPaused() override;
+        bool isPaused() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Register packet callback \c packetSink with given \c type
@@ -38,33 +38,33 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        Q_INVOKABLE int registerCallback(IPacketSink *packetSink, uint8_t type) override;
+        Q_INVOKABLE int registerCallback(IPacketSink *packetSink, uint8_t type) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Removes packet callback \c packetSink from registry
          * @param packetSink Packet sink/filter to be removed
          * @return Previous position of the item, is -1 when not in registry
          */
-        Q_INVOKABLE int unregisterCallback(IPacketSink *packetSink) override;
+        Q_INVOKABLE int unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
 
     public slots:
         /*!
          * \brief Initialize packet source (e.g. open files, allocate buffers).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Clean up packet source (e.g. close network connections, free buffers).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int deinit() override;
+        Q_INVOKABLE int deinit() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Starts packet source (e.g. Start processing thread, activate camera).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int start() override;
+        Q_INVOKABLE int start() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Stops packet source (e.g. Interrupt processing thread, free camera).
@@ -79,25 +79,25 @@ namespace AVQt {
          * @param pause Paused flag
          * @return
          */
-        Q_INVOKABLE void pause(bool pause) override;
+        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
     signals:
 
         /*!
          * \brief Emitted when started
          */
-        void started() override;
+        void started() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted when stopped
          */
-        void stopped() override;
+        void stopped() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted when paused state changed
          * @param pause Current paused state
          */
-        void paused(bool pause) override;
+        void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
         explicit Demuxer(DemuxerPrivate &p);

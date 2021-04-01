@@ -2,7 +2,7 @@
 // Created by silas on 3/3/21.
 //
 
-#include "IFrameSink.h"
+#include "output/IFrameSink.h"
 
 #include <QThread>
 
@@ -77,12 +77,12 @@ namespace AVQt {
         /*!
          * \private
          */
-        ~EncoderVAAPI() override;
+        ~EncoderVAAPI() Q_DECL_OVERRIDE;
 
         /*!
          * \private
          */
-        void run() override;
+        void run() Q_DECL_OVERRIDE;
 
     public slots:
         /*!
@@ -91,25 +91,25 @@ namespace AVQt {
          * Opens output device, if necessary and creates output context.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int init(int64_t duration) override;
+        Q_INVOKABLE int init(int64_t duration) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Clean up encoder, encoder will be stopped before, if running
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int deinit() override;
+        Q_INVOKABLE int deinit() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Start encoder thread
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int start() override;
+        Q_INVOKABLE int start() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Interrupt encoder thread and waits for it to finish.
          * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
          */
-        Q_INVOKABLE int stop() override;
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Sets paused flag to value of \c pause
@@ -117,13 +117,13 @@ namespace AVQt {
          * If the paused flag is set, the encoder thread will suspend. The frame queue will be emptied every 4 ms if paused.
          * @param pause New paused state
          */
-        Q_INVOKABLE void pause(bool pause) override;
+        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns current paused state
          * @return Current paused state
          */
-        bool isPaused() override;
+        bool isPaused() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Add frame to encode queue, blocks if queue is full
@@ -131,7 +131,7 @@ namespace AVQt {
          * @param entireDuration decode timebase (***Unstable API***)
          * @param framerate decode framerate (***Unstable API***)
          */
-        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) override;
+        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Add frame to encode queue, blocks if queue is full
@@ -139,25 +139,25 @@ namespace AVQt {
          * @param timebase decode timebase (***Unstable API***)
          * @param framerate decode framerate (***Unstable API***)
          */
-        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE void onFrame(AVFrame *frame, AVRational timebase, AVRational framerate, int64_t duration) Q_DECL_OVERRIDE;
 
     signals:
 
         /*!
          * \brief Emitted after start() finished
          */
-        void started() override;
+        void started() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Emitted after stop() finished
          */
-        void stopped() override;
+        void stopped() Q_DECL_OVERRIDE;
 
         /*!
          * Emitted when paused state changes
          * @param pause Current paused state
          */
-        void paused(bool pause) override;
+        void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
         /*!

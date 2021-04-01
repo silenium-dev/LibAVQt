@@ -4,6 +4,7 @@
  */
 #include <QtCore>
 #include <QtOpenGL>
+#include "../RenderClock.h"
 #include "../OpenGLRenderer.h"
 
 
@@ -36,7 +37,7 @@ namespace AVQt {
         QMutex m_renderQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_renderQueue;
 
-        QTimer *m_updateTimer = nullptr;
+        RenderClock *m_clock = nullptr;
         int64_t m_currentFrameTimeout = 1;
         QTime m_duration;
         QTime m_position;
