@@ -8,6 +8,12 @@ out vec4 finalColor;// output: final color value as rgba-value
 
 uniform sampler2D textureY;
 uniform sampler2D textureUV;
+
+// 0 == RGB(A) (No conversion necessary)
+// 1 == YUV (Y plane, UV interleaved plane; Standard output format of VAAPI,
+//           either 8-bit or 16-bit per pixel and plane,
+//           the lower bits are filled with 0, if the pixel format has 10 or 12 bit)
+// TODO: Other formats like YUV interleaved or three seperate planes for each channel (both RGB(A) and YUV)
 uniform int inputFormat;
 
 void main() {

@@ -28,7 +28,7 @@ namespace AVQt {
 
         void run() Q_DECL_OVERRIDE;
 
-        void syncToOutput(OpenGLRenderer *renderer);
+        [[maybe_unused]] void syncToOutput(OpenGLRenderer *renderer);
 
     public slots:
 
@@ -60,6 +60,8 @@ namespace AVQt {
     private slots:
 
         void clockIntervalChanged(int64_t interval);
+
+        void clockTriggered();
     };
 }
 

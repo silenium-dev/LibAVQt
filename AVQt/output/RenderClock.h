@@ -20,17 +20,18 @@ namespace AVQt {
 
         ~RenderClock();
 
-        void start();
-
-        void stop();
-
-        void pause(bool paused);
-
         void setInterval(int64_t interval);
 
         int64_t getInterval();
 
         bool isActive();
+
+    public slots:
+        Q_INVOKABLE void start();
+
+        Q_INVOKABLE void stop();
+
+        Q_INVOKABLE void pause(bool paused);
 
 //        void connectCallback(QObject *obj, void(*function)());
 //
@@ -48,6 +49,9 @@ namespace AVQt {
         explicit RenderClock(RenderClockPrivate &p);
 
         RenderClockPrivate *d_ptr;
+
+    private slots:
+        void timerTimeout();
 
     };
 }

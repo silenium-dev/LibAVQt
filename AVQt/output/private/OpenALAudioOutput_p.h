@@ -2,7 +2,6 @@
 // Created by silas on 3/28/21.
 //
 
-#include "../OpenALAudioOutput.h"
 #include "../RenderClock.h"
 
 extern "C" {
@@ -20,6 +19,8 @@ extern "C" {
 #define LIBAVQT_OPENALAUDIOOUTPUT_P_H
 
 namespace AVQt {
+    class OpenALAudioOutput;
+
     class OpenALAudioOutputPrivate {
         explicit OpenALAudioOutputPrivate(OpenALAudioOutput *q) : q_ptr(q) {};
 
@@ -27,26 +28,36 @@ namespace AVQt {
 
         QMutex m_inputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_inputQueue;
+        AVFrame *m_partialFrame = nullptr;
+        size_t m_partialFrameOffset = 0;
         QMutex m_outputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_outputQueue;
         std::atomic_bool m_outputSliceDurationChanged = false;
-        int64_t m_duration = 0;
+        int64_t m_duration = 0, m_clockInterval = 0;
 
-        RenderClock *m_clock = nullptr;
+        std::atomic<RenderClock *> m_clock = nullptr;
 
         QMutex m_swrContextMutex;
         SwrContext *m_pSwrContext = nullptr;
 
-        static constexpr size_t BUFFER_COUNT = 100;
-        ALuint m_ALBuffers[BUFFER_COUNT];
+        static constexpr size_t BUFFER_COUNT = 50;
+        std::atomic_size_t m_playingBuffers = 0;
+        std::vector<ALuint> m_ALBuffers;
+        QRecursiveMutex m_ALBufferQueueMutex;
+        QQueue<ALuint> m_ALBufferQueue;
+        QRecursiveMutex m_ALBufferSampleMapMutex;
+        QMap<ALuint, int64_t> m_ALBufferSampleMap;
+        int64_t m_queuedSamples;
         ALCdevice *m_ALCDevice = nullptr;
         ALCcontext *m_ALCContext = nullptr;
-        ALuint m_ALSource = 0;
 
+        ALuint m_ALSource = 0;
         // Threading stuff
         std::atomic_bool m_running = false;
         std::atomic_bool m_paused = false;
-        std::atomic_bool m_firstFrame = true;
+
+        std::atomic_size_t m_unqueuedBuffer = 0;
+        std::atomic_size_t m_audioFrame = 0;
 
         friend class OpenALAudioOutput;
     };

@@ -87,12 +87,12 @@ namespace AVQt {
 
         bool shouldBeCurrent = true;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
-            {
-                QMutexLocker lock(&d->m_cbListMutex);
-                for (const auto &cb: d->m_cbList) {
-                    cb->stop(this);
-                }
+//            {
+//                QMutexLocker lock(&d->m_cbListMutex);
+            for (const auto &cb: d->m_cbList) {
+                cb->stop(this);
             }
+//            }
             {
                 QMutexLocker lock(&d->m_inputQueueMutex);
                 for (auto &packet : d->m_inputQueue) {
@@ -171,6 +171,13 @@ namespace AVQt {
         d->m_pCodecParams = avcodec_parameters_alloc();
         avcodec_parameters_copy(d->m_pCodecParams, aParams);
 
+        {
+            QMutexLocker lock(&d->m_cbListMutex);
+            for (const auto &cb: d->m_cbList) {
+                cb->init(this, duration);
+            }
+        }
+
         init();
     }
 
@@ -201,7 +208,7 @@ namespace AVQt {
 
         if (packetType == IPacketSource::CB_AUDIO) {
             AVPacket *queuePacket = av_packet_clone(packet);
-            while (d->m_inputQueue.size() >= 100) {
+            while (d->m_inputQueue.size() >= 50) {
                 QThread::msleep(4);
             }
             QMutexLocker lock(&d->m_inputQueueMutex);
@@ -213,10 +220,9 @@ namespace AVQt {
         Q_D(AVQt::AudioDecoder);
 
         while (d->m_running.load()) {
-            QMutexLocker lock(&d->m_inputQueueMutex);
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
-                AVPacket *packet = d->m_inputQueue.dequeue();
-                lock.unlock();
+                QTime time1 = QTime::currentTime();
+                qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
 
                 int ret = 0;
                 constexpr size_t strBufSize = 64;
@@ -240,18 +246,34 @@ namespace AVQt {
                         qFatal("%d: Could not open audio decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
-//                    for (const auto &cb: d->m_cbList) {
-//                        cb->init(this, d->m_duration);
-//                        cb->start(this);
-//                    }
+                    for (const auto &cb: d->m_cbList) {
+                        cb->start(this);
+                    }
                 }
+
+                {
+                    QMutexLocker lock(&d->m_inputQueueMutex);
+                    while (!d->m_inputQueue.isEmpty()) {
+                        AVPacket *packet = d->m_inputQueue.dequeue();
+                        lock.unlock();
+
+                        qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
+
+                        ret = avcodec_send_packet(d->m_pCodecCtx, packet);
+                        if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+                            lock.relock();
+                            d->m_inputQueue.prepend(packet);
+                            break;
+                        } else if (ret < 0) {
+                            qFatal("%d: Error sending packet to audio decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        }
+                        av_packet_unref(packet);
+                        av_packet_free(&packet);
+                        lock.relock();
+                    }
+                }
+
                 AVFrame *frame = av_frame_alloc();
-
-                ret = avcodec_send_packet(d->m_pCodecCtx, packet);
-                if (ret < 0) {
-                    qFatal("%d: Error sending packet to audio decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-                }
-
                 while (true) {
                     ret = avcodec_receive_frame(d->m_pCodecCtx, frame);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
@@ -264,13 +286,18 @@ namespace AVQt {
                     for (const auto &cb: d->m_cbList) {
 //                        qDebug("Calling frame callbacks");
                         AVFrame *cbFrame = av_frame_clone(frame);
-                        cb->onAudioFrame(this, cbFrame, frame->nb_samples * 1.0 / frame->sample_rate / frame->channels);
+                        QTime time = QTime::currentTime();
+                        cb->onAudioFrame(this, cbFrame, frame->nb_samples * 1.0 / frame->sample_rate / frame->channels * 1000.0);
+                        qDebug() << "Audio CB time:" << time.msecsTo(QTime::currentTime());
                         av_frame_unref(cbFrame);
-                        av_frame_free(&cbFrame);
                     }
+                    int64_t sleepDuration = (frame->nb_samples / frame->sample_rate * 1000) - time1.msecsTo(QTime::currentTime());
+                    msleep(sleepDuration <= 0 ? 0 : sleepDuration);
+                    time1 = QTime::currentTime();
+                    av_frame_unref(frame);
                 }
+                av_frame_free(&frame);
             } else {
-                lock.unlock();
 //                qDebug("Paused or queue empty. Sleeping...");
                 msleep(4);
             }

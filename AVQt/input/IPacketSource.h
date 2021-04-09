@@ -120,6 +120,6 @@ namespace AVQt {
     };
 }
 
-Q_DECLARE_INTERFACE(AVQt::IPacketSource, "AVQt::IPacketSource");
+Q_DECLARE_INTERFACE(AVQt::IPacketSource, "AVQt::IPacketSource")
 
 #endif //LIBAVQT_IPACKETSOURCE_H

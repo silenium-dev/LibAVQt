@@ -28,11 +28,11 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadOnly);
 
     AVQt::Demuxer demuxer(inputFile);
-//    AVQt::AudioDecoder decoder;
-//    AVQt::OpenALAudioOutput output;
+    AVQt::AudioDecoder decoder;
+    AVQt::OpenALAudioOutput output;
 
-//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-//    decoder.registerCallback(&output);
+    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+    decoder.registerCallback(&output);
 
     AVQt::DecoderVAAPI decoderVaapi;
     AVQt::OpenGLRenderer renderer;
@@ -50,6 +50,9 @@ int main(int argc, char *argv[]) {
 //    });
 
     demuxer.init();
+
+    output.syncToOutput(&renderer);
+
     demuxer.start();
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {

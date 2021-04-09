@@ -16,9 +16,9 @@ if (WIN32)
 endif ()
 add_compile_options(-Wno-unused-result)
 
-if (${CMAKE_BUILD_TYPE} EQUAL "Release")
-    add_compile_options(-O3)
-endif ()
+#if (${CMAKE_BUILD_TYPE} EQUAL "Release")
+#    add_compile_options(-O3)
+#endif ()
 
 add_library(
         AVQt
@@ -69,5 +69,18 @@ add_library(
         output/private/OpenALAudioOutput_p.h
         output/OpenALAudioOutput.cpp
 )
+
+target_compile_options(AVQt PRIVATE
+        -std=c++20
+        -Werror=all
+        -Werror=extra
+        -Werror=pedantic
+        -ansi
+        -Werror=init-self
+        -Werror=old-style-cast
+        -Werror=overloaded-virtual
+        -Werror=uninitialized
+        -Werror=missing-declarations
+        -Werror=init-self)
 
 target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)

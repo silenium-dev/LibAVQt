@@ -9,10 +9,11 @@
 
 extern "C" {
 #include <libavutil/frame.h>
+#include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
 }
 
-void loadResources() {
+static void loadResources() {
     Q_INIT_RESOURCE(resources);
 }
 
@@ -29,9 +30,8 @@ namespace AVQt {
 
     }
 
-    int OpenGLRenderer::init(IFrameSource *source, AVRational timebase, AVRational framerate, int64_t duration) {
-        Q_UNUSED(timebase);
-        Q_UNUSED(framerate);
+    int OpenGLRenderer::init(IFrameSource *source, AVRational framerate, int64_t duration) {
+        Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
         int64_t h = duration / 3600000;
         int64_t m = (duration - h * 3600000) / 60000;
@@ -41,15 +41,22 @@ namespace AVQt {
         d->m_duration = QTime(h, m, s, ms);
         d->m_position = QTime(0, 0, 0, 0);
         qDebug() << "Duration:" << d->m_duration.toString("hh:mm:ss");
+
+        d->m_clock = new RenderClock;
+        d->m_clock->setInterval(av_q2d(av_inv_q(framerate)) * 1000);
+        connect(d->m_clock, &RenderClock::timeout, this, &OpenGLRenderer::triggerUpdate);
+
         return 0;
     }
 
     int OpenGLRenderer::deinit(IFrameSource *source) {
+        Q_UNUSED(source)
 
         return 0;
     }
 
     int OpenGLRenderer::start(IFrameSource *source) {
+        Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
 
         bool stopped = false;
@@ -59,6 +66,8 @@ namespace AVQt {
 
             showNormal();
             requestActivate();
+            qDebug("starting timer");
+            d->m_clock->start();
 
             update();
             started();
@@ -67,6 +76,7 @@ namespace AVQt {
     }
 
     int OpenGLRenderer::stop(IFrameSource *source) {
+        Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
 
         bool shouldBeCurrent = true;
@@ -99,12 +109,7 @@ namespace AVQt {
             }
 
             if (d->m_uvTexture) {
-                if (d->m_uvTexture->isBound()) {
-                    d->m_uvTexture->release();
-                }
-                if (d->m_uvTexture->isStorageAllocated()) {
-                    d->m_uvTexture->destroy();
-                }
+                d->m_uvTexture->destroy();
                 delete d->m_uvTexture;
             }
 
@@ -115,12 +120,13 @@ namespace AVQt {
     }
 
     void OpenGLRenderer::pause(IFrameSource *source, bool pause) {
+        Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
-
 
         bool shouldBeCurrent = !pause;
 
         if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause)) {
+            d->m_clock->pause(pause);
             qDebug("pause() called");
             paused(pause);
             update();
@@ -141,7 +147,8 @@ namespace AVQt {
         QPair<AVFrame *, int64_t> newFrame;
 
         newFrame.first = av_frame_alloc();
-        av_frame_ref(newFrame.first, frame);
+//        av_frame_ref(newFrame.first, frame);
+        av_hwframe_transfer_data(newFrame.first, frame, 0);
 //        av_frame_unref(frame);
 
 //        char strBuf[64];
@@ -200,7 +207,7 @@ namespace AVQt {
 
 //    QColor vertexColors[] = {
 //        QColor(0xf6, 0xa5, 0x09, 128),
-//        QColor(0xcb, 0x2d, 0xde, 128),
+//        QColor(0xcb, 0x2d, 0xde, 128),av_q2d(av_inv_q(framerate))
 //        QColor(0x0e, 0xee, 0xd1, 128),
 //        QColor(0x06, 0x89, 0x18, 128)
 //    };
@@ -268,7 +275,7 @@ namespace AVQt {
 
     void OpenGLRenderer::paintGL() {
         Q_D(AVQt::OpenGLRenderer);
-        auto t1 = std::chrono::high_resolution_clock::now();
+//        auto t1 = std::chrono::high_resolution_clock::now();
 
 //         Clear background
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -279,7 +286,7 @@ namespace AVQt {
         if (d->m_running.load()) {
             if (!d->m_paused.load()) {
                 if (d->m_clock) {
-                    if (!d->m_clock->isActive()) {
+                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 50) {
                         d->m_clock->start();
                     }
                 }
@@ -373,13 +380,13 @@ namespace AVQt {
                 }
             }
 
-            if (!d->m_clock) {
-                d->m_clock = new RenderClock;
-                d->m_clock->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
-                connect(d->m_clock, &RenderClock::timeout, this, &OpenGLRenderer::triggerUpdate);
-                qDebug("starting timer");
-                d->m_clock->start();
-            }
+//            if (!d->m_clock) {
+//                d->m_clock = new RenderClock;
+//                d->m_clock->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
+//                connect(d->m_clock, &RenderClock::timeout, this, &OpenGLRenderer::triggerUpdate);
+//                qDebug("starting timer");
+//                d->m_clock->start();
+//            }
 
             if (d->m_clock->getInterval() != d->m_currentFrameTimeout) {
                 qDebug("Resetting timer %ld != %ld", d->m_clock->getInterval(), d->m_currentFrameTimeout);
@@ -440,7 +447,7 @@ namespace AVQt {
             p.fillRect(fm.boundingRect(overlay).translated(textPosX, textPosY).adjusted(-5, -5, 5, 5), QColor(0xFF, 0xFF, 0xFF, 0x48));
             p.drawText(fm.boundingRect(overlay).translated(textPosX, textPosY), overlay);
             p.end();
-            auto t2 = std::chrono::high_resolution_clock::now();
+//            auto t2 = std::chrono::high_resolution_clock::now();
             //qDebug("Render frametime: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count());
 //            QTimer::singleShot(d->m_currentFrameTimeout - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count(),
 //                               [&] { update(); });

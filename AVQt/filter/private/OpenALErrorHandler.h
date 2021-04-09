@@ -14,7 +14,7 @@
 
 #define alCall(function, ...) alCallImpl(__FILE__, __LINE__, function, __VA_ARGS__)
 
-bool check_al_errors(const std::string &filename, const std::uint_fast32_t line) {
+static bool check_al_errors(const std::string &filename, const std::uint_fast32_t line) {
     ALenum error = alGetError();
     if (error != AL_NO_ERROR) {
         std::cerr << "***ERROR*** (" << filename << ": " << line << ")\n";
@@ -60,7 +60,7 @@ auto alCallImpl(const char *filename, const std::uint_fast32_t line, alFunction 
 
 #define alcCall(function, device, ...) alcCallImpl(__FILE__, __LINE__, function, device, __VA_ARGS__)
 
-bool check_alc_errors(const std::string &filename, const std::uint_fast32_t line, ALCdevice *device) {
+static bool check_alc_errors(const std::string &filename, const std::uint_fast32_t line, ALCdevice *device) {
     ALCenum error = alcGetError(device);
     if (error != ALC_NO_ERROR) {
         std::cerr << "***ERROR*** (" << filename << ": " << line << ")\n";

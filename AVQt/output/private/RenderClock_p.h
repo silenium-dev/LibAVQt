@@ -13,7 +13,8 @@ namespace AVQt {
         RenderClock *q_ptr;
 
         QTimer *m_timer;
-        int64_t m_interval = 1;
+        std::atomic_int64_t m_interval = 1;
+        std::atomic_bool m_active = false;
 
         friend class RenderClock;
     };

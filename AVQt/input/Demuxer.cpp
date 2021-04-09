@@ -2,6 +2,7 @@
 // Created by silas on 3/25/21.
 //
 
+#include <iostream>
 #include "Demuxer.h"
 #include "private/Demuxer_p.h"
 #include "../output/IPacketSink.h"
@@ -148,20 +149,22 @@ namespace AVQt {
             AVCodecParameters *vParams = nullptr;
             AVCodecParameters *aParams = nullptr;
             AVCodecParameters *sParams = nullptr;
-            if (d->m_cbMap[cb] & CB_VIDEO) {
+            if (d->m_cbMap[cb] & CB_VIDEO && d->m_videoStream >= 0) {
                 vParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(vParams, d->m_pFormatCtx->streams[d->m_videoStream]->codecpar);
             }
-            if (d->m_cbMap[cb] & CB_AUDIO) {
+            if (d->m_cbMap[cb] & CB_AUDIO && d->m_audioStream >= 0) {
                 aParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(aParams, d->m_pFormatCtx->streams[d->m_audioStream]->codecpar);
             }
-            if (d->m_cbMap[cb] & CB_SUBTITLE) {
+            if (d->m_cbMap[cb] & CB_SUBTITLE && d->m_subtitleStream >= 0) {
                 sParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
             }
-            cb->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE,
-                     vParams, aParams, sParams);
+            if (aParams || vParams || sParams) {
+                cb->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate,
+                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, aParams, sParams);
+            }
             if (vParams) {
                 avcodec_parameters_free(&vParams);
             }
@@ -242,6 +245,9 @@ namespace AVQt {
         char strBuf[strBufSize];
 
         AVPacket *packet = av_packet_alloc();
+        QElapsedTimer elapsedTimer;
+        size_t videoPackets = 0, audioPackets = 0, sttPackets = 0, packetCount = 0;
+        elapsedTimer.start();
         while (d->m_running.load()) {
             if (!d->m_paused.load()) {
                 ret = av_read_frame(d->m_pFormatCtx, packet);
@@ -254,14 +260,21 @@ namespace AVQt {
                 QList<IPacketSink *> cbList;
                 CB_TYPE type;
 
+                ++packetCount;
+
                 if (packet->stream_index == d->m_videoStream) {
                     cbList = d->m_cbMap.keys(CB_VIDEO);
+                    ++videoPackets;
                     type = CB_VIDEO;
                 } else if (packet->stream_index == d->m_audioStream) {
                     cbList = d->m_cbMap.keys(CB_AUDIO);
+                    qDebug("Audio packet duration: %f ms",
+                           packet->duration * 1000.0 * av_q2d(d->m_pFormatCtx->streams[d->m_audioStream]->time_base));
+                    ++audioPackets;
                     type = CB_AUDIO;
                 } else if (packet->stream_index == d->m_subtitleStream) {
                     cbList = d->m_cbMap.keys(CB_SUBTITLE);
+                    ++sttPackets;
                     type = CB_SUBTITLE;
                 } else {
                     av_packet_unref(packet);
@@ -271,6 +284,19 @@ namespace AVQt {
                     AVPacket *cbPacket = av_packet_clone(packet);
                     cb->onPacket(this, cbPacket, type);
                     av_packet_unref(cbPacket);
+                }
+                if (elapsedTimer.hasExpired(500)) {
+                    std::cout << std::endl << "Packet statistics" << std::endl;
+                    std::cout.fill(' ');
+                    std::cout << "| Packet type | Packet count |   Percentage |" << std::endl;
+                    std::cout << "| Video       |" << std::setw(14) << videoPackets << "|" << std::setw(11)
+                              << (videoPackets * 1.0 / packetCount) * 100.0 << " % |" << std::endl;
+                    std::cout << "| Audio       |" << std::setw(14) << audioPackets << "|" << std::setw(11)
+                              << (audioPackets * 1.0 / packetCount) * 100.0 << " % |" << std::endl;
+                    std::cout << "| Subtitle    |" << std::setw(14) << sttPackets << "|" << std::setw(11)
+                              << (sttPackets * 1.0 / packetCount) * 100.0 << " % |" << std::endl;
+                    std::cout << std::endl;
+                    elapsedTimer.restart();
                 }
             } else {
                 msleep(8);
