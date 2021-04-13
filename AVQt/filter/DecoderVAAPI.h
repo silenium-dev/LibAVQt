@@ -110,8 +110,8 @@ namespace AVQt {
 
 
         Q_INVOKABLE void
-        init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams, AVCodecParameters *aParams,
-             AVCodecParameters *sParams) Q_DECL_OVERRIDE;
+        init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+             AVCodecParameters *aParams, AVCodecParameters *sParams) Q_DECL_OVERRIDE;
 
         Q_INVOKABLE void deinit(IPacketSource *source) Q_DECL_OVERRIDE;
 

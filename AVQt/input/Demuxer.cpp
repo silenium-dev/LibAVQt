@@ -60,7 +60,7 @@ namespace AVQt {
                 sParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
             }
-            packetSink->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate,
+            packetSink->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, AVRational(),
                              d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, aParams, sParams);
             if (vParams) {
                 avcodec_parameters_free(&vParams);
@@ -161,9 +161,20 @@ namespace AVQt {
                 sParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
             }
-            if (aParams || vParams || sParams) {
+            if (vParams) {
                 cb->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate,
-                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, aParams, sParams);
+                         d->m_pFormatCtx->streams[d->m_videoStream]->time_base,
+                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, nullptr, nullptr);
+            }
+            if (aParams) {
+                cb->init(this, d->m_pFormatCtx->streams[d->m_audioStream]->avg_frame_rate,
+                         d->m_pFormatCtx->streams[d->m_audioStream]->time_base,
+                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, nullptr, aParams, nullptr);
+            }
+            if (sParams) {
+                cb->init(this, d->m_pFormatCtx->streams[d->m_subtitleStream]->avg_frame_rate,
+                         d->m_pFormatCtx->streams[d->m_subtitleStream]->time_base,
+                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, nullptr, nullptr, sParams);
             }
             if (vParams) {
                 avcodec_parameters_free(&vParams);

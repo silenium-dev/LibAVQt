@@ -31,6 +31,7 @@ namespace AVQt {
         AVCodecParameters *m_pCodecParams = nullptr;
         AVCodec *m_pCodec = nullptr;
         AVCodecContext *m_pCodecCtx = nullptr;
+        AVRational m_timebase;
 
         // Callback stuff
         QMutex m_cbListMutex;

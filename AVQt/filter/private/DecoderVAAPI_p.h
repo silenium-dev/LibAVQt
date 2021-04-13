@@ -26,6 +26,7 @@ namespace AVQt {
         QQueue<AVPacket *> m_inputQueue;
         int64_t m_duration = 0;
         AVRational m_framerate;
+        AVRational m_timebase;
 
         AVCodec *m_pCodec = nullptr;
         AVCodecParameters *m_pCodecParams = nullptr;

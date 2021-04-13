@@ -26,6 +26,8 @@ namespace AVQt {
 
         bool isActive();
 
+        bool isPaused();
+
     public slots:
         Q_INVOKABLE void start();
 
@@ -43,7 +45,7 @@ namespace AVQt {
 
         void intervalChanged(int64_t interval);
 
-        void timeout();
+        void timeout(qint64 elapsed);
 
     protected:
         explicit RenderClock(RenderClockPrivate &p);

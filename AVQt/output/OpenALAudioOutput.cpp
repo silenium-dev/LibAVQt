@@ -5,7 +5,7 @@
 #include "private/OpenALAudioOutput_p.h"
 #include "OpenALAudioOutput.h"
 
-#include "filter/private/OpenALErrorHandler.h"
+#include "private/OpenALErrorHandler.h"
 #include "OpenGLRenderer.h"
 
 #include <QtCore>
@@ -22,7 +22,7 @@ namespace AVQt {
 
     }
 
-    int OpenALAudioOutput::init(IAudioSource *source, int64_t duration) {
+    int OpenALAudioOutput::init(IAudioSource *source, int64_t duration, int sampleRate) {
         Q_UNUSED(source)
         Q_D(AVQt::OpenALAudioOutput);
 
@@ -36,6 +36,7 @@ namespace AVQt {
 //        }
 
         d->m_duration = duration;
+        d->m_sampleRate = sampleRate;
 
         d->m_ALCDevice = alcOpenDevice(nullptr);
         if (!d->m_ALCDevice) {
@@ -51,9 +52,12 @@ namespace AVQt {
             qFatal("Could not make ALC context current");
         }
 
-        d->m_ALBuffers.resize(OpenALAudioOutputPrivate::BUFFER_COUNT);
+        d->m_ALBufferCount = (1000 * 1.0 / 60) * d->m_sampleRate / 1536;
+        qDebug("Using %ld OpenAL buffers", d->m_ALBufferCount);
 
-        alCall(alGenBuffers, OpenALAudioOutputPrivate::BUFFER_COUNT, d->m_ALBuffers.data());
+        d->m_ALBuffers.resize(d->m_ALBufferCount);
+
+        alCall(alGenBuffers, d->m_ALBufferCount, d->m_ALBuffers.data());
 
         alCall(alGenSources, 1, &d->m_ALSource);
         alCall(alSourcef, d->m_ALSource, AL_PITCH, 1);
@@ -80,7 +84,7 @@ namespace AVQt {
 //        av_samples_alloc_array_and_samples(&data, &linesize, 2, 1, AV_SAMPLE_FMT_S16, 1);
 //        av_samples_set_silence(data, 0, 1, 2, AV_SAMPLE_FMT_S16);
 //
-//        for (size_t i = 11; i < OpenALAudioOutputPrivate::BUFFER_COUNT; ++i) {
+//        for (size_t i = 11; i < d->m_bufferCount; ++i) {
 //            alCall(alBufferData, d->m_ALBuffers[i], AL_FORMAT_STEREO16, &data[0][0],
 //                   av_samples_get_buffer_size(&linesize, 2, 1, AV_SAMPLE_FMT_S16, 1), 48000);
 //        }
@@ -106,7 +110,7 @@ namespace AVQt {
         alCall(alSourcei, d->m_ALSource, AL_SOURCE_STATE, AL_STOPPED);
 
         alCall(alDeleteSources, 1, &d->m_ALSource);
-        alCall(alDeleteBuffers, OpenALAudioOutputPrivate::BUFFER_COUNT, d->m_ALBuffers.data());
+        alCall(alDeleteBuffers, d->m_ALBufferCount, d->m_ALBuffers.data());
         d->m_ALBuffers.clear();
         d->m_ALBuffers.shrink_to_fit();
 
@@ -169,6 +173,17 @@ namespace AVQt {
                     av_frame_free(&frame.first);
                 }
                 d->m_inputQueue.clear();
+            }
+            {
+                ALboolean contextCurrent = AL_FALSE;
+                alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext);
+                QMutexLocker lock(&d->m_ALBufferQueueMutex);
+                while (d->m_ALBufferQueue.size() < d->m_ALBufferCount) {
+                    ALuint buffer;
+                    alCall(alSourceUnqueueBuffers, d->m_ALSource, 1, &buffer);
+                    d->m_ALBufferQueue.enqueue(buffer);
+                }
+                alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, nullptr);
             }
 
 //            pause(nullptr, true);
@@ -238,6 +253,7 @@ namespace AVQt {
                 newFrame.first->channel_layout = AV_CH_LAYOUT_STEREO;
                 newFrame.first->nb_samples = static_cast<int>(std::ceil(
                         (frame->nb_samples * 1.0 / frame->channels) * newFrame.first->channels));
+                newFrame.first->pts = frame->pts;
                 av_frame_get_buffer(newFrame.first, 1);
                 int ret = swr_convert_frame(d->m_pSwrContext, newFrame.first, frame);
                 if (newFrame.first->data[1] || newFrame.first->linesize[0] == 0) {
@@ -279,17 +295,35 @@ namespace AVQt {
 
     [[maybe_unused]] void OpenALAudioOutput::syncToOutput(OpenGLRenderer *renderer) {
         Q_D(AVQt::OpenALAudioOutput);
-        if (d->m_clock.load()) {
-            d->m_clock.load()->stop();
-            delete d->m_clock.load();
+        if (!d->m_running.load()) {
+            if (d->m_clock.load()) {
+                d->m_clock.load()->stop();
+                delete d->m_clock.load();
+            }
+
+            d->m_clock.store(renderer->getClock());
+            clockIntervalChanged(d->m_clock.load()->getInterval());
+            uint64_t newBufferCount = (1000 * 1.0 / d->m_clockInterval) * d->m_sampleRate / 1536;
+            if (d->m_ALBuffers.size() != newBufferCount) {
+                ALCboolean contextCurrent = ALC_FALSE;
+                alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext);
+                if (d->m_ALBuffers.size() > newBufferCount) {
+                    auto overhead = d->m_ALBuffers.size() - newBufferCount;
+                    alCall(alDeleteBuffers, overhead, d->m_ALBuffers.data() + d->m_ALBuffers.size() - overhead);
+                    d->m_ALBuffers.resize(newBufferCount);
+                } else if (d->m_ALBuffers.size() < newBufferCount) {
+                    auto extraBuffers = newBufferCount - d->m_ALBuffers.size();
+                    d->m_ALBuffers.resize(newBufferCount, 0);
+                    alCall(alGenBuffers, extraBuffers, d->m_ALBuffers.data() + d->m_ALBuffers.size() - extraBuffers);
+                }
+                alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, nullptr);
+            }
+            connect(d->m_clock.load(), &RenderClock::intervalChanged, this, &OpenALAudioOutput::clockIntervalChanged);
+            connect(d->m_clock.load(), &RenderClock::timeout, this, &OpenALAudioOutput::clockTriggered);
+            connect(renderer, &OpenGLRenderer::paused, [=](bool paused) {
+                QMetaObject::invokeMethod(this, "pause", Q_ARG(IAudioSource *, nullptr), Q_ARG(bool, paused));
+            });
         }
-        d->m_clock.store(renderer->getClock());
-        clockIntervalChanged(d->m_clock.load()->getInterval());
-        connect(d->m_clock.load(), &RenderClock::intervalChanged, this, &OpenALAudioOutput::clockIntervalChanged);
-        connect(d->m_clock.load(), &RenderClock::timeout, this, &OpenALAudioOutput::clockTriggered);
-        connect(renderer, &OpenGLRenderer::paused, [=](bool paused) {
-            QMetaObject::invokeMethod(this, "pause", Q_ARG(IAudioSource *, nullptr), Q_ARG(bool, paused));
-        });
     }
 
     void OpenALAudioOutput::clockIntervalChanged(int64_t interval) {
@@ -298,7 +332,8 @@ namespace AVQt {
         d->m_outputSliceDurationChanged.store(true);
     }
 
-    void OpenALAudioOutput::clockTriggered() {
+    void OpenALAudioOutput::clockTriggered(qint64 timestamp) {
+        Q_UNUSED(timestamp)
         Q_D(AVQt::OpenALAudioOutput);
 //            qDebug() << "Playing frame";
         ALCboolean contextCurrent = ALC_FALSE;
@@ -307,7 +342,7 @@ namespace AVQt {
         }
 
         if (d->m_audioFrame == 0) {
-            d->m_ALBufferQueue.append(&d->m_ALBuffers[0], &d->m_ALBuffers[0] + OpenALAudioOutputPrivate::BUFFER_COUNT);
+            d->m_ALBufferQueue.append(&d->m_ALBuffers[0], &d->m_ALBuffers[0] + d->m_ALBufferCount);
         }
 
         ALint buffersProcessed = 0;
@@ -360,7 +395,20 @@ namespace AVQt {
             lock.unlock();
             int64_t duration = 0;
 //                QTime time = QTime::currentTime();
-            QPair<AVFrame *, int64_t> frame1, frame2, frame;
+
+
+            QPair<AVFrame *, int64_t> frame;
+
+            while (!d->m_inputQueue.isEmpty()) {
+                if (d->m_inputQueue.first().first->pts >= timestamp) {
+                    break;
+                }
+                frame = d->m_inputQueue.dequeue();
+                qDebug("Discarding audio frame at PTS: %ld < PTS: %lld", frame.first->pts, timestamp);
+                av_frame_unref(frame.first);
+                av_frame_free(&frame.first);
+            }
+
             while (!d->m_inputQueue.isEmpty() &&
                    !d->m_ALBufferQueue.isEmpty()) {
                 if (d->m_queuedSamples / d->m_inputQueue.front().first->sample_rate * 1000 < d->m_clockInterval) {
@@ -382,7 +430,7 @@ namespace AVQt {
 //                        av_frame_free(&frame1.first);
 //                        av_frame_free(&frame2.first);
 //                    } else {
-                        frame = d->m_inputQueue.dequeue();
+                    frame = d->m_inputQueue.dequeue();
 //                    }
                     duration += frame.first->nb_samples * 1000.0 / frame.first->sample_rate;
                     lock1.unlock();

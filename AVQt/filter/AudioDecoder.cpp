@@ -36,7 +36,7 @@ namespace AVQt {
         {
             QMutexLocker lock(&d->m_cbListMutex);
             for (const auto &cb: d->m_cbList) {
-                cb->init(this, d->m_duration);
+                cb->init(this, d->m_duration, 0);
             }
         }
 
@@ -136,7 +136,7 @@ namespace AVQt {
             d->m_cbList.append(callback);
 
             if (d->m_pCodecCtx) {
-                callback->init(this, d->m_duration);
+                callback->init(this, d->m_duration, 0);
             }
 
             if (d->m_running) {
@@ -158,7 +158,7 @@ namespace AVQt {
         return -1;
     }
 
-    void AudioDecoder::init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams,
+    void AudioDecoder::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
                             AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_D(AVQt::AudioDecoder);
         Q_UNUSED(source);
@@ -166,6 +166,7 @@ namespace AVQt {
         Q_UNUSED(vParams);
         Q_UNUSED(sParams);
 
+        d->m_timebase = timebase;
         d->m_duration = duration;
 
         d->m_pCodecParams = avcodec_parameters_alloc();
@@ -174,7 +175,7 @@ namespace AVQt {
         {
             QMutexLocker lock(&d->m_cbListMutex);
             for (const auto &cb: d->m_cbList) {
-                cb->init(this, duration);
+                cb->init(this, duration, aParams->sample_rate);
             }
         }
 
@@ -284,8 +285,11 @@ namespace AVQt {
 
                     QMutexLocker lock2(&d->m_cbListMutex);
                     for (const auto &cb: d->m_cbList) {
-//                        qDebug("Calling frame callbacks");
                         AVFrame *cbFrame = av_frame_clone(frame);
+                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+                                                    av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                        qDebug("Calling audio frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                               d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onAudioFrame(this, cbFrame, frame->nb_samples * 1.0 / frame->sample_rate / frame->channels * 1000.0);
                         qDebug() << "Audio CB time:" << time.msecsTo(QTime::currentTime());

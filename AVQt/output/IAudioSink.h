@@ -23,7 +23,7 @@ namespace AVQt {
         virtual bool isPaused() = 0;
 
     public slots:
-        Q_INVOKABLE virtual int init(IAudioSource *source, int64_t duration) = 0;
+        Q_INVOKABLE virtual int init(IAudioSource *source, int64_t duration, int sampleRate) = 0;
 
         Q_INVOKABLE virtual int deinit(IAudioSource *source) = 0;
 

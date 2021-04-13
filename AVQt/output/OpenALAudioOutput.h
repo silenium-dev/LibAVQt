@@ -32,7 +32,7 @@ namespace AVQt {
 
     public slots:
 
-        Q_INVOKABLE int init(IAudioSource *source, int64_t duration) Q_DECL_OVERRIDE;
+        Q_INVOKABLE int init(IAudioSource *source, int64_t duration, int sampleRate) Q_DECL_OVERRIDE;
 
         Q_INVOKABLE int deinit(IAudioSource *source) Q_DECL_OVERRIDE;
 
@@ -61,7 +61,7 @@ namespace AVQt {
 
         void clockIntervalChanged(int64_t interval);
 
-        void clockTriggered();
+        void clockTriggered(qint64 timestamp);
     };
 }
 

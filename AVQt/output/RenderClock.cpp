@@ -35,6 +35,8 @@ namespace AVQt {
         Q_D(AVQt::RenderClock);
         bool shouldBe = false;
         if (d->m_active.compare_exchange_strong(shouldBe, true)) {
+            qDebug("Starting clock");
+            d->m_paused.store(false);
             d->m_timer->start();
         }
     }
@@ -45,9 +47,13 @@ namespace AVQt {
         bool shouldBe = true;
         qDebug("Clock active?: %s", (d->m_active.load() ? "true" : "false"));
         if (d->m_active.compare_exchange_strong(shouldBe, false)) {
+            d->m_paused.store(false);
             qDebug("Stopping timer");
             d->m_timer->stop();
             d->m_timer->setInterval(d->m_interval);
+
+            d->m_elapsedTime->invalidate();
+            delete d->m_elapsedTime;
         }
     }
 
@@ -55,11 +61,26 @@ namespace AVQt {
         Q_D(AVQt::RenderClock);
 
         bool shouldBe = !paused;
-        if (d->m_active.compare_exchange_strong(shouldBe, paused)) {
+        if (d->m_paused.compare_exchange_strong(shouldBe, paused)) {
             if (paused) {
-                d->m_timer->stop();
+                if (d->m_timer->thread() != QThread::currentThread()) {
+                    QMetaObject::invokeMethod(d->m_timer, "stop", Qt::BlockingQueuedConnection);
+                } else {
+                    d->m_timer->stop();
+                }
+                if (d->m_elapsedTime) {
+                    d->m_lastPauseTimestamp = d->m_elapsedTime->nsecsElapsed() / 1000;
+                }
             } else {
-                d->m_timer->start();
+                if (d->m_timer->thread() != QThread::currentThread()) {
+                    QMetaObject::invokeMethod(d->m_timer, "start", Qt::BlockingQueuedConnection);
+                } else {
+                    d->m_timer->start();
+                }
+                if (d->m_elapsedTime) {
+                    d->m_pausedTime += (d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_lastPauseTimestamp;
+                }
+                timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
             }
         }
     }
@@ -91,8 +112,19 @@ namespace AVQt {
     }
 
     void RenderClock::timerTimeout() {
+        Q_D(AVQt::RenderClock);
 //        qDebug("Clock timeout");
-        timeout();
+        if (!d->m_elapsedTime) {
+            d->m_elapsedTime = new QElapsedTimer;
+            d->m_elapsedTime->start();
+            timeout(0);
+        }
+        timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
+    }
+
+    bool RenderClock::isPaused() {
+        Q_D(AVQt::RenderClock);
+        return d->m_paused.load();
     }
 
 //    void RenderClock::connectCallback(QObject *obj, void(*function)()) {

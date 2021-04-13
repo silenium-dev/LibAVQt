@@ -86,7 +86,7 @@ namespace AVQt {
         /*!
          * \private
          */
-        void triggerUpdate();
+        void triggerUpdate(qint64 timestamp);
 
     signals:
 

@@ -33,14 +33,14 @@ namespace AVQt {
         QMutex m_outputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_outputQueue;
         std::atomic_bool m_outputSliceDurationChanged = false;
-        int64_t m_duration = 0, m_clockInterval = 0;
+        int64_t m_duration = 0, m_clockInterval = 0, m_sampleRate = 0;
 
         std::atomic<RenderClock *> m_clock = nullptr;
 
         QMutex m_swrContextMutex;
         SwrContext *m_pSwrContext = nullptr;
 
-        static constexpr size_t BUFFER_COUNT = 50;
+        int64_t m_ALBufferCount = 3;
         std::atomic_size_t m_playingBuffers = 0;
         std::vector<ALuint> m_ALBuffers;
         QRecursiveMutex m_ALBufferQueueMutex;

@@ -42,6 +42,7 @@ namespace AVQt {
         QTime m_duration;
         QTime m_position;
         std::atomic_bool m_updateRequired = true, m_paused = false, m_running = false, m_firstFrame = true;
+        std::atomic<qint64> m_updateTimestamp = 0;
         std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
 
         QMutex m_currentFrameMutex;

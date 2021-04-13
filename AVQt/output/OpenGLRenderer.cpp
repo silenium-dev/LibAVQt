@@ -66,8 +66,6 @@ namespace AVQt {
 
             showNormal();
             requestActivate();
-            qDebug("starting timer");
-            d->m_clock->start();
 
             update();
             started();
@@ -126,7 +124,9 @@ namespace AVQt {
         bool shouldBeCurrent = !pause;
 
         if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause)) {
-            d->m_clock->pause(pause);
+            if (d->m_clock->isActive()) {
+                d->m_clock->pause(pause);
+            }
             qDebug("pause() called");
             paused(pause);
             update();
@@ -149,6 +149,7 @@ namespace AVQt {
         newFrame.first = av_frame_alloc();
 //        av_frame_ref(newFrame.first, frame);
         av_hwframe_transfer_data(newFrame.first, frame, 0);
+        newFrame.first->pts = frame->pts;
 //        av_frame_unref(frame);
 
 //        char strBuf[64];
@@ -286,8 +287,10 @@ namespace AVQt {
         if (d->m_running.load()) {
             if (!d->m_paused.load()) {
                 if (d->m_clock) {
-                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 50) {
+                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 2) {
                         d->m_clock->start();
+                    } else if (d->m_clock->isPaused()) {
+                        d->m_clock->pause(false);
                     }
                 }
                 if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
@@ -295,7 +298,16 @@ namespace AVQt {
 //                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
                     d->m_position = d->m_position.addMSecs(d->m_currentFrameTimeout);
                     QPair<AVFrame *, int64_t> frame;
-                    {
+                    while (!d->m_renderQueue.isEmpty()) {
+                        if (frame.first) {
+                            if (frame.first->pts >= d->m_updateTimestamp) {
+                                break;
+                            } else {
+                                qDebug("Discarding video frame at PTS: %ld < PTS: %lld", frame.first->pts, d->m_updateTimestamp.load());
+                                av_frame_unref(frame.first);
+                                av_frame_free(&frame.first);
+                            }
+                        }
                         QMutexLocker lock2(&d->m_renderQueueMutex);
                         frame = d->m_renderQueue.dequeue();
                     }
@@ -376,7 +388,7 @@ namespace AVQt {
                 }
             } else if (d->m_clock) {
                 if (d->m_clock->isActive()) {
-                    d->m_clock->stop();
+                    d->m_clock->pause(true);
                 }
             }
 
@@ -463,10 +475,11 @@ namespace AVQt {
         }
     }
 
-    void OpenGLRenderer::triggerUpdate() {
+    void OpenGLRenderer::triggerUpdate(qint64 timestamp) {
         Q_D(AVQt::OpenGLRenderer);
 
         d->m_updateRequired.store(true);
+        d->m_updateTimestamp.store(timestamp);
     }
 
     RenderClock *OpenGLRenderer::getClock() {

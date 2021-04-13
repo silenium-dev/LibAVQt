@@ -35,8 +35,8 @@ namespace AVQt {
          * @param streamTimebase Stream timebase as AVRational
          */
         Q_INVOKABLE virtual void
-        init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams, AVCodecParameters *aParams,
-             AVCodecParameters *sParams) = 0;
+        init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+             AVCodecParameters *aParams, AVCodecParameters *sParams) = 0;
 
         Q_INVOKABLE virtual void deinit(IPacketSource *source) = 0;
 

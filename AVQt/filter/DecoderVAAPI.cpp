@@ -35,7 +35,7 @@ namespace AVQt {
         d_ptr = nullptr;
     }
 
-    void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, int64_t duration, AVCodecParameters *vParams,
+    void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
                             AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_UNUSED(aParams)
         Q_UNUSED(sParams)
@@ -48,6 +48,7 @@ namespace AVQt {
         avcodec_parameters_copy(d->m_pCodecParams, vParams);
         d->m_duration = duration;
         d->m_framerate = framerate;
+        d->m_timebase = timebase;
         {
             QMutexLocker lock(&d->m_cbListMutex);
             for (const auto &cb: d->m_cbList) {
@@ -280,9 +281,12 @@ namespace AVQt {
                     QMutexLocker lock2(&d->m_cbListMutex);
                     QList<QFuture<void>> cbFutures;
                     for (const auto &cb: d->m_cbList) {
-//                        qDebug("Calling frame callbacks");
 //                        cbFutures.append(QtConcurrent::run([=] {
                         AVFrame *cbFrame = av_frame_clone(frame);
+                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+                                                    av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                        qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                               d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onFrame(this, cbFrame, av_q2d(av_inv_q(d->m_framerate)) * 1000.0);
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());

@@ -46,7 +46,7 @@ add_library(
 
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
-        filter/private/OpenALErrorHandler.h
+        output/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
         #        output/FrameFileSaver.h
