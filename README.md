@@ -6,14 +6,15 @@ An object-oriented Qt interface for FFmpeg.
 
 ### Current
 
-- VAAPI accelerated encode/decode
+- VAAPI accelerated decode
 - Frame sink for saving every n-th frame to file
 - QOpenGLWidget based renderer (***WIP***)
+- OpenAL based audio output (***WIP***)
 
 ### Planned
 
 - Reliable API Reference
-- Audio encode/decode
+- Audio encode
 - Other hardware accelerations
 - Frame filters for e.g. scaling or color <-> greyscale
 - Other renderers (e.g. QWidget, QGraphicsItem)
@@ -25,7 +26,7 @@ An object-oriented Qt interface for FFmpeg.
 
 - CMake
 - C++ Development environment
-- Vulkan + headers (In Qt6 QML defaults to Vulkan instead of OpenGL for
+- Vulkan + headers (In Qt6, QML defaults to Vulkan instead of OpenGL for
   rendering)
 - Correctly configured Qt6 installation
     - for linux distributions with Qt6 in the package repositories, just install
