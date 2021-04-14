@@ -61,6 +61,11 @@ link_directories(<path>/build/AVQt)
 
 ## Examples
 
-A simple example for displaying video only with the OpenGLRenderer can be found
-in ``main.cpp``. It will be compiled along with the library by the commands
-above.
+A simple example for displaying video with the OpenGLRenderer and OpenALAudioOutput can be found
+in ``main.cpp``. It will be compiled along with the library by the commands above.
+
+### Run the example
+In your build directory, run the example by:
+```
+./Player
+```
