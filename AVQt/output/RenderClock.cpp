@@ -63,24 +63,13 @@ namespace AVQt {
         bool shouldBe = !paused;
         if (d->m_paused.compare_exchange_strong(shouldBe, paused)) {
             if (paused) {
-                if (d->m_timer->thread() != QThread::currentThread()) {
-                    QMetaObject::invokeMethod(d->m_timer, "stop", Qt::BlockingQueuedConnection);
-                } else {
-                    d->m_timer->stop();
-                }
                 if (d->m_elapsedTime) {
                     d->m_lastPauseTimestamp = d->m_elapsedTime->nsecsElapsed() / 1000;
                 }
             } else {
-                if (d->m_timer->thread() != QThread::currentThread()) {
-                    QMetaObject::invokeMethod(d->m_timer, "start", Qt::BlockingQueuedConnection);
-                } else {
-                    d->m_timer->start();
-                }
                 if (d->m_elapsedTime) {
                     d->m_pausedTime += (d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_lastPauseTimestamp;
                 }
-                timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
             }
         }
     }
@@ -114,12 +103,16 @@ namespace AVQt {
     void RenderClock::timerTimeout() {
         Q_D(AVQt::RenderClock);
 //        qDebug("Clock timeout");
-        if (!d->m_elapsedTime) {
-            d->m_elapsedTime = new QElapsedTimer;
-            d->m_elapsedTime->start();
-            timeout(0);
+        if (!d->m_paused.load()) {
+            if (!d->m_elapsedTime) {
+                d->m_elapsedTime = new QElapsedTimer;
+                d->m_elapsedTime->start();
+                timeout(0);
+            }
+            timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
+        } else {
+            qDebug("Render clock paused, not firing");
         }
-        timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
     }
 
     bool RenderClock::isPaused() {

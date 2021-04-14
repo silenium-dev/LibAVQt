@@ -298,92 +298,94 @@ namespace AVQt {
 //                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
                     d->m_position = d->m_position.addMSecs(d->m_currentFrameTimeout);
                     QPair<AVFrame *, int64_t> frame;
-                    while (!d->m_renderQueue.isEmpty()) {
-                        if (frame.first) {
-                            if (frame.first->pts >= d->m_updateTimestamp) {
-                                break;
-                            } else {
-                                qDebug("Discarding video frame at PTS: %ld < PTS: %lld", frame.first->pts, d->m_updateTimestamp.load());
-                                av_frame_unref(frame.first);
-                                av_frame_free(&frame.first);
+                    if (d->m_renderQueue.first().first->pts <= d->m_updateTimestamp + d->m_clock->getInterval() * 1000 * 1.2) {
+                        while (!d->m_renderQueue.isEmpty()) {
+                            if (frame.first) {
+                                if (frame.first->pts >= d->m_updateTimestamp) {
+                                    break;
+                                } else {
+                                    qDebug("Discarding video frame at PTS: %ld < PTS: %lld", frame.first->pts, d->m_updateTimestamp.load());
+                                    av_frame_unref(frame.first);
+                                    av_frame_free(&frame.first);
+                                }
                             }
-                        }
-                        QMutexLocker lock2(&d->m_renderQueueMutex);
-                        frame = d->m_renderQueue.dequeue();
-                    }
-
-                    bool firstFrame = true;
-                    bool differentPixFmt = true;
-
-                    {
-                        QMutexLocker lock(&d->m_currentFrameMutex);
-                        firstFrame = !d->m_currentFrame;
-                        if (!firstFrame) {
-                            if (d->m_currentFrame->format == frame.first->format) {
-                                differentPixFmt = false;
-                            }
+                            QMutexLocker lock2(&d->m_renderQueueMutex);
+                            frame = d->m_renderQueue.dequeue();
                         }
 
-                        if (d->m_currentFrame) {
-                            if (d->m_currentFrame->format == AV_PIX_FMT_BGRA) {
-                                av_freep(&d->m_currentFrame->data[0]);
-                                av_frame_free(&d->m_currentFrame);
-                                d->m_currentFrame = nullptr;
-                            } else {
-                                av_frame_unref(d->m_currentFrame);
-                                av_frame_free(&d->m_currentFrame);
-                                d->m_currentFrame = nullptr;
+                        bool firstFrame;
+                        bool differentPixFmt = true;
+
+                        {
+                            QMutexLocker lock(&d->m_currentFrameMutex);
+                            firstFrame = !d->m_currentFrame;
+                            if (!firstFrame) {
+                                if (d->m_currentFrame->format == frame.first->format) {
+                                    differentPixFmt = false;
+                                }
                             }
+
+                            if (d->m_currentFrame) {
+                                if (d->m_currentFrame->format == AV_PIX_FMT_BGRA) {
+                                    av_freep(&d->m_currentFrame->data[0]);
+                                    av_frame_free(&d->m_currentFrame);
+                                    d->m_currentFrame = nullptr;
+                                } else {
+                                    av_frame_unref(d->m_currentFrame);
+                                    av_frame_free(&d->m_currentFrame);
+                                    d->m_currentFrame = nullptr;
+                                }
+                            }
+
+                            d->m_currentFrame = frame.first;
+                            d->m_currentFrameTimeout = frame.second;
                         }
 
-                        d->m_currentFrame = frame.first;
-                        d->m_currentFrameTimeout = frame.second;
-                    }
+                        if (firstFrame) {
+                            d->m_yTexture = new QOpenGLTexture(
+                                    QImage(d->m_currentFrame->width, d->m_currentFrame->height, QImage::Format_ARGB32));
+                            d->m_uvTexture = new QOpenGLTexture(
+                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_ARGB32));
 
-                    if (firstFrame) {
-                        d->m_yTexture = new QOpenGLTexture(
-                                QImage(d->m_currentFrame->width, d->m_currentFrame->height, QImage::Format_ARGB32));
-                        d->m_uvTexture = new QOpenGLTexture(
-                                QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_ARGB32));
-
-                        d->m_yTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
-                        d->m_uvTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
-                    }
+                            d->m_yTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
+                            d->m_uvTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
+                        }
 //                    qDebug("Frame duration: %ld ms", d->m_currentFrameTimeout);
-                    if (differentPixFmt) {
-                        d->m_program->bind();
-                    }
-                    d->m_yTexture->bind(0);
-                    d->m_uvTexture->bind(1);
-                    switch (d->m_currentFrame->format) {
-                        case AV_PIX_FMT_BGRA:
-                            d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
-                                                   d->m_currentFrame->data[0]);
-                            if (differentPixFmt) {
-                                d->m_program->setUniformValue("inputFormat", 0);
-                            }
-                            break;
-                        case AV_PIX_FMT_YUV420P:
-                        case AV_PIX_FMT_NV12:
-                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, d->m_currentFrame->data[0]);
-                            d->m_uvTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt8, d->m_currentFrame->data[1]);
-                            if (differentPixFmt) {
-                                d->m_program->setUniformValue("inputFormat", 1);
-                            }
-                            break;
-                        case AV_PIX_FMT_YUV420P10:
-                        case AV_PIX_FMT_P010:
-                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[0]);
-                            d->m_uvTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt16, d->m_currentFrame->data[1]);
-                            if (differentPixFmt) {
-                                d->m_program->setUniformValue("inputFormat", 1);
-                            }
-                            break;
-                        default:
-                            qFatal("Pixel format not supported");
-                    }
-                    if (differentPixFmt) {
-                        d->m_program->release();
+                        if (differentPixFmt) {
+                            d->m_program->bind();
+                        }
+                        d->m_yTexture->bind(0);
+                        d->m_uvTexture->bind(1);
+                        switch (d->m_currentFrame->format) {
+                            case AV_PIX_FMT_BGRA:
+                                d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
+                                                       d->m_currentFrame->data[0]);
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 0);
+                                }
+                                break;
+                            case AV_PIX_FMT_YUV420P:
+                            case AV_PIX_FMT_NV12:
+                                d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, d->m_currentFrame->data[0]);
+                                d->m_uvTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt8, d->m_currentFrame->data[1]);
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 1);
+                                }
+                                break;
+                            case AV_PIX_FMT_YUV420P10:
+                            case AV_PIX_FMT_P010:
+                                d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[0]);
+                                d->m_uvTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt16, d->m_currentFrame->data[1]);
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 1);
+                                }
+                                break;
+                            default:
+                                qFatal("Pixel format not supported");
+                        }
+                        if (differentPixFmt) {
+                            d->m_program->release();
+                        }
                     }
                 }
             } else if (d->m_clock) {

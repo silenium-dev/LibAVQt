@@ -40,7 +40,7 @@ namespace AVQt {
         QMutex m_swrContextMutex;
         SwrContext *m_pSwrContext = nullptr;
 
-        int64_t m_ALBufferCount = 3;
+        int64_t m_ALBufferCount = 5;
         std::atomic_size_t m_playingBuffers = 0;
         std::vector<ALuint> m_ALBuffers;
         QRecursiveMutex m_ALBufferQueueMutex;
@@ -56,7 +56,8 @@ namespace AVQt {
         std::atomic_bool m_running = false;
         std::atomic_bool m_paused = false;
 
-        std::atomic_size_t m_unqueuedBuffer = 0;
+        std::atomic_bool m_wasPaused = false;
+        std::atomic_int64_t m_lastUpdate = 0;
         std::atomic_size_t m_audioFrame = 0;
 
         friend class OpenALAudioOutput;

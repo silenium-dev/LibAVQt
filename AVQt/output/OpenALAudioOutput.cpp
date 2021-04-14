@@ -1,5 +1,5 @@
 //
-// Created by silas on 3/28/21.
+// Created by silas on 4ll/28/21.
 //
 
 #include "private/OpenALAudioOutput_p.h"
@@ -177,10 +177,10 @@ namespace AVQt {
             {
                 ALboolean contextCurrent = AL_FALSE;
                 alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext);
+                alCall(alSourceStop, d->m_ALSource);
                 QMutexLocker lock(&d->m_ALBufferQueueMutex);
-                while (d->m_ALBufferQueue.size() < d->m_ALBufferCount) {
-                    ALuint buffer;
-                    alCall(alSourceUnqueueBuffers, d->m_ALSource, 1, &buffer);
+                ALuint buffer;
+                while (alCall(alSourceUnqueueBuffers, d->m_ALSource, 1, &buffer)) {
                     d->m_ALBufferQueue.enqueue(buffer);
                 }
                 alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, nullptr);
@@ -333,8 +333,12 @@ namespace AVQt {
     }
 
     void OpenALAudioOutput::clockTriggered(qint64 timestamp) {
-        Q_UNUSED(timestamp)
         Q_D(AVQt::OpenALAudioOutput);
+        if (timestamp - d->m_lastUpdate.load() > d->m_clockInterval * 5000) {
+            qDebug("Was paused since last update for %lld ms", (timestamp - d->m_lastUpdate.load()) / 1000);
+            d->m_wasPaused.store(true);
+        }
+        d->m_lastUpdate.store(timestamp);
 //            qDebug() << "Playing frame";
         ALCboolean contextCurrent = ALC_FALSE;
         if (!alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext) || contextCurrent != ALC_TRUE) {
@@ -345,25 +349,59 @@ namespace AVQt {
             d->m_ALBufferQueue.append(&d->m_ALBuffers[0], &d->m_ALBuffers[0] + d->m_ALBufferCount);
         }
 
-        ALint buffersProcessed = 0;
-        alCall(alGetSourcei, d->m_ALSource, AL_BUFFERS_PROCESSED, &buffersProcessed);
 //        qDebug("Buffers processed: %d", buffersProcessed);
-//                alCall(alSourceStop, d->m_ALSource);
-        if (buffersProcessed > 0) {
-            d->m_playingBuffers -= buffersProcessed;
-            while (buffersProcessed--) {
-                ALuint buffer;
-                alCall(alSourceUnqueueBuffers, d->m_ALSource, 1, &buffer);
+        bool shouldBe = true;
+        if (d->m_wasPaused.compare_exchange_strong(shouldBe, false)) {
+            alCall(alSourceStop, d->m_ALSource);
+            QList<ALuint> buffers;
+            ALuint buffer;
+            while (alCall(alSourceUnqueueBuffers, d->m_ALSource, 1, &buffer)) {
 //                qDebug("Unqueued buffer %d", buffer);
-                QMutexLocker lock1(&d->m_ALBufferQueueMutex);
-                d->m_ALBufferQueue.enqueue(buffer);
-                lock1.unlock();
+                buffers.append(buffer);
                 QMutexLocker lock(&d->m_ALBufferSampleMapMutex);
                 d->m_queuedSamples -= d->m_ALBufferSampleMap[buffer];
             }
+            if (!d->m_ALBufferQueue.isEmpty()) {
+                QMutexLocker lock3(&d->m_ALBufferQueueMutex);
+                alCall(alSourceQueueBuffers, d->m_ALSource, std::min(d->m_ALBufferQueue.size(), 4ll), d->m_ALBufferQueue.data());
+                for (const auto &buf: d->m_ALBufferQueue.last(std::min(d->m_ALBufferQueue.size(), 4ll))) {
+                    d->m_queuedSamples += d->m_ALBufferSampleMap[buf];
+                }
+                if (d->m_ALBufferQueue.size() < 4ll) {
+                    alCall(alSourceQueueBuffers, d->m_ALSource, std::min(buffers.size(), 4ll - d->m_ALBufferQueue.size()), buffers.data());
+                    for (qint64 i = buffers.size() - std::min(buffers.size(), 4ll - d->m_ALBufferQueue.size()); i < buffers.size(); ++i) {
+                        d->m_queuedSamples += d->m_ALBufferSampleMap[buffers[i]];
+                    }
+                    buffers.remove(buffers.size() - std::min(buffers.size(), 4ll - d->m_ALBufferQueue.size()),
+                                   std::min(buffers.size(), 4ll - d->m_ALBufferQueue.size()));
+                    d->m_ALBufferQueue.append(buffers);
+                }
+                d->m_ALBufferQueue.clear();
+            } else {
+                QMutexLocker lock3(&d->m_ALBufferQueueMutex);
+                alCall(alSourceQueueBuffers, d->m_ALSource, std::min(buffers.size(), 4ll), buffers.data());
+                buffers.remove(buffers.size() - std::min(buffers.size(), 4ll), std::min(buffers.size(), 4ll));
+                d->m_ALBufferQueue.append(buffers);
+            }
+        } else {
+            ALint buffersProcessed = 0;
+            alCall(alGetSourcei, d->m_ALSource, AL_BUFFERS_PROCESSED, &buffersProcessed);
+//                alCall(alSourceStop, d->m_ALSource);
+            if (buffersProcessed > 0) {
+                d->m_playingBuffers -= buffersProcessed;
+                while (buffersProcessed--) {
+                    ALuint buffer;
+                    alCall(alSourceUnqueueBuffers, d->m_ALSource, 1, &buffer);
+//                qDebug("Unqueued buffer %d", buffer);
+                    QMutexLocker lock1(&d->m_ALBufferQueueMutex);
+                    d->m_ALBufferQueue.enqueue(buffer);
+                    lock1.unlock();
+                    QMutexLocker lock(&d->m_ALBufferSampleMapMutex);
+                    d->m_queuedSamples -= d->m_ALBufferSampleMap[buffer];
+                }
 //            qDebug("Unqueued buffers from OpenAL-Source");
 //            qDebug() << d->m_ALBufferQueue;
-        }
+            }
 //        if (d->m_paused.load()) {
 //            QQueue<QPair<ALuint, int64_t>> buffers;
 //            QMutexLocker lock3(&d->m_ALBufferQueueMutex);
@@ -386,35 +424,41 @@ namespace AVQt {
 //                d->m_ALBufferSampleMap[buf.first] = buf.second;
 //            }
 //        }
-        if (d->m_inputQueue.isEmpty() || d->m_paused.load()) {
-            return;
-        }
-        qDebug("Size of output queue: %lld", d->m_inputQueue.size());
-        QMutexLocker lock(&d->m_ALBufferQueueMutex);
-        if (!d->m_ALBufferQueue.isEmpty()) {
-            lock.unlock();
-            int64_t duration = 0;
+            if (d->m_inputQueue.isEmpty() || d->m_paused.load()) {
+                return;
+            }
+            qDebug("Size of output queue: %lld", d->m_inputQueue.size());
+            QMutexLocker lock(&d->m_ALBufferQueueMutex);
+            if (!d->m_ALBufferQueue.isEmpty()) {
+                lock.unlock();
+                int64_t duration = 0;
 //                QTime time = QTime::currentTime();
 
 
-            QPair<AVFrame *, int64_t> frame;
+                QPair<AVFrame *, int64_t> frame;
+                {
+                    QMutexLocker lock2(&d->m_inputQueueMutex);
+                    if (d->m_inputQueue.first().first->pts >= timestamp + d->m_clockInterval * 1000) {
+                        alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, nullptr);
+                        return;
+                    }
 
-            while (!d->m_inputQueue.isEmpty()) {
-                if (d->m_inputQueue.first().first->pts >= timestamp) {
-                    break;
+                    while (!d->m_inputQueue.isEmpty()) {
+                        if (d->m_inputQueue.first().first->pts >= timestamp) {
+                            break;
+                        }
+                        frame = d->m_inputQueue.dequeue();
+                        qDebug("Discarding audio frame at PTS: %ld < PTS: %lld", frame.first->pts, timestamp);
+                        av_frame_unref(frame.first);
+                        av_frame_free(&frame.first);
+                    }
                 }
-                frame = d->m_inputQueue.dequeue();
-                qDebug("Discarding audio frame at PTS: %ld < PTS: %lld", frame.first->pts, timestamp);
-                av_frame_unref(frame.first);
-                av_frame_free(&frame.first);
-            }
-
-            while (!d->m_inputQueue.isEmpty() &&
-                   !d->m_ALBufferQueue.isEmpty()) {
-                if (d->m_queuedSamples / d->m_inputQueue.front().first->sample_rate * 1000 < d->m_clockInterval) {
-                    lock.relock();
-                    QMutexLocker lock1(&d->m_inputQueueMutex);
-                    QMutexLocker lock2(&d->m_ALBufferSampleMapMutex);
+                while (!d->m_inputQueue.isEmpty() &&
+                       !d->m_ALBufferQueue.isEmpty()) {
+                    if (d->m_queuedSamples / d->m_inputQueue.front().first->sample_rate * 1000 < d->m_clockInterval) {
+                        lock.relock();
+                        QMutexLocker lock1(&d->m_inputQueueMutex);
+                        QMutexLocker lock2(&d->m_ALBufferSampleMapMutex);
 //                    if (d->m_inputQueue.size() >= 2) {
 //                        frame1 = d->m_inputQueue.dequeue();
 //                        frame2 = d->m_inputQueue.dequeue();
@@ -430,31 +474,30 @@ namespace AVQt {
 //                        av_frame_free(&frame1.first);
 //                        av_frame_free(&frame2.first);
 //                    } else {
-                    frame = d->m_inputQueue.dequeue();
+                        frame = d->m_inputQueue.dequeue();
 //                    }
-                    duration += frame.first->nb_samples * 1000.0 / frame.first->sample_rate;
-                    lock1.unlock();
-                    auto buf = d->m_ALBufferQueue.dequeue();
-                    lock.unlock();
+                        duration += frame.first->nb_samples * 1000.0 / frame.first->sample_rate;
+                        lock1.unlock();
+                        auto buf = d->m_ALBufferQueue.dequeue();
+                        lock.unlock();
 //                    qDebug("Buffering data to buffer: %d", buf);
-                    alCall(alBufferData,
-                           buf,
-                           AL_FORMAT_STEREO16,
-                           &frame.first->buf[0]->data[0],
-                           frame.first->buf[0]->size,
-                           frame.first->sample_rate);
-                    d->m_ALBufferSampleMap[buf] = frame.first->nb_samples;
-                    d->m_queuedSamples += frame.first->nb_samples;
-                    av_frame_free(&frame.first);
-                    alCall(alSourceQueueBuffers, d->m_ALSource, 1, &buf);
-                    ++d->m_playingBuffers;
-                    ++d->m_audioFrame;
-                } else {
-                    break;
+                        alCall(alBufferData,
+                               buf,
+                               AL_FORMAT_STEREO16,
+                               &frame.first->buf[0]->data[0],
+                               frame.first->buf[0]->size,
+                               frame.first->sample_rate);
+                        d->m_ALBufferSampleMap[buf] = frame.first->nb_samples;
+                        d->m_queuedSamples += frame.first->nb_samples;
+                        av_frame_free(&frame.first);
+                        alCall(alSourceQueueBuffers, d->m_ALSource, 1, &buf);
+                        ++d->m_playingBuffers;
+                        ++d->m_audioFrame;
+                    } else {
+                        break;
+                    }
                 }
             }
-        } else {
-//                    qFatal("Audio device overrun detected");
         }
 
         ALint state = 0;
