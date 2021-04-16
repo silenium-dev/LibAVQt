@@ -110,8 +110,6 @@ namespace AVQt {
                 timeout(0);
             }
             timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
-        } else {
-            qDebug("Render clock paused, not firing");
         }
     }
 

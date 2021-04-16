@@ -26,6 +26,8 @@ namespace AVQt {
         Q_UNUSED(source)
         Q_D(AVQt::OpenALAudioOutput);
 
+        qDebug("Initializing OpenALAudioOutput");
+
         if (d->m_running.load() || !d->m_ALBuffers.empty()) {
             return -1;
         }
@@ -134,6 +136,8 @@ namespace AVQt {
         bool shouldBeCurrent = false;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, true)) {
             d->m_paused.store(false);
+            d->m_ALBufferQueue.clear();
+            d->m_ALBufferQueue.append(d->m_ALBuffers);
             QThread::start(QThread::TimeCriticalPriority);
             return 0;
         }
@@ -303,7 +307,7 @@ namespace AVQt {
 
             d->m_clock.store(renderer->getClock());
             clockIntervalChanged(d->m_clock.load()->getInterval());
-            uint64_t newBufferCount = (1000 * 1.0 / d->m_clockInterval) * d->m_sampleRate / 1536;
+            int64_t newBufferCount = (1000 * 1.0 / d->m_clockInterval) * d->m_sampleRate / 1536;
             if (d->m_ALBuffers.size() != newBufferCount) {
                 ALCboolean contextCurrent = ALC_FALSE;
                 alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext);
@@ -334,6 +338,12 @@ namespace AVQt {
 
     void OpenALAudioOutput::clockTriggered(qint64 timestamp) {
         Q_D(AVQt::OpenALAudioOutput);
+
+        // If no buffers generated, the audio output was not initialized
+        if (d->m_ALBuffers.isEmpty()) {
+            return;
+        }
+
         if (timestamp - d->m_lastUpdate.load() > d->m_clockInterval * 5000) {
             qDebug("Was paused since last update for %lld ms", (timestamp - d->m_lastUpdate.load()) / 1000);
             d->m_wasPaused.store(true);
@@ -343,10 +353,6 @@ namespace AVQt {
         ALCboolean contextCurrent = ALC_FALSE;
         if (!alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext) || contextCurrent != ALC_TRUE) {
             qFatal("Could not make ALC context current");
-        }
-
-        if (d->m_audioFrame == 0) {
-            d->m_ALBufferQueue.append(&d->m_ALBuffers[0], &d->m_ALBuffers[0] + d->m_ALBufferCount);
         }
 
 //        qDebug("Buffers processed: %d", buffersProcessed);
@@ -444,7 +450,7 @@ namespace AVQt {
                     }
 
                     while (!d->m_inputQueue.isEmpty()) {
-                        if (d->m_inputQueue.first().first->pts >= timestamp) {
+                        if (d->m_inputQueue.first().first->pts / 1000 >= timestamp / 1000) {
                             break;
                         }
                         frame = d->m_inputQueue.dequeue();
@@ -455,7 +461,7 @@ namespace AVQt {
                 }
                 while (!d->m_inputQueue.isEmpty() &&
                        !d->m_ALBufferQueue.isEmpty()) {
-                    if (d->m_queuedSamples / d->m_inputQueue.front().first->sample_rate * 1000 < d->m_clockInterval) {
+                    if (d->m_queuedSamples * 1.0 / d->m_inputQueue.front().first->sample_rate < d->m_clockInterval * 1.5) {
                         lock.relock();
                         QMutexLocker lock1(&d->m_inputQueueMutex);
                         QMutexLocker lock2(&d->m_ALBufferSampleMapMutex);

@@ -28,8 +28,8 @@ namespace AVQt {
 
         QMutex m_inputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_inputQueue;
-        AVFrame *m_partialFrame = nullptr;
-        size_t m_partialFrameOffset = 0;
+//        AVFrame *m_partialFrame = nullptr;
+//        size_t m_partialFrameOffset = 0;
         QMutex m_outputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_outputQueue;
         std::atomic_bool m_outputSliceDurationChanged = false;
@@ -42,7 +42,7 @@ namespace AVQt {
 
         int64_t m_ALBufferCount = 5;
         std::atomic_size_t m_playingBuffers = 0;
-        std::vector<ALuint> m_ALBuffers;
+        QList<ALuint> m_ALBuffers;
         QRecursiveMutex m_ALBufferQueueMutex;
         QQueue<ALuint> m_ALBufferQueue;
         QRecursiveMutex m_ALBufferSampleMapMutex;

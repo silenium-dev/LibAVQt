@@ -410,6 +410,7 @@ namespace AVQt {
             }
 
             if (d->m_currentFrame) {
+                qDebug("Drawing frame with PTS: %ld", d->m_currentFrame->pts);
                 d->m_program->bind();
                 if (!d->m_yTexture->isBound(0)) {
                     d->m_yTexture->bind(0);

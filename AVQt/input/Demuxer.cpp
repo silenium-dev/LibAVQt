@@ -297,16 +297,20 @@ namespace AVQt {
                     av_packet_unref(cbPacket);
                 }
                 if (elapsedTimer.hasExpired(500)) {
-                    std::cout << std::endl << "Packet statistics" << std::endl;
-                    std::cout.fill(' ');
-                    std::cout << "| Packet type | Packet count |   Percentage |" << std::endl;
-                    std::cout << "| Video       |" << std::setw(14) << videoPackets << "|" << std::setw(11)
-                              << (videoPackets * 1.0 / packetCount) * 100.0 << " % |" << std::endl;
-                    std::cout << "| Audio       |" << std::setw(14) << audioPackets << "|" << std::setw(11)
-                              << (audioPackets * 1.0 / packetCount) * 100.0 << " % |" << std::endl;
-                    std::cout << "| Subtitle    |" << std::setw(14) << sttPackets << "|" << std::setw(11)
-                              << (sttPackets * 1.0 / packetCount) * 100.0 << " % |" << std::endl;
-                    std::cout << std::endl;
+                    QByteArray aP, vP, sP, aR, vR, sR;
+                    aP = QString("%1").arg(audioPackets, 12).toLocal8Bit();
+                    vP = QString("%1").arg(videoPackets, 12).toLocal8Bit();
+                    sP = QString("%1").arg(sttPackets, 12).toLocal8Bit();
+                    aR = QString("%1").arg((audioPackets * 1.0 / packetCount) * 100.0, 10).toLocal8Bit();
+                    vR = QString("%1").arg((videoPackets * 1.0 / packetCount) * 100.0, 10).toLocal8Bit();
+                    sR = QString("%1").arg((sttPackets * 1.0 / packetCount) * 100.0, 10).toLocal8Bit();
+
+                    qDebug() << "Packet statistics";
+                    qDebug() << "| Packet type | Packet count |   Percentage |";
+                    qDebug() << "| Video       |" << vP.data() << "|" << vR.data() << "% |";
+                    qDebug() << "| Audio       |" << aP.data() << "|" << aR.data() << "% |";
+                    qDebug() << "| Subtitle    |" << sP.data() << "|" << sR.data() << "% |";
+                    qDebug();
                     elapsedTimer.restart();
                 }
             } else {
