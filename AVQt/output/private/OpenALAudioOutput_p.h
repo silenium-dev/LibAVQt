@@ -24,7 +24,7 @@ namespace AVQt {
     class OpenALAudioOutputPrivate {
         explicit OpenALAudioOutputPrivate(OpenALAudioOutput *q) : q_ptr(q) {};
 
-        OpenALAudioOutput *q_ptr;
+        [[maybe_unused]] OpenALAudioOutput *q_ptr;
 
         QMutex m_inputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_inputQueue;
@@ -47,7 +47,7 @@ namespace AVQt {
         QQueue<ALuint> m_ALBufferQueue;
         QRecursiveMutex m_ALBufferSampleMapMutex;
         QMap<ALuint, int64_t> m_ALBufferSampleMap;
-        int64_t m_queuedSamples;
+        int64_t m_queuedSamples = 0;
         ALCdevice *m_ALCDevice = nullptr;
         ALCcontext *m_ALCContext = nullptr;
 

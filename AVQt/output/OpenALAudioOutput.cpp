@@ -324,7 +324,7 @@ namespace AVQt {
             }
             connect(d->m_clock.load(), &RenderClock::intervalChanged, this, &OpenALAudioOutput::clockIntervalChanged);
             connect(d->m_clock.load(), &RenderClock::timeout, this, &OpenALAudioOutput::clockTriggered);
-            connect(renderer, &OpenGLRenderer::paused, [=](bool paused) {
+            connect(renderer, &OpenGLRenderer::paused, [this](bool paused) {
                 QMetaObject::invokeMethod(this, "pause", Q_ARG(IAudioSource *, nullptr), Q_ARG(bool, paused));
             });
         }

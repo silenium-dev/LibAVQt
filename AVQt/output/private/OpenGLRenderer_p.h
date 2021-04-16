@@ -26,10 +26,11 @@ namespace AVQt {
     class OpenGLRendererPrivate {
         explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {};
 
-        GLint project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
-                      GLdouble *winx, GLdouble *winy, GLdouble *winz);
+        static GLint
+        project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
+                GLdouble *winx, GLdouble *winy, GLdouble *winz);
 
-        inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+        static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
 
 
         OpenGLRenderer *q_ptr = nullptr;
@@ -51,7 +52,7 @@ namespace AVQt {
         QOpenGLVertexArrayObject m_vao;
         QOpenGLBuffer m_vbo, m_ibo;
         QOpenGLShaderProgram *m_program = nullptr;
-        QOpenGLTexture *m_yTexture = nullptr, *m_uvTexture = nullptr;
+        QOpenGLTexture *m_yTexture = nullptr, *m_uTexture = nullptr, *m_vTexture = nullptr;
 
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE = 0;
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE = 1;

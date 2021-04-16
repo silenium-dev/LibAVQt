@@ -109,6 +109,7 @@ namespace AVQt {
                 d->m_elapsedTime->start();
                 timeout(0);
             }
+            qDebug("Timeout at: %lld", d->m_elapsedTime->nsecsElapsed() / 1000 - d->m_pausedTime);
             timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
         }
     }
