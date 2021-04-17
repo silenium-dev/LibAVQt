@@ -67,7 +67,7 @@ namespace AVQt {
                     d->m_lastPauseTimestamp = d->m_elapsedTime->nsecsElapsed() / 1000;
                 }
             } else {
-                if (d->m_elapsedTime) {
+                if (d->m_elapsedTime && d->m_lastPauseTimestamp >= 0) {
                     d->m_pausedTime += (d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_lastPauseTimestamp;
                 }
             }

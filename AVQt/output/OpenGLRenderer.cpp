@@ -102,17 +102,17 @@ namespace AVQt {
             d->m_vao.destroy();
 
             if (d->m_yTexture) {
-                d->m_yTexture->destroy();
+//                d->m_yTexture->destroy();
                 delete d->m_yTexture;
             }
 
             if (d->m_uTexture) {
-                d->m_uTexture->destroy();
+//                d->m_uTexture->destroy();
                 delete d->m_uTexture;
             }
 
             if (d->m_yTexture) {
-                d->m_yTexture->destroy();
+//                d->m_yTexture->destroy();
                 delete d->m_yTexture;
             }
 
@@ -361,16 +361,26 @@ namespace AVQt {
                         }
 
                         if (firstFrame) {
-                            d->m_yTexture = new QOpenGLTexture(
-                                    QImage(d->m_currentFrame->width, d->m_currentFrame->height, QImage::Format_ARGB32));
-                            d->m_uTexture = new QOpenGLTexture(
-                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_ARGB32));
-                            d->m_vTexture = new QOpenGLTexture(
-                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_ARGB32));
+                            d->m_yTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            d->m_uTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            d->m_vTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            d->m_yTexture->setSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                            d->m_uTexture->setSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                            d->m_vTexture->setSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                            d->m_yTexture->setFormat(QOpenGLTexture::RGBA16_UNorm);
+                            d->m_uTexture->setFormat(QOpenGLTexture::RGBA16_UNorm);
+                            d->m_vTexture->setFormat(QOpenGLTexture::RGBA16_UNorm);
+                            d->m_yTexture->allocateStorage(QOpenGLTexture::Red, QOpenGLTexture::UInt16);
+                            d->m_uTexture->allocateStorage(QOpenGLTexture::RG, QOpenGLTexture::UInt16);
+                            d->m_vTexture->allocateStorage(QOpenGLTexture::Red, QOpenGLTexture::UInt16);
+//                            d->m_uTexture = new QOpenGLTexture(
+//                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_RGBX64));
+//                            d->m_vTexture = new QOpenGLTexture(
+//                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_RGBX64));
 
-                            d->m_yTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
-                            d->m_uTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
-                            d->m_vTexture->setMinMagFilters(QOpenGLTexture::LinearMipMapLinear, QOpenGLTexture::LinearMipMapLinear);
+                            d->m_yTexture->setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
+                            d->m_uTexture->setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
+                            d->m_vTexture->setMinMagFilters(QOpenGLTexture::Nearest, QOpenGLTexture::Nearest);
                         }
 //                    qDebug("Frame duration: %ld ms", d->m_currentFrameTimeout);
                         if (differentPixFmt) {
@@ -396,7 +406,7 @@ namespace AVQt {
                                 break;
                             case AV_PIX_FMT_P010:
                                 d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[0]);
-                                d->m_uTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[1]);
+                                d->m_uTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt16, d->m_currentFrame->data[1]);
                                 if (differentPixFmt) {
                                     d->m_program->setUniformValue("inputFormat", 1);
                                 }
@@ -410,7 +420,7 @@ namespace AVQt {
                                 }
                                 break;
                             case AV_PIX_FMT_YUV420P10:
-                                // TODO: Fix crappy and low-res colors with 10bit YUV420P
+                                // TODO: Fix crappy and low-res colors with 10bit YUV420P10LE, caused by data in lsb
                                 d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[0]);
                                 d->m_uTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[1]);
                                 d->m_vTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16, d->m_currentFrame->data[2]);
