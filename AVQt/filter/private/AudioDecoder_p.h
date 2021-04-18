@@ -26,11 +26,11 @@ namespace AVQt {
 
         QMutex m_inputQueueMutex;
         QQueue<AVPacket *> m_inputQueue;
-        int64_t m_duration = 0;
+        int64_t m_duration {0};
 
-        AVCodecParameters *m_pCodecParams = nullptr;
-        AVCodec *m_pCodec = nullptr;
-        AVCodecContext *m_pCodecCtx = nullptr;
+        AVCodecParameters *m_pCodecParams {nullptr};
+        AVCodec *m_pCodec {nullptr};
+        AVCodecContext *m_pCodecCtx {nullptr};
         AVRational m_timebase;
 
         // Callback stuff
@@ -38,8 +38,8 @@ namespace AVQt {
         QList<IAudioSink *> m_cbList;
 
         // Threading stuff
-        std::atomic_bool m_running = false;
-        std::atomic_bool m_paused = false;
+        std::atomic_bool m_running  {false};
+        std::atomic_bool m_paused  {false};
 
         friend class AudioDecoder;
     };

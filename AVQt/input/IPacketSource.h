@@ -57,14 +57,14 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        Q_INVOKABLE virtual int registerCallback(IPacketSink *packetSink, uint8_t type) = 0;
+        Q_INVOKABLE virtual qsizetype registerCallback(IPacketSink *packetSink, uint8_t type) = 0;
 
         /*!
          * \brief Removes packet callback \c packetSink from registry
          * @param packetSink Packet sink/filter to be removed
          * @return Previous position of the item, is -1 when not in registry
          */
-        Q_INVOKABLE virtual int unregisterCallback(IPacketSink *packetSink) = 0;
+        Q_INVOKABLE virtual qsizetype unregisterCallback(IPacketSink *packetSink) = 0;
 
     public slots:
         /*!

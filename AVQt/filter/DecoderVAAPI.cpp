@@ -32,7 +32,6 @@ namespace AVQt {
         deinit();
 
         delete d_ptr;
-        d_ptr = nullptr;
     }
 
     void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,

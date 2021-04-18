@@ -35,7 +35,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    int Demuxer::registerCallback(IPacketSink *packetSink, uint8_t type) {
+    qsizetype Demuxer::registerCallback(IPacketSink *packetSink, uint8_t type) {
         Q_D(AVQt::Demuxer);
 
         QMutexLocker lock(&d->m_cbMutex);
@@ -79,7 +79,7 @@ namespace AVQt {
         return 0;
     }
 
-    int Demuxer::unregisterCallback(IPacketSink *packetSink) {
+    qsizetype Demuxer::unregisterCallback(IPacketSink *packetSink) {
         Q_D(AVQt::Demuxer);
 
         QMutexLocker lock(&d->m_cbMutex);

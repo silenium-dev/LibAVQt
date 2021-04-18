@@ -28,6 +28,7 @@ namespace AVQt {
     OpenGLRenderer::~OpenGLRenderer() noexcept {
         Q_D(AVQt::OpenGLRenderer);
 
+        delete d_ptr;
     }
 
     int OpenGLRenderer::init(IFrameSource *source, AVRational framerate, int64_t duration) {

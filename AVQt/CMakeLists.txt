@@ -52,9 +52,9 @@ add_library(
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
 
-        #        output/EncoderVAAPI.h
-        #        output/private/EncoderVAAPI_p.h
-        #        output/EncoderVAAPI.cpp
+        filter/EncoderVAAPI.h
+        filter/private/EncoderVAAPI_p.h
+        filter/EncoderVAAPI.cpp
 
         output/RenderClock.h
         output/private/RenderClock_p.h

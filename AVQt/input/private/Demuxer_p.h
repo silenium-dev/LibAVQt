@@ -24,7 +24,7 @@ namespace AVQt {
 
         Demuxer *q_ptr;
 
-        std::atomic_bool m_running = false, m_paused = false, m_initialized = false;
+        std::atomic_bool m_running {false}, m_paused {false}, m_initialized  {false};
         QMutex m_cbMutex;
         QMap<IPacketSink *, int8_t> m_cbMap;
 
@@ -32,10 +32,10 @@ namespace AVQt {
         int m_videoStream = -1, m_audioStream = -1, m_subtitleStream = -1;
 
         static constexpr size_t BUFFER_SIZE = 1024;
-        uint8_t *m_pBuffer = nullptr;
-        AVFormatContext *m_pFormatCtx = nullptr;
-        AVIOContext *m_pIOCtx = nullptr;
-        QIODevice *m_inputDevice = nullptr;
+        uint8_t *m_pBuffer {nullptr};
+        AVFormatContext *m_pFormatCtx {nullptr};
+        AVIOContext *m_pIOCtx {nullptr};
+        QIODevice *m_inputDevice {nullptr};
 
         friend class Demuxer;
     };
