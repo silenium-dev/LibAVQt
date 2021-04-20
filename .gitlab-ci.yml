@@ -1,3 +1,9 @@
+build-container:
+  stage: build
+  script:
+    - docker build -t builder docker/
+
 build-job:
   stage: build
-  script: docker/build.sh
+  script:
+    - docker run builder
