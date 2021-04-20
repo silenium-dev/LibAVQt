@@ -260,6 +260,8 @@ namespace AVQt {
         delete d_ptr;
         d_ptr = other.d_ptr;
         other.d_ptr = nullptr;
+
+        return *this;
     }
 
     EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) {

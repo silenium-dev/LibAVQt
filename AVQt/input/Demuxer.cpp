@@ -330,6 +330,8 @@ namespace AVQt {
         d_ptr = other.d_ptr;
         d_ptr->q_ptr = this;
         other.d_ptr = nullptr;
+
+        return *this;
     }
 
     int DemuxerPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
