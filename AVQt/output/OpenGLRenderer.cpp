@@ -11,6 +11,7 @@ extern "C" {
 #include <libavutil/frame.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/hwcontext.h>
 }
 
 static void loadResources() {

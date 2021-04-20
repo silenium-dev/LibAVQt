@@ -9,6 +9,7 @@
 
 extern "C" {
 #include <libavutil/avutil.h>
+#include <libavutil/hwcontext.h>
 #include <libavfilter/avfilter.h>
 #include <libavformat/avformat.h>
 #include <libavdevice/avdevice.h>
