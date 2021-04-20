@@ -35,6 +35,10 @@ namespace AVQt {
     public:
         explicit EncoderVAAPI(QString encoder, QObject *parent = nullptr);
 
+        explicit EncoderVAAPI(EncoderVAAPI &other) = delete;
+
+        explicit EncoderVAAPI(EncoderVAAPI &&other);
+
         ~EncoderVAAPI() override;
 
         bool isPaused() override;
@@ -44,6 +48,10 @@ namespace AVQt {
         qsizetype unregisterCallback(IPacketSink *packetSink) override;
 
         void run() override;
+
+        EncoderVAAPI &operator=(const EncoderVAAPI &other) = delete;
+
+        EncoderVAAPI &operator=(EncoderVAAPI &&other) noexcept;
 
     public slots:
 

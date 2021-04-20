@@ -319,6 +319,19 @@ namespace AVQt {
         }
     }
 
+    Demuxer::Demuxer(Demuxer &&other) {
+        d_ptr = other.d_ptr;
+        d_ptr->q_ptr = this;
+        other.d_ptr = nullptr;
+    }
+
+    Demuxer &Demuxer::operator=(Demuxer &&other) noexcept {
+        delete d_ptr;
+        d_ptr = other.d_ptr;
+        d_ptr->q_ptr = this;
+        other.d_ptr = nullptr;
+    }
+
     int DemuxerPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
         auto *inputDevice = reinterpret_cast<QIODevice *>(opaque);
 

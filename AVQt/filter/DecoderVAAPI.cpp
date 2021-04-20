@@ -7,7 +7,6 @@
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
 #include "input/IPacketSource.h"
-#include <va/va_glx.h>
 
 #include <QApplication>
 #include <QtConcurrent>

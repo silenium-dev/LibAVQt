@@ -21,6 +21,10 @@ namespace AVQt {
     public:
         [[maybe_unused]] explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
 
+        explicit Demuxer(Demuxer &other) = delete;
+
+        explicit Demuxer(Demuxer &&other);
+
         /*!
          * \private
          */
@@ -46,6 +50,10 @@ namespace AVQt {
          * @return Previous position of the item, is -1 when not in registry
          */
         Q_INVOKABLE qsizetype unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
+
+        Demuxer &operator=(const Demuxer &other) = delete;
+
+        Demuxer &operator=(Demuxer &&other) noexcept;
 
     public slots:
         /*!

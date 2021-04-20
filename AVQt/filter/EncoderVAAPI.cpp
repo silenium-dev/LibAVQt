@@ -21,7 +21,7 @@ namespace AVQt {
 
     EncoderVAAPI::~EncoderVAAPI() {
         delete d_ptr;
-    };
+    }
 
     int EncoderVAAPI::init() {
         Q_D(AVQt::EncoderVAAPI);
@@ -208,8 +208,8 @@ namespace AVQt {
     void EncoderVAAPI::run() {
         Q_D(AVQt::EncoderVAAPI);
 
-        int ret {0};
-        constexpr auto strBufSize {64};
+        int ret{0};
+        constexpr auto strBufSize{64};
         char strBuf[strBufSize];
 
         while (d->m_running.load()) {
@@ -254,5 +254,16 @@ namespace AVQt {
                 msleep(1);
             }
         }
+    }
+
+    EncoderVAAPI &EncoderVAAPI::operator=(EncoderVAAPI &&other) noexcept {
+        delete d_ptr;
+        d_ptr = other.d_ptr;
+        other.d_ptr = nullptr;
+    }
+
+    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) {
+        d_ptr = other.d_ptr;
+        other.d_ptr = nullptr;
     }
 }
