@@ -2,6 +2,5 @@ build-container:
   stage: build
   script:
     - apt install docker
-    - service docker start
     - docker build -t builder docker/
     - docker run builder
