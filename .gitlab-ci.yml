@@ -1,6 +1,9 @@
 build-container:
   stage: build
+  image: wiktorguz/qt6
   script:
-    - apt install docker
-    - docker build -t builder docker/
-    - docker run builder
+    - apt update && apt upgrade -y
+    - apt install -y software-properties-common
+    - add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt update
+    - apt install -y libswscale-dev libswresample-dev libpostproc-dev libavutil-dev libavresample-dev libavformat-dev libavfilter-extra libavfilter-dev libavdevice-dev libavcodec-extra libavcodec-dev ffmpeg git cmake libvulkan-dev gcc-10 gcc-10-base gcc-10-doc g++-10 libopenal-dev
+    - ls -lh
