@@ -1,6 +1,6 @@
 build:
   stage: build
-  image: sdc0/manjaro-qt6-ffmpeg
+  image: manjarolinux/base
   script:
     - mkdir build
     - cd build
