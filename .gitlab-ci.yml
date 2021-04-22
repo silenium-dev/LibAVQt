@@ -1,6 +1,8 @@
 build:
   stage: build
-  image: wiktorguz/qt6
+  image:
+    name: wiktorguz/qt6
+    entrypoint: ["/bin/bash", "-c"]
   script:
     - mkdir build
     - cd build
