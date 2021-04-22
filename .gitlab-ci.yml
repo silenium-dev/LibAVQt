@@ -1,6 +1,6 @@
 build:
   stage: build
-  image: manjarolinux/base
+  image: wiktorguz/qt6
   script:
     - mkdir build
     - cd build
