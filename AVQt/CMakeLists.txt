@@ -43,6 +43,10 @@ add_library(
         filter/private/DecoderVAAPI_p.h
         filter/DecoderVAAPI.cpp
 
+        filter/DecoderDXVA2.h
+        filter/private/DecoderDXVA2_p.h
+        filter/DecoderDXVA2.cpp
+
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
         output/private/OpenALErrorHandler.h
@@ -52,9 +56,9 @@ add_library(
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
 
-        filter/EncoderVAAPI.h
-        filter/private/EncoderVAAPI_p.h
-        filter/EncoderVAAPI.cpp
+        #        filter/EncoderVAAPI.h
+        #        filter/private/EncoderVAAPI_p.h
+        #        filter/EncoderVAAPI.cpp
 
         output/RenderClock.h
         output/private/RenderClock_p.h
