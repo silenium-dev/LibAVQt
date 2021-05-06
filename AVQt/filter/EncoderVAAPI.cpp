@@ -6,7 +6,7 @@
 #include "EncoderVAAPI.h"
 
 #include <QtCore>
-#include "output/IPacketSink.h"
+#include "IPacketSink.h"
 
 namespace AVQt {
     EncoderVAAPI::EncoderVAAPI(QString encoder, QObject *parent) : QThread(parent), d_ptr(new EncoderVAAPIPrivate(this)) {
@@ -29,13 +29,6 @@ namespace AVQt {
         int ret = 0;
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
-
-        ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
-        if (ret < 0) {
-            qFatal("%i: Unable to create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-        } else if (!d->m_pDeviceCtx) {
-            qFatal("Unable to create AVHWDeviceContext");
-        }
 
         d->m_pCodec = avcodec_find_encoder_by_name(d->m_encoder.toLocal8Bit().constData());
         if (!d->m_pCodec) {
@@ -217,11 +210,56 @@ namespace AVQt {
                 bool shouldBe = true;
                 if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
                     auto frame = d->m_inputQueue.first().first;
+
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
+                    if (!d->m_pCodecCtx) {
+                        qFatal("Could not create VAAPI encoder context");
+                    }
                     d->m_pCodecCtx->width = frame->width;
                     d->m_pCodecCtx->height = frame->height;
-                    d->m_pCodecCtx->sw_pix_fmt = static_cast<AVPixelFormat>(frame->format);
+                    if (frame->hw_frames_ctx) {
+                        d->m_pDeviceCtx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_VAAPI);
+                        ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
+                        if (ret < 0) {
+                            qFatal("%i: Unable to create derived AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        } else if (!d->m_pDeviceCtx) {
+                            qFatal("Unable to create derived AVHWDeviceContext");
+                        }
+
+                        d->m_pCodecCtx->sw_pix_fmt = reinterpret_cast<AVHWFramesContext*>(frame->hw_frames_ctx->data)->sw_format;
+                        ret = av_hwframe_ctx_create_derived(&d->m_pFramesCtx, d->m_pCodecCtx->sw_pix_fmt, d->m_pDeviceCtx, frame->hw_frames_ctx, 0);
+                        if (ret < 0) {
+                            qFatal("%i: Unable to create derived AVHWFramesContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        } else if (!d->m_pDeviceCtx) {
+                            qFatal("Unable to create derived AVHWFramesContext");
+                        }
+                        d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
+                        d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
+                    } else {
+                        ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
+                        if (ret < 0) {
+                            qFatal("%i: Unable to create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        } else if (!d->m_pDeviceCtx) {
+                            qFatal("Unable to create AVHWDeviceContext");
+                        }
+
+                        d->m_pCodecCtx->sw_pix_fmt = static_cast<AVPixelFormat>(frame->format);
+
+                        d->m_pFramesCtx = av_hwframe_ctx_alloc(d->m_pDeviceCtx);
+                        auto *framesContext = reinterpret_cast<AVHWFramesContext*>(d->m_pFramesCtx->data);
+                        framesContext->width = d->m_pCodecCtx->width;
+                        framesContext->height = d->m_pCodecCtx->height;
+                        framesContext->sw_format = d->m_pCodecCtx->sw_pix_fmt;
+
+                        d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
+                        d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
+                    }
+
                     d->m_pCodecCtx->time_base = av_inv_q(d->m_framerate);
+                    ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
+                    if (ret < 0) {
+                        qFatal("%i: Unable to open VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                    }
                 }
                 while (ret == 0) {
                     QPair<AVFrame *, int64_t> frame;
@@ -230,16 +268,20 @@ namespace AVQt {
                         frame = d->m_inputQueue.dequeue();
                     }
                     ret = avcodec_send_frame(d->m_pCodecCtx, frame.first);
+                    if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+                        break;
+                    } else if (ret < 0) {
+                        qFatal("%i: Could not send frame to encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                    }
                     av_frame_free(&frame.first);
                 }
-                ret = 0;
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
                     ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
                     } else if (ret < 0) {
-                        qFatal("%i: Could not receive frame from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%i: Could not receive packet from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
                     {
                         QMutexLocker lock(&d->m_cbListMutex);

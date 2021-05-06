@@ -5,6 +5,7 @@
 #include "IPacketSource.h"
 
 #include <QThread>
+#include <QIODevice>
 
 #ifndef LIBAVQT_DEMUXER_H
 #define LIBAVQT_DEMUXER_H

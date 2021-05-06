@@ -2,8 +2,7 @@
 // Created by silas on 3/1/21.
 //
 
-#include "input/IFrameSource.h"
-#include "output/IPacketSink.h"
+#include "IDecoder.h"
 
 #include <QtCore>
 #include <QtGui>
@@ -31,14 +30,15 @@ namespace AVQt {
      * \class DecoderVAAPI
      * \brief VAAPI accelerated video decoder
      *
-     * Decodes video from QIODevice into single frames, that are passed to every via registerCallback registered callback.
+     * Decodes video from packet source into single frames, that are passed to every via registerCallback registered callback.
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class DecoderVAAPI : public QThread, public IFrameSource, public IPacketSink {
+    class DecoderVAAPI : public QThread, public IDecoder {
     Q_OBJECT
-        Q_INTERFACES(AVQt::IFrameSource)
-        Q_INTERFACES(AVQt::IPacketSink)
+        Q_INTERFACES(AVQt::IDecoder)
+//        Q_INTERFACES(AVQt::IFrameSource)
+//        Q_INTERFACES(AVQt::IPacketSink)
 
         Q_DECLARE_PRIVATE(AVQt::DecoderVAAPI)
 

@@ -40,9 +40,9 @@ namespace AVQt {
         QMutex m_swrContextMutex;
         SwrContext *m_pSwrContext {nullptr};
 
-        int64_t m_ALBufferCount = 5;
+        int m_ALBufferCount = 5;
         std::atomic_size_t m_playingBuffers {0};
-        QList<ALuint> m_ALBuffers;
+        QVector<ALuint> m_ALBuffers;
         QRecursiveMutex m_ALBufferQueueMutex;
         QQueue<ALuint> m_ALBufferQueue;
         QRecursiveMutex m_ALBufferSampleMapMutex;

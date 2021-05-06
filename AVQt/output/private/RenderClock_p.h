@@ -13,7 +13,7 @@ namespace AVQt {
         RenderClock *q_ptr;
 
         QTimer *m_timer {nullptr};
-        std::atomic_int64_t m_interval = 1;
+        std::atomic_int64_t m_interval {1};
         std::atomic_bool m_active  {false};
         std::atomic_bool m_paused  {false};
         QElapsedTimer *m_elapsedTime {nullptr};

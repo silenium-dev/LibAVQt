@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
-    signal(SIGQUIT, &signalHandler);
+//    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();
 
@@ -57,19 +57,28 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadOnly);
 
     AVQt::Demuxer demuxer(inputFile);
-    AVQt::AudioDecoder decoder;
-    AVQt::OpenALAudioOutput output;
+//    AVQt::AudioDecoder decoder;
+//    AVQt::OpenALAudioOutput output;
 
-    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-    decoder.registerCallback(&output);
+//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+//    decoder.registerCallback(&output);
 
-    AVQt::DecoderVAAPI decoderVaapi;
-    AVQt::OpenGLRenderer renderer;
+    AVQt::IDecoder *videoDecoder;
+#ifdef Q_OS_LINUX
+    videoDecoder = new AVQt::DecoderVAAPI;
+#elif defined(Q_OS_WINDOWS)
+    videoDecoder = new AVQt::DecoderDXVA2();
+#else
+#error "Unsupported OS"
+#endif
+//    AVQt::OpenGLRenderer renderer;
 
-    demuxer.registerCallback(&decoderVaapi, AVQt::IPacketSource::CB_VIDEO);
-    decoderVaapi.registerCallback(&renderer);
+    AVQt::EncoderVAAPI encoder("h264_vaapi");
 
-    renderer.setMinimumSize(QSize(360, 240));
+    demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
+    videoDecoder->registerCallback(&encoder);
+
+//    renderer.setMinimumSize(QSize(360, 240));
 
 //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
 //        output.pause(nullptr, paused);
@@ -80,7 +89,7 @@ int main(int argc, char *argv[]) {
 
     demuxer.init();
 
-    output.syncToOutput(&renderer);
+//    output.syncToOutput(&renderer);
 
     demuxer.start();
 

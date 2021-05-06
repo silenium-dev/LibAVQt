@@ -3,7 +3,7 @@
 //
 
 #include <QObject>
-//#include "input/IPacketSource.h"
+//#include "IPacketSource.h"
 
 extern "C" {
 #include <libavutil/rational.h>

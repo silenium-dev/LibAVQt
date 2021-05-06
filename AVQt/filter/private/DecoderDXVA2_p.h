@@ -2,7 +2,7 @@
 // Created by silas on 4/28/21.
 //
 
-#include "filter/DecoderDXVA2.h"
+#include "DecoderDXVA2.h"
 
 extern "C" {
 #include <libavutil/rational.h>

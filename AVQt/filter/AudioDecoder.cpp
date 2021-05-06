@@ -5,8 +5,8 @@
 #include "private/AudioDecoder_p.h"
 #include "AudioDecoder.h"
 
-#include "input/IPacketSource.h"
-#include "output/IAudioSink.h"
+#include "IPacketSource.h"
+#include "IAudioSink.h"
 
 #include <QtCore>
 
@@ -223,7 +223,7 @@ namespace AVQt {
         while (d->m_running.load()) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
                 QTime time1 = QTime::currentTime();
-                qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
+                qDebug("Audio packet queue size: %d", d->m_inputQueue.size());
 
                 int ret = 0;
                 constexpr size_t strBufSize = 64;
@@ -258,7 +258,7 @@ namespace AVQt {
                         AVPacket *packet = d->m_inputQueue.dequeue();
                         lock.unlock();
 
-                        qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
+                        qDebug("Audio packet queue size: %d", d->m_inputQueue.size());
 
                         ret = avcodec_send_packet(d->m_pCodecCtx, packet);
                         if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {

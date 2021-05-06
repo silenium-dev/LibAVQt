@@ -9,7 +9,8 @@ set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
-find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
+#find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
+find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 
 if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
@@ -21,12 +22,11 @@ endif ()
 
 add_library(
         AVQt
-        SHARED
+        STATIC
 
         resources.qrc
 
         AVQt
-
 
         input/IPacketSource.h
         input/IFrameSource.h
@@ -34,10 +34,11 @@ add_library(
         output/IPacketSink.h
         output/IFrameSink.h
 
-
         input/Demuxer.h
         input/private/Demuxer_p.h
         input/Demuxer.cpp
+
+        filter/IDecoder.h
 
         filter/DecoderVAAPI.h
         filter/private/DecoderVAAPI_p.h
@@ -117,4 +118,5 @@ target_compile_options(AVQt PRIVATE
         -Wdouble-promotion
         )
 
-target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
+#target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
+target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample GL openal)

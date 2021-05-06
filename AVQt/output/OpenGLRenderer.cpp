@@ -113,9 +113,9 @@ namespace AVQt {
                 delete d->m_uTexture;
             }
 
-            if (d->m_yTexture) {
+            if (d->m_vTexture) {
 //                d->m_yTexture->destroy();
-                delete d->m_yTexture;
+                delete d->m_vTexture;
             }
 
             stopped();

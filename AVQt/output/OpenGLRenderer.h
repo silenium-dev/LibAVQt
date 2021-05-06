@@ -3,8 +3,13 @@
 //
 
 #include "IFrameSink.h"
-#include <QtOpenGLWidgets>
+//#include <QtOpenGLWidgets>
+#include <QtOpenGL>
 #include <input/IFrameSource.h>
+
+extern "C" {
+#include <libavutil/rational.h>
+}
 
 #ifndef LIBAVQT_OPENGLRENDERER_H
 #define LIBAVQT_OPENGLRENDERER_H

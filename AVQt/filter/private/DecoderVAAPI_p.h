@@ -3,7 +3,7 @@
  * \internal
  */
 
-#include "filter/DecoderVAAPI.h"
+#include "DecoderVAAPI.h"
 
 extern "C" {
 #include <libavutil/rational.h>
