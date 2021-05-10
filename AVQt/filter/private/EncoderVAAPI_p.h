@@ -21,6 +21,7 @@ namespace AVQt {
         AVCodec *m_pCodec{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
         AVBufferRef *m_pDeviceCtx{nullptr}, *m_pFramesCtx{nullptr};
+        AVFrame *m_pHWFrame{nullptr};
 
         QMutex m_inputQueueMutex;
         QQueue<QPair<AVFrame *, int64_t>> m_inputQueue;

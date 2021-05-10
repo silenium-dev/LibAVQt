@@ -9,8 +9,8 @@ set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
-#find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
-find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
+find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
+#find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 
 if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
@@ -50,16 +50,16 @@ add_library(
 
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
-        output/private/OpenALErrorHandler.h
+        filter/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
         #        output/FrameFileSaver.h
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
 
-        #        filter/EncoderVAAPI.h
-        #        filter/private/EncoderVAAPI_p.h
-        #        filter/EncoderVAAPI.cpp
+        filter/EncoderVAAPI.h
+        filter/private/EncoderVAAPI_p.h
+        filter/EncoderVAAPI.cpp
 
         output/RenderClock.h
         output/private/RenderClock_p.h
@@ -118,5 +118,5 @@ target_compile_options(AVQt PRIVATE
         -Wdouble-promotion
         )
 
-#target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
+target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
+#target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample GL openal)

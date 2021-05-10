@@ -5,7 +5,7 @@
 #include "private/OpenALAudioOutput_p.h"
 #include "OpenALAudioOutput.h"
 
-#include "private/OpenALErrorHandler.h"
+#include "filter/private/OpenALErrorHandler.h"
 #include "OpenGLRenderer.h"
 
 #include <QtCore>
@@ -433,7 +433,7 @@ namespace AVQt {
             if (d->m_inputQueue.isEmpty() || d->m_paused.load()) {
                 return;
             }
-            qDebug("Size of output queue: %d", d->m_inputQueue.size());
+            qDebug("Size of output queue: %lld", d->m_inputQueue.size());
             QMutexLocker lock(&d->m_ALBufferQueueMutex);
             if (!d->m_ALBufferQueue.isEmpty()) {
                 lock.unlock();

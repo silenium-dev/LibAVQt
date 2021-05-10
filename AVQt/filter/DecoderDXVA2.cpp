@@ -2,11 +2,11 @@
 // Created by silas on 3/1/21.
 //
 
-#include "DecoderDXVA2_p.h"
+#include "private/DecoderDXVA2_p.h"
 #include "DecoderDXVA2.h"
-#include "IFrameSink.h"
-#include "IAudioSink.h"
-#include "IPacketSource.h"
+#include "output/IFrameSink.h"
+#include "output/IAudioSink.h"
+#include "input/IPacketSource.h"
 
 #include <QApplication>
 #include <QtConcurrent>
@@ -244,7 +244,7 @@ namespace AVQt {
                         AVPacket *packet = d->m_inputQueue.dequeue();
                         lock.unlock();
 
-                        qDebug("Video packet queue size: %d", d->m_inputQueue.size());
+                        qDebug("Video packet queue size: %lld", d->m_inputQueue.size());
 
                         ret = avcodec_send_packet(d->m_pCodecCtx, packet);
                         if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {

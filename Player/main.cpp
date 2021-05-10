@@ -1,4 +1,4 @@
-#include "AVQt"
+﻿#include "AVQt"
 
 #include <QApplication>
 #include <QFileDialog>
@@ -25,7 +25,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
     QString output;
     QTextStream os(&output);
 
-    os << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << ": ";
+    auto now = QDateTime::currentDateTime();
+
+    os << now.toString(Qt::ISODateWithMs) << ": ";
     os << qPrintable(qFormatLogMessage(type, context, message)) << Qt::endl;
 
     std::cerr << output.toStdString();
@@ -47,7 +49,7 @@ int main(int argc, char *argv[]) {
     qInstallMessageHandler(&messageHandler);
 
     auto inputFile = new QFile(QFileDialog::getOpenFileName(nullptr, "Select video file",
-                                                            QStandardPaths::standardLocations(QStandardPaths::HomeLocation)[0],
+                                                            QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0),
                                                             "Video file (*.mkv *.mp4 *.webm *.m4v *.ts)"));
 
     if (inputFile->fileName().isEmpty()) {
@@ -73,10 +75,10 @@ int main(int argc, char *argv[]) {
 #endif
 //    AVQt::OpenGLRenderer renderer;
 
-    AVQt::EncoderVAAPI encoder("h264_vaapi");
+    AVQt::EncoderVAAPI *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(&encoder);
+    videoDecoder->registerCallback(encoder);
 
 //    renderer.setMinimumSize(QSize(360, 240));
 
@@ -95,6 +97,8 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
+        delete encoder;
+        delete videoDecoder;
     });
 
     return QApplication::exec();

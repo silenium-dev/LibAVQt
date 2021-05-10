@@ -2,10 +2,9 @@
 // Created by silas on 3/25/21.
 //
 
-#include <iostream>
 #include "Demuxer.h"
 #include "private/Demuxer_p.h"
-#include "../IPacketSink.h"
+#include "output/IPacketSink.h"
 
 
 namespace AVQt {
@@ -115,9 +114,9 @@ namespace AVQt {
                 qFatal("Could not open input format context");
             }
 
-            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
-                avformat_find_stream_info(d->m_pFormatCtx, nullptr);
-            }
+//            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
+            avformat_find_stream_info(d->m_pFormatCtx, nullptr);
+//            }
 
             for (size_t si = 0; si < d->m_pFormatCtx->nb_streams; ++si) {
                 switch (d->m_pFormatCtx->streams[si]->codecpar->codec_type) {
@@ -280,7 +279,7 @@ namespace AVQt {
                 } else if (packet->stream_index == d->m_audioStream) {
                     cbList = d->m_cbMap.keys(CB_AUDIO);
                     qDebug("Audio packet duration: %f ms",
-                           packet->duration * 1000.0 * av_q2d(d->m_pFormatCtx->streams[d->m_audioStream]->time_base));
+                           static_cast<double>(packet->duration) * 1000.0 * av_q2d(d->m_pFormatCtx->streams[d->m_audioStream]->time_base));
                     ++audioPackets;
                     type = CB_AUDIO;
                 } else if (packet->stream_index == d->m_subtitleStream) {
