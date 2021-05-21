@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadOnly);
 
     AVQt::Demuxer demuxer(inputFile);
-//    AVQt::AudioDecoder decoder;
-//    AVQt::OpenALAudioOutput output;
+    AVQt::AudioDecoder decoder;
+    AVQt::OpenALAudioOutput output;
 
 //    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
 //    decoder.registerCallback(&output);
@@ -73,12 +73,13 @@ int main(int argc, char *argv[]) {
 #else
 #error "Unsupported OS"
 #endif
-//    AVQt::OpenGLRenderer renderer;
+    AVQt::OpenGLRenderer renderer;
 
-    AVQt::EncoderVAAPI *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
+//    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(encoder);
+//    videoDecoder->registerCallback(encoder);
+    videoDecoder->registerCallback(&renderer);
 
 //    renderer.setMinimumSize(QSize(360, 240));
 
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-        delete encoder;
+//        delete encoder;
         delete videoDecoder;
     });
 

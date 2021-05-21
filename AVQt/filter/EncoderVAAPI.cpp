@@ -15,7 +15,7 @@ namespace AVQt {
         d->m_encoder = std::move(encoder);
     }
 
-    EncoderVAAPI::EncoderVAAPI(EncoderVAAPIPrivate &p) : d_ptr(&p) {
+    [[maybe_unused]] EncoderVAAPI::EncoderVAAPI(EncoderVAAPIPrivate &p) : d_ptr(&p) {
 
     }
 

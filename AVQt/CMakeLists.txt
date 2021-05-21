@@ -39,6 +39,7 @@ add_library(
         input/Demuxer.cpp
 
         filter/IDecoder.h
+        filter/IEncoder.h
 
         filter/DecoderVAAPI.h
         filter/private/DecoderVAAPI_p.h

@@ -2,8 +2,7 @@
 // Created by silas on 4/18/21.
 //
 
-#include "output/IFrameSink.h"
-#include "input/IPacketSource.h"
+#include "IEncoder.h"
 
 #include <QThread>
 
@@ -25,13 +24,12 @@ extern "C" {
 namespace AVQt {
     class EncoderVAAPIPrivate;
 
-    class EncoderVAAPI : public QThread, public IFrameSink, public IPacketSource {
+    class EncoderVAAPI : public QThread, public IEncoder {
     Q_OBJECT
 
         Q_DECLARE_PRIVATE(AVQt::EncoderVAAPI)
 
-        Q_INTERFACES(AVQt::IFrameSink)
-        Q_INTERFACES(AVQt::IPacketSource)
+        Q_INTERFACES(AVQt::IEncoder)
 
     public:
         explicit EncoderVAAPI(QString encoder, QObject *parent = nullptr);
@@ -87,7 +85,7 @@ namespace AVQt {
         void paused(bool pause) override;
 
     protected:
-        explicit EncoderVAAPI(EncoderVAAPIPrivate &p);
+        [[maybe_unused]] explicit EncoderVAAPI(EncoderVAAPIPrivate &p);
 
         EncoderVAAPIPrivate *d_ptr;
 

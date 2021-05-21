@@ -277,19 +277,19 @@ namespace AVQt {
 //                    auto t3 = NOW();
 
                     QMutexLocker lock2(&d->m_cbListMutex);
-                    QList<QFuture<void>> cbFutures;
+//                    QList<QFuture<void>> cbFutures;
                     for (const auto &cb: d->m_cbList) {
 //                        cbFutures.append(QtConcurrent::run([=] {
-                        AVFrame *cbFrame = av_frame_clone(frame);
-                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
-                                                    av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
-                        qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
-                               d->m_timebase.den);
-                        QTime time = QTime::currentTime();
-                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
-                        qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
-                        av_frame_unref(cbFrame);
-                        av_frame_free(&cbFrame);
+                            AVFrame *cbFrame = av_frame_clone(frame);
+                            cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+                                                        av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                            qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                                   d->m_timebase.den);
+                            QTime time = QTime::currentTime();
+                            cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
+                            qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
+                            av_frame_unref(cbFrame);
+                            av_frame_free(&cbFrame);
 //                        }));
                     }
 //                    bool cbBusy = true;
@@ -303,7 +303,6 @@ namespace AVQt {
 //                        }
 //                        usleep(500);
 //                    }
-                    // TODO: Pass HWFrame to sinks to improve performance in renderers, because VAAPI supports direct mapping to OpenGL textures
 //                    auto t2 = NOW();
 //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
 

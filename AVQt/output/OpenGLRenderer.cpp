@@ -172,7 +172,7 @@ namespace AVQt {
                 break;
         }
         newFrame.first->pts = frame->pts;
-        newFrame.second = -1;
+        newFrame.second = duration;
 //        av_frame_unref(frame);
 
 //        char strBuf[64];

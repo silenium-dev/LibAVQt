@@ -86,7 +86,7 @@ namespace AVQt {
 
             intervalChanged(interval);
         } else if (interval <= 0) {
-            throw std::out_of_range("Only timer intervals above 0 allowed");
+            throw std::out_of_range("Only positive timer intervals are allowed");
         }
     }
 
@@ -108,9 +108,17 @@ namespace AVQt {
                 d->m_elapsedTime = new QElapsedTimer;
                 d->m_elapsedTime->start();
                 timeout(0);
+            } else if (!d->m_elapsedTime->isValid()) {
+                d->m_elapsedTime->restart();
+                timeout(0);
+            } else {
+                qDebug("Timeout at: %lld", d->m_elapsedTime->nsecsElapsed() / 1000 - d->m_pausedTime);
+                if (d->m_elapsedTime->nsecsElapsed() / 1000 - d->m_pausedTime < 0) {
+                    qFatal("Invalid time: %lld, Paused: %lld, Valid: %s", d->m_elapsedTime->nsecsElapsed() / 1000, d->m_pausedTime,
+                           (d->m_elapsedTime->isValid() ? "true" : "false"));
+                }
+                timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
             }
-            qDebug("Timeout at: %lld", d->m_elapsedTime->nsecsElapsed() / 1000 - d->m_pausedTime);
-            timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
         }
     }
 
