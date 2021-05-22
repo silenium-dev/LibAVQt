@@ -37,6 +37,8 @@ namespace AVQt {
         if (d->m_active.compare_exchange_strong(shouldBe, true)) {
             qDebug("Starting clock");
             d->m_paused.store(false);
+            d->m_elapsedTime = new QElapsedTimer;
+            d->m_elapsedTime->start();
             d->m_timer->start();
         }
     }
@@ -53,6 +55,7 @@ namespace AVQt {
             d->m_timer->setInterval(d->m_interval);
 
             d->m_elapsedTime->invalidate();
+            d->m_lastPauseTimestamp = 0;
             delete d->m_elapsedTime;
         }
     }
@@ -64,11 +67,12 @@ namespace AVQt {
         if (d->m_paused.compare_exchange_strong(shouldBe, paused)) {
             if (paused) {
                 if (d->m_elapsedTime) {
-                    d->m_lastPauseTimestamp = d->m_elapsedTime->nsecsElapsed() / 1000;
+                    d->m_lastPauseTimestamp += d->m_elapsedTime->nsecsElapsed() / 1000;
+                    d->m_elapsedTime->invalidate();
                 }
             } else {
                 if (d->m_elapsedTime && d->m_lastPauseTimestamp >= 0) {
-                    d->m_pausedTime += (d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_lastPauseTimestamp;
+                    d->m_elapsedTime->restart();
                 }
             }
         }
@@ -106,18 +110,11 @@ namespace AVQt {
         if (!d->m_paused.load()) {
             if (!d->m_elapsedTime) {
                 d->m_elapsedTime = new QElapsedTimer;
-                d->m_elapsedTime->start();
-                timeout(0);
-            } else if (!d->m_elapsedTime->isValid()) {
-                d->m_elapsedTime->restart();
-                timeout(0);
+            }
+            if (!d->m_elapsedTime->isValid()) {
+                timeout(d->m_lastPauseTimestamp);
             } else {
-                qDebug("Timeout at: %lld", d->m_elapsedTime->nsecsElapsed() / 1000 - d->m_pausedTime);
-                if (d->m_elapsedTime->nsecsElapsed() / 1000 - d->m_pausedTime < 0) {
-                    qFatal("Invalid time: %lld, Paused: %lld, Valid: %s", d->m_elapsedTime->nsecsElapsed() / 1000, d->m_pausedTime,
-                           (d->m_elapsedTime->isValid() ? "true" : "false"));
-                }
-                timeout((d->m_elapsedTime->nsecsElapsed() / 1000) - d->m_pausedTime);
+                timeout(d->m_lastPauseTimestamp + d->m_elapsedTime->nsecsElapsed() / 1000);
             }
         }
     }
@@ -125,6 +122,17 @@ namespace AVQt {
     bool RenderClock::isPaused() {
         Q_D(AVQt::RenderClock);
         return d->m_paused.load();
+    }
+
+    int64_t RenderClock::getTimestamp() {
+        Q_D(AVQt::RenderClock);
+        if (!d->m_paused && d->m_elapsedTime && d->m_elapsedTime->isValid()) {
+            qDebug("Elapsed: %lld us", d->m_elapsedTime->nsecsElapsed());
+            return d->m_lastPauseTimestamp + d->m_elapsedTime->nsecsElapsed() / 1000;
+        } else {
+            qDebug("Paused or invalid elapsed time");
+            return d->m_lastPauseTimestamp;
+        }
     }
 
 //    void RenderClock::connectCallback(QObject *obj, void(*function)()) {

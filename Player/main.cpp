@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
     AVQt::AudioDecoder decoder;
     AVQt::OpenALAudioOutput output;
 
-//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-//    decoder.registerCallback(&output);
+    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+    decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder;
 #ifdef Q_OS_LINUX
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 //    videoDecoder->registerCallback(encoder);
     videoDecoder->registerCallback(&renderer);
 
-//    renderer.setMinimumSize(QSize(360, 240));
+    renderer.setMinimumSize(QSize(360, 240));
 
 //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
 //        output.pause(nullptr, paused);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 
     demuxer.init();
 
-//    output.syncToOutput(&renderer);
+    output.syncToOutput(&renderer);
 
     demuxer.start();
 

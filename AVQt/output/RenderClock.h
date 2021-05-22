@@ -24,6 +24,8 @@ namespace AVQt {
 
         int64_t getInterval();
 
+        int64_t getTimestamp();
+
         bool isActive();
 
         bool isPaused();

@@ -17,7 +17,6 @@ namespace AVQt {
         std::atomic_bool m_active  {false};
         std::atomic_bool m_paused  {false};
         QElapsedTimer *m_elapsedTime {nullptr};
-        qint64 m_pausedTime {0};
         qint64 m_lastPauseTimestamp {0};
 
         friend class RenderClock;
