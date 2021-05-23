@@ -10,6 +10,7 @@ build:
     - cmake --build . -j4
   artifacts:
     paths:
+      - build/AVQt/libAVQt_static.a
       - build/AVQt/libAVQt.so
       - AVQt/
     expire_in: 1 week
