@@ -4,6 +4,7 @@
 #include "input/IAudioSource.h"
 #include "filter/IDecoder.h"
 #include "filter/DecoderVAAPI.h"
+#include "filter/DecoderQSV.h"
 #include "filter/DecoderDXVA2.h"
 #include "filter/AudioDecoder.h"
 #include "output/IPacketSink.h"

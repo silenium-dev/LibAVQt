@@ -45,6 +45,10 @@ add_library(
         filter/private/DecoderVAAPI_p.h
         filter/DecoderVAAPI.cpp
 
+        filter/DecoderQSV.h
+        filter/private/DecoderQSV_p.h
+        filter/DecoderQSV.cpp
+
         filter/DecoderDXVA2.h
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
