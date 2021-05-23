@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     AVQt::IDecoder *videoDecoder;
 #ifdef Q_OS_LINUX
-    videoDecoder = new AVQt::DecoderVAAPI;
+    videoDecoder = new AVQt::DecoderQSV;
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
 #else
