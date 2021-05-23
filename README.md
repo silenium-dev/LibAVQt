@@ -6,16 +6,17 @@ An object-oriented Qt interface for FFmpeg.
 
 ### Current
 
-- VAAPI accelerated decode
+- VAAPI, QSV, DXVA2 accelerated decode
+- VAAPI accelerated encode (***WIP***)
 - Frame sink for saving every n-th frame to file
-- QOpenGLWidget based renderer (***WIP***)
-- OpenAL based audio output (***WIP***)
+- QOpenGLWidget based renderer
+- OpenAL based audio output (***unstable***)
 
 ### Planned
 
 - Reliable API Reference
 - Audio encode
-- Other hardware accelerations
+- Other hardware accelerations (NVDEC/NVENC, AMF, VDPAU, MMAL)
 - Frame filters for e.g. scaling or color <-> greyscale
 - Other renderers (e.g. QWidget, QGraphicsItem)
 - CMake module
@@ -60,13 +61,27 @@ include_directories(<path>)
 link_directories(<path>/build/AVQt)
 ```
 
+Dynamic link:
+
+```
+target_link_libraries(<target-name> AVQt)
+```
+
+Static link:
+
+```
+target_link_libraries(<target-name> AVQt_static)
+```
+
 ## Examples
 
-A simple example for displaying video with the OpenGLRenderer and OpenALAudioOutput can be found
-in ``main.cpp``. It will be compiled along with the library by the commands above.
+A simple example for displaying video with the OpenGLRenderer and OpenALAudioOutput can be found in ``main.cpp``. It
+will be compiled along with the library by the commands above.
 
 ### Run the example
+
 In your build directory, run the example by:
+
 ```
 ./Player
 ```
