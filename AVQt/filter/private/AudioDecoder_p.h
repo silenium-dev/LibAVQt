@@ -20,26 +20,32 @@ extern "C" {
 
 namespace AVQt {
     class AudioDecoderPrivate {
+    public:
+        AudioDecoderPrivate(const AudioDecoderPrivate &) = delete;
+
+        void operator=(const AudioDecoderPrivate &) = delete;
+
+    private:
         explicit AudioDecoderPrivate(AudioDecoder *q) : q_ptr(q) {};
 
         AudioDecoder *q_ptr;
 
-        QMutex m_inputQueueMutex;
-        QQueue<AVPacket *> m_inputQueue;
-        int64_t m_duration {0};
+        QMutex m_inputQueueMutex{};
+        QQueue<AVPacket *> m_inputQueue{};
+        int64_t m_duration{0};
 
-        AVCodecParameters *m_pCodecParams {nullptr};
-        AVCodec *m_pCodec {nullptr};
-        AVCodecContext *m_pCodecCtx {nullptr};
-        AVRational m_timebase;
+        AVCodecParameters *m_pCodecParams{nullptr};
+        AVCodec *m_pCodec{nullptr};
+        AVCodecContext *m_pCodecCtx{nullptr};
+        AVRational m_timebase{0, 1};
 
         // Callback stuff
-        QMutex m_cbListMutex;
-        QList<IAudioSink *> m_cbList;
+        QMutex m_cbListMutex{};
+        QList<IAudioSink *> m_cbList{};
 
         // Threading stuff
-        std::atomic_bool m_running  {false};
-        std::atomic_bool m_paused  {false};
+        std::atomic_bool m_running{false};
+        std::atomic_bool m_paused{false};
 
         friend class AudioDecoder;
     };

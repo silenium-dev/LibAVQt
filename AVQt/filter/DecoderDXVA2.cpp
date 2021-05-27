@@ -10,12 +10,11 @@
 
 #include <QApplication>
 #include <QtConcurrent>
-#include <QImage>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define NOW() std::chrono::high_resolution_clock::now()
-#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
-#endif
+//#ifndef DOXYGEN_SHOULD_SKIP_THIS
+//#define NOW() std::chrono::high_resolution_clock::now()
+//#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
+//#endif
 
 
 namespace AVQt {
@@ -27,9 +26,12 @@ namespace AVQt {
 
     }
 
-    DecoderDXVA2::~DecoderDXVA2() {
-        deinit();
+    DecoderDXVA2::DecoderDXVA2(DecoderDXVA2 &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
+    }
 
+    DecoderDXVA2::~DecoderDXVA2() {
         delete d_ptr;
     }
 
@@ -158,7 +160,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    int DecoderDXVA2::registerCallback(IFrameSink *frameSink) {
+    qsizetype DecoderDXVA2::registerCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderDXVA2);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -173,11 +175,11 @@ namespace AVQt {
         return -1;
     }
 
-    int DecoderDXVA2::unregisterCallback(IFrameSink *frameSink) {
+    qsizetype DecoderDXVA2::unregisterCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderDXVA2);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
-            int result = d->m_cbList.indexOf(frameSink);
+            auto result = d->m_cbList.indexOf(frameSink);
             d->m_cbList.removeOne(frameSink);
             frameSink->stop(this);
             frameSink->deinit(this);
@@ -187,7 +189,7 @@ namespace AVQt {
     }
 
     void DecoderDXVA2::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
 
         Q_D(AVQt::DecoderDXVA2);
 

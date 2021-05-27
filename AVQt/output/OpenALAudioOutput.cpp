@@ -8,9 +8,6 @@
 #include "filter/private/OpenALErrorHandler.h"
 #include "OpenGLRenderer.h"
 
-#include <QtCore>
-#include <QtConcurrent>
-
 namespace AVQt {
     OpenALAudioOutput::OpenALAudioOutput(QObject *parent) : QThread(parent), d_ptr(new OpenALAudioOutputPrivate(this)) {
         Q_D(AVQt::OpenALAudioOutput);
@@ -18,8 +15,11 @@ namespace AVQt {
     }
 
     [[maybe_unused]] OpenALAudioOutput::OpenALAudioOutput(OpenALAudioOutputPrivate &p) : d_ptr(&p) {
-        Q_D(AVQt::OpenALAudioOutput);
+    }
 
+    OpenALAudioOutput::OpenALAudioOutput(OpenALAudioOutput &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
     }
 
     int OpenALAudioOutput::init(IAudioSource *source, int64_t duration, int sampleRate) {
@@ -54,7 +54,7 @@ namespace AVQt {
             qFatal("Could not make ALC context current");
         }
 
-        d->m_ALBufferCount = static_cast<int>(std::ceil((1000 * 1.0 / 60) * static_cast<double>(d->m_sampleRate / 1536)));
+        d->m_ALBufferCount = static_cast<int>(std::ceil((1000 * 1.0 / 60) * (static_cast<double>(d->m_sampleRate) / 1536.0)));
         qDebug("Using %d OpenAL buffers", d->m_ALBufferCount);
 
         d->m_ALBuffers.resize(d->m_ALBufferCount);
@@ -62,10 +62,10 @@ namespace AVQt {
         alCall(alGenBuffers, d->m_ALBufferCount, d->m_ALBuffers.data());
 
         alCall(alGenSources, 1, &d->m_ALSource);
-        alCall(alSourcef, d->m_ALSource, AL_PITCH, 1);
+        alCall(alSourcef, d->m_ALSource, AL_PITCH, 1.0f);
         alCall(alSourcef, d->m_ALSource, AL_GAIN, 1.0f);
-        alCall(alSource3f, d->m_ALSource, AL_POSITION, 0, 0, 0);
-        alCall(alSource3f, d->m_ALSource, AL_VELOCITY, 0, 0, 0);
+        alCall(alSource3f, d->m_ALSource, AL_POSITION, 0.f, 0.f, 0.f);
+        alCall(alSource3f, d->m_ALSource, AL_VELOCITY, 0.f, 0.f, 0.f);
         alCall(alSourcei, d->m_ALSource, AL_LOOPING, AL_FALSE);
         alCall(alSourcei, d->m_ALSource, AL_BUFFER, 0);
 
@@ -244,8 +244,10 @@ namespace AVQt {
         {
             QMutexLocker lock(&d->m_swrContextMutex);
             if (!d->m_pSwrContext && frame->format != AV_SAMPLE_FMT_S16) {
-                d->m_pSwrContext = swr_alloc_set_opts(nullptr, frame->channel_layout, AV_SAMPLE_FMT_S16, frame->sample_rate,
-                                                      frame->channel_layout, static_cast<AVSampleFormat>(frame->format), frame->sample_rate,
+                d->m_pSwrContext = swr_alloc_set_opts(nullptr, static_cast<int64_t>(frame->channel_layout), AV_SAMPLE_FMT_S16,
+                                                      frame->sample_rate,
+                                                      static_cast<int64_t>(frame->channel_layout),
+                                                      static_cast<AVSampleFormat>(frame->format), frame->sample_rate,
                                                       0, nullptr);
                 swr_init(d->m_pSwrContext);
             }
@@ -307,16 +309,17 @@ namespace AVQt {
 
             d->m_clock.store(renderer->getClock());
             clockIntervalChanged(d->m_clock.load()->getInterval());
-            int newBufferCount = static_cast<int>(std::ceil((1000 * 1.0 / static_cast<double>(d->m_clockInterval) * static_cast<double>(d->m_sampleRate) / 1536)));
+            int newBufferCount = static_cast<int>(std::ceil(
+                    (1000 * 1.0 / static_cast<double>(d->m_clockInterval) * static_cast<double>(d->m_sampleRate) / 1536)));
             if (d->m_ALBuffers.size() != newBufferCount) {
                 ALCboolean contextCurrent = ALC_FALSE;
                 alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, d->m_ALCContext);
                 if (d->m_ALBuffers.size() > newBufferCount) {
-                    auto overhead = d->m_ALBuffers.size() - newBufferCount;
+                    int overhead = static_cast<int>(d->m_ALBuffers.size() - newBufferCount);
                     alCall(alDeleteBuffers, overhead, d->m_ALBuffers.data() + d->m_ALBuffers.size() - overhead);
                     d->m_ALBuffers.resize(newBufferCount);
                 } else if (d->m_ALBuffers.size() < newBufferCount) {
-                    auto extraBuffers = newBufferCount - d->m_ALBuffers.size();
+                    int extraBuffers = static_cast<int>(newBufferCount - d->m_ALBuffers.size());
                     d->m_ALBuffers.resize(newBufferCount);
                     alCall(alGenBuffers, extraBuffers, d->m_ALBuffers.data() + d->m_ALBuffers.size() - extraBuffers);
                 }
@@ -369,24 +372,28 @@ namespace AVQt {
             }
             if (!d->m_ALBufferQueue.isEmpty()) {
                 QMutexLocker lock3(&d->m_ALBufferQueueMutex);
-                alCall(alSourceQueueBuffers, d->m_ALSource, std::min(d->m_ALBufferQueue.size(), static_cast<typeof (d->m_ALBufferQueue.size())>(4)), d->m_ALBufferQueue.toVector().data());
-                for (const auto &buf: QList(d->m_ALBufferQueue.end() - std::min(d->m_ALBufferQueue.size(), static_cast<typeof (d->m_ALBufferQueue.size())>(4)), d->m_ALBufferQueue.end())) {
+                alCall(alSourceQueueBuffers, d->m_ALSource, static_cast<int>(qMin(d->m_ALBufferQueue.size(), 4)),
+                       d->m_ALBufferQueue.toVector().data());
+                for (const auto &buf: QList(d->m_ALBufferQueue.end() - static_cast<int>(qMin(d->m_ALBufferQueue.size(), 4)),
+                                            d->m_ALBufferQueue.end())) {
                     d->m_queuedSamples += d->m_ALBufferSampleMap[buf];
                 }
                 if (d->m_ALBufferQueue.size() < 4) {
-                    alCall(alSourceQueueBuffers, d->m_ALSource, std::min(buffers.size(), 4 - d->m_ALBufferQueue.size()), buffers.data());
-                    for (qint64 i = buffers.size() - std::min(buffers.size(), 4 - d->m_ALBufferQueue.size()); i < buffers.size(); ++i) {
+                    alCall(alSourceQueueBuffers, d->m_ALSource, static_cast<int>(qMin(buffers.size(), 4 - d->m_ALBufferQueue.size())),
+                           buffers.data());
+                    for (qint64 i = static_cast<int>(buffers.size() - qMin(buffers.size(), 4 - d->m_ALBufferQueue.size()));
+                         i < buffers.size(); ++i) {
                         d->m_queuedSamples += d->m_ALBufferSampleMap[buffers[i]];
                     }
-                    buffers.remove(buffers.size() - std::min(buffers.size(), 4 - d->m_ALBufferQueue.size()),
-                                   std::min(buffers.size(), 4 - d->m_ALBufferQueue.size()));
+                    buffers.remove(buffers.size() - qMin(buffers.size(), 4 - d->m_ALBufferQueue.size()),
+                                   qMin(buffers.size(), 4 - d->m_ALBufferQueue.size()));
                     d->m_ALBufferQueue.append(buffers.toList());
                 }
                 d->m_ALBufferQueue.clear();
             } else {
                 QMutexLocker lock3(&d->m_ALBufferQueueMutex);
-                alCall(alSourceQueueBuffers, d->m_ALSource, std::min(buffers.size(), static_cast<typeof (d->m_ALBufferQueue.size())>(4)), buffers.data());
-                buffers.remove(buffers.size() - std::min(buffers.size(), static_cast<typeof (d->m_ALBufferQueue.size())>(4)), std::min(buffers.size(), static_cast<typeof (d->m_ALBufferQueue.size())>(4)));
+                alCall(alSourceQueueBuffers, d->m_ALSource, static_cast<int>(qMin(buffers.size(), 4)), buffers.data());
+                buffers.remove(buffers.size() - qMin(buffers.size(), 4), qMin(buffers.size(), 4));
                 d->m_ALBufferQueue.append(buffers.toList());
             }
         } else {
@@ -461,7 +468,8 @@ namespace AVQt {
                 }
                 while (!d->m_inputQueue.isEmpty() &&
                        !d->m_ALBufferQueue.isEmpty()) {
-                    if (d->m_queuedSamples * 1.0 / d->m_inputQueue.front().first->sample_rate < d->m_clockInterval * 1.5) {
+                    if (static_cast<double>(d->m_queuedSamples) * 1.0 / d->m_inputQueue.front().first->sample_rate <
+                        static_cast<double>(d->m_clockInterval) * 1.5) {
                         lock.relock();
                         QMutexLocker lock1(&d->m_inputQueueMutex);
                         QMutexLocker lock2(&d->m_ALBufferSampleMapMutex);
@@ -482,7 +490,7 @@ namespace AVQt {
 //                    } else {
                         frame = d->m_inputQueue.dequeue();
 //                    }
-                        duration += frame.first->nb_samples * 1000.0 / frame.first->sample_rate;
+                        duration += static_cast<int64_t>(std::round(frame.first->nb_samples * 1000.0 / frame.first->sample_rate));
                         lock1.unlock();
                         auto buf = d->m_ALBufferQueue.dequeue();
                         lock.unlock();

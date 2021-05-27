@@ -34,7 +34,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    qsizetype Demuxer::registerCallback(IPacketSink *packetSink, uint8_t type) {
+    qsizetype Demuxer::registerCallback(IPacketSink *packetSink, int8_t type) {
         Q_D(AVQt::Demuxer);
 
         QMutexLocker lock(&d->m_cbMutex);
@@ -59,8 +59,9 @@ namespace AVQt {
                 sParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
             }
-            packetSink->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, AVRational(),
-                             d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, aParams, sParams);
+            packetSink->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, av_make_q(1, AV_TIME_BASE),
+                             static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), vParams, aParams,
+                             sParams);
             if (vParams) {
                 avcodec_parameters_free(&vParams);
             }
@@ -118,7 +119,7 @@ namespace AVQt {
             avformat_find_stream_info(d->m_pFormatCtx, nullptr);
 //            }
 
-            for (size_t si = 0; si < d->m_pFormatCtx->nb_streams; ++si) {
+            for (int64_t si = 0; si < d->m_pFormatCtx->nb_streams; ++si) {
                 switch (d->m_pFormatCtx->streams[si]->codecpar->codec_type) {
                     case AVMEDIA_TYPE_VIDEO:
                         d->m_videoStreams.append(si);
@@ -163,17 +164,20 @@ namespace AVQt {
             if (vParams) {
                 cb->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate,
                          d->m_pFormatCtx->streams[d->m_videoStream]->time_base,
-                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, vParams, nullptr, nullptr);
+                         static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), vParams, nullptr,
+                         nullptr);
             }
             if (aParams) {
                 cb->init(this, d->m_pFormatCtx->streams[d->m_audioStream]->avg_frame_rate,
                          d->m_pFormatCtx->streams[d->m_audioStream]->time_base,
-                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, nullptr, aParams, nullptr);
+                         static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), nullptr, aParams,
+                         nullptr);
             }
             if (sParams) {
                 cb->init(this, d->m_pFormatCtx->streams[d->m_subtitleStream]->avg_frame_rate,
                          d->m_pFormatCtx->streams[d->m_subtitleStream]->time_base,
-                         d->m_pFormatCtx->duration * 1000.0 / AV_TIME_BASE, nullptr, nullptr, sParams);
+                         static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), nullptr, nullptr,
+                         sParams);
             }
             if (vParams) {
                 avcodec_parameters_free(&vParams);
@@ -300,9 +304,12 @@ namespace AVQt {
                     aP = QString("%1").arg(audioPackets, 12).toLocal8Bit();
                     vP = QString("%1").arg(videoPackets, 12).toLocal8Bit();
                     sP = QString("%1").arg(sttPackets, 12).toLocal8Bit();
-                    aR = QString("%1").arg((audioPackets * 1.0 / packetCount) * 100.0, 10).toLocal8Bit();
-                    vR = QString("%1").arg((videoPackets * 1.0 / packetCount) * 100.0, 10).toLocal8Bit();
-                    sR = QString("%1").arg((sttPackets * 1.0 / packetCount) * 100.0, 10).toLocal8Bit();
+                    aR = QString("%1").arg((static_cast<double>(audioPackets) * 1.0 / static_cast<double>(packetCount)) * 100.0,
+                                           10).toLocal8Bit();
+                    vR = QString("%1").arg((static_cast<double>(videoPackets) * 1.0 / static_cast<double>(packetCount)) * 100.0,
+                                           10).toLocal8Bit();
+                    sR = QString("%1").arg((static_cast<double>(sttPackets) * 1.0 / static_cast<double>(packetCount)) * 100.0,
+                                           10).toLocal8Bit();
 
                     qDebug() << "Packet statistics";
                     qDebug() << "| Packet type | Packet count |   Percentage |";
@@ -318,19 +325,9 @@ namespace AVQt {
         }
     }
 
-    Demuxer::Demuxer(Demuxer &&other) {
-        d_ptr = other.d_ptr;
-        d_ptr->q_ptr = this;
+    Demuxer::Demuxer(Demuxer &&other) noexcept: d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
-    }
-
-    Demuxer &Demuxer::operator=(Demuxer &&other) noexcept {
-        delete d_ptr;
-        d_ptr = other.d_ptr;
         d_ptr->q_ptr = this;
-        other.d_ptr = nullptr;
-
-        return *this;
     }
 
     int DemuxerPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
@@ -340,7 +337,7 @@ namespace AVQt {
         if (bytesRead == 0) {
             return AVERROR_EOF;
         } else {
-            return bytesRead;
+            return static_cast<int>(bytesRead);
         }
     }
 

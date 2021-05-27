@@ -24,6 +24,12 @@ namespace AVQt {
     public:
         explicit OpenALAudioOutput(QObject *parent = nullptr);
 
+        OpenALAudioOutput(OpenALAudioOutput &&other) noexcept;
+
+        OpenALAudioOutput(const OpenALAudioOutput &) = delete;
+
+        void operator=(const OpenALAudioOutput &) = delete;
+
         Q_INVOKABLE bool isPaused() Q_DECL_OVERRIDE;
 
         void run() Q_DECL_OVERRIDE;

@@ -10,8 +10,6 @@
 
 #include <QtCore>
 
-#include <AL/al.h>
-#include <AL/alc.h>
 #include <AL/alext.h>
 
 namespace AVQt {
@@ -23,9 +21,12 @@ namespace AVQt {
         Q_D(AVQt::AudioDecoder);
     }
 
-    AudioDecoder::~AudioDecoder() {
-        deinit();
+    AudioDecoder::AudioDecoder(AudioDecoder &&other) noexcept: d_ptr(other.d_ptr) {
+        d_ptr->q_ptr = this;
+        other.d_ptr = nullptr;
+    }
 
+    AudioDecoder::~AudioDecoder() {
         delete d_ptr;
         d_ptr = nullptr;
     }
@@ -128,7 +129,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    int AudioDecoder::registerCallback(IAudioSink *callback) {
+    qsizetype AudioDecoder::registerCallback(IAudioSink *callback) {
         Q_D(AVQt::AudioDecoder);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -142,12 +143,13 @@ namespace AVQt {
             if (d->m_running) {
                 callback->start(this);
             }
+            return d->m_cbList.indexOf(callback);
         }
 
-        return 0;
+        return -1;
     }
 
-    int AudioDecoder::unregisterCallback(IAudioSink *callback) {
+    qsizetype AudioDecoder::unregisterCallback(IAudioSink *callback) {
         Q_D(AVQt::AudioDecoder);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -161,10 +163,10 @@ namespace AVQt {
     void AudioDecoder::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
                             AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_D(AVQt::AudioDecoder);
-        Q_UNUSED(source);
-        Q_UNUSED(framerate);
-        Q_UNUSED(vParams);
-        Q_UNUSED(sParams);
+        Q_UNUSED(source)
+        Q_UNUSED(framerate)
+        Q_UNUSED(vParams)
+        Q_UNUSED(sParams)
 
         d->m_timebase = timebase;
         d->m_duration = duration;
@@ -191,21 +193,21 @@ namespace AVQt {
 
     void AudioDecoder::start(IPacketSource *source) {
         Q_D(AVQt::AudioDecoder);
-        Q_UNUSED(source);
+        Q_UNUSED(source)
 
         start();
     }
 
     void AudioDecoder::stop(IPacketSource *source) {
         Q_D(AVQt::AudioDecoder);
-        Q_UNUSED(source);
+        Q_UNUSED(source)
 
         stop();
     }
 
     void AudioDecoder::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
         Q_D(AVQt::AudioDecoder);
-        Q_UNUSED(source);
+        Q_UNUSED(source)
 
         if (packetType == IPacketSource::CB_AUDIO) {
             AVPacket *queuePacket = av_packet_clone(packet);
@@ -225,7 +227,7 @@ namespace AVQt {
                 QTime time1 = QTime::currentTime();
                 qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
 
-                int ret = 0;
+                int ret;
                 constexpr size_t strBufSize = 64;
                 char strBuf[strBufSize];
 
@@ -291,12 +293,13 @@ namespace AVQt {
                         qDebug("Calling audio frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
-                        cb->onAudioFrame(this, cbFrame, frame->nb_samples * 1.0 / frame->sample_rate / frame->channels * 1000.0);
+                        cb->onAudioFrame(this, cbFrame,
+                                         static_cast<uint32_t>(frame->nb_samples * 1.0 / frame->sample_rate / frame->channels * 1000.0));
                         qDebug() << "Audio CB time:" << time.msecsTo(QTime::currentTime());
                         av_frame_unref(cbFrame);
                     }
                     int64_t sleepDuration = (frame->nb_samples / frame->sample_rate * 1000) - time1.msecsTo(QTime::currentTime());
-                    msleep(sleepDuration <= 0 ? 0 : sleepDuration);
+                    msleep(sleepDuration <= 0 ? 0 : static_cast<unsigned long>(sleepDuration));
                     time1 = QTime::currentTime();
                     av_frame_unref(frame);
                 }

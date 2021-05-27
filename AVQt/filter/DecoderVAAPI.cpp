@@ -10,12 +10,11 @@
 
 #include <QApplication>
 #include <QtConcurrent>
-#include <QImage>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define NOW() std::chrono::high_resolution_clock::now()
-#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
-#endif
+//#ifndef DOXYGEN_SHOULD_SKIP_THIS
+//#define NOW() std::chrono::high_resolution_clock::now()
+//#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
+//#endif
 
 
 namespace AVQt {
@@ -27,9 +26,12 @@ namespace AVQt {
 
     }
 
-    DecoderVAAPI::~DecoderVAAPI() {
-        deinit();
+    DecoderVAAPI::DecoderVAAPI(DecoderVAAPI &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
+    }
 
+    DecoderVAAPI::~DecoderVAAPI() {
         delete d_ptr;
     }
 
@@ -158,7 +160,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    int DecoderVAAPI::registerCallback(IFrameSink *frameSink) {
+    qsizetype DecoderVAAPI::registerCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderVAAPI);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -173,11 +175,11 @@ namespace AVQt {
         return -1;
     }
 
-    int DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
+    qsizetype DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderVAAPI);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
-            int result = d->m_cbList.indexOf(frameSink);
+            auto result = d->m_cbList.indexOf(frameSink);
             d->m_cbList.removeOne(frameSink);
             frameSink->stop(this);
             frameSink->deinit(this);
@@ -187,7 +189,7 @@ namespace AVQt {
     }
 
     void DecoderVAAPI::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
 
         Q_D(AVQt::DecoderVAAPI);
 
@@ -206,7 +208,7 @@ namespace AVQt {
 
         while (d->m_running) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
-                int ret = 0;
+                int ret;
                 constexpr size_t strBufSize = 64;
                 char strBuf[strBufSize];
                 // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
@@ -280,16 +282,16 @@ namespace AVQt {
 //                    QList<QFuture<void>> cbFutures;
                     for (const auto &cb: d->m_cbList) {
 //                        cbFutures.append(QtConcurrent::run([=] {
-                            AVFrame *cbFrame = av_frame_clone(frame);
-                            cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
-                                                        av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
-                            qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
-                                   d->m_timebase.den);
-                            QTime time = QTime::currentTime();
-                            cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
-                            qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
-                            av_frame_unref(cbFrame);
-                            av_frame_free(&cbFrame);
+                        AVFrame *cbFrame = av_frame_clone(frame);
+                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+                                                    av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                        qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                               d->m_timebase.den);
+                        QTime time = QTime::currentTime();
+                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
+                        qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
+                        av_frame_unref(cbFrame);
+                        av_frame_free(&cbFrame);
 //                        }));
                     }
 //                    bool cbBusy = true;

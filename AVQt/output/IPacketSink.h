@@ -44,7 +44,7 @@ namespace AVQt {
 
         Q_INVOKABLE virtual void stop(IPacketSource *source) = 0;
 
-        Q_INVOKABLE virtual void pause(bool paused) = 0;
+        Q_INVOKABLE virtual void pause(bool p) = 0;
 
         /*!
          * \brief Callback method, is called for every registered packet type.
@@ -61,6 +61,8 @@ namespace AVQt {
         virtual void started() = 0;
 
         virtual void stopped() = 0;
+
+        virtual void paused(bool pause) = 0;
     };
 }
 

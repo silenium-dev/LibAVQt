@@ -24,6 +24,12 @@ namespace AVQt {
      * \internal
      */
     class OpenGLRendererPrivate {
+    public:
+        OpenGLRendererPrivate(const OpenGLRendererPrivate &) = delete;
+
+        void operator=(const OpenGLRendererPrivate &) = delete;
+
+    private:
         explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {};
 
         static GLint
@@ -32,30 +38,31 @@ namespace AVQt {
 
         static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
 
+        static QTime timeFromMillis(int64_t ts);
 
-        OpenGLRenderer *q_ptr {nullptr};
+        OpenGLRenderer *q_ptr{nullptr};
 
-        QMutex m_renderQueueMutex;
-        QQueue<QPair<AVFrame *, int64_t>> m_renderQueue;
+        QMutex m_renderQueueMutex{};
+        QQueue<QPair<AVFrame *, int64_t>> m_renderQueue{};
 
-        RenderClock *m_clock {nullptr};
-        int64_t m_currentFrameTimeout = 1;
-        QTime m_duration;
-        QTime m_position;
-        std::atomic_bool m_updateRequired {true}, m_paused {false}, m_running {false}, m_firstFrame {true};
-        std::atomic<qint64> m_updateTimestamp {0};
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame;
+        RenderClock *m_clock{nullptr};
+        int64_t m_currentFrameTimeout{1};
+        QTime m_duration{};
+        QTime m_position{};
+        std::atomic_bool m_updateRequired{true}, m_paused{false}, m_running{false}, m_firstFrame{true};
+        std::atomic<qint64> m_updateTimestamp{0};
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame{};
 
-        QMutex m_currentFrameMutex;
-        AVFrame *m_currentFrame {nullptr};
+        QMutex m_currentFrameMutex{};
+        AVFrame *m_currentFrame{nullptr};
 
-        QOpenGLVertexArrayObject m_vao;
-        QOpenGLBuffer m_vbo, m_ibo;
-        QOpenGLShaderProgram *m_program {nullptr};
-        QOpenGLTexture *m_yTexture {nullptr}, *m_uTexture {nullptr}, *m_vTexture {nullptr};
+        QOpenGLVertexArrayObject m_vao{};
+        QOpenGLBuffer m_vbo{}, m_ibo{};
+        QOpenGLShaderProgram *m_program{nullptr};
+        QOpenGLTexture *m_yTexture{nullptr}, *m_uTexture{nullptr}, *m_vTexture{nullptr};
 
-        static constexpr uint PROGRAM_VERTEX_ATTRIBUTE {0};
-        static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE {1};
+        static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
+        static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
 
         friend class OpenGLRenderer;
     };

@@ -46,7 +46,7 @@ namespace AVQt {
 
         Q_INVOKABLE virtual void pause(bool pause) = 0;
 
-        Q_INVOKABLE virtual qsizetype registerCallback(IPacketSink *packetSink, uint8_t type) = 0;
+        Q_INVOKABLE virtual qsizetype registerCallback(IPacketSink *packetSink, int8_t type) = 0;
 
         Q_INVOKABLE virtual qsizetype unregisterCallback(IPacketSink *packetSink) = 0;
 

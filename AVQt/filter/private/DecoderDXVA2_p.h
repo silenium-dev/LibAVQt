@@ -16,6 +16,13 @@ namespace AVQt {
     * \private
     */
     class DecoderDXVA2Private {
+    public:
+        DecoderDXVA2Private(const DecoderDXVA2Private &) = delete;
+
+        void operator=(const DecoderDXVA2Private &) = delete;
+
+    private:
+
         explicit DecoderDXVA2Private(DecoderDXVA2 *q) : q_ptr(q) {};
 
         DecoderDXVA2 *q_ptr;

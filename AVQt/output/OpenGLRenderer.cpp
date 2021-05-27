@@ -6,7 +6,6 @@
 #include "OpenGLRenderer.h"
 
 #include <QtGui>
-#include <iostream>
 
 extern "C" {
 #include <libavutil/frame.h>
@@ -27,6 +26,11 @@ namespace AVQt {
     [[maybe_unused]] [[maybe_unused]] OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
     }
 
+    OpenGLRenderer::OpenGLRenderer(OpenGLRenderer &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
+    }
+
     OpenGLRenderer::~OpenGLRenderer() noexcept {
         Q_D(AVQt::OpenGLRenderer);
 
@@ -37,14 +41,9 @@ namespace AVQt {
         Q_UNUSED(framerate) // Don't use framerate, because it is not always specified in stream information
         Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
-        int64_t h = duration / 3600000;
-        int64_t m = (duration - h * 3600000) / 60000;
-        int64_t s = (duration - h * 3600000 - m * 60000) / 1000;
-        int64_t ms = duration - h * 3600000 - m * 60000 - s * 1000;
 
-        d->m_duration = QTime(static_cast<int>(h), static_cast<int>(m), static_cast<int>(s), static_cast<int>(ms));
-        d->m_position = QTime(0, 0, 0, 0);
-        qDebug() << "Duration:" << d->m_duration.toString("hh:mm:ss");
+        d->m_duration = OpenGLRendererPrivate::timeFromMillis(duration);
+        qDebug() << "Duration:" << d->m_duration.toString("hh:mm:ss.zzz");
 
         d->m_clock = new RenderClock;
         d->m_clock->setInterval(16);
@@ -104,20 +103,18 @@ namespace AVQt {
             d->m_vbo.destroy();
             d->m_vao.destroy();
 
-            if (d->m_yTexture) {
 //                d->m_yTexture->destroy();
-                delete d->m_yTexture;
-            }
+            delete d->m_yTexture;
 
-            if (d->m_uTexture) {
+
 //                d->m_uTexture->destroy();
-                delete d->m_uTexture;
-            }
+            delete d->m_uTexture;
 
-            if (d->m_vTexture) {
+
+
 //                d->m_yTexture->destroy();
-                delete d->m_vTexture;
-            }
+            delete d->m_vTexture;
+
 
             stopped();
             return 0;
@@ -510,7 +507,12 @@ namespace AVQt {
 
 //            qDebug() << "Current timestamp:" << d->m_position.toString("hh:mm:ss.zzz");
 
-        QString overlay(d->m_position.toString("hh:mm:ss") + "/" + d->m_duration.toString("hh:mm:ss"));
+        QTime position{0, 0, 0, 0};
+        if (d->m_currentFrame) {
+            position = OpenGLRendererPrivate::timeFromMillis(d->m_currentFrame->pts / 1000);
+        }
+
+        QString overlay(position.toString("hh:mm:ss.zzz") + "/" + d->m_duration.toString("hh:mm:ss.zzz"));
         QFontMetrics fm(roboto);
         p.fillRect(fm.boundingRect(overlay).translated(static_cast<int>(textPosX), static_cast<int>(textPosY)).adjusted(-5, -5, 5, 5),
                    QColor(0xFF, 0xFF, 0xFF, 0x48));
@@ -526,14 +528,6 @@ namespace AVQt {
         if (event->button() == Qt::LeftButton) {
             pause(nullptr, !isPaused());
         }
-    }
-
-    void OpenGLRenderer::triggerUpdate(qint64 timestamp) {
-        Q_UNUSED(timestamp)
-        Q_D(AVQt::OpenGLRenderer);
-
-//        d->m_updateRequired.store(true);
-//        d->m_updateTimestamp.store(timestamp);
     }
 
     RenderClock *OpenGLRenderer::getClock() {
@@ -552,7 +546,7 @@ namespace AVQt {
         transformPoint(out, model, in);
         transformPoint(in, proj, out);
 
-        if (in[3] == 0.0)
+        if (in[3] < 0.0001)
             return GL_FALSE;
 
         in[0] /= in[3];
@@ -573,6 +567,14 @@ namespace AVQt {
         out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
         out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
 #undef M
+    }
+
+    QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts) {
+        int ms = static_cast<int>(ts % 1000);
+        int s = static_cast<int>((ts / 1000) % 60);
+        int m = static_cast<int>((ts / 1000 / 60) % 60);
+        int h = static_cast<int>(ts / 1000 / 60 / 60);
+        return QTime(h, m, s, ms);
     }
 
 }

@@ -18,9 +18,9 @@ namespace AVQt {
 
         virtual bool isPaused() = 0;
 
-        Q_INVOKABLE virtual int registerCallback(IAudioSink *callback) = 0;
+        Q_INVOKABLE virtual qsizetype registerCallback(IAudioSink *callback) = 0;
 
-        Q_INVOKABLE virtual int unregisterCallback(IAudioSink *callback) = 0;
+        Q_INVOKABLE virtual qsizetype unregisterCallback(IAudioSink *callback) = 0;
 
     public slots:
         Q_INVOKABLE virtual int init() = 0;

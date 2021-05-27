@@ -34,19 +34,19 @@ namespace AVQt {
     public:
         explicit EncoderVAAPI(QString encoder, QObject *parent = nullptr);
 
+        EncoderVAAPI(EncoderVAAPI &&other) noexcept;
+
         explicit EncoderVAAPI(EncoderVAAPI &other) = delete;
 
-        explicit EncoderVAAPI(EncoderVAAPI &&other);
+        ~EncoderVAAPI() Q_DECL_OVERRIDE;
 
-        ~EncoderVAAPI() override;
+        bool isPaused() Q_DECL_OVERRIDE;
 
-        bool isPaused() override;
+        qsizetype registerCallback(IPacketSink *packetSink, int8_t type) Q_DECL_OVERRIDE;
 
-        qsizetype registerCallback(IPacketSink *packetSink, uint8_t type) override;
+        qsizetype unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
 
-        qsizetype unregisterCallback(IPacketSink *packetSink) override;
-
-        void run() override;
+        void run() Q_DECL_OVERRIDE;
 
         EncoderVAAPI &operator=(const EncoderVAAPI &other) = delete;
 
@@ -54,35 +54,35 @@ namespace AVQt {
 
     public slots:
 
-        Q_INVOKABLE int init() override;
+        Q_INVOKABLE int init() Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int deinit() override;
+        Q_INVOKABLE int deinit() Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int start() override;
+        Q_INVOKABLE int start() Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int stop() override;
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void pause(bool pause) override;
+        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int init(IFrameSource *source, AVRational framerate, int64_t duration) override;
+        Q_INVOKABLE int init(IFrameSource *source, AVRational framerate, int64_t duration) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int deinit(IFrameSource *source) override;
+        Q_INVOKABLE int deinit(IFrameSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int start(IFrameSource *source) override;
+        Q_INVOKABLE int start(IFrameSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE int stop(IFrameSource *source) override;
+        Q_INVOKABLE int stop(IFrameSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void pause(IFrameSource *source, bool paused) override;
+        Q_INVOKABLE void pause(IFrameSource *source, bool paused) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) override;
+        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) Q_DECL_OVERRIDE;
 
     signals:
 
-        void started() override;
+        void started() Q_DECL_OVERRIDE;
 
-        void stopped() override;
+        void stopped() Q_DECL_OVERRIDE;
 
-        void paused(bool pause) override;
+        void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
         [[maybe_unused]] explicit EncoderVAAPI(EncoderVAAPIPrivate &p);

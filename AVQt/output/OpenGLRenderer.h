@@ -29,6 +29,12 @@ namespace AVQt {
     public:
         explicit OpenGLRenderer(QWindow *parent = nullptr);
 
+        OpenGLRenderer(OpenGLRenderer &&other) noexcept;
+
+        OpenGLRenderer(const OpenGLRenderer &) = delete;
+
+        void operator=(const OpenGLRenderer &) = delete;
+
         ~OpenGLRenderer() noexcept;
 
         bool isPaused() Q_DECL_OVERRIDE;
@@ -87,11 +93,6 @@ namespace AVQt {
          * @param framerate Source stream framerate
          */
         Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) Q_DECL_OVERRIDE;
-
-        /*!
-         * \private
-         */
-        void triggerUpdate(qint64 timestamp);
 
     signals:
 

@@ -5,7 +5,6 @@
 #include "private/EncoderVAAPI_p.h"
 #include "EncoderVAAPI.h"
 
-#include <QtCore>
 #include "output/IPacketSink.h"
 
 namespace AVQt {
@@ -17,6 +16,11 @@ namespace AVQt {
 
     [[maybe_unused]] EncoderVAAPI::EncoderVAAPI(EncoderVAAPIPrivate &p) : d_ptr(&p) {
 
+    }
+
+    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
     }
 
     EncoderVAAPI::~EncoderVAAPI() {
@@ -120,7 +124,7 @@ namespace AVQt {
     }
 
     int EncoderVAAPI::init(IFrameSource *source, AVRational framerate, int64_t duration) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
         Q_UNUSED(duration)
         Q_D(AVQt::EncoderVAAPI);
         d->m_framerate = framerate;
@@ -155,7 +159,7 @@ namespace AVQt {
         this->pause(paused);
     }
 
-    qsizetype EncoderVAAPI::registerCallback(IPacketSink *packetSink, uint8_t type) {
+    qsizetype EncoderVAAPI::registerCallback(IPacketSink *packetSink, int8_t type) {
         Q_D(AVQt::EncoderVAAPI);
 
         if (type != IPacketSource::CB_VIDEO) {
@@ -184,7 +188,7 @@ namespace AVQt {
     }
 
     void EncoderVAAPI::onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
         Q_D(AVQt::EncoderVAAPI);
 
         QPair<AVFrame *, int64_t> queueFrame{av_frame_alloc(), frameDuration};
@@ -213,7 +217,7 @@ namespace AVQt {
     void EncoderVAAPI::run() {
         Q_D(AVQt::EncoderVAAPI);
 
-        int ret{0};
+        int ret;
         constexpr auto strBufSize{64};
         char strBuf[strBufSize];
 
@@ -340,12 +344,8 @@ namespace AVQt {
         delete d_ptr;
         d_ptr = other.d_ptr;
         other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
 
         return *this;
-    }
-
-    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) {
-        d_ptr = other.d_ptr;
-        other.d_ptr = nullptr;
     }
 }

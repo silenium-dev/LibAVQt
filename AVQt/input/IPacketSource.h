@@ -57,7 +57,7 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        Q_INVOKABLE virtual qsizetype registerCallback(IPacketSink *packetSink, uint8_t type) = 0;
+        Q_INVOKABLE virtual qsizetype registerCallback(IPacketSink *packetSink, int8_t type) = 0;
 
         /*!
          * \brief Removes packet callback \c packetSink from registry

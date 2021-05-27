@@ -18,15 +18,21 @@ namespace AVQt {
      * \private
      */
     class DecoderVAAPIPrivate {
+    public:
+        DecoderVAAPIPrivate(const DecoderVAAPIPrivate &) = delete;
+
+        void operator=(const DecoderVAAPIPrivate &) = delete;
+
+    private:
         explicit DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q) {};
 
         DecoderVAAPI *q_ptr;
 
-        QMutex m_inputQueueMutex;
-        QQueue<AVPacket *> m_inputQueue;
+        QMutex m_inputQueueMutex{};
+        QQueue<AVPacket *> m_inputQueue{};
         int64_t m_duration{0};
-        AVRational m_framerate;
-        AVRational m_timebase;
+        AVRational m_framerate{};
+        AVRational m_timebase{};
 
         AVCodec *m_pCodec{nullptr};
         AVCodecParameters *m_pCodecParams{nullptr};
@@ -34,8 +40,8 @@ namespace AVQt {
         AVBufferRef *m_pDeviceCtx{nullptr};
 
         // Callback stuff
-        QMutex m_cbListMutex;
-        QList<IFrameSink *> m_cbList;
+        QMutex m_cbListMutex{};
+        QList<IFrameSink *> m_cbList{};
 
         // Threading stuff
         std::atomic_bool m_running{false};

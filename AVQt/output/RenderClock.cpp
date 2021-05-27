@@ -24,6 +24,11 @@ namespace AVQt {
         connect(d->m_timer, &QTimer::timeout, this, &RenderClock::timerTimeout);
     }
 
+    RenderClock::RenderClock(RenderClock &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
+    }
+
     RenderClock::~RenderClock() {
         Q_D(AVQt::RenderClock);
 
@@ -78,13 +83,13 @@ namespace AVQt {
         }
     }
 
-    void RenderClock::setInterval(int64_t interval) {
+    void RenderClock::setInterval(int interval) {
         Q_D(AVQt::RenderClock);
 
-        if (interval > 0 && interval != d->m_interval.load()) {
+        if (interval > 0 && interval != d->m_interval) {
             d->m_interval.store(interval);
 
-            d->m_timer->setInterval(d->m_interval.load());
+            d->m_timer->setInterval(d->m_interval);
             d->m_timer->stop();
             d->m_timer->start();
 
