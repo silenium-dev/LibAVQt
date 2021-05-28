@@ -42,9 +42,9 @@ namespace AVQt {
 
         bool isPaused() Q_DECL_OVERRIDE;
 
-        qsizetype registerCallback(IPacketSink *packetSink, int8_t type) Q_DECL_OVERRIDE;
+        qint64 registerCallback(IPacketSink *packetSink, int8_t type) Q_DECL_OVERRIDE;
 
-        qsizetype unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
+        qint64 unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
 
         void run() Q_DECL_OVERRIDE;
 

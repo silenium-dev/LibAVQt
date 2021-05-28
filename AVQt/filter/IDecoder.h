@@ -39,9 +39,9 @@ namespace AVQt {
 
         // IFrameSource interface
     public:
-        virtual qsizetype registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE = 0;
+        virtual qint64 registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE = 0;
 
-        virtual qsizetype unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE = 0;
+        virtual qint64 unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE = 0;
 
         virtual int init() Q_DECL_OVERRIDE = 0;
 

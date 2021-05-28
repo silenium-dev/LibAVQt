@@ -28,7 +28,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
     auto now = QDateTime::currentDateTime();
 
     os << now.toString(Qt::ISODateWithMs) << ": ";
-    os << qPrintable(qFormatLogMessage(type, context, message)) << Qt::endl;
+    os << qPrintable(qFormatLogMessage(type, context, message)) << "\n";
 
     std::cerr << output.toStdString();
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     AVQt::IDecoder *videoDecoder;
 #ifdef Q_OS_LINUX
-    videoDecoder = new AVQt::DecoderQSV;
+    videoDecoder = new AVQt::DecoderVAAPI;
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
 #else
@@ -79,6 +79,12 @@ int main(int argc, char *argv[]) {
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
 //    videoDecoder->registerCallback(encoder);
+
+    QFile outputFile("output.ts");
+    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+    AVQt::Muxer muxer(&outputFile);
+
+//    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));

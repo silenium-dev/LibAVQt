@@ -160,7 +160,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    qsizetype DecoderQSV::registerCallback(IFrameSink *frameSink) {
+    qint64 DecoderQSV::registerCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderQSV);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -175,7 +175,7 @@ namespace AVQt {
         return -1;
     }
 
-    qsizetype DecoderQSV::unregisterCallback(IFrameSink *frameSink) {
+    qint64 DecoderQSV::unregisterCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderQSV);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
@@ -246,7 +246,7 @@ namespace AVQt {
                         AVPacket *packet = d->m_inputQueue.dequeue();
                         lock.unlock();
 
-                        qDebug("Video packet queue size: %lld", d->m_inputQueue.size());
+                        qDebug("Video packet queue size: %d", d->m_inputQueue.size());
 
                         ret = avcodec_send_packet(d->m_pCodecCtx, packet);
                         if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {

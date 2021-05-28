@@ -49,9 +49,9 @@ namespace AVQt {
         int m_ALBufferCount{5};
         std::atomic_int64_t m_playingBuffers{0};
         QVector<ALuint> m_ALBuffers{};
-        QRecursiveMutex m_ALBufferQueueMutex{};
+        QMutex m_ALBufferQueueMutex{};
         QQueue<ALuint> m_ALBufferQueue{};
-        QRecursiveMutex m_ALBufferSampleMapMutex{};
+        QMutex m_ALBufferSampleMapMutex{};
         QMap<ALuint, int64_t> m_ALBufferSampleMap{};
         int64_t m_queuedSamples{0};
         ALCdevice *m_ALCDevice{nullptr};

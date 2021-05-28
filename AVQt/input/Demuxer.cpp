@@ -34,7 +34,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    qsizetype Demuxer::registerCallback(IPacketSink *packetSink, int8_t type) {
+    qint64 Demuxer::registerCallback(IPacketSink *packetSink, int8_t type) {
         Q_D(AVQt::Demuxer);
 
         QMutexLocker lock(&d->m_cbMutex);
@@ -79,7 +79,7 @@ namespace AVQt {
         return 0;
     }
 
-    qsizetype Demuxer::unregisterCallback(IPacketSink *packetSink) {
+    qint64 Demuxer::unregisterCallback(IPacketSink *packetSink) {
         Q_D(AVQt::Demuxer);
 
         QMutexLocker lock(&d->m_cbMutex);
@@ -204,7 +204,6 @@ namespace AVQt {
 
 //        avio_closep(&d->m_pIOCtx);
         avformat_close_input(&d->m_pFormatCtx);
-        delete[] d->m_pBuffer;
 
         d->m_videoStreams.clear();
         d->m_audioStreams.clear();

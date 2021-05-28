@@ -114,7 +114,7 @@ namespace AVQt {
         alCall(alDeleteSources, 1, &d->m_ALSource);
         alCall(alDeleteBuffers, d->m_ALBufferCount, d->m_ALBuffers.data());
         d->m_ALBuffers.clear();
-        d->m_ALBuffers.shrink_to_fit();
+        d->m_ALBuffers.squeeze();
 
         alcCall(alcMakeContextCurrent, contextCurrent, d->m_ALCDevice, nullptr);
         alcCall(alcDestroyContext, d->m_ALCDevice, d->m_ALCContext);
@@ -374,8 +374,7 @@ namespace AVQt {
                 QMutexLocker lock3(&d->m_ALBufferQueueMutex);
                 alCall(alSourceQueueBuffers, d->m_ALSource, static_cast<int>(qMin(d->m_ALBufferQueue.size(), 4)),
                        d->m_ALBufferQueue.toVector().data());
-                for (const auto &buf: QList(d->m_ALBufferQueue.end() - static_cast<int>(qMin(d->m_ALBufferQueue.size(), 4)),
-                                            d->m_ALBufferQueue.end())) {
+                for (const auto &buf: d->m_ALBufferQueue.mid(d->m_ALBufferQueue.size() - static_cast<int>(qMin(d->m_ALBufferQueue.size(), 4)))) {
                     d->m_queuedSamples += d->m_ALBufferSampleMap[buf];
                 }
                 if (d->m_ALBufferQueue.size() < 4) {
@@ -440,7 +439,7 @@ namespace AVQt {
             if (d->m_inputQueue.isEmpty() || d->m_paused.load()) {
                 return;
             }
-            qDebug("Size of output queue: %lld", d->m_inputQueue.size());
+            qDebug("Size of output queue: %d", d->m_inputQueue.size());
             QMutexLocker lock(&d->m_ALBufferQueueMutex);
             if (!d->m_ALBufferQueue.isEmpty()) {
                 lock.unlock();

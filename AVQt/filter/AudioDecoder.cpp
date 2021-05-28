@@ -129,7 +129,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    qsizetype AudioDecoder::registerCallback(IAudioSink *callback) {
+    qint64 AudioDecoder::registerCallback(IAudioSink *callback) {
         Q_D(AVQt::AudioDecoder);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -149,7 +149,7 @@ namespace AVQt {
         return -1;
     }
 
-    qsizetype AudioDecoder::unregisterCallback(IAudioSink *callback) {
+    qint64 AudioDecoder::unregisterCallback(IAudioSink *callback) {
         Q_D(AVQt::AudioDecoder);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -225,7 +225,7 @@ namespace AVQt {
         while (d->m_running.load()) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
                 QTime time1 = QTime::currentTime();
-                qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
+                qDebug("Audio packet queue size: %d", d->m_inputQueue.size());
 
                 int ret;
                 constexpr size_t strBufSize = 64;
@@ -260,7 +260,7 @@ namespace AVQt {
                         AVPacket *packet = d->m_inputQueue.dequeue();
                         lock.unlock();
 
-                        qDebug("Audio packet queue size: %lld", d->m_inputQueue.size());
+                        qDebug("Audio packet queue size: %d", d->m_inputQueue.size());
 
                         ret = avcodec_send_packet(d->m_pCodecCtx, packet);
                         if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {

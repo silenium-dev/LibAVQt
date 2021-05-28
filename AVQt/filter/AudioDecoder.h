@@ -34,9 +34,9 @@ namespace AVQt {
 
         bool isPaused() Q_DECL_OVERRIDE;
 
-        qsizetype registerCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
+        qint64 registerCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
 
-        qsizetype unregisterCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
+        qint64 unregisterCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
 
         void run() Q_DECL_OVERRIDE;
 

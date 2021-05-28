@@ -33,7 +33,7 @@ namespace AVQt {
         uint8_t *m_pIOBuffer{nullptr};
         AVIOContext *m_pIOContext{nullptr};
         AVFormatContext *m_pFormatContext{nullptr};
-        QMap<IPacketSource *, QList<AVStream *>> m_sourceStreamMap{};
+        QMap<IPacketSource *, QMap<AVStream *, AVRational>> m_sourceStreamMap{};
 
         QMutex m_inputQueueMutex{};
         QQueue<QPair<AVPacket *, AVStream *>> m_inputQueue{};

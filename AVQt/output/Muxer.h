@@ -5,6 +5,7 @@
 #include "IPacketSink.h"
 
 #include <QThread>
+#include <QIODevice>
 
 #ifndef LIBAVQT_MUXER_H
 #define LIBAVQT_MUXER_H
