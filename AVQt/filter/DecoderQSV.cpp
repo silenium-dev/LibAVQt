@@ -9,7 +9,8 @@
 #include "input/IPacketSource.h"
 
 #include <QApplication>
-#include <QtConcurrent>
+#include <QImage>
+//#include <QtConcurrent>
 
 //#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //#define NOW() std::chrono::high_resolution_clock::now()
@@ -285,7 +286,7 @@ namespace AVQt {
                         AVFrame *cbFrame = av_frame_clone(frame);
                         cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
                                                     av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
-                        qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                        qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));

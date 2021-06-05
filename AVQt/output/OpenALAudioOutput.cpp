@@ -192,7 +192,7 @@ namespace AVQt {
 
 //            pause(nullptr, true);
             wait();
-            qDebug("OpenALAudioOutput at %#lx stopped", reinterpret_cast<int64_t>(this));
+            qDebug("OpenALAudioOutput at %#llx stopped", reinterpret_cast<int64_t>(this));
 
             stopped();
 
@@ -460,7 +460,7 @@ namespace AVQt {
                             break;
                         }
                         frame = d->m_inputQueue.dequeue();
-                        qDebug("Discarding audio frame at PTS: %ld < PTS: %lld", frame.first->pts, timestamp);
+                        qDebug("Discarding audio frame at PTS: %lld < PTS: %lld", frame.first->pts, timestamp);
                         av_frame_unref(frame.first);
                         av_frame_free(&frame.first);
                     }

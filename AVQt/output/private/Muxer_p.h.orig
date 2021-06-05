@@ -6,7 +6,11 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+<<<<<<< Updated upstream
+#include <libavcodec/packet.h>
+=======
 #include <libavcodec/avcodec.h>
+>>>>>>> Stashed changes
 }
 
 #include <QtCore>
@@ -50,4 +54,8 @@ namespace AVQt {
     };
 }
 
+<<<<<<< Updated upstream
 #endif //LIBAVQT_MUXER_P_H
+=======
+#endif //LIBAVQT_MUXER_P_H
+>>>>>>> Stashed changes

@@ -290,7 +290,7 @@ namespace AVQt {
                         AVFrame *cbFrame = av_frame_clone(frame);
                         cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
                                                     av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
-                        qDebug("Calling audio frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                        qDebug("Calling audio frame callback for PTS: %lld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onAudioFrame(this, cbFrame,

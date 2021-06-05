@@ -2,15 +2,22 @@
 // Created by silas on 3/1/21.
 //
 
-#include "private/DecoderDXVA2_p.h"
-#include "DecoderDXVA2.h"
+#include "private/DecoderVAAPI_p.h"
+#include "DecoderVAAPI.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
 #include "input/IPacketSource.h"
 
 #include <QApplication>
+<<<<<<< Updated upstream
+#include <QtConcurrent>
+<<<<<<< Updated upstream
+=======
 #include <QImage>
+=======
 //#include <QtConcurrent>
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 //#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //#define NOW() std::chrono::high_resolution_clock::now()
@@ -19,28 +26,28 @@
 
 
 namespace AVQt {
-    DecoderDXVA2::DecoderDXVA2(QObject *parent) : QThread(parent), d_ptr(new DecoderDXVA2Private(this)) {
-        Q_D(AVQt::DecoderDXVA2);
+    DecoderVAAPI::DecoderVAAPI(QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {
+        Q_D(AVQt::DecoderVAAPI);
     }
 
-    [[maybe_unused]] DecoderDXVA2::DecoderDXVA2(DecoderDXVA2Private &p) : d_ptr(&p) {
+    [[maybe_unused]] DecoderVAAPI::DecoderVAAPI(DecoderVAAPIPrivate &p) : d_ptr(&p) {
 
     }
 
-    DecoderDXVA2::DecoderDXVA2(DecoderDXVA2 &&other) noexcept: d_ptr(other.d_ptr) {
+    DecoderVAAPI::DecoderVAAPI(DecoderVAAPI &&other) noexcept: d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
 
-    DecoderDXVA2::~DecoderDXVA2() {
+    DecoderVAAPI::~DecoderVAAPI() {
         delete d_ptr;
     }
 
-    void DecoderDXVA2::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+    void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
                             AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_UNUSED(aParams)
         Q_UNUSED(sParams)
-        Q_D(AVQt::DecoderDXVA2);
+        Q_D(AVQt::DecoderVAAPI);
         Q_UNUSED(source)
         if (d->m_pCodecParams) {
             avcodec_parameters_free(&d->m_pCodecParams);
@@ -59,19 +66,19 @@ namespace AVQt {
         init();
     }
 
-    int DecoderDXVA2::init() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderVAAPI::init() {
+        Q_D(AVQt::DecoderVAAPI);
 
         return 0;
     }
 
-    void DecoderDXVA2::deinit(IPacketSource *source) {
+    void DecoderVAAPI::deinit(IPacketSource *source) {
         Q_UNUSED(source)
         deinit();
     }
 
-    int DecoderDXVA2::deinit() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderVAAPI::deinit() {
+        Q_D(AVQt::DecoderVAAPI);
 
         stop();
 
@@ -91,13 +98,13 @@ namespace AVQt {
         return 0;
     }
 
-    void DecoderDXVA2::start(IPacketSource *source) {
+    void DecoderVAAPI::start(IPacketSource *source) {
         Q_UNUSED(source)
         start();
     }
 
-    int DecoderDXVA2::start() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderVAAPI::start() {
+        Q_D(AVQt::DecoderVAAPI);
 
         bool notRunning = false;
         if (d->m_running.compare_exchange_strong(notRunning, true)) {
@@ -110,13 +117,13 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderDXVA2::stop(IPacketSource *source) {
+    void DecoderVAAPI::stop(IPacketSource *source) {
         Q_UNUSED(source)
         stop();
     }
 
-    int DecoderDXVA2::stop() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderVAAPI::stop() {
+        Q_D(AVQt::DecoderVAAPI);
 
         bool shouldBeCurrent = true;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
@@ -143,8 +150,8 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderDXVA2::pause(bool pause) {
-        Q_D(AVQt::DecoderDXVA2);
+    void DecoderVAAPI::pause(bool pause) {
+        Q_D(AVQt::DecoderVAAPI);
         if (d->m_running.load() != pause) {
             d->m_paused.store(pause);
 
@@ -156,13 +163,13 @@ namespace AVQt {
         }
     }
 
-    bool DecoderDXVA2::isPaused() {
-        Q_D(AVQt::DecoderDXVA2);
+    bool DecoderVAAPI::isPaused() {
+        Q_D(AVQt::DecoderVAAPI);
         return d->m_paused.load();
     }
 
-    qint64 DecoderDXVA2::registerCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderDXVA2);
+    qint64 DecoderVAAPI::registerCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderVAAPI);
 
         QMutexLocker lock(&d->m_cbListMutex);
         if (!d->m_cbList.contains(frameSink)) {
@@ -176,8 +183,8 @@ namespace AVQt {
         return -1;
     }
 
-    qint64 DecoderDXVA2::unregisterCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderDXVA2);
+    qint64 DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderVAAPI);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
             auto result = d->m_cbList.indexOf(frameSink);
@@ -189,10 +196,10 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderDXVA2::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
+    void DecoderVAAPI::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
         Q_UNUSED(source)
 
-        Q_D(AVQt::DecoderDXVA2);
+        Q_D(AVQt::DecoderVAAPI);
 
         if (packetType == IPacketSource::CB_VIDEO) {
             AVPacket *queuePacket = av_packet_clone(packet);
@@ -204,8 +211,8 @@ namespace AVQt {
         }
     }
 
-    void DecoderDXVA2::run() {
-        Q_D(AVQt::DecoderDXVA2);
+    void DecoderVAAPI::run() {
+        Q_D(AVQt::DecoderVAAPI);
 
         while (d->m_running) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
@@ -224,7 +231,7 @@ namespace AVQt {
                         qFatal("Could not allocate audio decoder context, probably out of memory");
                     }
 
-                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_DXVA2, "", nullptr, 0);
+                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
                     if (ret != 0) {
                         qFatal("%d: Could not create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
@@ -233,7 +240,7 @@ namespace AVQt {
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
-                        qFatal("%d: Could not open DXVA2 decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Could not open VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     for (const auto &cb: d->m_cbList) {
@@ -255,7 +262,7 @@ namespace AVQt {
                             d->m_inputQueue.prepend(packet);
                             break;
                         } else if (ret < 0) {
-                            qFatal("%d: Error sending packet to DXVA2 decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                            qFatal("%d: Error sending packet to VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                         }
                         av_packet_unref(packet);
                         av_packet_free(&packet);
@@ -268,7 +275,7 @@ namespace AVQt {
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
                     } else if (ret < 0) {
-                        qFatal("%d: Error receiving frame from DXVA2 decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Error receiving frame from VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
 //                    auto t1 = NOW();
@@ -280,19 +287,42 @@ namespace AVQt {
 //                    auto t3 = NOW();
 
                     QMutexLocker lock2(&d->m_cbListMutex);
-                    QList<QFuture<void>> cbFutures;
+//                    QList<QFuture<void>> cbFutures;
                     for (const auto &cb: d->m_cbList) {
 //                        cbFutures.append(QtConcurrent::run([=] {
+<<<<<<< Updated upstream
+                        AVFrame *cbFrame = av_frame_clone(frame);
+                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+                                                    av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                        qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+=======
+<<<<<<< Updated upstream
+                            AVFrame *cbFrame = av_frame_clone(frame);
+                            cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+                                                        av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                            qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                                   d->m_timebase.den);
+                            QTime time = QTime::currentTime();
+                            cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
+                            qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
+                            av_frame_unref(cbFrame);
+                            av_frame_free(&cbFrame);
+=======
                         AVFrame *cbFrame = av_frame_clone(frame);
                         cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
                                                     av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
                         qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+>>>>>>> Stashed changes
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
                         av_frame_unref(cbFrame);
                         av_frame_free(&cbFrame);
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 //                        }));
                     }
 //                    bool cbBusy = true;
@@ -306,7 +336,6 @@ namespace AVQt {
 //                        }
 //                        usleep(500);
 //                    }
-                    // TODO: Pass HWFrame to sinks to improve performance in renderers, because DXVA2 supports direct mapping to OpenGL textures
 //                    auto t2 = NOW();
 //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
 

@@ -569,6 +569,12 @@ namespace AVQt {
 #undef M
     }
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+}
+=======
+>>>>>>> Stashed changes
     QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts) {
         int ms = static_cast<int>(ts % 1000);
         int s = static_cast<int>((ts / 1000) % 60);
@@ -576,4 +582,10 @@ namespace AVQt {
         int h = static_cast<int>(ts / 1000 / 60 / 60);
         return QTime(h, m, s, ms);
     }
+
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes

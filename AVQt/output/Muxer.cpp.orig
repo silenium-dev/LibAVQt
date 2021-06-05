@@ -200,7 +200,11 @@ namespace AVQt {
 
         QPair<AVPacket *, AVStream *> queuePacket{av_packet_clone(packet), addStream};
         queuePacket.first->stream_index = addStream->index;
+<<<<<<< Updated upstream
+        qDebug("[AVQt::Muxer] Getting packet with PTS: %ld", packet->pts);
+=======
         qDebug("[AVQt::Muxer] Getting packet with PTS: %lld", packet->pts);
+>>>>>>> Stashed changes
         av_packet_rescale_ts(queuePacket.first, d->m_sourceStreamMap[source][addStream], addStream->time_base);
 
         QMutexLocker lock(&d->m_inputQueueMutex);
@@ -264,4 +268,8 @@ namespace AVQt {
 
         return result ? outputDevice->pos() : AVERROR_UNKNOWN;
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes

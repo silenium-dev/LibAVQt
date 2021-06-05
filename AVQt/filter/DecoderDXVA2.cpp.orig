@@ -9,8 +9,15 @@
 #include "input/IPacketSource.h"
 
 #include <QApplication>
+<<<<<<< Updated upstream
+#include <QtConcurrent>
+<<<<<<< Updated upstream
+=======
 #include <QImage>
+=======
 //#include <QtConcurrent>
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 //#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //#define NOW() std::chrono::high_resolution_clock::now()

@@ -7,6 +7,7 @@
 
 extern "C" {
 #include <libavutil/rational.h>
+#include <libavutil/frame.h>
 }
 
 
