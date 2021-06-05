@@ -50,6 +50,10 @@ set(SOURCES
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
+        filter/DecoderMMAL.h
+        filter/private/DecoderMMAL_p.h
+        filter/DecoderMMAL.cpp
+
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
         filter/private/OpenALErrorHandler.h

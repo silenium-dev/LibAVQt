@@ -200,7 +200,7 @@ namespace AVQt {
 
         QPair<AVPacket *, AVStream *> queuePacket{av_packet_clone(packet), addStream};
         queuePacket.first->stream_index = addStream->index;
-        qDebug("[AVQt::Muxer] Getting packet with PTS: %lld", packet->pts);
+        qDebug("[AVQt::Muxer] Getting packet with PTS: %lld", static_cast<long long>(packet->pts));
         av_packet_rescale_ts(queuePacket.first, d->m_sourceStreamMap[source][addStream], addStream->time_base);
 
         QMutexLocker lock(&d->m_inputQueueMutex);

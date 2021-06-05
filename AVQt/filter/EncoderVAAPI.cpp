@@ -339,7 +339,8 @@ namespace AVQt {
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
                     ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
-                    qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %lld, timebase: %d/%d", packet->pts,
+                    qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %lld, timebase: %d/%d",
+                           static_cast<long long>(packet->pts),
                            d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
