@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <csignal>
 #include <iostream>
+#include <qglobal.h>
 
 constexpr auto LOGFILE_LOCATION = "libAVQt.log";
 
@@ -59,11 +60,11 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadOnly);
 
     AVQt::Demuxer demuxer(inputFile);
-    AVQt::AudioDecoder decoder;
-    AVQt::OpenALAudioOutput output;
+//    AVQt::AudioDecoder decoder;
+//    AVQt::OpenALAudioOutput output;
 
-    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-    decoder.registerCallback(&output);
+//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+//    decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder;
 #ifdef Q_OS_LINUX
@@ -73,21 +74,21 @@ int main(int argc, char *argv[]) {
 #else
 #error "Unsupported OS"
 #endif
-    AVQt::OpenGLRenderer renderer;
+//    AVQt::OpenGLRenderer renderer;
 
-//    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
+    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-//    videoDecoder->registerCallback(encoder);
+    videoDecoder->registerCallback(encoder);
 
     QFile outputFile("output.ts");
     outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
     AVQt::Muxer muxer(&outputFile);
 
-//    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(&renderer);
+    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+//    videoDecoder->registerCallback(&renderer);
 
-    renderer.setMinimumSize(QSize(360, 240));
+//    renderer.setMinimumSize(QSize(360, 240));
 
 //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
 //        output.pause(nullptr, paused);
@@ -98,7 +99,7 @@ int main(int argc, char *argv[]) {
 
     demuxer.init();
 
-    output.syncToOutput(&renderer);
+//    output.syncToOutput(&renderer);
 
     demuxer.start();
 
