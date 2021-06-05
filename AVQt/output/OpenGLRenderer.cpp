@@ -330,7 +330,8 @@ namespace AVQt {
                             if (d->m_renderQueue.first().first->pts >= d->m_updateTimestamp.load()) {
                                 break;
                             } else {
-                                qDebug("Discarding video frame at PTS: %lld < PTS: %lld", frame.first->pts, d->m_updateTimestamp.load());
+                                qDebug("Discarding video frame at PTS: %lld < PTS: %lld", static_cast<long long>(frame.first->pts),
+                                       d->m_updateTimestamp.load());
                                 av_frame_unref(frame.first);
                                 av_frame_free(&frame.first);
                             }
@@ -458,7 +459,7 @@ namespace AVQt {
 //            }
 
         if (d->m_currentFrame) {
-            qDebug("Drawing frame with PTS: %lld", d->m_currentFrame->pts);
+            qDebug("Drawing frame with PTS: %lld", static_cast<long long>(d->m_currentFrame->pts));
             d->m_program->bind();
             if (!d->m_yTexture->isBound(0)) {
                 d->m_yTexture->bind(0);

@@ -2,22 +2,15 @@
 // Created by silas on 3/1/21.
 //
 
-#include "private/DecoderQSV_p.h"
-#include "DecoderQSV.h"
+#include "private/DecoderMMAL_p.h"
+#include "DecoderMMAL.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
 #include "input/IPacketSource.h"
 
 #include <QApplication>
-<<<<<<< Updated upstream
-#include <QtConcurrent>
-<<<<<<< Updated upstream
-=======
 #include <QImage>
-=======
 //#include <QtConcurrent>
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 //#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //#define NOW() std::chrono::high_resolution_clock::now()
@@ -26,28 +19,28 @@
 
 
 namespace AVQt {
-    DecoderQSV::DecoderQSV(QObject *parent) : QThread(parent), d_ptr(new DecoderQSVPrivate(this)) {
-        Q_D(AVQt::DecoderQSV);
+    DecoderMMAL::DecoderMMAL(QObject *parent) : QThread(parent), d_ptr(new DecoderMMALPrivate(this)) {
+        Q_D(AVQt::DecoderMMAL);
     }
 
-    [[maybe_unused]] DecoderQSV::DecoderQSV(DecoderQSVPrivate &p) : d_ptr(&p) {
+    [[maybe_unused]] DecoderMMAL::DecoderMMAL(DecoderMMALPrivate &p) : d_ptr(&p) {
 
     }
 
-    DecoderQSV::DecoderQSV(DecoderQSV &&other) noexcept: d_ptr(other.d_ptr) {
+    DecoderMMAL::DecoderMMAL(DecoderMMAL &&other) noexcept: d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
 
-    DecoderQSV::~DecoderQSV() {
+    DecoderMMAL::~DecoderMMAL() {
         delete d_ptr;
     }
 
-    void DecoderQSV::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
-                          AVCodecParameters *aParams, AVCodecParameters *sParams) {
+    void DecoderMMAL::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+                           AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_UNUSED(aParams)
         Q_UNUSED(sParams)
-        Q_D(AVQt::DecoderQSV);
+        Q_D(AVQt::DecoderMMAL);
         Q_UNUSED(source)
         if (d->m_pCodecParams) {
             avcodec_parameters_free(&d->m_pCodecParams);
@@ -66,19 +59,19 @@ namespace AVQt {
         init();
     }
 
-    int DecoderQSV::init() {
-        Q_D(AVQt::DecoderQSV);
+    int DecoderMMAL::init() {
+        Q_D(AVQt::DecoderMMAL);
 
         return 0;
     }
 
-    void DecoderQSV::deinit(IPacketSource *source) {
+    void DecoderMMAL::deinit(IPacketSource *source) {
         Q_UNUSED(source)
         deinit();
     }
 
-    int DecoderQSV::deinit() {
-        Q_D(AVQt::DecoderQSV);
+    int DecoderMMAL::deinit() {
+        Q_D(AVQt::DecoderMMAL);
 
         stop();
 
@@ -91,20 +84,18 @@ namespace AVQt {
             avcodec_free_context(&d->m_pCodecCtx);
             d->m_pCodecCtx = nullptr;
             d->m_pCodec = nullptr;
-            av_buffer_unref(&d->m_pDeviceCtx);
-            d->m_pDeviceCtx = nullptr;
         }
 
         return 0;
     }
 
-    void DecoderQSV::start(IPacketSource *source) {
+    void DecoderMMAL::start(IPacketSource *source) {
         Q_UNUSED(source)
         start();
     }
 
-    int DecoderQSV::start() {
-        Q_D(AVQt::DecoderQSV);
+    int DecoderMMAL::start() {
+        Q_D(AVQt::DecoderMMAL);
 
         bool notRunning = false;
         if (d->m_running.compare_exchange_strong(notRunning, true)) {
@@ -117,13 +108,13 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderQSV::stop(IPacketSource *source) {
+    void DecoderMMAL::stop(IPacketSource *source) {
         Q_UNUSED(source)
         stop();
     }
 
-    int DecoderQSV::stop() {
-        Q_D(AVQt::DecoderQSV);
+    int DecoderMMAL::stop() {
+        Q_D(AVQt::DecoderMMAL);
 
         bool shouldBeCurrent = true;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
@@ -150,8 +141,8 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderQSV::pause(bool pause) {
-        Q_D(AVQt::DecoderQSV);
+    void DecoderMMAL::pause(bool pause) {
+        Q_D(AVQt::DecoderMMAL);
         if (d->m_running.load() != pause) {
             d->m_paused.store(pause);
 
@@ -163,13 +154,13 @@ namespace AVQt {
         }
     }
 
-    bool DecoderQSV::isPaused() {
-        Q_D(AVQt::DecoderQSV);
+    bool DecoderMMAL::isPaused() {
+        Q_D(AVQt::DecoderMMAL);
         return d->m_paused.load();
     }
 
-    qint64 DecoderQSV::registerCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderQSV);
+    qint64 DecoderMMAL::registerCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderMMAL);
 
         QMutexLocker lock(&d->m_cbListMutex);
         if (!d->m_cbList.contains(frameSink)) {
@@ -183,8 +174,8 @@ namespace AVQt {
         return -1;
     }
 
-    qint64 DecoderQSV::unregisterCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderQSV);
+    qint64 DecoderMMAL::unregisterCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderMMAL);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
             auto result = d->m_cbList.indexOf(frameSink);
@@ -196,10 +187,10 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderQSV::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
+    void DecoderMMAL::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
         Q_UNUSED(source)
 
-        Q_D(AVQt::DecoderQSV);
+        Q_D(AVQt::DecoderMMAL);
 
         if (packetType == IPacketSource::CB_VIDEO) {
             AVPacket *queuePacket = av_packet_clone(packet);
@@ -211,8 +202,8 @@ namespace AVQt {
         }
     }
 
-    void DecoderQSV::run() {
-        Q_D(AVQt::DecoderQSV);
+    void DecoderMMAL::run() {
+        Q_D(AVQt::DecoderMMAL);
 
         while (d->m_running) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
@@ -221,26 +212,33 @@ namespace AVQt {
                 char strBuf[strBufSize];
                 // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
                 if (d->m_pCodecParams && !d->m_pCodecCtx) {
-                    d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
-                    if (!d->m_pCodec) {
-                        qFatal("No audio decoder found");
+                    switch (d->m_pCodecParams->codec_id) {
+                        case AV_CODEC_ID_H264:
+                            d->m_pCodec = avcodec_find_decoder_by_name("h264_mmal");
+                            break;
+                        case AV_CODEC_ID_MPEG2VIDEO:
+                            d->m_pCodec = avcodec_find_decoder_by_name("mpeg2_mmal");
+                            break;
+                        case AV_CODEC_ID_MPEG4:
+                            d->m_pCodec = avcodec_find_decoder_by_name("mpeg4_mmal");
+                            break;
+                        case AV_CODEC_ID_VC1:
+                            d->m_pCodec = avcodec_find_decoder_by_name("vc1_mmal");
+                            break;
+                        default:
+                            qFatal("No MMAL decoder found for the specified codec: %s", avcodec_get_name(d->m_pCodecParams->codec_id));
+                            break;
                     }
 
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
                     if (!d->m_pCodecCtx) {
-                        qFatal("Could not allocate audio decoder context, probably out of memory");
-                    }
-
-                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_QSV, "/dev/dri/renderD128", nullptr, 0);
-                    if (ret != 0) {
-                        qFatal("%d: Could not create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("Could not allocate MMAL decoder context, probably out of memory");
                     }
 
                     avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
-                    d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
-                        qFatal("%d: Could not open QSV decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Could not open MMAL decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     for (const auto &cb: d->m_cbList) {
@@ -262,7 +260,7 @@ namespace AVQt {
                             d->m_inputQueue.prepend(packet);
                             break;
                         } else if (ret < 0) {
-                            qFatal("%d: Error sending packet to QSV decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                            qFatal("%d: Error sending packet to MMAL decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                         }
                         av_packet_unref(packet);
                         av_packet_free(&packet);
@@ -275,7 +273,7 @@ namespace AVQt {
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
                     } else if (ret < 0) {
-                        qFatal("%d: Error receiving frame from QSV decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Error receiving frame from MMAL decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
 //                    auto t1 = NOW();
@@ -293,7 +291,8 @@ namespace AVQt {
                         AVFrame *cbFrame = av_frame_clone(frame);
                         cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
                                                     av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
-                        qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                        qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", static_cast<long long>(cbFrame->pts),
+                               d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
