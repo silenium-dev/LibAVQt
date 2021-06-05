@@ -318,7 +318,7 @@ namespace AVQt {
                         cb->start(this);
                     }
                 }
-                while (!d->m_inputQueue.isEmpty()) {
+                if (!d->m_inputQueue.isEmpty()) {
                     QPair<AVFrame *, int64_t> frame;
                     {
                         QMutexLocker lock(&d->m_inputQueueMutex);
@@ -339,12 +339,14 @@ namespace AVQt {
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
                     ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
+                    qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %ld, timebase: %d/%d", packet->pts,
+                           d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
-                    } else if (ret < 0) {
+                    } else if (ret != 0) {
                         qFatal("%i: Could not receive packet from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
-                    {
+                    if (packet->buf) {
                         QMutexLocker lock(&d->m_cbListMutex);
                         for (const auto &cb: d->m_cbList) {
                             AVPacket *cbPacket = av_packet_clone(packet);
@@ -352,6 +354,7 @@ namespace AVQt {
                             av_packet_free(&cbPacket);
                         }
                     }
+                    av_packet_unref(packet);
                 }
             } else {
                 msleep(1);
