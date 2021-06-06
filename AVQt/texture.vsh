@@ -1,4 +1,4 @@
-#version 330
+#version 100
 
 // GLSL version 3.3
 // vertex shader

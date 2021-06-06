@@ -1,4 +1,4 @@
-#version 330 core
+#version 100
 
 // fragment shader
 
