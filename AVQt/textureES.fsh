@@ -28,9 +28,9 @@ void main() {
         yuv.y = texture(textureU, newTexCoord.st).r - 0.5;
         yuv.z = texture(textureU, newTexCoord.st).g - 0.5;
         // The numbers are just YUV to RGB conversion constants
-        mediump vec3 rgb = mat3(1, 1, 1,
-        0, -0.39465, 2.03211,
-        1.13983, -0.58060, 0) * yuv;
+        mediump vec3 rgb = mat3(1.0, 1.0, 1.0,
+        0.0, -0.39465, 2.03211,
+        1.13983, -0.58060, 0.0) * yuv;
         finalColor = vec4(rgb, 1.0f);
     } else if (inputFormat == 2) { // YUV420P
         mediump vec3 yuv;
@@ -43,9 +43,9 @@ void main() {
         yuv.y = texture(textureU, newTexCoord.st).r - 0.5;
         yuv.z = texture(textureV, newTexCoord.st).r - 0.5;
         // The numbers are just YUV to RGB conversion constants
-        mediump vec3 rgb = mat3(1, 1, 1,
-        0, -0.39465, 2.03211,
-        1.13983, -0.58060, 0) * yuv;
+        mediump vec3 rgb = mat3(1.0, 1.0, 1.0,
+        0.0, -0.39465, 2.03211,
+        1.13983, -0.58060, 0.0) * yuv;
         finalColor = vec4(rgb, 1.0f);
     } else if (inputFormat == 3) { // YUV420P10
         mediump vec3 yuv;
@@ -57,9 +57,9 @@ void main() {
         yuv.y = texture(textureU, newTexCoord.st).r * 64 - 0.5;
         yuv.z = texture(textureV, newTexCoord.st).r * 64 - 0.5;
         // The numbers are just YUV to RGB conversion constants
-        mediump vec3 rgb = mat3(1, 1, 1,
-        0, -0.39465, 2.03211,
-        1.13983, -0.58060, 0) * yuv;
+        mediump vec3 rgb = mat3(1.0, 1.0, 1.0,
+        0.0, -0.39465, 2.03211,
+        1.13983, -0.58060, 0.0) * yuv;
 
         finalColor = vec4(rgb, 1.0);
     }
