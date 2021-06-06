@@ -17,7 +17,7 @@ void main() {
     if (inputFormat == 0) { // RGB(A)
         mediump vec3 rgb = texture(textureY, newTexCoord).rgb;
         finalColor = vec4(rgb, 1.0);
-    } else if (inputFormat == 1) { // YUV 4:2:0 with Y plane interleaved UV plane (e.g. NV12 or P010)
+    } else if (inputFormat == 1) { // YUV 4:2:0 with Y plane and interleaved UV plane (e.g. NV12 or P010)
         mediump vec3 yuv;
 
         // We had put the Y values of each pixel to the R component by using GL_RED
@@ -33,20 +33,15 @@ void main() {
         1.13983, -0.58060, 0.0) * yuv;
         finalColor = vec4(rgb, 1.0f);
     } else if (inputFormat == 2) { // YUV420P
-        mediump vec3 yuv;
-
-        // We had put the Y values of each pixel to the R component by using GL_RED
-        yuv.x = texture(textureY, newTexCoord.st).r - 0.0625;
-        // We had put the U and V values of each pixel to the R and G components of the
-        // texture respectively using GL_RG. Since U, V bytes are interspread
-        // in the texture, this is probably the fastest way to use them in the shader
-        yuv.y = texture(textureU, newTexCoord.st).r - 0.5;
-        yuv.z = texture(textureV, newTexCoord.st).r - 0.5;
-        // The numbers are just YUV to RGB conversion constants
-        mediump vec3 rgb = mat3(1.0, 1.0, 1.0,
-        0.0, -0.39465, 2.03211,
-        1.13983, -0.58060, 0.0) * yuv;
-        finalColor = vec4(rgb, 1.0f);
+        //        mediump vec3 yuv;
+        //        yuv.x = texture(textureY, newTexCoord.st).r - 0.0625;
+        //        yuv.y = texture(textureU, newTexCoord.st).r - 0.5;
+        //        yuv.z = texture(textureV, newTexCoord.st).r - 0.5;
+        //         The numbers are just YUV to RGB conversion constants
+        //        mediump vec3 rgb = mat3(1.0, 1.0, 1.0,
+        //        0.0, -0.39465, 2.03211,
+        //        1.13983, -0.58060, 0.0) * yuv;
+        finalColor = vec4(1.0f, 0.0f, 0.5f, 1.0f);
     } else if (inputFormat == 3) { // YUV420P10
         mediump vec3 yuv;
 
