@@ -53,9 +53,9 @@ void main() {
         // Multiply every value with 2^6 = 64, because the values are stored in the lower 10 bits,
         // but have to be in the upper 10 bits for correct calculation
         // We had put the Y values of each pixel to the R component of every texture by using GL_RED
-        yuv.x = texture(textureY, newTexCoord.st).r * 64 - 0.0625;
-        yuv.y = texture(textureU, newTexCoord.st).r * 64 - 0.5;
-        yuv.z = texture(textureV, newTexCoord.st).r * 64 - 0.5;
+        yuv.x = texture(textureY, newTexCoord.st).r * 64.0 - 0.0625;
+        yuv.y = texture(textureU, newTexCoord.st).r * 64.0 - 0.5;
+        yuv.z = texture(textureV, newTexCoord.st).r * 64.0 - 0.5;
         // The numbers are just YUV to RGB conversion constants
         mediump vec3 rgb = mat3(1.0, 1.0, 1.0,
         0.0, -0.39465, 2.03211,
