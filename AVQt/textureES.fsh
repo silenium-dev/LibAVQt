@@ -1,4 +1,4 @@
-#version 200
+#version 300 es
 
 // fragment shader
 
