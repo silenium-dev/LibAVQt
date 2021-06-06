@@ -191,12 +191,16 @@ namespace AVQt {
 
         d->m_program = new QOpenGLShaderProgram();
 
-        if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/texture.vsh")) {
-            qDebug() << "Vertex shader errors:\n" << d->m_program->log();
-        }
+        if (context()->isOpenGLES()) {
 
-        if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/texture.fsh")) {
-            qDebug() << "Fragment shader errors:\n" << d->m_program->log();
+        } else {
+            if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/texture.vsh")) {
+                qDebug() << "Vertex shader errors:\n" << d->m_program->log();
+            }
+
+            if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/texture.fsh")) {
+                qDebug() << "Fragment shader errors:\n" << d->m_program->log();
+            }
         }
 
         d->m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
