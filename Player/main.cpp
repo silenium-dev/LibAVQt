@@ -68,27 +68,27 @@ int main(int argc, char *argv[]) {
 
     AVQt::IDecoder *videoDecoder;
 #ifdef Q_OS_LINUX
-    videoDecoder = new AVQt::DecoderVAAPI;
+    videoDecoder = new AVQt::DecoderMMAL;
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
 #else
 #error "Unsupported OS"
 #endif
-//    AVQt::OpenGLRenderer renderer;
+    AVQt::OpenGLRenderer renderer;
 
-    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
+//    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(encoder);
+//    videoDecoder->registerCallback(encoder);
 
-    QFile outputFile("output.ts");
-    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-    AVQt::Muxer muxer(&outputFile);
+//    QFile outputFile("output.ts");
+//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+//    AVQt::Muxer muxer(&outputFile);
 
-    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
-//    videoDecoder->registerCallback(&renderer);
+//    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+    videoDecoder->registerCallback(&renderer);
 
-//    renderer.setMinimumSize(QSize(360, 240));
+    renderer.setMinimumSize(QSize(360, 240));
 
 //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
 //        output.pause(nullptr, paused);
