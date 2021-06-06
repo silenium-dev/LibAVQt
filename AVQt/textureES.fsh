@@ -34,7 +34,7 @@ void main() {
         finalColor = vec4(rgb, 1.0f);
     } else if (inputFormat == 2) { // YUV420P
         mediump vec3 yuv;
-        yuv.x = texture(textureY, newTexCoord.st).r * 4;
+        yuv.x = texture(textureY, newTexCoord.st).r * 4.0;
         //        yuv.x = texture(textureY, newTexCoord.st).r - 0.0625;
         yuv.y = texture(textureU, newTexCoord.st).r - 0.5;
         yuv.z = texture(textureV, newTexCoord.st).r - 0.5;
