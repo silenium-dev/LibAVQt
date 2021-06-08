@@ -23,7 +23,7 @@ namespace AVQt {
      * \private
      * \internal
      */
-    class OpenGLRendererPrivate {
+    class OpenGLRendererPrivate : public QObject {
     public:
         OpenGLRendererPrivate(const OpenGLRendererPrivate &) = delete;
 
