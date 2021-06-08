@@ -1,5 +1,11 @@
 // fragment shader
 
+#ifdef GL_ES
+// Set default precision to medium
+precision mediump int;
+precision mediump float;
+#endif
+
 in vec4 fragColor;// input: interpolated color as rgba-value
 in vec2 texCoord;// input: texture coordinate (xy-coordinates)
 out vec4 finalColor;// output: final color value as rgba-value
