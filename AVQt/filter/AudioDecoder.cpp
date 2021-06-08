@@ -14,11 +14,9 @@
 
 namespace AVQt {
     AudioDecoder::AudioDecoder(QObject *parent) : QThread(parent), d_ptr(new AudioDecoderPrivate(this)) {
-        Q_D(AVQt::AudioDecoder);
     }
 
     [[maybe_unused]] AudioDecoder::AudioDecoder(AVQt::AudioDecoderPrivate &p) : d_ptr(&p) {
-        Q_D(AVQt::AudioDecoder);
     }
 
     AudioDecoder::AudioDecoder(AudioDecoder &&other) noexcept: d_ptr(other.d_ptr) {
@@ -185,21 +183,18 @@ namespace AVQt {
     }
 
     void AudioDecoder::deinit(IPacketSource *source) {
-        Q_D(AVQt::AudioDecoder);
         Q_UNUSED(source)
 
         deinit();
     }
 
     void AudioDecoder::start(IPacketSource *source) {
-        Q_D(AVQt::AudioDecoder);
         Q_UNUSED(source)
 
         start();
     }
 
     void AudioDecoder::stop(IPacketSource *source) {
-        Q_D(AVQt::AudioDecoder);
         Q_UNUSED(source)
 
         stop();

@@ -142,29 +142,25 @@ namespace AVQt {
 
     int EncoderVAAPI::deinit(IFrameSource *source) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
         deinit();
         return 0;
     }
 
     int EncoderVAAPI::start(IFrameSource *source) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
         start();
         return 0;
     }
 
     int EncoderVAAPI::stop(IFrameSource *source) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
         stop();
         return 0;
     }
 
     void EncoderVAAPI::pause(IFrameSource *source, bool paused) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
-        this->pause(paused);
+        pause(paused);
     }
 
     qint64 EncoderVAAPI::registerCallback(IPacketSink *packetSink, int8_t type) {

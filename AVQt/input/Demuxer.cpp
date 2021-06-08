@@ -15,8 +15,6 @@ namespace AVQt {
     }
 
     Demuxer::Demuxer(DemuxerPrivate &p) : d_ptr(&p) {
-        Q_D(AVQt::Demuxer);
-
     }
 
     void Demuxer::pause(bool pause) {

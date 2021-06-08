@@ -10,8 +10,6 @@
 
 namespace AVQt {
     OpenALAudioOutput::OpenALAudioOutput(QObject *parent) : QThread(parent), d_ptr(new OpenALAudioOutputPrivate(this)) {
-        Q_D(AVQt::OpenALAudioOutput);
-
     }
 
     [[maybe_unused]] OpenALAudioOutput::OpenALAudioOutput(OpenALAudioOutputPrivate &p) : d_ptr(&p) {

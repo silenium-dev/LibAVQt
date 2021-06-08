@@ -20,7 +20,6 @@
 
 namespace AVQt {
     DecoderDXVA2::DecoderDXVA2(QObject *parent) : QThread(parent), d_ptr(new DecoderDXVA2Private(this)) {
-        Q_D(AVQt::DecoderDXVA2);
     }
 
     [[maybe_unused]] DecoderDXVA2::DecoderDXVA2(DecoderDXVA2Private &p) : d_ptr(&p) {
@@ -60,8 +59,6 @@ namespace AVQt {
     }
 
     int DecoderDXVA2::init() {
-        Q_D(AVQt::DecoderDXVA2);
-
         return 0;
     }
 

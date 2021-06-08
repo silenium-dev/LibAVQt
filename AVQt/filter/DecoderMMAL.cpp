@@ -20,7 +20,6 @@
 
 namespace AVQt {
     DecoderMMAL::DecoderMMAL(QObject *parent) : QThread(parent), d_ptr(new DecoderMMALPrivate(this)) {
-        Q_D(AVQt::DecoderMMAL);
     }
 
     [[maybe_unused]] DecoderMMAL::DecoderMMAL(DecoderMMALPrivate &p) : d_ptr(&p) {
@@ -60,8 +59,6 @@ namespace AVQt {
     }
 
     int DecoderMMAL::init() {
-        Q_D(AVQt::DecoderMMAL);
-
         return 0;
     }
 

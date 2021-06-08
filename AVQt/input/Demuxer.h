@@ -77,7 +77,7 @@ namespace AVQt {
          * \brief Stops packet source (e.g. Interrupt processing thread, free camera).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int stop();
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Sets paused flag of packet source

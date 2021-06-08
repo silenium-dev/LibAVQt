@@ -32,8 +32,6 @@ namespace AVQt {
     }
 
     OpenGLRenderer::~OpenGLRenderer() noexcept {
-        Q_D(AVQt::OpenGLRenderer);
-
         delete d_ptr;
     }
 
@@ -429,7 +427,7 @@ namespace AVQt {
                                 UTexActive = true;
                                 break;
                             default:
-                                qWarning("[AVQt::OpenGLRenderer] Unsupported pixel format");
+                                qFatal("[AVQt::OpenGLRenderer] Unsupported pixel format");
                                 break;
                         }
                         d->m_yTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);

@@ -20,7 +20,6 @@
 
 namespace AVQt {
     DecoderVAAPI::DecoderVAAPI(QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {
-        Q_D(AVQt::DecoderVAAPI);
     }
 
     [[maybe_unused]] DecoderVAAPI::DecoderVAAPI(DecoderVAAPIPrivate &p) : d_ptr(&p) {
@@ -60,8 +59,6 @@ namespace AVQt {
     }
 
     int DecoderVAAPI::init() {
-        Q_D(AVQt::DecoderVAAPI);
-
         return 0;
     }
 

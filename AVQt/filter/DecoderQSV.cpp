@@ -20,7 +20,6 @@
 
 namespace AVQt {
     DecoderQSV::DecoderQSV(QObject *parent) : QThread(parent), d_ptr(new DecoderQSVPrivate(this)) {
-        Q_D(AVQt::DecoderQSV);
     }
 
     [[maybe_unused]] DecoderQSV::DecoderQSV(DecoderQSVPrivate &p) : d_ptr(&p) {
@@ -60,8 +59,6 @@ namespace AVQt {
     }
 
     int DecoderQSV::init() {
-        Q_D(AVQt::DecoderQSV);
-
         return 0;
     }
 
