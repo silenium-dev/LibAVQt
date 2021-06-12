@@ -18,9 +18,15 @@ namespace AVQt {
     public:
         explicit RenderClock(QObject *parent = nullptr);
 
+        RenderClock(RenderClock &&other) noexcept;
+
+        RenderClock(const RenderClock &) = delete;
+
+        void operator=(const RenderClock &) = delete;
+
         ~RenderClock();
 
-        void setInterval(int64_t interval);
+        void setInterval(int interval);
 
         int64_t getInterval();
 
@@ -55,6 +61,7 @@ namespace AVQt {
         RenderClockPrivate *d_ptr;
 
     private slots:
+
         void timerTimeout();
 
     };

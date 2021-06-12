@@ -9,27 +9,29 @@
 #include "input/IPacketSource.h"
 
 #include <QApplication>
-#include <QtConcurrent>
 #include <QImage>
+//#include <QtConcurrent>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define NOW() std::chrono::high_resolution_clock::now()
-#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
-#endif
+//#ifndef DOXYGEN_SHOULD_SKIP_THIS
+//#define NOW() std::chrono::high_resolution_clock::now()
+//#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
+//#endif
 
 
 namespace AVQt {
     DecoderQSV::DecoderQSV(QObject *parent) : QThread(parent), d_ptr(new DecoderQSVPrivate(this)) {
-        Q_D(AVQt::DecoderQSV);
     }
 
     [[maybe_unused]] DecoderQSV::DecoderQSV(DecoderQSVPrivate &p) : d_ptr(&p) {
 
     }
 
-    DecoderQSV::~DecoderQSV() {
-        deinit();
+    DecoderQSV::DecoderQSV(DecoderQSV &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
+    }
 
+    DecoderQSV::~DecoderQSV() {
         delete d_ptr;
     }
 
@@ -57,8 +59,6 @@ namespace AVQt {
     }
 
     int DecoderQSV::init() {
-        Q_D(AVQt::DecoderQSV);
-
         return 0;
     }
 
@@ -158,7 +158,7 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    int DecoderQSV::registerCallback(IFrameSink *frameSink) {
+    qint64 DecoderQSV::registerCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderQSV);
 
         QMutexLocker lock(&d->m_cbListMutex);
@@ -173,11 +173,11 @@ namespace AVQt {
         return -1;
     }
 
-    int DecoderQSV::unregisterCallback(IFrameSink *frameSink) {
+    qint64 DecoderQSV::unregisterCallback(IFrameSink *frameSink) {
         Q_D(AVQt::DecoderQSV);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
-            int result = d->m_cbList.indexOf(frameSink);
+            auto result = d->m_cbList.indexOf(frameSink);
             d->m_cbList.removeOne(frameSink);
             frameSink->stop(this);
             frameSink->deinit(this);
@@ -187,7 +187,7 @@ namespace AVQt {
     }
 
     void DecoderQSV::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
 
         Q_D(AVQt::DecoderQSV);
 
@@ -206,7 +206,7 @@ namespace AVQt {
 
         while (d->m_running) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
-                int ret = 0;
+                int ret;
                 constexpr size_t strBufSize = 64;
                 char strBuf[strBufSize];
                 // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
@@ -244,7 +244,7 @@ namespace AVQt {
                         AVPacket *packet = d->m_inputQueue.dequeue();
                         lock.unlock();
 
-                        qDebug("Video packet queue size: %lld", d->m_inputQueue.size());
+                        qDebug("Video packet queue size: %d", d->m_inputQueue.size());
 
                         ret = avcodec_send_packet(d->m_pCodecCtx, packet);
                         if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
@@ -283,7 +283,8 @@ namespace AVQt {
                         AVFrame *cbFrame = av_frame_clone(frame);
                         cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
                                                     av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
-                        qDebug("Calling video frame callback for PTS: %ld, Timebase: %d/%d", cbFrame->pts, d->m_timebase.num,
+                        qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", static_cast<long long>(cbFrame->pts),
+                               d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
                         cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));

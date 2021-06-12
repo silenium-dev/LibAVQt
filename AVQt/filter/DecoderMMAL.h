@@ -20,27 +20,27 @@ extern "C" {
 }
 
 
-#ifndef TRANSCODE_DECODERQSV_H
-#define TRANSCODE_DECODERQSV_H
+#ifndef TRANSCODE_DECODERMMAL_H
+#define TRANSCODE_DECODERMMAL_H
 
 namespace AVQt {
-    class DecoderQSVPrivate;
+    class DecoderMMALPrivate;
 
     /*!
-     * \class DecoderQSV
-     * \brief QSV accelerated video decoder
+     * \class DecoderMMAL
+     * \brief MMAL accelerated video decoder
      *
      * Decodes video from packet source into single frames, that are passed to every via registerCallback registered callback.
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class DecoderQSV : public QThread, public IDecoder {
+    class DecoderMMAL : public QThread, public IDecoder {
     Q_OBJECT
         Q_INTERFACES(AVQt::IDecoder)
 //        Q_INTERFACES(AVQt::IFrameSource)
 //        Q_INTERFACES(AVQt::IPacketSink)
 
-        Q_DECLARE_PRIVATE(AVQt::DecoderQSV)
+        Q_DECLARE_PRIVATE(AVQt::DecoderMMAL)
 
     public:
 
@@ -50,24 +50,24 @@ namespace AVQt {
          * @param inputDevice QIODevice to read video from
          * @param parent Pointer to parent QObject for Qt's meta object system
          */
-        explicit DecoderQSV(QObject *parent = nullptr);
+        explicit DecoderMMAL(QObject *parent = nullptr);
 
-        DecoderQSV(DecoderQSV &&other) noexcept;
-
-        /*!
-         * \private
-         */
-        DecoderQSV(const DecoderQSV &) = delete;
+        DecoderMMAL(DecoderMMAL &&other) noexcept;
 
         /*!
          * \private
          */
-        void operator=(const DecoderQSV &) = delete;
+        DecoderMMAL(const DecoderMMAL &) = delete;
 
         /*!
          * \private
          */
-        ~DecoderQSV() Q_DECL_OVERRIDE;
+        void operator=(const DecoderMMAL &) = delete;
+
+        /*!
+         * \private
+         */
+        ~DecoderMMAL() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns paused state of decoder
@@ -157,7 +157,7 @@ namespace AVQt {
          * Protected constructor for use in derived classes to initialize private struct
          * @param p Private struct
          */
-        [[maybe_unused]] explicit DecoderQSV(DecoderQSVPrivate &p);
+        [[maybe_unused]] explicit DecoderMMAL(DecoderMMALPrivate &p);
 
         /*!
          * \private
@@ -167,9 +167,9 @@ namespace AVQt {
         /*!
          * \private
          */
-        DecoderQSVPrivate *d_ptr;
+        DecoderMMALPrivate *d_ptr;
     };
 
 }
 
-#endif //TRANSCODE_DECODERQSV_H
+#endif //TRANSCODE_DECODERMMAL_H

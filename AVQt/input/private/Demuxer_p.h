@@ -16,6 +16,12 @@ extern "C" {
 
 namespace AVQt {
     class DemuxerPrivate {
+    public:
+        DemuxerPrivate(const DemuxerPrivate &) = delete;
+
+        void operator=(const DemuxerPrivate &) = delete;
+
+    private:
         explicit DemuxerPrivate(Demuxer *q) : q_ptr(q) {};
 
         static int readFromIO(void *opaque, uint8_t *buf, int bufSize);
@@ -24,18 +30,18 @@ namespace AVQt {
 
         Demuxer *q_ptr;
 
-        std::atomic_bool m_running {false}, m_paused {false}, m_initialized  {false};
-        QMutex m_cbMutex;
-        QMap<IPacketSink *, int8_t> m_cbMap;
+        std::atomic_bool m_running{false}, m_paused{false}, m_initialized{false};
+        QMutex m_cbMutex{};
+        QMap<IPacketSink *, int8_t> m_cbMap{};
 
-        QList<int> m_videoStreams, m_audioStreams, m_subtitleStreams;
-        int m_videoStream = -1, m_audioStream = -1, m_subtitleStream = -1;
+        QList<int64_t> m_videoStreams{}, m_audioStreams{}, m_subtitleStreams{};
+        int64_t m_videoStream{-1}, m_audioStream{-1}, m_subtitleStream{-1};
 
-        static constexpr size_t BUFFER_SIZE = 1024;
-        uint8_t *m_pBuffer {nullptr};
-        AVFormatContext *m_pFormatCtx {nullptr};
-        AVIOContext *m_pIOCtx {nullptr};
-        QIODevice *m_inputDevice {nullptr};
+        static constexpr size_t BUFFER_SIZE{1024};
+        uint8_t *m_pBuffer{nullptr};
+        AVFormatContext *m_pFormatCtx{nullptr};
+        AVIOContext *m_pIOCtx{nullptr};
+        QIODevice *m_inputDevice{nullptr};
 
         friend class Demuxer;
     };

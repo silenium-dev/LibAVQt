@@ -3,7 +3,7 @@
  * \internal
  */
 
-#include "../DecoderVAAPI.h"
+#include "../DecoderMMAL.h"
 
 extern "C" {
 #include <libavutil/rational.h>
@@ -11,23 +11,23 @@ extern "C" {
 }
 
 
-#ifndef TRANSCODE_DECODERVAAPI_P_H
-#define TRANSCODE_DECODERVAAPI_P_H
+#ifndef TRANSCODE_DECODERMMAL_P_H
+#define TRANSCODE_DECODERMMAL_P_H
 
 namespace AVQt {
     /*!
      * \private
      */
-    class DecoderVAAPIPrivate {
+    class DecoderMMALPrivate {
     public:
-        DecoderVAAPIPrivate(const DecoderVAAPIPrivate &) = delete;
+        DecoderMMALPrivate(const DecoderMMALPrivate &) = delete;
 
-        void operator=(const DecoderVAAPIPrivate &) = delete;
+        void operator=(const DecoderMMALPrivate &) = delete;
 
     private:
-        explicit DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q) {};
+        explicit DecoderMMALPrivate(DecoderMMAL *q) : q_ptr(q) {};
 
-        DecoderVAAPI *q_ptr;
+        DecoderMMAL *q_ptr;
 
         QMutex m_inputQueueMutex{};
         QQueue<AVPacket *> m_inputQueue{};
@@ -38,7 +38,6 @@ namespace AVQt {
         AVCodec *m_pCodec{nullptr};
         AVCodecParameters *m_pCodecParams{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
-        AVBufferRef *m_pDeviceCtx{nullptr};
 
         // Callback stuff
         QMutex m_cbListMutex{};
@@ -48,8 +47,8 @@ namespace AVQt {
         std::atomic_bool m_running{false};
         std::atomic_bool m_paused{false};
 
-        friend class DecoderVAAPI;
+        friend class DecoderMMAL;
     };
 }
 
-#endif //TRANSCODE_DECODERVAAPI_P_H
+#endif //TRANSCODE_DECODERMMAL_P_H

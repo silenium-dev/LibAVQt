@@ -6,7 +6,6 @@
 #include "OpenGLRenderer.h"
 
 #include <QtGui>
-#include <iostream>
 
 extern "C" {
 #include <libavutil/frame.h>
@@ -27,9 +26,12 @@ namespace AVQt {
     [[maybe_unused]] [[maybe_unused]] OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
     }
 
-    OpenGLRenderer::~OpenGLRenderer() noexcept {
-        Q_D(AVQt::OpenGLRenderer);
+    OpenGLRenderer::OpenGLRenderer(OpenGLRenderer &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
+    }
 
+    OpenGLRenderer::~OpenGLRenderer() noexcept {
         delete d_ptr;
     }
 
@@ -37,14 +39,9 @@ namespace AVQt {
         Q_UNUSED(framerate) // Don't use framerate, because it is not always specified in stream information
         Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
-        int64_t h = duration / 3600000;
-        int64_t m = (duration - h * 3600000) / 60000;
-        int64_t s = (duration - h * 3600000 - m * 60000) / 1000;
-        int64_t ms = duration - h * 3600000 - m * 60000 - s * 1000;
 
-        d->m_duration = QTime(static_cast<int>(h), static_cast<int>(m), static_cast<int>(s), static_cast<int>(ms));
-        d->m_position = QTime(0, 0, 0, 0);
-        qDebug() << "Duration:" << d->m_duration.toString("hh:mm:ss");
+        d->m_duration = OpenGLRendererPrivate::timeFromMillis(duration);
+        qDebug() << "Duration:" << d->m_duration.toString("hh:mm:ss.zzz");
 
         d->m_clock = new RenderClock;
         d->m_clock->setInterval(16);
@@ -104,20 +101,18 @@ namespace AVQt {
             d->m_vbo.destroy();
             d->m_vao.destroy();
 
-            if (d->m_yTexture) {
 //                d->m_yTexture->destroy();
-                delete d->m_yTexture;
-            }
+            delete d->m_yTexture;
 
-            if (d->m_uTexture) {
+
 //                d->m_uTexture->destroy();
-                delete d->m_uTexture;
-            }
+            delete d->m_uTexture;
 
-            if (d->m_vTexture) {
+
+
 //                d->m_yTexture->destroy();
-                delete d->m_vTexture;
-            }
+            delete d->m_vTexture;
+
 
             stopped();
             return 0;
@@ -192,15 +187,26 @@ namespace AVQt {
 
         loadResources();
 
+        QByteArray shaderVersionString;
+
+        if (context()->isOpenGLES()) {
+            shaderVersionString = "#version 300 es\n";
+        } else {
+            shaderVersionString = "#version 330 core\n";
+        }
+
+        QFile vsh{":/shaders/texture.vsh"};
+        QFile fsh{":/shaders/texture.fsh"};
+        vsh.open(QIODevice::ReadOnly);
+        fsh.open(QIODevice::ReadOnly);
+        QByteArray vertexShader = vsh.readAll().prepend(shaderVersionString);
+        QByteArray fragmentShader = fsh.readAll().prepend(shaderVersionString);
+        vsh.close();
+        fsh.close();
+
         d->m_program = new QOpenGLShaderProgram();
-
-        if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/texture.vsh")) {
-            qDebug() << "Vertex shader errors:\n" << d->m_program->log();
-        }
-
-        if (!d->m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/texture.fsh")) {
-            qDebug() << "Fragment shader errors:\n" << d->m_program->log();
-        }
+        d->m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
+        d->m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
 
         d->m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
         d->m_program->bindAttributeLocation("texCoord", OpenGLRendererPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
@@ -333,7 +339,8 @@ namespace AVQt {
                             if (d->m_renderQueue.first().first->pts >= d->m_updateTimestamp.load()) {
                                 break;
                             } else {
-                                qDebug("Discarding video frame at PTS: %ld < PTS: %lld", frame.first->pts, d->m_updateTimestamp.load());
+                                qDebug("Discarding video frame at PTS: %lld < PTS: %lld", static_cast<long long>(frame.first->pts),
+                                       d->m_updateTimestamp.load());
                                 av_frame_unref(frame.first);
                                 av_frame_free(&frame.first);
                             }
@@ -371,34 +378,89 @@ namespace AVQt {
                     }
 
                     if (firstFrame) {
+                        bool VTexActive = false, UTexActive = false;
+                        QSize YSize, USize, VSize;
+                        QOpenGLTexture::TextureFormat textureFormatY, textureFormatU, textureFormatV;
+                        QOpenGLTexture::PixelFormat pixelFormatY, pixelFormatU, pixelFormatV;
+                        QOpenGLTexture::PixelType pixelType;
+                        switch (static_cast<AVPixelFormat>(d->m_currentFrame->format)) {
+                            case AV_PIX_FMT_BGRA:
+                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                textureFormatY = QOpenGLTexture::RGBA8_UNorm;
+                                pixelFormatY = QOpenGLTexture::BGRA;
+                                pixelType = QOpenGLTexture::UInt8;
+                                break;
+                            case AV_PIX_FMT_YUV420P:
+                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                USize = VSize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                textureFormatY = textureFormatU = textureFormatV = QOpenGLTexture::R8_UNorm;
+                                pixelFormatY = pixelFormatU = pixelFormatV = QOpenGLTexture::Red;
+                                pixelType = QOpenGLTexture::UInt8;
+                                UTexActive = VTexActive = true;
+                                break;
+                            case AV_PIX_FMT_YUV420P10:
+                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                USize = VSize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                textureFormatY = textureFormatU = textureFormatV = QOpenGLTexture::R16_UNorm;
+                                pixelFormatY = pixelFormatU = pixelFormatV = QOpenGLTexture::Red;
+                                pixelType = QOpenGLTexture::UInt16;
+                                UTexActive = VTexActive = true;
+                                break;
+                            case AV_PIX_FMT_NV12:
+                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                USize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                textureFormatY = QOpenGLTexture::R8_UNorm;
+                                textureFormatU = QOpenGLTexture::RG8_UNorm;
+                                pixelFormatY = QOpenGLTexture::Red;
+                                pixelFormatU = QOpenGLTexture::RG;
+                                pixelType = QOpenGLTexture::UInt8;
+                                UTexActive = true;
+                                break;
+                            case AV_PIX_FMT_P010:
+                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                USize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                textureFormatY = QOpenGLTexture::R16_UNorm;
+                                textureFormatU = QOpenGLTexture::RG16_UNorm;
+                                pixelFormatY = QOpenGLTexture::Red;
+                                pixelFormatU = QOpenGLTexture::RG;
+                                pixelType = QOpenGLTexture::UInt16;
+                                UTexActive = true;
+                                break;
+                            default:
+                                qFatal("[AVQt::OpenGLRenderer] Unsupported pixel format");
+                                break;
+                        }
                         d->m_yTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-                        d->m_uTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-                        d->m_vTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-                        d->m_yTexture->setSize(d->m_currentFrame->width, d->m_currentFrame->height);
-                        d->m_uTexture->setSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
-                        d->m_vTexture->setSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
-                        d->m_yTexture->setFormat(QOpenGLTexture::RGBA16_UNorm);
-                        d->m_uTexture->setFormat(QOpenGLTexture::RGBA16_UNorm);
-                        d->m_vTexture->setFormat(QOpenGLTexture::RGBA16_UNorm);
-                        d->m_yTexture->allocateStorage(QOpenGLTexture::Red, QOpenGLTexture::UInt16);
-                        d->m_uTexture->allocateStorage(QOpenGLTexture::RG, QOpenGLTexture::UInt16);
-                        d->m_vTexture->allocateStorage(QOpenGLTexture::Red, QOpenGLTexture::UInt16);
-//                            d->m_uTexture = new QOpenGLTexture(
-//                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_RGBX64));
-//                            d->m_vTexture = new QOpenGLTexture(
-//                                    QImage(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2, QImage::Format_RGBX64));
-
+                        d->m_yTexture->setSize(YSize.width(), YSize.height());
+                        d->m_yTexture->setFormat(textureFormatY);
                         d->m_yTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
-                        d->m_uTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
-                        d->m_vTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+                        d->m_yTexture->allocateStorage(pixelFormatY, pixelType);
+                        if (UTexActive) {
+                            d->m_uTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            d->m_uTexture->setSize(USize.width(), USize.height());
+                            d->m_uTexture->setFormat(textureFormatU);
+                            d->m_uTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+                            d->m_uTexture->allocateStorage(pixelFormatU, pixelType);
+                        }
+                        if (VTexActive) {
+                            d->m_vTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            d->m_vTexture->setSize(VSize.width(), VSize.height());
+                            d->m_vTexture->setFormat(textureFormatV);
+                            d->m_vTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+                            d->m_vTexture->allocateStorage(pixelFormatV, pixelType);
+                        }
                     }
 //                    qDebug("Frame duration: %ld ms", d->m_currentFrameTimeout);
                     if (differentPixFmt) {
                         d->m_program->bind();
                     }
                     d->m_yTexture->bind(0);
-                    d->m_uTexture->bind(1);
-                    d->m_vTexture->bind(2);
+                    if (d->m_uTexture) {
+                        d->m_uTexture->bind(1);
+                    }
+                    if (d->m_vTexture) {
+                        d->m_vTexture->bind(2);
+                    }
                     switch (d->m_currentFrame->format) {
                         case AV_PIX_FMT_BGRA:
                             d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
@@ -461,12 +523,16 @@ namespace AVQt {
 //            }
 
         if (d->m_currentFrame) {
-            qDebug("Drawing frame with PTS: %ld", d->m_currentFrame->pts);
+            qDebug("Drawing frame with PTS: %lld", static_cast<long long>(d->m_currentFrame->pts));
             d->m_program->bind();
             if (!d->m_yTexture->isBound(0)) {
                 d->m_yTexture->bind(0);
-                d->m_uTexture->bind(1);
-                d->m_vTexture->bind(2);
+                if (d->m_uTexture) {
+                    d->m_uTexture->bind(1);
+                }
+                if (d->m_vTexture) {
+                    d->m_vTexture->bind(2);
+                }
             }
 
             d->m_vao.bind();
@@ -482,23 +548,27 @@ namespace AVQt {
             d->m_vbo.release();
             d->m_program->release();
             d->m_yTexture->release(0);
-            d->m_uTexture->release(1);
-            d->m_vTexture->release(2);
+            if (d->m_uTexture) {
+                d->m_uTexture->release(1);
+            }
+            if (d->m_vTexture) {
+                d->m_vTexture->release(2);
+            }
         }
 
-        int height = this->height();
+//        int height = this->height();
 
-        GLdouble model[4][4], proj[4][4];
-        GLint view[4];
-        glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
-        glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
-        glGetIntegerv(GL_VIEWPORT, &view[0]);
-        GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+//        GLdouble model[4][4], proj[4][4];
+//        GLint view[4];
+//        glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
+//        glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
+//        glGetIntegerv(GL_VIEWPORT, &view[0]);
+//        GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
 
-        OpenGLRendererPrivate::project(-0.9, 0.8, 0.0, &model[0][0], &proj[0][0], &view[0],
-                                       &textPosX, &textPosY, &textPosZ);
+//        OpenGLRendererPrivate::project(-0.9, 0.8, 0.0, &model[0][0], &proj[0][0], &view[0],
+//                                       &textPosX, &textPosY, &textPosZ);
 
-        textPosY = height - textPosY; // y is inverted
+//        textPosY = height - textPosY; // y is inverted
 
         QPainter p(this);
 
@@ -510,11 +580,16 @@ namespace AVQt {
 
 //            qDebug() << "Current timestamp:" << d->m_position.toString("hh:mm:ss.zzz");
 
-        QString overlay(d->m_position.toString("hh:mm:ss") + "/" + d->m_duration.toString("hh:mm:ss"));
+        QTime position{0, 0, 0, 0};
+        if (d->m_currentFrame) {
+            position = OpenGLRendererPrivate::timeFromMillis(d->m_currentFrame->pts / 1000);
+        }
+
+        QString overlay(position.toString("hh:mm:ss.zzz") + "/" + d->m_duration.toString("hh:mm:ss.zzz"));
         QFontMetrics fm(roboto);
-        p.fillRect(fm.boundingRect(overlay).translated(static_cast<int>(textPosX), static_cast<int>(textPosY)).adjusted(-5, -5, 5, 5),
+        p.fillRect(fm.boundingRect(overlay).translated(static_cast<int>(20), static_cast<int>(20)).adjusted(-5, -5, 5, 5),
                    QColor(0xFF, 0xFF, 0xFF, 0x48));
-        p.drawText(fm.boundingRect(overlay).translated(static_cast<int>(textPosX), static_cast<int>(textPosY)), overlay);
+        p.drawText(fm.boundingRect(overlay).translated(static_cast<int>(20), static_cast<int>(20)), overlay);
         p.end();
         qDebug() << "Paused:" << (d->m_paused.load() ? "true" : "false");
         if (!d->m_paused.load()) {
@@ -526,14 +601,6 @@ namespace AVQt {
         if (event->button() == Qt::LeftButton) {
             pause(nullptr, !isPaused());
         }
-    }
-
-    void OpenGLRenderer::triggerUpdate(qint64 timestamp) {
-        Q_UNUSED(timestamp)
-        Q_D(AVQt::OpenGLRenderer);
-
-//        d->m_updateRequired.store(true);
-//        d->m_updateTimestamp.store(timestamp);
     }
 
     RenderClock *OpenGLRenderer::getClock() {
@@ -552,7 +619,7 @@ namespace AVQt {
         transformPoint(out, model, in);
         transformPoint(in, proj, out);
 
-        if (in[3] == 0.0)
+        if (in[3] < 0.0001)
             return GL_FALSE;
 
         in[0] /= in[3];
@@ -575,4 +642,11 @@ namespace AVQt {
 #undef M
     }
 
+    QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts) {
+        int ms = static_cast<int>(ts % 1000);
+        int s = static_cast<int>((ts / 1000) % 60);
+        int m = static_cast<int>((ts / 1000 / 60) % 60);
+        int h = static_cast<int>(ts / 1000 / 60 / 60);
+        return QTime(h, m, s, ms);
+    }
 }

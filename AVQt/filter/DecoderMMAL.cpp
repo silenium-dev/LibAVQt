@@ -2,8 +2,8 @@
 // Created by silas on 3/1/21.
 //
 
-#include "private/DecoderDXVA2_p.h"
-#include "DecoderDXVA2.h"
+#include "private/DecoderMMAL_p.h"
+#include "DecoderMMAL.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
 #include "input/IPacketSource.h"
@@ -19,27 +19,27 @@
 
 
 namespace AVQt {
-    DecoderDXVA2::DecoderDXVA2(QObject *parent) : QThread(parent), d_ptr(new DecoderDXVA2Private(this)) {
+    DecoderMMAL::DecoderMMAL(QObject *parent) : QThread(parent), d_ptr(new DecoderMMALPrivate(this)) {
     }
 
-    [[maybe_unused]] DecoderDXVA2::DecoderDXVA2(DecoderDXVA2Private &p) : d_ptr(&p) {
+    [[maybe_unused]] DecoderMMAL::DecoderMMAL(DecoderMMALPrivate &p) : d_ptr(&p) {
 
     }
 
-    DecoderDXVA2::DecoderDXVA2(DecoderDXVA2 &&other) noexcept: d_ptr(other.d_ptr) {
+    DecoderMMAL::DecoderMMAL(DecoderMMAL &&other) noexcept: d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
 
-    DecoderDXVA2::~DecoderDXVA2() {
+    DecoderMMAL::~DecoderMMAL() {
         delete d_ptr;
     }
 
-    void DecoderDXVA2::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
-                            AVCodecParameters *aParams, AVCodecParameters *sParams) {
+    void DecoderMMAL::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+                           AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_UNUSED(aParams)
         Q_UNUSED(sParams)
-        Q_D(AVQt::DecoderDXVA2);
+        Q_D(AVQt::DecoderMMAL);
         Q_UNUSED(source)
         if (d->m_pCodecParams) {
             avcodec_parameters_free(&d->m_pCodecParams);
@@ -58,17 +58,17 @@ namespace AVQt {
         init();
     }
 
-    int DecoderDXVA2::init() {
+    int DecoderMMAL::init() {
         return 0;
     }
 
-    void DecoderDXVA2::deinit(IPacketSource *source) {
+    void DecoderMMAL::deinit(IPacketSource *source) {
         Q_UNUSED(source)
         deinit();
     }
 
-    int DecoderDXVA2::deinit() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderMMAL::deinit() {
+        Q_D(AVQt::DecoderMMAL);
 
         stop();
 
@@ -81,20 +81,18 @@ namespace AVQt {
             avcodec_free_context(&d->m_pCodecCtx);
             d->m_pCodecCtx = nullptr;
             d->m_pCodec = nullptr;
-            av_buffer_unref(&d->m_pDeviceCtx);
-            d->m_pDeviceCtx = nullptr;
         }
 
         return 0;
     }
 
-    void DecoderDXVA2::start(IPacketSource *source) {
+    void DecoderMMAL::start(IPacketSource *source) {
         Q_UNUSED(source)
         start();
     }
 
-    int DecoderDXVA2::start() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderMMAL::start() {
+        Q_D(AVQt::DecoderMMAL);
 
         bool notRunning = false;
         if (d->m_running.compare_exchange_strong(notRunning, true)) {
@@ -107,13 +105,13 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderDXVA2::stop(IPacketSource *source) {
+    void DecoderMMAL::stop(IPacketSource *source) {
         Q_UNUSED(source)
         stop();
     }
 
-    int DecoderDXVA2::stop() {
-        Q_D(AVQt::DecoderDXVA2);
+    int DecoderMMAL::stop() {
+        Q_D(AVQt::DecoderMMAL);
 
         bool shouldBeCurrent = true;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
@@ -140,8 +138,8 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderDXVA2::pause(bool pause) {
-        Q_D(AVQt::DecoderDXVA2);
+    void DecoderMMAL::pause(bool pause) {
+        Q_D(AVQt::DecoderMMAL);
         if (d->m_running.load() != pause) {
             d->m_paused.store(pause);
 
@@ -153,13 +151,13 @@ namespace AVQt {
         }
     }
 
-    bool DecoderDXVA2::isPaused() {
-        Q_D(AVQt::DecoderDXVA2);
+    bool DecoderMMAL::isPaused() {
+        Q_D(AVQt::DecoderMMAL);
         return d->m_paused.load();
     }
 
-    qint64 DecoderDXVA2::registerCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderDXVA2);
+    qint64 DecoderMMAL::registerCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderMMAL);
 
         QMutexLocker lock(&d->m_cbListMutex);
         if (!d->m_cbList.contains(frameSink)) {
@@ -173,8 +171,8 @@ namespace AVQt {
         return -1;
     }
 
-    qint64 DecoderDXVA2::unregisterCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderDXVA2);
+    qint64 DecoderMMAL::unregisterCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderMMAL);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
             auto result = d->m_cbList.indexOf(frameSink);
@@ -186,10 +184,10 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderDXVA2::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
+    void DecoderMMAL::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
         Q_UNUSED(source)
 
-        Q_D(AVQt::DecoderDXVA2);
+        Q_D(AVQt::DecoderMMAL);
 
         if (packetType == IPacketSource::CB_VIDEO) {
             AVPacket *queuePacket = av_packet_clone(packet);
@@ -201,8 +199,8 @@ namespace AVQt {
         }
     }
 
-    void DecoderDXVA2::run() {
-        Q_D(AVQt::DecoderDXVA2);
+    void DecoderMMAL::run() {
+        Q_D(AVQt::DecoderMMAL);
 
         while (d->m_running) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
@@ -211,26 +209,33 @@ namespace AVQt {
                 char strBuf[strBufSize];
                 // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
                 if (d->m_pCodecParams && !d->m_pCodecCtx) {
-                    d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
-                    if (!d->m_pCodec) {
-                        qFatal("No audio decoder found");
+                    switch (d->m_pCodecParams->codec_id) {
+                        case AV_CODEC_ID_H264:
+                            d->m_pCodec = avcodec_find_decoder_by_name("h264_mmal");
+                            break;
+                        case AV_CODEC_ID_MPEG2VIDEO:
+                            d->m_pCodec = avcodec_find_decoder_by_name("mpeg2_mmal");
+                            break;
+                        case AV_CODEC_ID_MPEG4:
+                            d->m_pCodec = avcodec_find_decoder_by_name("mpeg4_mmal");
+                            break;
+                        case AV_CODEC_ID_VC1:
+                            d->m_pCodec = avcodec_find_decoder_by_name("vc1_mmal");
+                            break;
+                        default:
+                            qFatal("No MMAL decoder found for the specified codec: %s", avcodec_get_name(d->m_pCodecParams->codec_id));
+                            break;
                     }
 
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
                     if (!d->m_pCodecCtx) {
-                        qFatal("Could not allocate audio decoder context, probably out of memory");
-                    }
-
-                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_DXVA2, "", nullptr, 0);
-                    if (ret != 0) {
-                        qFatal("%d: Could not create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("Could not allocate MMAL decoder context, probably out of memory");
                     }
 
                     avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
-                    d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
-                        qFatal("%d: Could not open DXVA2 decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Could not open MMAL decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     for (const auto &cb: d->m_cbList) {
@@ -252,7 +257,7 @@ namespace AVQt {
                             d->m_inputQueue.prepend(packet);
                             break;
                         } else if (ret < 0) {
-                            qFatal("%d: Error sending packet to DXVA2 decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                            qFatal("%d: Error sending packet to MMAL decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                         }
                         av_packet_unref(packet);
                         av_packet_free(&packet);
@@ -265,7 +270,7 @@ namespace AVQt {
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
                     } else if (ret < 0) {
-                        qFatal("%d: Error receiving frame from DXVA2 decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Error receiving frame from MMAL decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
 //                    auto t1 = NOW();
@@ -277,7 +282,7 @@ namespace AVQt {
 //                    auto t3 = NOW();
 
                     QMutexLocker lock2(&d->m_cbListMutex);
-                    QList<QFuture<void>> cbFutures;
+//                    QList<QFuture<void>> cbFutures;
                     for (const auto &cb: d->m_cbList) {
 //                        cbFutures.append(QtConcurrent::run([=] {
                         AVFrame *cbFrame = av_frame_clone(frame);
@@ -304,7 +309,6 @@ namespace AVQt {
 //                        }
 //                        usleep(500);
 //                    }
-                    // TODO: Pass HWFrame to sinks to improve performance in renderers, because DXVA2 supports direct mapping to OpenGL textures
 //                    auto t2 = NOW();
 //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
 

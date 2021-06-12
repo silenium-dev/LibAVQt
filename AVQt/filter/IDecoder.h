@@ -9,35 +9,51 @@
 #define LIBAVQT_DECODER_H
 
 namespace AVQt {
-    class IDecoder: public IFrameSource, public IPacketSink {
+    class IDecoder : public IFrameSource, public IPacketSink {
 
 
         // IPacketSink interface
     public:
-        ~IDecoder() override {};
-        virtual bool isPaused() override = 0;
-        virtual void init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams, AVCodecParameters *aParams, AVCodecParameters *sParams) override = 0;
-        virtual void deinit(IPacketSource *source) override = 0;
-        virtual void start(IPacketSource *source) override = 0;
-        virtual void stop(IPacketSource *source) override = 0;
-        virtual void pause(bool paused) override = 0;
-        virtual void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) override = 0;
+        ~IDecoder() Q_DECL_OVERRIDE {};
+
+        virtual bool isPaused() Q_DECL_OVERRIDE = 0;
+
+        virtual void init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+                          AVCodecParameters *aParams, AVCodecParameters *sParams) Q_DECL_OVERRIDE = 0;
+
+        virtual void deinit(IPacketSource *source) Q_DECL_OVERRIDE = 0;
+
+        virtual void start(IPacketSource *source) Q_DECL_OVERRIDE = 0;
+
+        virtual void stop(IPacketSource *source) Q_DECL_OVERRIDE = 0;
+
+        virtual void pause(bool paused) Q_DECL_OVERRIDE = 0;
+
+        virtual void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) Q_DECL_OVERRIDE = 0;
 
     signals:
-        virtual void started() override = 0;
-        virtual void stopped() override = 0;
+
+        virtual void started() Q_DECL_OVERRIDE = 0;
+
+        virtual void stopped() Q_DECL_OVERRIDE = 0;
 
         // IFrameSource interface
     public:
-        virtual int registerCallback(IFrameSink *frameSink) override = 0;
-        virtual int unregisterCallback(IFrameSink *frameSink) override = 0;
-        virtual int init() override = 0;
-        virtual int deinit() override = 0;
-        virtual int start() override = 0;
-        virtual int stop() override = 0;
+        virtual qint64 registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE = 0;
+
+        virtual qint64 unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE = 0;
+
+        virtual int init() Q_DECL_OVERRIDE = 0;
+
+        virtual int deinit() Q_DECL_OVERRIDE = 0;
+
+        virtual int start() Q_DECL_OVERRIDE = 0;
+
+        virtual int stop() Q_DECL_OVERRIDE = 0;
 
     signals:
-        virtual void paused(bool pause) override = 0;
+
+        virtual void paused(bool pause) Q_DECL_OVERRIDE = 0;
     };
 }
 

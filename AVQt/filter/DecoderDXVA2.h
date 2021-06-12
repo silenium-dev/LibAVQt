@@ -35,10 +35,10 @@ namespace AVQt {
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
     class DecoderDXVA2 : public QThread, public IDecoder {
-        Q_OBJECT
-            Q_INTERFACES(AVQt::IDecoder)
-    //        Q_INTERFACES(AVQt::IFrameSource)
-    //        Q_INTERFACES(AVQt::IPacketSink)
+    Q_OBJECT
+        Q_INTERFACES(AVQt::IDecoder)
+        //        Q_INTERFACES(AVQt::IFrameSource)
+        //        Q_INTERFACES(AVQt::IPacketSink)
 
         Q_DECLARE_PRIVATE(AVQt::DecoderDXVA2)
 
@@ -51,6 +51,18 @@ namespace AVQt {
          * @param parent Pointer to parent QObject for Qt's meta object system
          */
         explicit DecoderDXVA2(QObject *parent = nullptr);
+
+        DecoderDXVA2(DecoderDXVA2 &&other) noexcept;
+
+        /*!
+         * \private
+         */
+        DecoderDXVA2(const DecoderDXVA2 &) = delete;
+
+        /*!
+         * \private
+         */
+        void operator=(const DecoderDXVA2 &) = delete;
 
         /*!
          * \private
@@ -69,14 +81,14 @@ namespace AVQt {
          * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
          * @return Current position in callback list
          */
-        Q_INVOKABLE int registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Removes frame sink/filter from registry
          * @param frameSink Frame sink/filter to be removed
          * @return Last position in callback list, -1 when not found
          */
-        Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
     public slots:
         /*!

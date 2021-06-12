@@ -20,11 +20,13 @@ namespace AVQt {
         Q_DECLARE_PRIVATE(AVQt::Demuxer)
 
     public:
-        [[maybe_unused]] explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
+        explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
 
         explicit Demuxer(Demuxer &other) = delete;
 
-        explicit Demuxer(Demuxer &&other);
+        Demuxer &operator=(const Demuxer &other) = delete;
+
+        Demuxer(Demuxer &&other) noexcept;
 
         /*!
          * \private
@@ -43,18 +45,14 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        Q_INVOKABLE qsizetype registerCallback(IPacketSink *packetSink, uint8_t type) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 registerCallback(IPacketSink *packetSink, int8_t type) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Removes packet callback \c packetSink from registry
          * @param packetSink Packet sink/filter to be removed
          * @return Previous position of the item, is -1 when not in registry
          */
-        Q_INVOKABLE qsizetype unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
-
-        Demuxer &operator=(const Demuxer &other) = delete;
-
-        Demuxer &operator=(Demuxer &&other) noexcept;
+        Q_INVOKABLE qint64 unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE;
 
     public slots:
         /*!
@@ -79,7 +77,7 @@ namespace AVQt {
          * \brief Stops packet source (e.g. Interrupt processing thread, free camera).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int stop();
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Sets paused flag of packet source

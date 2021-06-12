@@ -11,6 +11,12 @@
 
 namespace AVQt {
     class EncoderVAAPIPrivate {
+    public:
+        EncoderVAAPIPrivate(const EncoderVAAPIPrivate &) = delete;
+
+        void operator=(const EncoderVAAPIPrivate &) = delete;
+
+    private:
         explicit EncoderVAAPIPrivate(EncoderVAAPI *q) : q_ptr(q) {};
 
         EncoderVAAPI *q_ptr;
@@ -23,11 +29,11 @@ namespace AVQt {
         AVBufferRef *m_pDeviceCtx{nullptr}, *m_pFramesCtx{nullptr};
         AVFrame *m_pHWFrame{nullptr};
 
-        QMutex m_inputQueueMutex;
-        QQueue<QPair<AVFrame *, int64_t>> m_inputQueue;
+        QMutex m_inputQueueMutex{};
+        QQueue<QPair<AVFrame *, int64_t>> m_inputQueue{};
 
-        QMutex m_cbListMutex;
-        QList<IPacketSink *> m_cbList;
+        QMutex m_cbListMutex{};
+        QList<IPacketSink *> m_cbList{};
 
         std::atomic_bool m_running{false}, m_paused{false}, m_firstFrame{true};
 

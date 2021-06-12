@@ -5,7 +5,6 @@
 #include "private/EncoderVAAPI_p.h"
 #include "EncoderVAAPI.h"
 
-#include <QtCore>
 #include "output/IPacketSink.h"
 
 namespace AVQt {
@@ -17,6 +16,11 @@ namespace AVQt {
 
     [[maybe_unused]] EncoderVAAPI::EncoderVAAPI(EncoderVAAPIPrivate &p) : d_ptr(&p) {
 
+    }
+
+    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) noexcept: d_ptr(other.d_ptr) {
+        other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
     }
 
     EncoderVAAPI::~EncoderVAAPI() {
@@ -40,6 +44,13 @@ namespace AVQt {
 
     int EncoderVAAPI::deinit() {
         Q_D(AVQt::EncoderVAAPI);
+
+        {
+            QMutexLocker lock(&d->m_cbListMutex);
+            for (const auto &cb: d->m_cbList) {
+                cb->deinit(this);
+            }
+        }
 
         if (d->m_pDeviceCtx) {
             av_buffer_unref(&d->m_pDeviceCtx);
@@ -67,6 +78,7 @@ namespace AVQt {
         bool shouldBe = false;
         if (d->m_running.compare_exchange_strong(shouldBe, true)) {
             d->m_paused.store(false);
+
             QThread::start();
 
             started();
@@ -79,7 +91,7 @@ namespace AVQt {
         Q_D(AVQt::EncoderVAAPI);
 
         bool shouldBe = true;
-        if (d->m_running.compare_exchange_strong(shouldBe, true)) {
+        if (d->m_running.compare_exchange_strong(shouldBe, false)) {
             d->m_paused.store(false);
 
             {
@@ -120,7 +132,7 @@ namespace AVQt {
     }
 
     int EncoderVAAPI::init(IFrameSource *source, AVRational framerate, int64_t duration) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
         Q_UNUSED(duration)
         Q_D(AVQt::EncoderVAAPI);
         d->m_framerate = framerate;
@@ -130,32 +142,28 @@ namespace AVQt {
 
     int EncoderVAAPI::deinit(IFrameSource *source) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
         deinit();
         return 0;
     }
 
     int EncoderVAAPI::start(IFrameSource *source) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
         start();
         return 0;
     }
 
     int EncoderVAAPI::stop(IFrameSource *source) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
         stop();
         return 0;
     }
 
     void EncoderVAAPI::pause(IFrameSource *source, bool paused) {
         Q_UNUSED(source)
-        Q_D(AVQt::EncoderVAAPI);
-        this->pause(paused);
+        pause(paused);
     }
 
-    qsizetype EncoderVAAPI::registerCallback(IPacketSink *packetSink, uint8_t type) {
+    qint64 EncoderVAAPI::registerCallback(IPacketSink *packetSink, int8_t type) {
         Q_D(AVQt::EncoderVAAPI);
 
         if (type != IPacketSource::CB_VIDEO) {
@@ -173,7 +181,7 @@ namespace AVQt {
         }
     }
 
-    qsizetype EncoderVAAPI::unregisterCallback(IPacketSink *packetSink) {
+    qint64 EncoderVAAPI::unregisterCallback(IPacketSink *packetSink) {
         Q_D(AVQt::EncoderVAAPI);
 
         {
@@ -184,7 +192,7 @@ namespace AVQt {
     }
 
     void EncoderVAAPI::onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) {
-        Q_UNUSED(source);
+        Q_UNUSED(source)
         Q_D(AVQt::EncoderVAAPI);
 
         QPair<AVFrame *, int64_t> queueFrame{av_frame_alloc(), frameDuration};
@@ -194,6 +202,7 @@ namespace AVQt {
             case AV_PIX_FMT_DXVA2_VLD:
                 qDebug("Transferring frame from GPU to CPU");
                 av_hwframe_transfer_data(queueFrame.first, frame, 0);
+                queueFrame.first->pts = frame->pts;
                 break;
             default:
                 qDebug("Referencing frame");
@@ -213,7 +222,7 @@ namespace AVQt {
     void EncoderVAAPI::run() {
         Q_D(AVQt::EncoderVAAPI);
 
-        int ret{0};
+        int ret;
         constexpr auto strBufSize{64};
         char strBuf[strBufSize];
 
@@ -284,19 +293,28 @@ namespace AVQt {
 //                    }
 
 //                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_VAAPI;
-                    d->m_pCodecCtx->time_base = av_inv_q(d->m_framerate);
+                    d->m_pCodecCtx->time_base = av_make_q(1, 1000000);
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret < 0) {
                         qFatal("%i: Unable to open VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
+                    qDebug("[AVQt::EncoderVAAPI] Encoder timebase: %d/%d", d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     d->m_pHWFrame = av_frame_alloc();
                     ret = av_hwframe_get_buffer(d->m_pFramesCtx, d->m_pHWFrame, 0);
                     if (ret != 0) {
                         qFatal("%i: Could not allocate HW frame in encoder context: %s", ret,
                                av_make_error_string(strBuf, strBufSize, ret));
                     }
+
+                    QMutexLocker lock(&d->m_cbListMutex);
+                    for (const auto &cb: d->m_cbList) {
+                        AVCodecParameters *parameters = avcodec_parameters_alloc();
+                        avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
+                        cb->init(this, d->m_framerate, d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
+                        cb->start(this);
+                    }
                 }
-                while (!d->m_inputQueue.isEmpty()) {
+                if (!d->m_inputQueue.isEmpty()) {
                     QPair<AVFrame *, int64_t> frame;
                     {
                         QMutexLocker lock(&d->m_inputQueueMutex);
@@ -307,6 +325,7 @@ namespace AVQt {
                     } else {
                         av_hwframe_transfer_data(d->m_pHWFrame, frame.first, 0);
                     }
+                    d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000), d->m_pCodecCtx->time_base);
                     av_frame_free(&frame.first);
                     ret = avcodec_send_frame(d->m_pCodecCtx, d->m_pHWFrame);
                     if (ret != 0) {
@@ -316,12 +335,15 @@ namespace AVQt {
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
                     ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
+                    qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %lld, timebase: %d/%d",
+                           static_cast<long long>(packet->pts),
+                           d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
-                    } else if (ret < 0) {
+                    } else if (ret != 0) {
                         qFatal("%i: Could not receive packet from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
-                    {
+                    if (packet->buf) {
                         QMutexLocker lock(&d->m_cbListMutex);
                         for (const auto &cb: d->m_cbList) {
                             AVPacket *cbPacket = av_packet_clone(packet);
@@ -329,6 +351,7 @@ namespace AVQt {
                             av_packet_free(&cbPacket);
                         }
                     }
+                    av_packet_unref(packet);
                 }
             } else {
                 msleep(1);
@@ -340,12 +363,8 @@ namespace AVQt {
         delete d_ptr;
         d_ptr = other.d_ptr;
         other.d_ptr = nullptr;
+        d_ptr->q_ptr = this;
 
         return *this;
-    }
-
-    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) {
-        d_ptr = other.d_ptr;
-        other.d_ptr = nullptr;
     }
 }

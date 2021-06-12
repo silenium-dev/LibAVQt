@@ -24,13 +24,19 @@ namespace AVQt {
     public:
         explicit AudioDecoder(QObject *parent = nullptr);
 
+        AudioDecoder(AudioDecoder &&other) noexcept;
+
+        AudioDecoder(const AudioDecoder &) = delete;
+
+        void operator=(const AudioDecoder &) = delete;
+
         ~AudioDecoder() Q_DECL_OVERRIDE;
 
         bool isPaused() Q_DECL_OVERRIDE;
 
-        int registerCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
+        qint64 registerCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
 
-        int unregisterCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
+        qint64 unregisterCallback(IAudioSink *callback) Q_DECL_OVERRIDE;
 
         void run() Q_DECL_OVERRIDE;
 

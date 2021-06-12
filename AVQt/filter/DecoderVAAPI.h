@@ -52,6 +52,18 @@ namespace AVQt {
          */
         explicit DecoderVAAPI(QObject *parent = nullptr);
 
+        DecoderVAAPI(DecoderVAAPI &&other) noexcept;
+
+        /*!
+         * \private
+         */
+        DecoderVAAPI(const DecoderVAAPI &) = delete;
+
+        /*!
+         * \private
+         */
+        void operator=(const DecoderVAAPI &) = delete;
+
         /*!
          * \private
          */
@@ -69,14 +81,14 @@ namespace AVQt {
          * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
          * @return Current position in callback list
          */
-        Q_INVOKABLE int registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Removes frame sink/filter from registry
          * @param frameSink Frame sink/filter to be removed
          * @return Last position in callback list, -1 when not found
          */
-        Q_INVOKABLE int unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
     public slots:
         /*!
