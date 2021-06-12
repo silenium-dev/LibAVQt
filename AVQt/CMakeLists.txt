@@ -67,10 +67,6 @@ set(SOURCES
         filter/private/EncoderVAAPI_p.h
         filter/EncoderVAAPI.cpp
 
-        output/Muxer.h
-        output/private/Muxer_p.h
-        output/Muxer.cpp
-
         output/RenderClock.h
         output/private/RenderClock_p.h
         output/RenderClock.cpp
