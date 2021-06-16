@@ -47,6 +47,8 @@ namespace AVQt {
         static int64_t seekIO(void *opaque, int64_t offset, int whence);
 
         static int writeToIO(void *opaque, uint8_t *buf, int buf_size);
+
+        static bool packetQueueCompare(const QPair<AVPacket *, AVStream *> &packet1, const QPair<AVPacket *, AVStream *> &packet2);
     };
 }
 

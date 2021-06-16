@@ -2,6 +2,7 @@
 // Created by silas on 5/24/21.
 //
 
+#include <experimental/algorithm>
 #include <input/IPacketSource.h>
 #include "private/Muxer_p.h"
 #include "Muxer.h"
@@ -61,7 +62,7 @@ namespace AVQt {
                 qFatal("[AVQt::Muxer] Output device is not writable");
             }
             d->m_pFormatContext = avformat_alloc_context();
-            d->m_pFormatContext->oformat = av_guess_format("mpegts", "", nullptr);
+            d->m_pFormatContext->oformat = av_guess_format("mp4", "", nullptr);
             d->m_pIOBuffer = static_cast<uint8_t *>(av_malloc(MuxerPrivate::IOBUF_SIZE));
             d->m_pIOContext = avio_alloc_context(d->m_pIOBuffer, MuxerPrivate::IOBUF_SIZE, 1, d->m_outputDevice, nullptr,
                                                  &MuxerPrivate::writeToIO, &MuxerPrivate::seekIO);
@@ -92,18 +93,20 @@ namespace AVQt {
             subtitleStream->time_base = timebase;
             d->m_sourceStreamMap[source].insert(subtitleStream, timebase);
         }
-        int ret = avformat_init_output(d->m_pFormatContext, nullptr);
-        if (ret <= 0) {
+        int ret = avformat_write_header(d->m_pFormatContext, nullptr);
+        if (ret != 0) {
             constexpr auto strBufSize = 32;
             char strBuf[strBufSize];
             qWarning("[AVQt::Muxer] %d: Couldn't init AVFormatContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
         }
+        qDebug("[AVQt::Muxer] Initialized");
     }
 
     void Muxer::deinit(IPacketSource *source) {
         Q_D(AVQt::Muxer);
 
-        stop(nullptr);
+        stop(source);
+        qDebug("[AVQt::Muxer] deinit() called");
 
         if (d->m_sourceStreamMap.contains(source)) {
             d->m_sourceStreamMap.remove(source);
@@ -115,18 +118,19 @@ namespace AVQt {
         if (d->m_sourceStreamMap.isEmpty()) {
             QMutexLocker lock(&d->m_initMutex);
             if (d->m_pFormatContext) {
-                if (d->m_headerWritten.load()) {
-                    av_write_trailer(d->m_pFormatContext);
-                }
-                int ret = av_interleaved_write_frame(d->m_pFormatContext, nullptr);
+                int ret = av_write_frame(d->m_pFormatContext, nullptr);
                 if (ret != 0) {
                     constexpr auto strBufSize = 32;
                     char strBuf[strBufSize];
                     qWarning("%d: Couldn't flush AVFormatContext packet queue: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                 }
+//                if (d->m_headerWritten.load()) {
+                av_write_trailer(d->m_pFormatContext);
+                qDebug("[AVQt::Muxer] Wrote trailer");
+//                }
                 avio_flush(d->m_pFormatContext->pb);
-                avio_closep(&d->m_pIOContext);
                 avformat_free_context(d->m_pFormatContext);
+                d->m_outputDevice->close();
             }
         }
 
@@ -179,45 +183,52 @@ namespace AVQt {
     void Muxer::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
         Q_D(AVQt::Muxer);
 
-        bool unknownSource = !d->m_sourceStreamMap.contains(source);
-        bool initStream = false;
-        AVStream *addStream;
-        if (!unknownSource) {
-            for (const auto &stream : d->m_sourceStreamMap[source].keys()) {
-                if ((packetType == IPacketSource::CB_VIDEO && stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) ||
-                    (packetType == IPacketSource::CB_AUDIO && stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) ||
-                    (packetType == IPacketSource::CB_SUBTITLE && stream->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE)) {
-                    addStream = stream;
-                    initStream = true;
-                    break;
+        if (packet->pts != AV_NOPTS_VALUE) {
+
+            bool unknownSource = !d->m_sourceStreamMap.contains(source);
+            bool initStream = false;
+            AVStream *addStream;
+            if (!unknownSource) {
+                for (const auto &stream : d->m_sourceStreamMap[source].keys()) {
+                    if ((packetType == IPacketSource::CB_VIDEO && stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) ||
+                        (packetType == IPacketSource::CB_AUDIO && stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) ||
+                        (packetType == IPacketSource::CB_SUBTITLE && stream->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE)) {
+                        addStream = stream;
+                        initStream = true;
+                        break;
+                    }
                 }
             }
-        }
-        if (unknownSource || !initStream) {
-            qWarning("[AVQt::Muxer] onPacket() called without preceding call to init() for stream type. Ignoring packet");
-            return;
-        }
+            if (unknownSource || !initStream) {
+                qWarning("[AVQt::Muxer] onPacket() called without preceding call to init() for stream type. Ignoring packet");
+                return;
+            }
 
-        QPair<AVPacket *, AVStream *> queuePacket{av_packet_clone(packet), addStream};
-        queuePacket.first->stream_index = addStream->index;
-        qDebug("[AVQt::Muxer] Getting packet with PTS: %lld", static_cast<long long>(packet->pts));
-        av_packet_rescale_ts(queuePacket.first, d->m_sourceStreamMap[source][addStream], addStream->time_base);
+            QPair<AVPacket *, AVStream *> queuePacket{av_packet_clone(packet), addStream};
+            queuePacket.first->stream_index = addStream->index;
+            qDebug("[AVQt::Muxer] Getting packet with PTS: %lld", static_cast<long long>(packet->pts));
+            av_packet_rescale_ts(queuePacket.first, av_make_q(1, 1000000), addStream->time_base);
 
-        QMutexLocker lock(&d->m_inputQueueMutex);
-        d->m_inputQueue.enqueue(queuePacket);
+            while (d->m_inputQueue.size() >= 100) {
+                QThread::msleep(2);
+            }
+
+            QMutexLocker lock(&d->m_inputQueueMutex);
+            d->m_inputQueue.enqueue(queuePacket);
+//            std::sort(d->m_inputQueue.begin(), d->m_inputQueue.end(), &MuxerPrivate::packetQueueCompare);
+        }
     }
 
     void Muxer::run() {
         Q_D(AVQt::Muxer);
 
         while (d->m_running.load()) {
-            if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
+            if (!d->m_paused.load() && d->m_inputQueue.size() > 5) {
                 QPair<AVPacket *, AVStream *> packet;
                 {
                     QMutexLocker lock(&d->m_inputQueueMutex);
                     packet = d->m_inputQueue.dequeue();
                 }
-//                av_packet_rescale_ts(packet.first, packet.second->time_base, av_make_q(1, AV_TIME_BASE));
                 int ret = av_interleaved_write_frame(d->m_pFormatContext, packet.first);
                 qDebug("Written packet");
                 if (ret != 0) {
@@ -263,5 +274,9 @@ namespace AVQt {
         }
 
         return result ? outputDevice->pos() : AVERROR_UNKNOWN;
+    }
+
+    bool MuxerPrivate::packetQueueCompare(const QPair<AVPacket *, AVStream *> &packet1, const QPair<AVPacket *, AVStream *> &packet2) {
+        return packet1.first->dts < packet2.first->dts;
     }
 }

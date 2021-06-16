@@ -72,6 +72,13 @@ namespace AVQt {
 
         stop();
 
+        {
+            QMutexLocker lock(&d->m_cbListMutex);
+            for (const auto &cb: d->m_cbList) {
+                cb->deinit(this);
+            }
+        }
+
         if (d->m_pCodecParams) {
             avcodec_parameters_free(&d->m_pCodecParams);
             d->m_pCodecParams = nullptr;
@@ -228,6 +235,7 @@ namespace AVQt {
 
                     avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
+                    d->m_pCodecCtx->time_base = d->m_timebase;
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
                         qFatal("%d: Could not open VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));

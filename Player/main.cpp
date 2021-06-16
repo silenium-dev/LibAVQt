@@ -76,16 +76,17 @@ int main(int argc, char *argv[]) {
 #endif
     AVQt::OpenGLRenderer renderer;
 
-//    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
+    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-//    videoDecoder->registerCallback(encoder);
+    videoDecoder->registerCallback(encoder);
 
-//    QFile outputFile("output.ts");
-//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-//    AVQt::Muxer muxer(&outputFile);
+    QFile outputFile("output.mp4");
+    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+    outputFile.seek(0);
+    AVQt::Muxer muxer(&outputFile);
 
-//    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
@@ -105,7 +106,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-//        delete encoder;
+        delete encoder;
         delete videoDecoder;
     });
 
