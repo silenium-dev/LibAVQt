@@ -1,8 +1,6 @@
 //
 // Created by silas on 5/24/21.
 //
-
-#include <experimental/algorithm>
 #include <input/IPacketSource.h>
 #include "private/Muxer_p.h"
 #include "Muxer.h"

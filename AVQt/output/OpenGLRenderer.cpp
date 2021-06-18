@@ -64,10 +64,10 @@ namespace AVQt {
             d->m_paused.store(false);
             qDebug("Started renderer");
 
-            showNormal();
-            requestActivate();
+            QMetaObject::invokeMethod(this, "showNormal", Qt::QueuedConnection);
+            QMetaObject::invokeMethod(this, "requestActivate", Qt::QueuedConnection);
+            QMetaObject::invokeMethod(this, "update", Qt::QueuedConnection);
 
-            update();
             started();
         }
         return 0;

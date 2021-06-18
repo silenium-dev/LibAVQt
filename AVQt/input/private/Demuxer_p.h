@@ -37,7 +37,7 @@ namespace AVQt {
         QList<int64_t> m_videoStreams{}, m_audioStreams{}, m_subtitleStreams{};
         int64_t m_videoStream{-1}, m_audioStream{-1}, m_subtitleStream{-1};
 
-        static constexpr size_t BUFFER_SIZE{1024};
+        static constexpr size_t BUFFER_SIZE{32 * 1024};
         uint8_t *m_pBuffer{nullptr};
         AVFormatContext *m_pFormatCtx{nullptr};
         AVIOContext *m_pIOCtx{nullptr};
