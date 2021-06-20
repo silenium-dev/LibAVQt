@@ -276,11 +276,12 @@ namespace AVQt {
 
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-                    d->m_pCodecCtx->bit_rate = 5000000;
-                    d->m_pCodecCtx->rc_min_rate = 4500000;
-                    d->m_pCodecCtx->rc_max_rate = 6000000;
-                    d->m_pCodecCtx->rc_buffer_size = 10000000;
+//                    d->m_pCodecCtx->bit_rate = 5000000;
+//                    d->m_pCodecCtx->rc_min_rate = 4500000;
+//                    d->m_pCodecCtx->rc_max_rate = 6000000;
+//                    d->m_pCodecCtx->rc_buffer_size = 10000000;
                     d->m_pCodecCtx->gop_size = 20;
+                    d->m_pCodecCtx->max_b_frames = 0;
                     d->m_pCodecCtx->color_primaries = AVCOL_PRI_BT2020;
                     d->m_pCodecCtx->color_trc = AVCOL_TRC_SMPTE2084;
                     d->m_pCodecCtx->colorspace = AVCOL_SPC_BT2020_NCL;
