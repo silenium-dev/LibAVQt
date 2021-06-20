@@ -211,7 +211,7 @@ namespace AVQt {
         }
 
         while (d->m_inputQueue.size() > 100) {
-            QThread::msleep(3);
+            QThread::msleep(1);
         }
         {
             QMutexLocker lock{&d->m_inputQueueMutex};
