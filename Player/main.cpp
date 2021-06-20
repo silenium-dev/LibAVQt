@@ -43,6 +43,9 @@ int main(int argc, char *argv[]) {
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
+
+    av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_flags(AV_LOG_SKIP_REPEATED);
 //    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();
@@ -57,7 +60,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    inputFile->open(QIODevice::ReadOnly);
+    inputFile->open(QIODevice::ReadWrite);
 
     AVQt::Demuxer demuxer(inputFile);
 //    AVQt::AudioDecoder decoder;
@@ -67,8 +70,10 @@ int main(int argc, char *argv[]) {
 //    decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder;
+    AVQt::IEncoder *videoEncoder;
 #ifdef Q_OS_LINUX
     videoDecoder = new AVQt::DecoderVAAPI;
+    videoEncoder = new AVQt::EncoderVAAPI("hevc_vaapi");
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
 #else
@@ -76,16 +81,15 @@ int main(int argc, char *argv[]) {
 #endif
     AVQt::OpenGLRenderer renderer;
 
-//    AVQt::IEncoder *encoder = new AVQt::EncoderVAAPI("hevc_vaapi");
-
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-//    videoDecoder->registerCallback(encoder);
+//    videoDecoder->registerCallback(videoEncoder);
 
-//    QFile outputFile("output.ts");
+//    QFile outputFile("output.mp4");
 //    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+//    outputFile.seek(0);
 //    AVQt::Muxer muxer(&outputFile);
 
-//    encoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+//    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
@@ -105,7 +109,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-//        delete encoder;
+//        delete videoEncoder;
         delete videoDecoder;
     });
 

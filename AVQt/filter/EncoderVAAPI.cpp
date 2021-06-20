@@ -45,6 +45,8 @@ namespace AVQt {
     int EncoderVAAPI::deinit() {
         Q_D(AVQt::EncoderVAAPI);
 
+        stop();
+
         {
             QMutexLocker lock(&d->m_cbListMutex);
             for (const auto &cb: d->m_cbList) {
@@ -216,6 +218,10 @@ namespace AVQt {
         {
             QMutexLocker lock{&d->m_inputQueueMutex};
             d->m_inputQueue.enqueue(queueFrame);
+//            std::sort(d->m_inputQueue.begin(), d->m_inputQueue.end(),
+//                      [&](const QPair<AVFrame *, int64_t> &f1, const QPair<AVFrame *, int64_t> &f2) {
+//                          return f1.first->pts < f2.first->pts;
+//                      });
         }
     }
 
@@ -227,8 +233,9 @@ namespace AVQt {
         char strBuf[strBufSize];
 
         while (d->m_running.load()) {
-            if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
+            if (!d->m_paused.load() && d->m_inputQueue.size() > 5) {
                 bool shouldBe = true;
+                // Encoder init is only possible with frame parameters
                 if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
                     auto frame = d->m_inputQueue.first().first;
 
@@ -238,27 +245,6 @@ namespace AVQt {
                     }
                     d->m_pCodecCtx->width = frame->width;
                     d->m_pCodecCtx->height = frame->height;
-//                    if (frame->hw_frames_ctx) {
-//                        qDebug("Creating derived HW context...");
-//                        d->m_pDeviceCtx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_VAAPI);
-//                        ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
-//                        if (ret < 0) {
-//                            qFatal("%i: Unable to create derived AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-//                        } else if (!d->m_pDeviceCtx) {
-//                            qFatal("Unable to create derived AVHWDeviceContext");
-//                        }
-//
-//                        d->m_pCodecCtx->sw_pix_fmt = reinterpret_cast<AVHWFramesContext*>(frame->hw_frames_ctx->data)->sw_format;
-//                        ret = av_hwframe_ctx_create_derived(&d->m_pFramesCtx, d->m_pCodecCtx->sw_pix_fmt, d->m_pDeviceCtx, frame->hw_frames_ctx, 0);
-//                        if (ret < 0) {
-//                            qFatal("%i: Unable to create derived AVHWFramesContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-//                        } else if (!d->m_pDeviceCtx) {
-//                            qFatal("Unable to create derived AVHWFramesContext");
-//                        }
-//                        d->m_pCodecCtx->pix_fmt = reinterpret_cast<AVHWFramesContext*>(d->m_pFramesCtx->data)->format;
-//                        d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
-//                        d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-//                    } else {
                     qDebug("Creating new HW context...");
                     ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
                     if (ret < 0) {
@@ -290,15 +276,25 @@ namespace AVQt {
 
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-//                    }
+//                    d->m_pCodecCtx->bit_rate = 5000000;
+//                    d->m_pCodecCtx->rc_min_rate = 4500000;
+//                    d->m_pCodecCtx->rc_max_rate = 6000000;
+//                    d->m_pCodecCtx->rc_buffer_size = 10000000;
+                    d->m_pCodecCtx->gop_size = 20;
+                    d->m_pCodecCtx->max_b_frames = 0;
+                    d->m_pCodecCtx->color_primaries = AVCOL_PRI_BT2020;
+                    d->m_pCodecCtx->color_trc = AVCOL_TRC_SMPTE2084;
+                    d->m_pCodecCtx->colorspace = AVCOL_SPC_BT2020_NCL;
 
-//                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_VAAPI;
+                    // Timestamps from frame sources are always microseconds, trying to use this timebase for the encoder too
                     d->m_pCodecCtx->time_base = av_make_q(1, 1000000);
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret < 0) {
                         qFatal("%i: Unable to open VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
                     qDebug("[AVQt::EncoderVAAPI] Encoder timebase: %d/%d", d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
+
+                    // Preallocating frame on gpu
                     d->m_pHWFrame = av_frame_alloc();
                     ret = av_hwframe_get_buffer(d->m_pFramesCtx, d->m_pHWFrame, 0);
                     if (ret != 0) {
@@ -325,24 +321,44 @@ namespace AVQt {
                     } else {
                         av_hwframe_transfer_data(d->m_pHWFrame, frame.first, 0);
                     }
-                    d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000), d->m_pCodecCtx->time_base);
+                    d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
+                                                      d->m_pCodecCtx->time_base); // Incoming timestamps are always microseconds
+//                    d->m_pHWFrame->pts = frame.first->pts;
                     av_frame_free(&frame.first);
                     ret = avcodec_send_frame(d->m_pCodecCtx, d->m_pHWFrame);
-                    if (ret != 0) {
+                    qDebug("[AVQt::EncoderVAAPI] Sent frame with PTS %lld to encoder", static_cast<long long>(d->m_pHWFrame->pts));
+                    /*if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                        break;
+                    } else */if (ret != 0) {
                         qFatal("%i: Could not send frame to VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
+
+//                    avcodec_send_frame(d->m_pCodecCtx, nullptr);
+//
+//                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+//                        break;
+//                    } else if (ret != 0) {
+//                        qFatal("%i: Could not flush VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+//                    }
                 }
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
                     ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
-                    qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %lld, timebase: %d/%d",
-                           static_cast<long long>(packet->pts),
-                           d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
                     } else if (ret != 0) {
                         qFatal("%i: Could not receive packet from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
+//                    packet->pts = d->m_pHWFrame->pts;
+//                    packet->pts = d->m_pCodecCtx->coded_frame->pts;
+//                    packet->pts = packet->dts;
+                    packet->pos = -1;
+                    av_packet_rescale_ts(packet, d->m_pCodecCtx->time_base, av_make_q(1, 1000000));
+                    qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %lld, DTS: %lld, duration: %lld, timebase: %d/%d",
+                           static_cast<long long>(packet->pts),
+                           static_cast<long long>(packet->dts),
+                           static_cast<long long>(packet->duration),
+                           d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     if (packet->buf) {
                         QMutexLocker lock(&d->m_cbListMutex);
                         for (const auto &cb: d->m_cbList) {

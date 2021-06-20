@@ -102,7 +102,7 @@ namespace AVQt {
         bool initialized = true;
         d->m_initialized.compare_exchange_strong(initialized, true);
         if (!initialized) {
-            d->m_pBuffer = new uint8_t[DemuxerPrivate::BUFFER_SIZE];
+            d->m_pBuffer = static_cast<uint8_t *>(av_malloc(DemuxerPrivate::BUFFER_SIZE));
             d->m_pIOCtx = avio_alloc_context(d->m_pBuffer, DemuxerPrivate::BUFFER_SIZE, 0, d->m_inputDevice,
                                              &DemuxerPrivate::readFromIO, nullptr, &DemuxerPrivate::seekIO);
             d->m_pFormatCtx = avformat_alloc_context();

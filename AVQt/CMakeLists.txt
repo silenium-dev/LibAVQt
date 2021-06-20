@@ -12,10 +12,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR on)
 #find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 
-if (WIN32)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
-endif ()
-
 #if (${CMAKE_BUILD_TYPE} EQUAL "Release")
 #    -O3)
 #endif ()
@@ -84,95 +80,105 @@ add_library(AVQt SHARED ${SOURCES})
 add_library(AVQtStatic STATIC ${SOURCES})
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
-target_compile_options(AVQt PRIVATE
-        -std=c++20
-        -Werror=all
-        -Werror=extra
-        -Werror=pedantic
-        -Wno-float-equal
-        -ansi
-        -Werror=init-self
-        -Werror=old-style-cast
-        -Werror=overloaded-virtual
-        -Werror=uninitialized
-        -Werror=missing-declarations
-        -Werror=init-self
-        #    -Wall -Wextra
-        -Wno-error=non-virtual-dtor
-        #        -Wno-unused-result
-        #-Wpedantic
-        -Wshadow
-        -Wfatal-errors
-        -Wundef
-        -Wuninitialized
-        -Winit-self
-        -Wconversion
-        -Wfloat-equal
-        -Wstrict-aliasing
-        -Wtrigraphs
-        -Wodr # one definition rule
-        -Wzero-as-null-pointer-constant
-        -Wsizeof-array-argument
-        -Winline
-        -Wcast-qual
-        -Weffc++
+if (!WIN32)
+    target_compile_options(AVQt PRIVATE
+            -std=c++20
+            -Werror=all
+            -Werror=extra
+            -Werror=pedantic
+            -Wno-float-equal
+            -ansi
+            -Werror=init-self
+            -Werror=old-style-cast
+            -Werror=overloaded-virtual
+            -Werror=uninitialized
+            -Werror=missing-declarations
+            -Werror=init-self
+            #    -Wall -Wextra
+            -Wno-error=non-virtual-dtor
+            #        -Wno-unused-result
+            #-Wpedantic
+            -Wshadow
+            -Wfatal-errors
+            -Wundef
+            -Wuninitialized
+            -Winit-self
+            -Wconversion
+            -Wfloat-equal
+            -Wstrict-aliasing
+            -Wtrigraphs
+            -Wodr # one definition rule
+            -Wzero-as-null-pointer-constant
+            -Wsizeof-array-argument
+            -Winline
+            -Wcast-qual
+            -Weffc++
 
 
-        #    -fno-common # each global variable is only declared once.
-        #    -fmerge-all-constants
-        #    -ffunction-sections
-        #    -fdata-sections
-        #    -fno-use-cxa-atexit
-        #    -fverbose-asm
-        #    -fstrict-enums
-        -Wstack-protector
-        -Wdouble-promotion
-        )
-target_compile_options(AVQtStatic PRIVATE
-        -std=c++20
-        -Werror=all
-        -Werror=extra
-        -Werror=pedantic
-        -ansi
-        -Werror=init-self
-        -Werror=old-style-cast
-        -Werror=overloaded-virtual
-        -Werror=uninitialized
-        -Werror=missing-declarations
-        -Werror=init-self
-        #    -Wall -Wextra
-        -Wno-error=non-virtual-dtor
-        #        -Wno-unused-result
-        #-Wpedantic
-        -Wshadow
-        -Wfatal-errors
-        -Wundef
-        -Wuninitialized
-        -Winit-self
-        -Wconversion
-        -Wfloat-equal
-        -Wstrict-aliasing
-        -Wtrigraphs
-        -Wodr # one definition rule
-        -Wzero-as-null-pointer-constant
-        -Wsizeof-array-argument
-        -Winline
-        -Wcast-qual
-        -Weffc++
+            #    -fno-common # each global variable is only declared once.
+            #    -fmerge-all-constants
+            #    -ffunction-sections
+            #    -fdata-sections
+            #    -fno-use-cxa-atexit
+            #    -fverbose-asm
+            #    -fstrict-enums
+            -Wstack-protector
+            -Wdouble-promotion
+            )
+    target_compile_options(AVQtStatic PRIVATE
+            -std=c++20
+            -Werror=all
+            -Werror=extra
+            -Werror=pedantic
+            -ansi
+            -Werror=init-self
+            -Werror=old-style-cast
+            -Werror=overloaded-virtual
+            -Werror=uninitialized
+            -Werror=missing-declarations
+            -Werror=init-self
+            #    -Wall -Wextra
+            -Wno-error=non-virtual-dtor
+            #        -Wno-unused-result
+            #-Wpedantic
+            -Wshadow
+            -Wfatal-errors
+            -Wundef
+            -Wuninitialized
+            -Winit-self
+            -Wconversion
+            -Wfloat-equal
+            -Wstrict-aliasing
+            -Wtrigraphs
+            -Wodr # one definition rule
+            -Wzero-as-null-pointer-constant
+            -Wsizeof-array-argument
+            -Winline
+            -Wcast-qual
+            -Weffc++
 
 
-        #    -fno-common # each global variable is only declared once.
-        #    -fmerge-all-constants
-        #    -ffunction-sections
-        #    -fdata-sections
-        #    -fno-use-cxa-atexit
-        #    -fverbose-asm
-        #    -fstrict-enums
-        -Wstack-protector
-        -Wdouble-promotion
-        )
+            #    -fno-common # each global variable is only declared once.
+            #    -fmerge-all-constants
+            #    -ffunction-sections
+            #    -fdata-sections
+            #    -fno-use-cxa-atexit
+            #    -fverbose-asm
+            #    -fstrict-enums
+            -Wstack-protector
+            -Wdouble-promotion
+            )
+endif ()
 
 #target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
 #target_link_libraries(AVQtStatic Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-target_link_libraries(AVQtStatic Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
+target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQtStatic Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
+
+if (WIN32)
+    target_link_libraries(AVQt opengl32 OpenAL32)
+    target_link_libraries(AVQtStatic opengl32 OpenAL32)
+else ()
+    target_link_libraries(AVQt GL openal)
+    target_link_libraries(AVQtStatic GL openal)
+endif ()
