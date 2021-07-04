@@ -6,9 +6,10 @@
 #include "Muxer.h"
 
 namespace AVQt {
-    Muxer::Muxer(QIODevice *outputDevice, QObject *parent) : QThread(parent), d_ptr(new MuxerPrivate(this)) {
+    Muxer::Muxer(QIODevice *outputDevice, FORMAT format, QObject *parent) : QThread(parent), d_ptr(new MuxerPrivate(this)) {
         Q_D(AVQt::Muxer);
         d->m_outputDevice = outputDevice;
+        d->m_format = format;
     }
 
     Muxer::Muxer(AVQt::MuxerPrivate &p) : d_ptr(&p) {
@@ -59,8 +60,37 @@ namespace AVQt {
             } else if (!d->m_outputDevice->isWritable()) {
                 qFatal("[AVQt::Muxer] Output device is not writable");
             }
+
+            QString outputFormat;
+            switch (d->m_format) {
+                case FORMAT::MP4:
+                    if (d->m_outputDevice->isSequential()) {
+                        qFatal("[AVQt::Muxer] MP4 output format is not available on sequential output devices like sockets");
+                    }
+                    outputFormat = "mp4";
+                    break;
+                case FORMAT::MOV:
+                    if (d->m_outputDevice->isSequential()) {
+                        qFatal("[AVQt::Muxer] MOV output format is not available on sequential output devices like sockets");
+                    }
+                    outputFormat = "mov";
+                    break;
+                case FORMAT::MKV:
+                    outputFormat = "matroska";
+                    break;
+                case FORMAT::WEBM:
+                    outputFormat = "webm";
+                    break;
+                case FORMAT::MPEGTS:
+                    outputFormat = "mpegts";
+                    break;
+                case FORMAT::INVALID:
+                    qFatal("[AVQt::Muxer] FORMAT::INVALID is just a placeholder, don't pass it as an argument");
+                    break;
+            }
+
             d->m_pFormatContext = avformat_alloc_context();
-            d->m_pFormatContext->oformat = av_guess_format("mp4", "", nullptr);
+            d->m_pFormatContext->oformat = av_guess_format(outputFormat.toLocal8Bit().data(), "", nullptr);
             d->m_pIOBuffer = static_cast<uint8_t *>(av_malloc(MuxerPrivate::IOBUF_SIZE));
             d->m_pIOContext = avio_alloc_context(d->m_pIOBuffer, MuxerPrivate::IOBUF_SIZE, 1, d->m_outputDevice, nullptr,
                                                  &MuxerPrivate::writeToIO, &MuxerPrivate::seekIO);

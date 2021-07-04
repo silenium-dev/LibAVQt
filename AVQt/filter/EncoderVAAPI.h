@@ -32,7 +32,7 @@ namespace AVQt {
         Q_INTERFACES(AVQt::IEncoder)
 
     public:
-        explicit EncoderVAAPI(QString encoder, QObject *parent = nullptr);
+        explicit EncoderVAAPI(CODEC codec, int bitrate, QObject *parent = nullptr);
 
         EncoderVAAPI(EncoderVAAPI &&other) noexcept;
 
@@ -74,7 +74,7 @@ namespace AVQt {
 
         Q_INVOKABLE void pause(IFrameSource *source, bool paused) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) Q_DECL_OVERRIDE;
+        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) Q_DECL_OVERRIDE;
 
     signals:
 

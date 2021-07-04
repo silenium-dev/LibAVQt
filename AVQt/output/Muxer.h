@@ -19,11 +19,12 @@ namespace AVQt {
 
         Q_DECLARE_PRIVATE(AVQt::Muxer)
 
-    protected:
-        void run() Q_DECL_OVERRIDE;
-
     public:
-        explicit Muxer(QIODevice *outputDevice, QObject *parent = nullptr);
+        enum class FORMAT {
+            MP4, MOV, MKV, WEBM, MPEGTS, INVALID
+        };
+
+        explicit Muxer(QIODevice *outputDevice, FORMAT format, QObject *parent = nullptr);
 
         Muxer(Muxer &) = delete;
 
@@ -45,6 +46,9 @@ namespace AVQt {
         void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) Q_DECL_OVERRIDE;
 
         void operator=(const Muxer &) = delete;
+
+    protected:
+        void run() Q_DECL_OVERRIDE;
 
     signals:
 

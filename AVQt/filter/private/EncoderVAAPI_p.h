@@ -21,9 +21,9 @@ namespace AVQt {
 
         EncoderVAAPI *q_ptr;
 
-        QString m_encoder{""};
+        IEncoder::CODEC m_codec{IEncoder::CODEC::H264};
+        int m_bitrate{5 * 1024 * 1024};
 
-        AVRational m_framerate{0, 1};
         AVCodec *m_pCodec{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
         AVBufferRef *m_pDeviceCtx{nullptr}, *m_pFramesCtx{nullptr};

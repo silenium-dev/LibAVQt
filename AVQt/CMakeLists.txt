@@ -74,6 +74,10 @@ set(SOURCES
         output/OpenALAudioOutput.h
         output/private/OpenALAudioOutput_p.h
         output/OpenALAudioOutput.cpp
+
+        output/Muxer.h
+        output/private/Muxer_p.h
+        output/Muxer.cpp
         )
 
 add_library(AVQt SHARED ${SOURCES})

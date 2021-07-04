@@ -142,9 +142,10 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration) {
+    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration, AVBufferRef *pDeviceCtx) {
         Q_UNUSED(source)
         Q_UNUSED(duration)
+        Q_UNUSED(pDeviceCtx)
 
         Q_D(AVQt::OpenGLRenderer);
 

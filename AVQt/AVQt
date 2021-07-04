@@ -14,4 +14,5 @@
 #include "output/IAudioSink.h"
 #include "output/OpenGLRenderer.h"
 #include "output/OpenALAudioOutput.h"
+#include "output/Muxer.h"
 //#include "output/FrameFileSaver.h"

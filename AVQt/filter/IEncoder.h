@@ -15,6 +15,10 @@ namespace AVQt {
         Q_INTERFACES(AVQt::IPacketSource)
 
     public:
+        enum class CODEC {
+            H264, HEVC, VP9, VP8, MPEG2, AV1
+        };
+
         virtual ~IEncoder() = default;
 
         virtual bool isPaused() = 0;
@@ -31,7 +35,7 @@ namespace AVQt {
 
         Q_INVOKABLE virtual void pause(IFrameSource *source, bool pause) = 0;
 
-        Q_INVOKABLE virtual void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) = 0;
+        Q_INVOKABLE virtual void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) = 0;
 
 
         // IPacketSource

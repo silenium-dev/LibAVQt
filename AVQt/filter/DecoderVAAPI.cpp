@@ -220,12 +220,12 @@ namespace AVQt {
                 if (d->m_pCodecParams && !d->m_pCodecCtx) {
                     d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
                     if (!d->m_pCodec) {
-                        qFatal("No audio decoder found");
+                        qFatal("No video decoder found");
                     }
 
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
                     if (!d->m_pCodecCtx) {
-                        qFatal("Could not allocate audio decoder context, probably out of memory");
+                        qFatal("Could not allocate video decoder context, probably out of memory");
                     }
 
                     ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
@@ -267,13 +267,18 @@ namespace AVQt {
                         lock.relock();
                     }
                 }
-                AVFrame *frame = av_frame_alloc();
                 while (true) {
+                    AVFrame *frame = av_frame_alloc();
                     ret = avcodec_receive_frame(d->m_pCodecCtx, frame);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
+                    } else if (ret == -12) { // -12 == Out of memory, didn't know the macro name
+                        av_frame_free(&frame);
+                        msleep(1);
+                        continue;
                     } else if (ret < 0) {
-                        qFatal("%d: Error receiving frame from VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Error receiving frame %d from VAAPI decoder: %s", ret, d->m_pCodecCtx->frame_number,
+                               av_make_error_string(strBuf, strBufSize, ret));
                     }
 
 //                    auto t1 = NOW();
@@ -295,9 +300,9 @@ namespace AVQt {
                                d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
-                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
+                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0),
+                                    av_buffer_ref(d->m_pDeviceCtx));
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
-                        av_frame_unref(cbFrame);
                         av_frame_free(&cbFrame);
 //                        }));
                     }
@@ -316,9 +321,9 @@ namespace AVQt {
 //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
 
 //                    av_frame_free(&swFrame);
-                    av_frame_unref(frame);
+                    av_frame_free(&frame);
                 }
-                av_frame_free(&frame);
+//                av_frame_free(&frame);
             } else {
                 msleep(4);
             }

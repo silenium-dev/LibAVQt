@@ -63,17 +63,17 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadWrite);
 
     AVQt::Demuxer demuxer(inputFile);
-//    AVQt::AudioDecoder decoder;
-//    AVQt::OpenALAudioOutput output;
+    AVQt::AudioDecoder decoder;
+    AVQt::OpenALAudioOutput output;
 
-//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-//    decoder.registerCallback(&output);
+    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+    decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder;
     AVQt::IEncoder *videoEncoder;
 #ifdef Q_OS_LINUX
     videoDecoder = new AVQt::DecoderVAAPI;
-    videoEncoder = new AVQt::EncoderVAAPI("hevc_vaapi");
+    videoEncoder = new AVQt::EncoderVAAPI(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
 #else
@@ -82,14 +82,14 @@ int main(int argc, char *argv[]) {
     AVQt::OpenGLRenderer renderer;
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-//    videoDecoder->registerCallback(videoEncoder);
+    videoDecoder->registerCallback(videoEncoder);
 
-//    QFile outputFile("output.mp4");
-//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-//    outputFile.seek(0);
-//    AVQt::Muxer muxer(&outputFile);
+    QFile outputFile("output.mp4");
+    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+    outputFile.seek(0);
+    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
-//    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
