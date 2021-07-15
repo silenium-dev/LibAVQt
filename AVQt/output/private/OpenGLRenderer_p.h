@@ -2,10 +2,22 @@
  * \private
  * \internal
  */
-#include <QtCore>
-#include <QtOpenGL>
 #include "../RenderClock.h"
 #include "../OpenGLRenderer.h"
+
+#include <QtCore>
+#include <QtOpenGL>
+
+#include <va/va.h>
+#include <va/va_x11.h>
+#include <va/va_drmcommon.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+extern "C" {
+#include <libavutil/hwcontext_vaapi.h>
+}
 
 
 #ifndef LIBAVQT_OPENGLRENDERER_P_H
@@ -42,6 +54,7 @@ namespace AVQt {
 
         OpenGLRenderer *q_ptr{nullptr};
 
+        QMutex m_onFrameMutex{};
         QMutex m_renderQueueMutex{};
         QQueue<QPair<AVFrame *, int64_t>> m_renderQueue{};
 
@@ -56,6 +69,8 @@ namespace AVQt {
         QMutex m_currentFrameMutex{};
         AVFrame *m_currentFrame{nullptr};
 
+        //OpenGL stuff
+
         QOpenGLVertexArrayObject m_vao{};
         QOpenGLBuffer m_vbo{}, m_ibo{};
         QOpenGLShaderProgram *m_program{nullptr};
@@ -63,6 +78,15 @@ namespace AVQt {
 
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
+
+        // VAAPI stuff
+        VADisplay m_VADisplay{nullptr};
+        AVVAAPIDeviceContext *m_pVAContext{nullptr};
+        EGLDisplay m_EGLDisplay{nullptr};
+        EGLSurface m_EGLSurface{nullptr};
+        EGLContext m_EGLContext{nullptr};
+        EGLImage m_EGLImages[2]{};
+        GLuint m_textures[2]{};
 
         friend class OpenGLRenderer;
     };

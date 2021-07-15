@@ -9,7 +9,7 @@
 constexpr auto LOGFILE_LOCATION = "libAVQt.log";
 
 QApplication *app = nullptr;
-std::chrono::time_point<std::chrono::system_clock> start;
+std::chrono::time_point<std::chrono::system_clock> start; // NOLINT(cert-err58-cpp)
 
 void signalHandler(int sigNum) {
     Q_UNUSED(sigNum)
@@ -40,6 +40,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 }
 
 int main(int argc, char *argv[]) {
+    QGuiApplication::setAttribute(Qt::AA_UseOpenGLES);
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]) {
     AVQt::OpenGLRenderer renderer;
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(videoEncoder);
+//    videoDecoder->registerCallback(videoEncoder);
 
     QFile outputFile("output.mp4");
     outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-//        delete videoEncoder;
+        delete videoEncoder;
         delete videoDecoder;
     });
 

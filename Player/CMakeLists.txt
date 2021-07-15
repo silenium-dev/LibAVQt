@@ -16,7 +16,7 @@ add_executable(Player main.cpp)
 target_link_libraries(Player Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
 
 if (LINUX)
-    target_link_libraries(Player openal GL)
+    target_link_libraries(Player openal GL EGL GLU)
 elseif (WIN32)
     target_link_libraries(Player OpenAL32 opengl32)
 endif ()
