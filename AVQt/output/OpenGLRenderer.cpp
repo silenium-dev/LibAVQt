@@ -210,7 +210,6 @@ namespace AVQt {
         Q_D(AVQt::OpenGLRenderer);
         Q_UNUSED(source)
         Q_UNUSED(duration)
-        Q_UNUSED(pDeviceCtx)
 
         QMutexLocker onFrameLock{&d->m_onFrameMutex};
 
@@ -219,6 +218,7 @@ namespace AVQt {
         if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
             d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
             d->m_VADisplay = d->m_pVAContext->display;
+            av_buffer_unref(&pDeviceCtx);
         }
 
         QPair<AVFrame *, int64_t> newFrame;
@@ -270,17 +270,17 @@ namespace AVQt {
                 EGL_NONE
         };
         d->m_EGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+//        if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
+//            qDebug("Could not get default EGL display, connecting to X-Server");
+//            Display *display = XOpenDisplay(nullptr);
+//            if (!display) {
+//                qFatal("Could not get X11 display");
+//            }
+//            d->m_EGLDisplay = eglGetDisplay(static_cast<EGLNativeDisplayType>(display));
         if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
-            qDebug("Could not get default EGL display, connecting to X-Server");
-            Display *display = XOpenDisplay(nullptr);
-            if (!display) {
-                qFatal("Could not get X11 display");
-            }
-            d->m_EGLDisplay = eglGetDisplay(static_cast<EGLNativeDisplayType>(display));
-            if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
-                qFatal("Could not get EGL display: %s", eglErrorString(eglGetError()).c_str());
-            }
+            qFatal("Could not get EGL display: %s", eglErrorString(eglGetError()).c_str());
         }
+//        }
         if (!eglInitialize(d->m_EGLDisplay, nullptr, nullptr)) {
             qFatal("eglInitialize");
         }
@@ -293,18 +293,18 @@ namespace AVQt {
         if (!eglChooseConfig(d->m_EGLDisplay, visual_attr, &cfg, 1, &cfg_count) || (cfg_count < 1)) {
             qFatal("eglChooseConfig: %s", eglErrorString(eglGetError()).c_str());
         }
-        EGLint ctx_attr[] = {
-                EGL_CONTEXT_OPENGL_PROFILE_MASK,
-                EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                EGL_CONTEXT_MAJOR_VERSION, 3,
-                EGL_CONTEXT_MINOR_VERSION, 3,
-                EGL_CONTEXT_OPENGL_DEBUG, EGL_TRUE,
-                EGL_NONE
-        };
-        d->m_EGLContext = eglCreateContext(d->m_EGLDisplay, cfg, EGL_NO_CONTEXT, ctx_attr);
-        if (d->m_EGLContext == EGL_NO_CONTEXT) {
-            qFatal("eglCreateContext");
-        }
+//        EGLint ctx_attr[] = {
+//                EGL_CONTEXT_OPENGL_PROFILE_MASK,
+//                EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+//                EGL_CONTEXT_MAJOR_VERSION, 3,
+//                EGL_CONTEXT_MINOR_VERSION, 3,
+//                EGL_CONTEXT_OPENGL_DEBUG, EGL_TRUE,
+//                EGL_NONE
+//        };
+//        d->m_EGLContext = eglCreateContext(d->m_EGLDisplay, cfg, EGL_NO_CONTEXT, ctx_attr);
+//        if (d->m_EGLContext == EGL_NO_CONTEXT) {
+//            qFatal("eglCreateContext");
+//        }
 
         qDebug("EGL Version: %s", eglQueryString(d->m_EGLDisplay, EGL_VERSION));
 
@@ -635,7 +635,7 @@ namespace AVQt {
 
 #define LAYER i
 #define PLANE 0
-                            const EGLint *img_attr = new EGLint[]{
+                            const EGLint img_attr[]{
                                     EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(prime.layers[LAYER].drm_format),
                                     EGL_WIDTH, static_cast<EGLint>(prime.width / (i + 1)),
                                     EGL_HEIGHT, static_cast<EGLint>(prime.height / (i + 1)),
@@ -644,6 +644,7 @@ namespace AVQt {
                                     EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(prime.layers[LAYER].pitch[PLANE]),
                                     EGL_NONE
                             };
+
 //                            const EGLint *img_attr = new EGLint[]{
 //                                    EGL_WIDTH, vaImage.width,
 //                                    EGL_HEIGHT, vaImage.height,
@@ -848,9 +849,10 @@ namespace AVQt {
 
         QString overlay(position.toString("hh:mm:ss.zzz") + "/" + d->m_duration.toString("hh:mm:ss.zzz"));
         QFontMetrics fm(roboto);
-        p.fillRect(fm.boundingRect(overlay).translated(static_cast<int>(20), static_cast<int>(20)).adjusted(-5, -5, 5, 5),
-                   QColor(0xFF, 0xFF, 0xFF, 0x48));
-        p.drawText(fm.boundingRect(overlay).translated(static_cast<int>(20), static_cast<int>(20)), overlay);
+        QRect overlayRect = fm.boundingRect(overlay);
+        overlayRect.moveTopLeft({20, 20});
+        p.fillRect(overlayRect.adjusted(-5, 0, 5, 0), QColor(0xFF, 0xFF, 0xFF, 0x48));
+        p.drawText(overlayRect, overlay);
         p.end();
         qDebug() << "Paused:" << (d->m_paused.load() ? "true" : "false");
         if (!d->m_paused.load()) {

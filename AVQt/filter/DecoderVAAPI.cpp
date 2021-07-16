@@ -262,7 +262,6 @@ namespace AVQt {
                         } else if (ret < 0) {
                             qFatal("%d: Error sending packet to VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                         }
-                        av_packet_unref(packet);
                         av_packet_free(&packet);
                         lock.relock();
                     }
@@ -300,8 +299,7 @@ namespace AVQt {
                                d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
-                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0),
-                                    av_buffer_ref(d->m_pDeviceCtx));
+                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0), d->m_pDeviceCtx);
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
                         av_frame_free(&cbFrame);
 //                        }));

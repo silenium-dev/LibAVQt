@@ -12,6 +12,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR on)
 #find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 
+#add_compile_options(-fsanitize=address)
+#add_link_options(-fsanitize=address)
+
 #if (${CMAKE_BUILD_TYPE} EQUAL "Release")
 #    -O3)
 #endif ()

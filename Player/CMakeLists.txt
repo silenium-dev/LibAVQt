@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(Qt5 COMPONENTS Core Gui Widgets OpenGL Concurrent)
 find_package(OpenAL)
 
-#add_compile_options(-O4)
+#add_compile_options(-fsanitize=address)
+#add_link_options(-fsanitize=address)
 
 add_executable(Player main.cpp)
 
