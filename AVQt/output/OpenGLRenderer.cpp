@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <unistd.h>
+#include <iostream>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "HidingNonVirtualFunction"
@@ -270,7 +271,15 @@ namespace AVQt {
         };
         d->m_EGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
-            d->m_EGLDisplay = eglGetDisplay(static_cast<EGLNativeDisplayType>(XOpenDisplay(nullptr)));
+            qDebug("Could not get default EGL display, connecting to X-Server");
+            Display *display = XOpenDisplay(nullptr);
+            if (!display) {
+                qFatal("Could not get X11 display");
+            }
+            d->m_EGLDisplay = eglGetDisplay(static_cast<EGLNativeDisplayType>(display));
+            if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
+                qFatal("Could not get EGL display: %s", eglErrorString(eglGetError()).c_str());
+            }
         }
         if (!eglInitialize(d->m_EGLDisplay, nullptr, nullptr)) {
             qFatal("eglInitialize");
@@ -298,11 +307,6 @@ namespace AVQt {
         }
 
         qDebug("EGL Version: %s", eglQueryString(d->m_EGLDisplay, EGL_VERSION));
-
-//        d->m_EGLSurface = eglCreateWindowSurface(d->m_EGLDisplay, cfg, this->winId(), nullptr);
-//        if (d->m_EGLSurface == EGL_NO_SURFACE) {
-//            qFatal("Could not create EGL surface: %s", eglErrorString(eglGetError()).c_str());
-//        }
 
         QByteArray shaderVersionString;
 
@@ -654,9 +658,10 @@ namespace AVQt {
                             d->m_EGLImages[i] = eglCreateImageKHR(eglGetCurrentDisplay(), EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
                                                                   img_attr);
 
-                            if (!d->m_EGLImages[i] || d->m_EGLImages[i] == EGL_NO_IMAGE_KHR) {
-                                qDebug("[AVQt::OpenGLRenderer] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
-                                       eglErrorString(eglGetError()).c_str());
+                            auto error = eglGetError();
+                            if (!d->m_EGLImages[i] || d->m_EGLImages[i] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
+                                qFatal("[AVQt::OpenGLRenderer] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
+                                       eglErrorString(error).c_str());
                             }
 #undef LAYER
 #undef PLANE
