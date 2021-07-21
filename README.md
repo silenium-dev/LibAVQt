@@ -39,7 +39,7 @@ An object-oriented Qt interface for FFmpeg.
 ### Clone the repo
 
 ```
-git clone https://github.com/sdcieo0330/LibAVQt.git
+git clone https://edugit.org/sdcieo0330/LibAVQt.git
 cd LibAVQt
 ```
 
