@@ -8,10 +8,11 @@
 #include "output/IPacketSink.h"
 
 namespace AVQt {
-    EncoderVAAPI::EncoderVAAPI(QString encoder, QObject *parent) : QThread(parent), d_ptr(new EncoderVAAPIPrivate(this)) {
+    EncoderVAAPI::EncoderVAAPI(CODEC codec, int bitrate, QObject *parent) : QThread(parent), d_ptr(new EncoderVAAPIPrivate(this)) {
         Q_D(AVQt::EncoderVAAPI);
 
-        d->m_encoder = std::move(encoder);
+        d->m_codec = codec;
+        d->m_bitrate = bitrate;
     }
 
     [[maybe_unused]] EncoderVAAPI::EncoderVAAPI(EncoderVAAPIPrivate &p) : d_ptr(&p) {
@@ -34,9 +35,34 @@ namespace AVQt {
 //        constexpr auto strBufSize = 64;
 //        char strBuf[strBufSize];
 
-        d->m_pCodec = avcodec_find_encoder_by_name(d->m_encoder.toLocal8Bit().constData());
+        std::string codec_name;
+        switch (d->m_codec) {
+            case CODEC::H264:
+                codec_name = "h264_vaapi";
+                break;
+            case CODEC::HEVC:
+                codec_name = "hevc_vaapi";
+                break;
+            case CODEC::VP9:
+                if (qEnvironmentVariable("LIBVA_DRIVER_NAME") == "iHD") {
+                    qFatal("[AVQt::EncoderVAAPI] Unsupported codec: VP9");
+                } else {
+                    codec_name = "vp9_vaapi";
+                }
+                break;
+            case CODEC::VP8:
+                codec_name = "vp8_vaapi";
+                break;
+            case CODEC::MPEG2:
+                codec_name = "mpeg2_vaapi";
+                break;
+            case CODEC::AV1:
+                qFatal("[AVQt::EncoderVAAPI] Unsupported codec: AV1");
+        }
+
+        d->m_pCodec = avcodec_find_encoder_by_name(codec_name.c_str());
         if (!d->m_pCodec) {
-            qFatal("Could not find encoder: %s", d->m_encoder.toLocal8Bit().constData());
+            qFatal("Could not find encoder: %s", codec_name.c_str());
         }
 
         return 0;
@@ -136,8 +162,8 @@ namespace AVQt {
     int EncoderVAAPI::init(IFrameSource *source, AVRational framerate, int64_t duration) {
         Q_UNUSED(source)
         Q_UNUSED(duration)
+        Q_UNUSED(framerate)
         Q_D(AVQt::EncoderVAAPI);
-        d->m_framerate = framerate;
         init();
         return 0;
     }
@@ -193,7 +219,7 @@ namespace AVQt {
         }
     }
 
-    void EncoderVAAPI::onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) {
+    void EncoderVAAPI::onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) {
         Q_UNUSED(source)
         Q_D(AVQt::EncoderVAAPI);
 
@@ -212,7 +238,7 @@ namespace AVQt {
                 break;
         }
 
-        while (d->m_inputQueue.size() > 100) {
+        while (d->m_inputQueue.size() > 4) {
             QThread::msleep(1);
         }
         {
@@ -276,10 +302,10 @@ namespace AVQt {
 
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-//                    d->m_pCodecCtx->bit_rate = 5000000;
-//                    d->m_pCodecCtx->rc_min_rate = 4500000;
-//                    d->m_pCodecCtx->rc_max_rate = 6000000;
-//                    d->m_pCodecCtx->rc_buffer_size = 10000000;
+                    d->m_pCodecCtx->bit_rate = d->m_bitrate;
+                    d->m_pCodecCtx->rc_min_rate = static_cast<int>(std::round(d->m_bitrate * 0.8));
+                    d->m_pCodecCtx->rc_max_rate = static_cast<int>(std::round(d->m_bitrate * 1.1));
+                    d->m_pCodecCtx->rc_buffer_size = d->m_bitrate * 2;
                     d->m_pCodecCtx->gop_size = 20;
                     d->m_pCodecCtx->max_b_frames = 0;
                     d->m_pCodecCtx->color_primaries = AVCOL_PRI_BT2020;
@@ -306,7 +332,7 @@ namespace AVQt {
                     for (const auto &cb: d->m_cbList) {
                         AVCodecParameters *parameters = avcodec_parameters_alloc();
                         avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
-                        cb->init(this, d->m_framerate, d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
+                        cb->init(this, av_make_q(0, 1), d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
                         cb->start(this);
                     }
                 }

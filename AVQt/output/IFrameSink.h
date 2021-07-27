@@ -9,6 +9,7 @@
 
 struct AVFrame;
 struct AVRational;
+struct AVBufferRef;
 
 namespace AVQt {
     /*!
@@ -89,7 +90,7 @@ namespace AVQt {
          * @param framerate Source stream framerate
          * @param duration Source frame presentation duration (inverse of framerate)
          */
-        Q_INVOKABLE virtual void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) = 0;
+        Q_INVOKABLE virtual void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) = 0;
 
     signals:
 

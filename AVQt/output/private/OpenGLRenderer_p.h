@@ -2,10 +2,23 @@
  * \private
  * \internal
  */
-#include <QtCore>
-#include <QtOpenGL>
 #include "../RenderClock.h"
 #include "../OpenGLRenderer.h"
+
+#include <QtCore>
+#include <QtOpenGL>
+
+#include <va/va.h>
+#include <va/va_x11.h>
+#include <va/va_drmcommon.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+extern "C" {
+#include <libavutil/hwcontext_vaapi.h>
+#include <libavutil/hwcontext.h>
+}
 
 
 #ifndef LIBAVQT_OPENGLRENDERER_P_H
@@ -32,7 +45,7 @@ namespace AVQt {
     private:
         explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {};
 
-        static GLint
+        [[maybe_unused]] static GLint
         project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
                 GLdouble *winx, GLdouble *winy, GLdouble *winz);
 
@@ -42,11 +55,11 @@ namespace AVQt {
 
         OpenGLRenderer *q_ptr{nullptr};
 
+        QMutex m_onFrameMutex{};
         QMutex m_renderQueueMutex{};
         QQueue<QPair<AVFrame *, int64_t>> m_renderQueue{};
 
         RenderClock *m_clock{nullptr};
-        int64_t m_currentFrameTimeout{1};
         QTime m_duration{};
         QTime m_position{};
         std::atomic_bool m_updateRequired{true}, m_paused{false}, m_running{false}, m_firstFrame{true};
@@ -56,6 +69,10 @@ namespace AVQt {
         QMutex m_currentFrameMutex{};
         AVFrame *m_currentFrame{nullptr};
 
+        AVBufferRef *m_pQSVDerivedDeviceContext{nullptr};
+        AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
+
+        //OpenGL stuff
         QOpenGLVertexArrayObject m_vao{};
         QOpenGLBuffer m_vbo{}, m_ibo{};
         QOpenGLShaderProgram *m_program{nullptr};
@@ -63,6 +80,13 @@ namespace AVQt {
 
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
+
+        // VAAPI stuff
+        VADisplay m_VADisplay{nullptr};
+        AVVAAPIDeviceContext *m_pVAContext{nullptr};
+        EGLDisplay m_EGLDisplay{nullptr};
+        EGLImage m_EGLImages[2]{};
+        GLuint m_textures[2]{};
 
         friend class OpenGLRenderer;
     };

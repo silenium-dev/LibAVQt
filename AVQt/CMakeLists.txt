@@ -12,6 +12,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR on)
 #find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 
+#add_compile_options(-fsanitize=address)
+#add_link_options(-fsanitize=address)
+
 #if (${CMAKE_BUILD_TYPE} EQUAL "Release")
 #    -O3)
 #endif ()
@@ -74,6 +77,10 @@ set(SOURCES
         output/OpenALAudioOutput.h
         output/private/OpenALAudioOutput_p.h
         output/OpenALAudioOutput.cpp
+
+        output/Muxer.h
+        output/private/Muxer_p.h
+        output/Muxer.cpp
         )
 
 add_library(AVQt SHARED ${SOURCES})
@@ -179,6 +186,6 @@ if (WIN32)
     target_link_libraries(AVQt opengl32 OpenAL32)
     target_link_libraries(AVQtStatic opengl32 OpenAL32)
 else ()
-    target_link_libraries(AVQt GL openal)
-    target_link_libraries(AVQtStatic GL openal)
+    target_link_libraries(AVQt GL openal EGL GLU)
+    target_link_libraries(AVQtStatic GL openal EGL GLU)
 endif ()

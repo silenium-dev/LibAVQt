@@ -2,10 +2,11 @@
 // Created by silas on 3/1/21.
 //
 
-#include "IDecoder.h"
 
 #include <QtCore>
+#include "IDecoder.h"
 #include <QtGui>
+
 
 extern "C" {
 #include <libavutil/avutil.h>
@@ -169,7 +170,6 @@ namespace AVQt {
          */
         DecoderQSVPrivate *d_ptr;
     };
-
 }
 
 #endif //TRANSCODE_DECODERQSV_H

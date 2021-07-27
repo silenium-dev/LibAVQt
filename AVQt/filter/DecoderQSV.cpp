@@ -211,9 +211,37 @@ namespace AVQt {
                 char strBuf[strBufSize];
                 // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
                 if (d->m_pCodecParams && !d->m_pCodecCtx) {
-                    d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
+                    switch (d->m_pCodecParams->codec_id) {
+                        case AV_CODEC_ID_H264:
+                            d->m_pCodec = avcodec_find_decoder_by_name("h264_qsv");
+                            break;
+                        case AV_CODEC_ID_HEVC:
+                            d->m_pCodec = avcodec_find_decoder_by_name("hevc_qsv");
+                            break;
+                        case AV_CODEC_ID_VP8:
+                            d->m_pCodec = avcodec_find_decoder_by_name("vp8_qsv");
+                            break;
+                        case AV_CODEC_ID_VP9:
+                            d->m_pCodec = avcodec_find_decoder_by_name("vp9_qsv");
+                            break;
+                        case AV_CODEC_ID_VC1:
+                            d->m_pCodec = avcodec_find_decoder_by_name("vc1_qsv");
+                            break;
+                        case AV_CODEC_ID_AV1:
+                            d->m_pCodec = avcodec_find_decoder_by_name("av1_qsv");
+                            break;
+                        case AV_CODEC_ID_MPEG2VIDEO:
+                            d->m_pCodec = avcodec_find_decoder_by_name("mpeg2_qsv");
+                            break;
+                        case AV_CODEC_ID_MJPEG:
+                            d->m_pCodec = avcodec_find_decoder_by_name("mjpeg_qsv");
+                            break;
+                        default:
+                            qFatal("[AVQt::DecoderQSV] Unsupported codec: %s", av_fourcc_make_string(strBuf, d->m_pCodecParams->codec_id));
+                    }
+
                     if (!d->m_pCodec) {
-                        qFatal("No audio decoder found");
+                        qFatal("No video decoder found");
                     }
 
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
@@ -228,6 +256,7 @@ namespace AVQt {
 
                     avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
+                    d->m_pCodecCtx->get_format = &DecoderQSVPrivate::getFormat;
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
                         qFatal("%d: Could not open QSV decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
@@ -287,7 +316,8 @@ namespace AVQt {
                                d->m_timebase.num,
                                d->m_timebase.den);
                         QTime time = QTime::currentTime();
-                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0));
+                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0),
+                                    av_buffer_ref(d->m_pDeviceCtx));
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
                         av_frame_unref(cbFrame);
                         av_frame_free(&cbFrame);
@@ -315,5 +345,45 @@ namespace AVQt {
                 msleep(4);
             }
         }
+    }
+
+#include <libavutil/hwcontext_qsv.h>
+
+    AVPixelFormat DecoderQSVPrivate::getFormat(AVCodecContext *pCodecCtx, const enum AVPixelFormat *pix_fmts) {
+        while (*pix_fmts != AV_PIX_FMT_NONE) {
+            if (*pix_fmts == AV_PIX_FMT_QSV) {
+                AVHWFramesContext *frames_ctx;
+                AVQSVFramesContext *frames_hwctx;
+                int ret;
+
+                /* create a pool of surfaces to be used by the decoder */
+                pCodecCtx->hw_frames_ctx = av_hwframe_ctx_alloc(pCodecCtx->hw_device_ctx);
+                if (!pCodecCtx->hw_frames_ctx) {
+                    return AV_PIX_FMT_NONE;
+                }
+                frames_ctx = (AVHWFramesContext *) pCodecCtx->hw_frames_ctx->data;
+                frames_hwctx = static_cast<AVQSVFramesContext *>(frames_ctx->hwctx);
+
+                frames_ctx->format = AV_PIX_FMT_QSV;
+                frames_ctx->sw_format = pCodecCtx->sw_pix_fmt;
+                frames_ctx->width = FFALIGN(pCodecCtx->coded_width, 32);
+                frames_ctx->height = FFALIGN(pCodecCtx->coded_height, 32);
+                frames_ctx->initial_pool_size = 32;
+
+                frames_hwctx->frame_type = MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET;
+
+                ret = av_hwframe_ctx_init(pCodecCtx->hw_frames_ctx);
+                if (ret < 0)
+                    return AV_PIX_FMT_NONE;
+
+                return AV_PIX_FMT_QSV;
+            }
+
+            pix_fmts++;
+        }
+
+        fprintf(stderr, "The QSV pixel format not offered in get_format()\n");
+
+        return AV_PIX_FMT_NONE;
     }
 }

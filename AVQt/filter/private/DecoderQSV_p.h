@@ -47,6 +47,8 @@ namespace AVQt {
         std::atomic_bool m_running{false};
         std::atomic_bool m_paused{false};
 
+        static AVPixelFormat getFormat(AVCodecContext *pCodecCtx, const enum AVPixelFormat *pix_fmts);
+
         friend class DecoderQSV;
     };
 }

@@ -9,7 +9,7 @@
 constexpr auto LOGFILE_LOCATION = "libAVQt.log";
 
 QApplication *app = nullptr;
-std::chrono::time_point<std::chrono::system_clock> start;
+std::chrono::time_point<std::chrono::system_clock> start; // NOLINT(cert-err58-cpp)
 
 void signalHandler(int sigNum) {
     Q_UNUSED(sigNum)
@@ -40,6 +40,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 }
 
 int main(int argc, char *argv[]) {
+    QGuiApplication::setAttribute(Qt::AA_UseOpenGLES);
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
@@ -63,17 +64,17 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadWrite);
 
     AVQt::Demuxer demuxer(inputFile);
-//    AVQt::AudioDecoder decoder;
-//    AVQt::OpenALAudioOutput output;
+    AVQt::AudioDecoder decoder;
+    AVQt::OpenALAudioOutput output;
 
-//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-//    decoder.registerCallback(&output);
+    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+    decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder;
     AVQt::IEncoder *videoEncoder;
 #ifdef Q_OS_LINUX
-    videoDecoder = new AVQt::DecoderVAAPI;
-    videoEncoder = new AVQt::EncoderVAAPI("hevc_vaapi");
+    videoDecoder = new AVQt::DecoderQSV;
+    videoEncoder = new AVQt::EncoderVAAPI(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
 #else
@@ -84,12 +85,12 @@ int main(int argc, char *argv[]) {
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
 //    videoDecoder->registerCallback(videoEncoder);
 
-//    QFile outputFile("output.mp4");
-//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-//    outputFile.seek(0);
-//    AVQt::Muxer muxer(&outputFile);
+    QFile outputFile("output.mp4");
+    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+    outputFile.seek(0);
+    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
-//    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-//        delete videoEncoder;
+        delete videoEncoder;
         delete videoDecoder;
     });
 

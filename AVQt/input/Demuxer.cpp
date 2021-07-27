@@ -294,7 +294,7 @@ namespace AVQt {
                 for (const auto &cb: cbList) {
                     AVPacket *cbPacket = av_packet_clone(packet);
                     cb->onPacket(this, cbPacket, type);
-                    av_packet_unref(cbPacket);
+                    av_packet_free(&cbPacket);
                 }
                 if (elapsedTimer.hasExpired(500)) {
                     QByteArray aP, vP, sP, aR, vR, sR;
@@ -316,10 +316,12 @@ namespace AVQt {
                     qDebug();
                     elapsedTimer.restart();
                 }
+                av_packet_unref(packet);
             } else {
                 msleep(8);
             }
         }
+        av_packet_free(&packet);
     }
 
     Demuxer::Demuxer(Demuxer &&other) noexcept: d_ptr(other.d_ptr) {

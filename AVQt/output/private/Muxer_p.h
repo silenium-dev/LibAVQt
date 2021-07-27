@@ -28,8 +28,10 @@ namespace AVQt {
 
         QIODevice *m_outputDevice{nullptr};
 
+        Muxer::FORMAT m_format{Muxer::FORMAT::INVALID};
+
         QMutex m_initMutex{};
-        static constexpr size_t IOBUF_SIZE{4 * 1024};  // 4 KB
+        static constexpr int64_t IOBUF_SIZE{4 * 1024};  // 4 KB
         uint8_t *m_pIOBuffer{nullptr};
         AVIOContext *m_pIOContext{nullptr};
         AVFormatContext *m_pFormatContext{nullptr};

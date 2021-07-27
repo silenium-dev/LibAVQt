@@ -7,6 +7,8 @@
 #include <QtOpenGL>
 #include <input/IFrameSource.h>
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 extern "C" {
 #include <libavutil/rational.h>
 }
@@ -20,14 +22,14 @@ namespace AVQt {
 
     class RenderClock;
 
-    class OpenGLRenderer : public QOpenGLWindow, public IFrameSink {
+    class OpenGLRenderer : public QOpenGLWidget, public IFrameSink {
     Q_OBJECT
 //        Q_INTERFACES(AVQt::IFrameSink)
 
         Q_DECLARE_PRIVATE(AVQt::OpenGLRenderer)
 
     public:
-        explicit OpenGLRenderer(QWindow *parent = nullptr);
+        explicit OpenGLRenderer(QWidget *parent = nullptr);
 
         OpenGLRenderer(OpenGLRenderer &&other) noexcept;
 
@@ -35,7 +37,7 @@ namespace AVQt {
 
         void operator=(const OpenGLRenderer &) = delete;
 
-        ~OpenGLRenderer() noexcept;
+        ~OpenGLRenderer() noexcept Q_DECL_OVERRIDE;
 
         bool isPaused() Q_DECL_OVERRIDE;
 
@@ -92,7 +94,7 @@ namespace AVQt {
          * @param timebase Source stream time base, if you don't know what this means, you probably don't want to use it.
          * @param framerate Source stream framerate
          */
-        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration) Q_DECL_OVERRIDE;
+        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) Q_DECL_OVERRIDE;
 
     signals:
 
@@ -111,9 +113,12 @@ namespace AVQt {
 
         void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
+        void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+
         OpenGLRendererPrivate *d_ptr;
     };
 }
 
 
 #endif //LIBAVQT_OPENGLRENDERER_H
+#pragma clang diagnostic pop
