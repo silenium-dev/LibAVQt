@@ -652,6 +652,7 @@ namespace AVQt {
                         vaSyncSurface(d->m_VADisplay, va_surface);
 
                         static uint32_t formats[2];
+                        char strBuf[AV_FOURCC_MAX_STRING_SIZE];
                         switch (prime.fourcc) {
 //                        switch (vaImage.format.fourcc) {
                             case VA_FOURCC_P010:
@@ -663,13 +664,14 @@ namespace AVQt {
                                 formats[1] = DRM_FORMAT_GR88;
                                 break;
                             default:
-                                qFatal("Unsupported pixel format: %s", av_fourcc2str(prime.fourcc));
-//                                qFatal("Unsupported pixel format: %s", av_fourcc2str(vaImage.format.fourcc));
+                                qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, prime.fourcc));
+//                                qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, vaImage.format.fourcc));
                         }
 
                         for (int i = 0; i < 2; ++i) {
                             if (prime.layers[i].drm_format != formats[i]) {
-                                qFatal("[AVQt::OpenGLRenderer] Invalid pixel format: %s", av_fourcc2str(prime.layers[i].drm_format));
+                                qFatal("[AVQt::OpenGLRenderer] Invalid pixel format: %s",
+                                       av_fourcc_make_string(strBuf, prime.layers[i].drm_format));
                             }
 
 #define LAYER i
