@@ -60,7 +60,6 @@ namespace AVQt {
         QQueue<QPair<AVFrame *, int64_t>> m_renderQueue{};
 
         RenderClock *m_clock{nullptr};
-        int64_t m_currentFrameTimeout{1};
         QTime m_duration{};
         QTime m_position{};
         std::atomic_bool m_updateRequired{true}, m_paused{false}, m_running{false}, m_firstFrame{true};
@@ -74,7 +73,6 @@ namespace AVQt {
         AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
 
         //OpenGL stuff
-
         QOpenGLVertexArrayObject m_vao{};
         QOpenGLBuffer m_vbo{}, m_ibo{};
         QOpenGLShaderProgram *m_program{nullptr};

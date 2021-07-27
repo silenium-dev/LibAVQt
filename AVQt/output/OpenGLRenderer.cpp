@@ -431,7 +431,6 @@ namespace AVQt {
                 }
                 if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
                     d->m_updateRequired.store(false);
-//                    qDebug("Adding duration %ld ms to position", d->m_currentFrameTimeout);
                     QPair<AVFrame *, int64_t> frame = d->m_renderQueue.dequeue();
                     while (!d->m_renderQueue.isEmpty()) {
                         if (frame.first->pts <= d->m_updateTimestamp.load()) {
@@ -882,12 +881,11 @@ namespace AVQt {
 
 //            qDebug() << "Current timestamp:" << d->m_position.toString("hh:mm:ss.zzz");
 
-        QTime position{0, 0, 0, 0};
         if (d->m_currentFrame) {
-            position = OpenGLRendererPrivate::timeFromMillis(d->m_currentFrame->pts / 1000);
+            d->m_position = OpenGLRendererPrivate::timeFromMillis(d->m_currentFrame->pts / 1000);
         }
 
-        QString overlay(position.toString("hh:mm:ss.zzz") + "/" + d->m_duration.toString("hh:mm:ss.zzz"));
+        QString overlay(d->m_position.toString("hh:mm:ss.zzz") + "/" + d->m_duration.toString("hh:mm:ss.zzz"));
         QFontMetrics fm(roboto);
         QRect overlayRect = fm.boundingRect(overlay);
         overlayRect.moveTopLeft({20, 20});
