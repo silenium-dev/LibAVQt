@@ -17,6 +17,7 @@
 
 extern "C" {
 #include <libavutil/hwcontext_vaapi.h>
+#include <libavutil/hwcontext.h>
 }
 
 
@@ -68,6 +69,9 @@ namespace AVQt {
 
         QMutex m_currentFrameMutex{};
         AVFrame *m_currentFrame{nullptr};
+
+        AVBufferRef *m_pQSVDerivedDeviceContext{nullptr};
+        AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
 
         //OpenGL stuff
 

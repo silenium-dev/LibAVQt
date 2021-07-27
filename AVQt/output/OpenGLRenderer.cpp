@@ -9,15 +9,12 @@
 #include <QImage>
 
 #include <va/va.h>
-#include <va/va_x11.h>
-#include <va/va_drm.h>
 #include <va/va_drmcommon.h>
 #include <libdrm/drm_fourcc.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GL/glu.h>
-#include <fcntl.h>
 #include <cstdio>
 #include <unistd.h>
 #include <iostream>
@@ -215,17 +212,12 @@ namespace AVQt {
 
         bool shouldBe = true;
 
-        if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
-            d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-            d->m_VADisplay = d->m_pVAContext->display;
-            av_buffer_unref(&pDeviceCtx);
-        }
-
         QPair<AVFrame *, int64_t> newFrame;
 
         newFrame.first = av_frame_alloc();
 //        av_frame_ref(newFrame.first, frame);
-        char strBuf[64];
+        constexpr auto strBufSize = 64;
+        char strBuf[strBufSize];
         qDebug("Pixel format: %s", av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format)));
         switch (frame->format) {
 //            case AV_PIX_FMT_VAAPI:
@@ -234,11 +226,50 @@ namespace AVQt {
                 qDebug("Transferring frame from GPU to CPU");
                 av_hwframe_transfer_data(newFrame.first, frame, 0);
                 break;
+            case AV_PIX_FMT_QSV:
+                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to VAAPI for rendering");
+#ifdef Q_OS_LINUX
+                if (!d->m_pQSVDerivedDeviceContext) {
+                    int ret = av_hwdevice_ctx_create(&d->m_pQSVDerivedDeviceContext, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr,
+                                                     0);
+                    if (ret != 0) {
+                        qFatal("[AVQt::OpenGLRenderer] %i: Could not create derived VAAPI context: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                    d->m_pQSVDerivedFramesContext = av_hwframe_ctx_alloc(d->m_pQSVDerivedDeviceContext);
+                    auto framesCtx = reinterpret_cast<AVHWFramesContext *>(d->m_pQSVDerivedFramesContext->data);
+                    auto framesCtxOld = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
+                    framesCtx->sw_format = framesCtxOld->sw_format;
+                    framesCtx->format = AV_PIX_FMT_VAAPI;
+                    framesCtx->width = framesCtxOld->width;
+                    framesCtx->height = framesCtxOld->height;
+                    framesCtx->initial_pool_size = framesCtxOld->initial_pool_size;
+
+                    ret = av_hwframe_ctx_init(d->m_pQSVDerivedFramesContext);
+
+                    if (ret != 0) {
+                        qFatal("[AVQt::OpenGLRenderer] %i: Could not create derived frames context: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                }
+                newFrame.first->hw_frames_ctx = av_buffer_ref(d->m_pQSVDerivedFramesContext);
+                av_hwframe_map(newFrame.first, frame, AV_HWFRAME_MAP_READ);
+#else
+                qFatal("[AVQt::OpenGLRenderer] Mapping QSV frame to other than VAAPI is currently not supported");
+#endif
+                break;
             default:
                 qDebug("Referencing frame");
                 av_frame_ref(newFrame.first, frame);
                 break;
         }
+
+        if (d->m_firstFrame.compare_exchange_strong(shouldBe, false) && newFrame.first->format == AV_PIX_FMT_VAAPI) {
+            d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+            d->m_VADisplay = d->m_pVAContext->display;
+            av_buffer_unref(&pDeviceCtx);
+        }
+
         newFrame.first->pts = frame->pts;
         newFrame.second = duration;
 //        av_frame_unref(frame);
@@ -364,7 +395,6 @@ namespace AVQt {
             }
             glViewport((width() - display_width) / 2, (height() - display_height) / 2, display_width, display_height);
         }
-
 
 //         Clear background
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -564,7 +594,6 @@ namespace AVQt {
                                     break;
                                 default:
                                     qFatal("[AVQt::OpenGLRenderer] Unsupported pixel format");
-                                    break;
                             }
                             d->m_yTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
                             d->m_yTexture->setSize(YSize.width(), YSize.height());
@@ -920,4 +949,3 @@ namespace AVQt {
         return QTime(h, m, s, ms);
     }
 }
-#pragma clang diagnostic pop
