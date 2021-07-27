@@ -1,7 +1,7 @@
 build:
   stage: build
   image:
-    name: ghcr.io/sdc0/manjaro-qt6-ffmpeg
+    name: sdc0/manjaro-qt6-ffmpeg
     entrypoint: ["/bin/sh", "-c"]
   script:
     - mkdir build
