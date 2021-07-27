@@ -464,7 +464,6 @@ namespace AVQt {
                         }
 
                         d->m_currentFrame = frame.first;
-                        d->m_currentFrameTimeout = frame.second;
                     }
 
                     if (firstFrame) {
