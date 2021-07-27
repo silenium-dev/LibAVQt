@@ -111,7 +111,15 @@ namespace AVQt {
     }
 
     int OpenGLRenderer::deinit(IFrameSource *source) {
-        Q_UNUSED(source)
+        Q_D(AVQt::OpenGLRenderer);
+        stop(source);
+
+        if (d->m_pQSVDerivedDeviceContext) {
+            av_buffer_unref(&d->m_pQSVDerivedFramesContext);
+            av_buffer_unref(&d->m_pQSVDerivedDeviceContext);
+        }
+
+        delete d->m_clock;
 
         return 0;
     }
@@ -142,7 +150,13 @@ namespace AVQt {
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
             hide();
 
-            d->m_clock->stop();
+            if (d->m_currentFrame) {
+                av_frame_free(&d->m_currentFrame);
+            }
+
+            if (d->m_clock) {
+                d->m_clock->stop();
+            }
 
             {
                 QMutexLocker lock(&d->m_renderQueueMutex);
@@ -162,18 +176,15 @@ namespace AVQt {
             d->m_vbo.destroy();
             d->m_vao.destroy();
 
-//                d->m_yTexture->destroy();
             delete d->m_yTexture;
-
-
-//                d->m_uTexture->destroy();
             delete d->m_uTexture;
-
-
-
-//                d->m_yTexture->destroy();
             delete d->m_vTexture;
 
+            if (d->m_EGLImages[0]) {
+                for (auto &EGLImage : d->m_EGLImages) {
+                    eglDestroyImage(d->m_EGLDisplay, EGLImage);
+                }
+            }
 
             stopped();
             return 0;
@@ -907,8 +918,9 @@ namespace AVQt {
         return d->m_clock;
     }
 
-    GLint OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
-                                         const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz) {
+    [[maybe_unused]] GLint
+    OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
+                                   const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz) {
         GLdouble in[4], out[4];
 
         in[0] = objx;

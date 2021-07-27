@@ -45,7 +45,7 @@ namespace AVQt {
     private:
         explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {};
 
-        static GLint
+        [[maybe_unused]] static GLint
         project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
                 GLdouble *winx, GLdouble *winy, GLdouble *winz);
 
@@ -87,8 +87,6 @@ namespace AVQt {
         VADisplay m_VADisplay{nullptr};
         AVVAAPIDeviceContext *m_pVAContext{nullptr};
         EGLDisplay m_EGLDisplay{nullptr};
-        EGLSurface m_EGLSurface{nullptr};
-        EGLContext m_EGLContext{nullptr};
         EGLImage m_EGLImages[2]{};
         GLuint m_textures[2]{};
 
