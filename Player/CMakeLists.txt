@@ -11,6 +11,8 @@ find_package(OpenAL)
 #add_compile_options(-fsanitize=address)
 #add_link_options(-fsanitize=address)
 
+add_compile_definitions(ENABLE_QSV_ENCODE)
+
 add_executable(Player main.cpp)
 
 #target_link_libraries(Player Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGLWidgets Qt6::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQtStatic)
