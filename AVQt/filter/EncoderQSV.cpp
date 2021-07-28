@@ -44,11 +44,15 @@ namespace AVQt {
                 codec_name = "hevc_qsv";
                 break;
             case CODEC::VP9:
-                codec_name = "vp9_qsv";
+                if (qEnvironmentVariable("LIBVA_DRIVER_NAME") == "iHD") {
+                    qFatal("[AVQt::EncoderQSV] Unsupported codec: VP9");
+                } else {
+                    codec_name = "vp9_qsv";
+                }
                 break;
             case CODEC::VP8:
-//                codec_name = "vp8_qsv";
-                qFatal("[AVQt::EncoderQSV] Unsupported codec: VP8");
+                codec_name = "vp8_qsv";
+                break;
             case CODEC::MPEG2:
                 codec_name = "mpeg2_qsv";
                 break;
@@ -92,6 +96,8 @@ namespace AVQt {
         if (d->m_pFramesCtx) {
             av_buffer_unref(&d->m_pFramesCtx);
         }
+
+        d->m_pLockedSource = nullptr;
 
         return 0;
     }
@@ -156,34 +162,55 @@ namespace AVQt {
     }
 
     int EncoderQSV::init(IFrameSource *source, AVRational framerate, int64_t duration) {
-        Q_UNUSED(source)
         Q_UNUSED(duration)
+        Q_UNUSED(framerate)
         Q_D(AVQt::EncoderQSV);
-        d->m_framerate = framerate;
+
+        if (d->m_pLockedSource) {
+            qFatal("[AVQt::EncoderQSV] Already initialized and bound to frame source");
+        }
+
+        d->m_pLockedSource = source;
         init();
         return 0;
     }
 
     int EncoderQSV::deinit(IFrameSource *source) {
-        Q_UNUSED(source)
+        Q_D(AVQt::EncoderQSV);
+        if (d->m_pLockedSource != source) {
+            qFatal("[AVQt::EncoderQSV] Cleaning up encoder from other source than initialized is forbidden");
+        }
+
         deinit();
         return 0;
     }
 
     int EncoderQSV::start(IFrameSource *source) {
-        Q_UNUSED(source)
+        Q_D(AVQt::EncoderQSV);
+        if (d->m_pLockedSource != source) {
+            qFatal("[AVQt::EncoderQSV] Starting encoder from other source than initialized is forbidden");
+        }
+
         start();
         return 0;
     }
 
     int EncoderQSV::stop(IFrameSource *source) {
-        Q_UNUSED(source)
+        Q_D(AVQt::EncoderQSV);
+        if (d->m_pLockedSource != source) {
+            qFatal("[AVQt::EncoderQSV] Stopping encoder from other source than initialized is forbidden");
+        }
+
         stop();
         return 0;
     }
 
     void EncoderQSV::pause(IFrameSource *source, bool paused) {
-        Q_UNUSED(source)
+        Q_D(AVQt::EncoderQSV);
+        if (d->m_pLockedSource != source) {
+            qFatal("[AVQt::EncoderQSV] Pausing encoder from other source than initialized is forbidden");
+        }
+
         pause(paused);
     }
 
@@ -216,134 +243,80 @@ namespace AVQt {
     }
 
     void EncoderQSV::onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) {
-        Q_UNUSED(source)
         Q_D(AVQt::EncoderQSV);
 
-        QMutexLocker locker{&d->m_onFrameMutex};
-        int ret = 0;
+        if (d->m_pLockedSource != source) {
+            qFatal("[AVQt::EncoderQSV] Sending frames from other source than initialized is forbidden");
+        }
+
+        int ret;
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
 
-        bool shouldBe = true;
-        // Encoder init is only possible with frame parameters
-        if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
-            d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
-            if (!d->m_pCodecCtx) {
-                qFatal("Could not create QSV encoder context");
-            }
-            d->m_pCodecCtx->width = frame->width;
-            d->m_pCodecCtx->height = frame->height;
-            qDebug("Creating new HW context...");
+        QPair<AVFrame *, int64_t> queueFrame{av_frame_alloc(), frameDuration};
+        switch (frame->format) {
+            case AV_PIX_FMT_QSV:
+            case AV_PIX_FMT_DRM_PRIME:
+            case AV_PIX_FMT_VAAPI:
+                if (!d->m_pDeviceCtx) {
+//                    d->m_pDeviceCtx = av_buffer_ref(pDeviceCtx);
+//                    d->m_pFramesCtx = av_buffer_ref(frame->hw_frames_ctx);
+                    ret = av_hwdevice_ctx_create_derived(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_QSV, pDeviceCtx, 0);
+                    if (ret != 0) {
+                        qFatal("[AVQt::EncoderQSV] %d: Could not create derived AVHWDeviceContext: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                    AVHWFramesContext *framesCtx, *framesCtxOld;
+                    framesCtxOld = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
+                    ret = av_hwframe_ctx_create_derived(&d->m_pFramesCtx, framesCtxOld->sw_format, d->m_pDeviceCtx, frame->hw_frames_ctx, AV_HWFRAME_MAP_READ);
+                    if (ret != 0) {
+                        qFatal("[AVQt::EncoderQSV] %d: Could not create derived AVHWFramesContext: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                    framesCtx = reinterpret_cast<AVHWFramesContext *>(d->m_pFramesCtx->data);
 
-            if (pDeviceCtx) {
-                ret = av_hwdevice_ctx_create_derived(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_QSV, pDeviceCtx, 0);
-            }
-            ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_QSV, "", nullptr, 0);
-            if (ret < 0) {
-                qFatal("%i: Unable to create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-            } else if (!d->m_pDeviceCtx) {
-                qFatal("Unable to create AVHWDeviceContext");
-            }
+                    framesCtx->sw_format = framesCtxOld->sw_format;
+                    framesCtx->format = AV_PIX_FMT_QSV;
+                    framesCtx->width = framesCtxOld->width;
+                    framesCtx->height = framesCtxOld->height;
+                    framesCtx->initial_pool_size = framesCtxOld->initial_pool_size;
 
-            if (frame->hw_frames_ctx) {
-                d->m_pCodecCtx->sw_pix_fmt = static_cast<AVPixelFormat>(reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data)->sw_format);
-            } else {
-                d->m_pCodecCtx->sw_pix_fmt = static_cast<AVPixelFormat>(frame->format);
-            }
-
-            d->m_pFramesCtx = av_hwframe_ctx_alloc(d->m_pDeviceCtx);
-            auto *framesContext = reinterpret_cast<AVHWFramesContext *>(d->m_pFramesCtx->data);
-            framesContext->width = d->m_pCodecCtx->width;
-            framesContext->height = d->m_pCodecCtx->height;
-            framesContext->sw_format = d->m_pCodecCtx->sw_pix_fmt;
-            framesContext->format = AV_PIX_FMT_QSV;
-            framesContext->initial_pool_size = 20;
-
-            ret = av_hwframe_ctx_init(d->m_pFramesCtx);
-            if (ret != 0) {
-                qFatal("%i: Could not init HW frames context: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-            }
-
-            d->m_pCodecCtx->pix_fmt = framesContext->format;
-
-            d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
-//            d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-            d->m_pCodecCtx->bit_rate = d->m_bitrate;
-            d->m_pCodecCtx->rc_min_rate = static_cast<int>(std::round(d->m_bitrate * 0.8));
-            d->m_pCodecCtx->rc_max_rate = static_cast<int>(std::round(d->m_bitrate * 1.1));
-            d->m_pCodecCtx->rc_buffer_size = d->m_bitrate * 2;
-            d->m_pCodecCtx->gop_size = 20;
-            d->m_pCodecCtx->max_b_frames = 0;
-            d->m_pCodecCtx->color_primaries = AVCOL_PRI_BT2020;
-            d->m_pCodecCtx->color_trc = AVCOL_TRC_SMPTE2084;
-            d->m_pCodecCtx->colorspace = AVCOL_SPC_BT2020_NCL;
-            d->m_pCodecCtx->framerate = d->m_framerate;
-
-            // Timestamps from frame sources are always microseconds, trying to use this timebase for the encoder too
-            d->m_pCodecCtx->time_base = av_make_q(1, 1000000);
-            ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
-            if (ret < 0) {
-                qFatal("%i: Unable to open QSV encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-            }
-            qDebug("[AVQt::EncoderQSV] Encoder timebase: %d/%d", d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
-
-//            // Preallocating frame on gpu
-            d->m_pHWFrame = av_frame_alloc();
-//            ret = av_hwframe_get_buffer(d->m_pFramesCtx, d->m_pHWFrame, 0);
-
-            QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb: d->m_cbList) {
-                AVCodecParameters *parameters = avcodec_parameters_alloc();
-                avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
-                cb->init(this, d->m_framerate, d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
-                cb->start(this);
-            }
-            d->m_initialized.store(true);
-        }
-
-        if (frame->hw_frames_ctx) {
-            ret = av_hwframe_map(d->m_pHWFrame, frame, AV_HWFRAME_MAP_READ);
-            if (ret != 0) {
-                qDebug("[AVQt::EncoderQSV] %i: Could not map frame to GPU memory, trying copy: %s", ret,
-                       av_make_error_string(strBuf, strBufSize, ret));
-                ret = av_hwframe_transfer_data(d->m_pHWFrame, frame, 0);
+                    ret = av_hwframe_ctx_init(d->m_pFramesCtx);
+                    if (ret != 0) {
+                        qFatal("[AVQt::EncoderQSV] %d: Could not init HW frames context: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                }
+                queueFrame.first->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
+                queueFrame.first->format = AV_PIX_FMT_QSV;
+                ret = av_hwframe_map(queueFrame.first, frame, AV_HWFRAME_MAP_READ);
                 if (ret != 0) {
-                    qFatal("[AVQt::EncoderQSV] %i: Could not copy frame to GPU memory: %s", ret,
+                    qFatal("[AVQt::EncoderQSV] %d: Could not map frame from source device to QSV: %s", ret,
                            av_make_error_string(strBuf, strBufSize, ret));
                 }
-            }
-        } else {
-            d->m_pHWFrame = av_frame_clone(frame);
+                break;
+            case AV_PIX_FMT_DXVA2_VLD:
+                qDebug("Transferring frame from GPU to CPU");
+                av_hwframe_transfer_data(queueFrame.first, frame, 0);
+                queueFrame.first->pts = frame->pts;
+                break;
+            default:
+                qDebug("Referencing frame");
+                av_frame_ref(queueFrame.first, frame);
+                break;
         }
 
-        d->m_pHWFrame->pts = av_rescale_q(frame->pts, av_make_q(1, 1000000), d->m_pCodecCtx->time_base);
-
-        while (d->m_codecBufferFull) {
-            msleep(1);
+        while (d->m_inputQueue.size() > 4) {
+            QThread::msleep(1);
         }
-
         {
-            QMutexLocker lock1{&d->m_codecMutex};
-            ret = avcodec_send_frame(d->m_pCodecCtx, d->m_pHWFrame);
+            QMutexLocker lock{&d->m_inputQueueMutex};
+            d->m_inputQueue.enqueue(queueFrame);
+//            std::sort(d->m_inputQueue.begin(), d->m_inputQueue.end(),
+//                      [&](const QPair<AVFrame *, int64_t> &f1, const QPair<AVFrame *, int64_t> &f2) {
+//                          return f1.first->pts < f2.first->pts;
+//                      });
         }
-        if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
-            d->m_codecBufferFull.store(true);
-        }
-        av_frame_unref(d->m_pHWFrame);
-//        d->m_pHWFrame->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-        av_hwframe_get_buffer(d->m_pFramesCtx, d->m_pHWFrame, 0);
-
-//        while (d->m_inputQueue.size() > 3) {
-//            QThread::msleep(1);
-//        }
-//        {
-//            QMutexLocker lock{&d->m_inputQueueMutex};
-//            d->m_inputQueue.enqueue(queueFrame);
-////            std::sort(d->m_inputQueue.begin(), d->m_inputQueue.end(),
-////                      [&](const QPair<AVFrame *, int64_t> &f1, const QPair<AVFrame *, int64_t> &f2) {
-////                          return f1.first->pts < f2.first->pts;
-////                      });
-//        }
     }
 
     void EncoderQSV::run() {
@@ -354,44 +327,119 @@ namespace AVQt {
         char strBuf[strBufSize];
 
         while (d->m_running.load()) {
-            if (!d->m_paused.load() && d->m_initialized.load()) {
-//                if (!d->m_inputQueue.isEmpty()) {
-//                    QPair<AVFrame *, int64_t> frame;
-//                    {
-//                        QMutexLocker lock(&d->m_inputQueueMutex);
-//                        frame = d->m_inputQueue.dequeue();
-//                    }
-//
-//                    ret = avcodec_send_frame(d->m_pCodecCtx, frame.first);
-//                    qDebug("[AVQt::EncoderQSV] Sent frame with PTS %lld to encoder", static_cast<long long>(frame.first->pts));
-//                    /*if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-//                        break;
-//                    } else */if (ret != 0) {
-//                        qFatal("%i: Could not send frame to QSV encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-//                    }
-//
-////                    avcodec_send_frame(d->m_pCodecCtx, nullptr);
-////
-////                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-////                        break;
-////                    } else if (ret != 0) {
-////                        qFatal("%i: Could not flush QSV encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-////                    }
-//                }
+            if (!d->m_paused.load() && d->m_inputQueue.size() > 1) {
+                bool shouldBe = true;
+                // Encoder init is only possible with frame parameters
+                if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
+                    auto frame = d->m_inputQueue.first().first;
+
+                    d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
+                    if (!d->m_pCodecCtx) {
+                        qFatal("[AVQt::EncoderQSV] Could not create QSV encoder context");
+                    }
+                    d->m_pCodecCtx->width = frame->width;
+                    d->m_pCodecCtx->height = frame->height;
+                    if (!d->m_pDeviceCtx) {
+                        qDebug("[AVQt::EncoderQSV] Creating new HW context...");
+                        ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_QSV, nullptr, nullptr, 0);
+                        if (ret < 0) {
+                            qFatal("[AVQt::EncoderQSV] %i: Unable to create AVHWDeviceContext: %s", ret,
+                                   av_make_error_string(strBuf, strBufSize, ret));
+                        } else if (!d->m_pDeviceCtx) {
+                            qFatal("[AVQt::EncoderQSV] Unable to create AVHWDeviceContext");
+                        }
+
+                        d->m_pCodecCtx->sw_pix_fmt = static_cast<AVPixelFormat>(frame->format);
+
+                        d->m_pFramesCtx = av_hwframe_ctx_alloc(d->m_pDeviceCtx);
+                        auto *framesContext = reinterpret_cast<AVHWFramesContext *>(d->m_pFramesCtx->data);
+                        framesContext->width = d->m_pCodecCtx->width;
+                        framesContext->height = d->m_pCodecCtx->height;
+                        framesContext->sw_format = d->m_pCodecCtx->sw_pix_fmt;
+                        framesContext->format = AV_PIX_FMT_QSV;
+                        framesContext->initial_pool_size = 20;
+
+                        ret = av_hwframe_ctx_init(d->m_pFramesCtx);
+                        if (ret != 0) {
+                            qFatal("[AVQt::EncoderQSV] %i: Could not init HW frames context: %s", ret,
+                                   av_make_error_string(strBuf, strBufSize, ret));
+                        }
+                        d->m_pCodecCtx->pix_fmt = framesContext->format;
+
+                        // Preallocating frame on gpu
+                        d->m_pHWFrame = av_frame_alloc();
+                        ret = av_hwframe_get_buffer(d->m_pFramesCtx, d->m_pHWFrame, 0);
+                        if (ret != 0) {
+                            qFatal("[AVQt::EncoderQSV] %i: Could not allocate HW frame in encoder context: %s", ret,
+                                   av_make_error_string(strBuf, strBufSize, ret));
+                        }
+                    }
+                    d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
+                    d->m_pCodecCtx->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
+                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_QSV;
+                    d->m_pCodecCtx->bit_rate = d->m_bitrate;
+                    d->m_pCodecCtx->rc_min_rate = static_cast<int>(std::round(d->m_bitrate * 0.8));
+                    d->m_pCodecCtx->rc_max_rate = static_cast<int>(std::round(d->m_bitrate * 1.1));
+                    d->m_pCodecCtx->rc_buffer_size = d->m_bitrate * 2;
+                    d->m_pCodecCtx->gop_size = 20;
+                    d->m_pCodecCtx->max_b_frames = 0;
+                    d->m_pCodecCtx->color_primaries = AVCOL_PRI_BT2020;
+                    d->m_pCodecCtx->color_trc = AVCOL_TRC_SMPTE2084;
+                    d->m_pCodecCtx->colorspace = AVCOL_SPC_BT2020_NCL;
+                    d->m_pCodecCtx->framerate = av_make_q(60, 1);
+
+                    // Timestamps from frame sources are always microseconds, trying to use this timebase for the encoder too
+                    d->m_pCodecCtx->time_base = av_make_q(1, 1000000);
+                    ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
+                    if (ret < 0) {
+                        qFatal("[AVQt::EncoderQSV] %i: Unable to open QSV encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                    qDebug("[AVQt::EncoderQSV] Encoder timebase: %d/%d", d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
+
+                    QMutexLocker lock(&d->m_cbListMutex);
+                    for (const auto &cb: d->m_cbList) {
+                        AVCodecParameters *parameters = avcodec_parameters_alloc();
+                        avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
+                        cb->init(this, av_make_q(0, 1), d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
+                        cb->start(this);
+                    }
+                }
+                if (!d->m_inputQueue.isEmpty()) {
+                    QPair<AVFrame *, int64_t> frame;
+                    {
+                        QMutexLocker lock(&d->m_inputQueueMutex);
+                        frame = d->m_inputQueue.dequeue();
+                    }
+                    if (frame.first->hw_frames_ctx) {
+                        frame.first->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
+                                                        d->m_pCodecCtx->time_base); // Incoming timestamps are always microseconds
+                        ret = avcodec_send_frame(d->m_pCodecCtx, frame.first);
+                        qDebug("[AVQt::EncoderQSV] Sent frame with PTS %lld to encoder", static_cast<long long>(frame.first->pts));
+                        av_frame_free(&frame.first);
+                    } else {
+                        av_hwframe_transfer_data(d->m_pHWFrame, frame.first, 0);
+                        d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
+                                                          d->m_pCodecCtx->time_base); // Incoming timestamps are always microseconds
+                        av_frame_free(&frame.first);
+                        ret = avcodec_send_frame(d->m_pCodecCtx, d->m_pHWFrame);
+                        qDebug("[AVQt::EncoderQSV] Sent frame with PTS %lld to encoder", static_cast<long long>(d->m_pHWFrame->pts));
+                    }
+                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                        break;
+                    } else if (ret != 0) {
+                        qFatal("[AVQt::EncoderQSV] %i: Could not send frame to QSV encoder: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                }
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
-                    {
-                        QMutexLocker lock{&d->m_codecMutex};
-                        ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
-                    }
+                    ret = avcodec_receive_packet(d->m_pCodecCtx, packet);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
                     } else if (ret != 0) {
-                        qFatal("%i: Could not receive packet from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("[AVQt::EncoderQSV] %i: Could not receive packet from encoder: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
                     }
-//                    packet->pts = d->m_pHWFrame->pts;
-//                    packet->pts = d->m_pCodecCtx->coded_frame->pts;
-//                    packet->pts = packet->dts;
                     packet->pos = -1;
                     av_packet_rescale_ts(packet, d->m_pCodecCtx->time_base, av_make_q(1, 1000000));
                     qDebug("[AVQt::EncoderQSV] Got packet from encoder with PTS: %lld, DTS: %lld, duration: %lld, timebase: %d/%d",
@@ -409,7 +457,6 @@ namespace AVQt {
                     }
                     av_packet_unref(packet);
                 }
-                d->m_codecBufferFull.store(false);
             } else {
                 msleep(1);
             }

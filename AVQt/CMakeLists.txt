@@ -66,6 +66,10 @@ set(SOURCES
         filter/private/EncoderVAAPI_p.h
         filter/EncoderVAAPI.cpp
 
+        filter/EncoderQSV.h
+        filter/private/EncoderQSV_p.h
+        filter/EncoderQSV.cpp
+
         output/RenderClock.h
         output/private/RenderClock_p.h
         output/RenderClock.cpp

@@ -259,7 +259,7 @@ namespace AVQt {
         char strBuf[strBufSize];
 
         while (d->m_running.load()) {
-            if (!d->m_paused.load() && d->m_inputQueue.size() > 5) {
+            if (!d->m_paused.load() && d->m_inputQueue.size() > 1) {
                 bool shouldBe = true;
                 // Encoder init is only possible with frame parameters
                 if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {

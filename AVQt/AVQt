@@ -9,6 +9,7 @@
 #include "filter/DecoderMMAL.h"
 #include "filter/AudioDecoder.h"
 #include "filter/EncoderVAAPI.h"
+#include "filter/EncoderQSV.h"
 #include "output/IPacketSink.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"

@@ -35,6 +35,7 @@ namespace AVQt {
         QMutex m_inputQueueMutex{};
         QQueue<QPair<AVFrame *, int64_t>> m_inputQueue{};
 
+        IFrameSource *m_pLockedSource = nullptr;
         QMutex m_cbListMutex{};
         QList<IPacketSink *> m_cbList{};
 
