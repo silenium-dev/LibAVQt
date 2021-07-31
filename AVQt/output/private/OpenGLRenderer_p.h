@@ -57,7 +57,7 @@ namespace AVQt {
 
         QMutex m_onFrameMutex{};
         QMutex m_renderQueueMutex{};
-        QQueue<QPair<AVFrame *, int64_t>> m_renderQueue{};
+        QQueue<QFuture<AVFrame *>> m_renderQueue{};
 
         RenderClock *m_clock{nullptr};
         QTime m_duration{};

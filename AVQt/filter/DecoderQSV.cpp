@@ -319,7 +319,6 @@ namespace AVQt {
                         cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0),
                                     av_buffer_ref(d->m_pDeviceCtx));
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
-                        av_frame_unref(cbFrame);
                         av_frame_free(&cbFrame);
 //                        }));
                     }

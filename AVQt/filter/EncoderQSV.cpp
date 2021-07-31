@@ -306,7 +306,7 @@ namespace AVQt {
                 break;
         }
 
-        while (d->m_inputQueue.size() > 4) {
+        while (d->m_inputQueue.size() > 6) {
             QThread::msleep(1);
         }
         {
@@ -419,7 +419,7 @@ namespace AVQt {
                                 outFrame = av_frame_alloc();
                                 outFrame->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
                                 outFrame->format = AV_PIX_FMT_QSV;
-                                av_hwframe_map(outFrame, frame.first, AV_HWFRAME_MAP_READ);
+                                av_hwframe_map(outFrame, frame.first, AV_HWFRAME_MAP_DIRECT | AV_HWFRAME_MAP_READ);
                                 break;
                             case AV_PIX_FMT_QSV:
                                 outFrame = av_frame_clone(frame.first);
