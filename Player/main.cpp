@@ -83,8 +83,9 @@ int main(int argc, char *argv[]) {
     AVQt::OpenGLRenderer renderer;
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-//    videoDecoder->registerCallback(videoEncoder);
-
+#ifdef ENABLE_QSV_ENCODE
+    videoDecoder->registerCallback(videoEncoder);
+#endif
     QFile outputFile("output.mp4");
     outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
     outputFile.seek(0);
@@ -110,6 +111,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
+        muxer.deinit(videoEncoder);
         delete videoEncoder;
         delete videoDecoder;
     });
