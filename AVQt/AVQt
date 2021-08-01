@@ -1,19 +1,32 @@
-#include "input/Demuxer.h"
+#include <qglobal.h>
+
 #include "input/IPacketSource.h"
 #include "input/IFrameSource.h"
 #include "input/IAudioSource.h"
-#include "filter/IDecoder.h"
-#include "filter/DecoderVAAPI.h"
-#include "filter/DecoderQSV.h"
-#include "filter/DecoderDXVA2.h"
-#include "filter/DecoderMMAL.h"
-#include "filter/AudioDecoder.h"
-#include "filter/EncoderVAAPI.h"
-#include "filter/EncoderQSV.h"
 #include "output/IPacketSink.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
+#include "filter/IDecoder.h"
+#include "filter/IEncoder.h"
+#include "input/Demuxer.h"
+#include "output/Muxer.h"
 #include "output/OpenGLRenderer.h"
 #include "output/OpenALAudioOutput.h"
-#include "output/Muxer.h"
+
+
+#ifdef Q_OS_LINUX
+
+#include "filter/DecoderVAAPI.h"
+#include "filter/DecoderMMAL.h"
+#include "filter/EncoderVAAPI.h"
+
+#elif Q_OS_WIN
+
+#include "filter/DecoderDXVA2.h"
+
+#endif
+
+#include "filter/AudioDecoder.h"
+#include "filter/DecoderQSV.h"
+#include "filter/EncoderQSV.h"
 //#include "output/FrameFileSaver.h"
