@@ -37,34 +37,14 @@ set(SOURCES
         filter/IDecoder.h
         filter/IEncoder.h
 
-        filter/DecoderVAAPI.h
-        filter/private/DecoderVAAPI_p.h
-        filter/DecoderVAAPI.cpp
-
         filter/DecoderQSV.h
         filter/private/DecoderQSV_p.h
         filter/DecoderQSV.cpp
-
-        filter/DecoderDXVA2.h
-        filter/private/DecoderDXVA2_p.h
-        filter/DecoderDXVA2.cpp
-
-        filter/DecoderMMAL.h
-        filter/private/DecoderMMAL_p.h
-        filter/DecoderMMAL.cpp
 
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
         filter/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
-
-        #        output/FrameFileSaver.h
-        #        output/private/FrameFileSaver_p.h
-        #        output/FrameFileSaver.cpp
-
-        filter/EncoderVAAPI.h
-        filter/private/EncoderVAAPI_p.h
-        filter/EncoderVAAPI.cpp
 
         filter/EncoderQSV.h
         filter/private/EncoderQSV_p.h
@@ -85,10 +65,40 @@ set(SOURCES
         output/Muxer.h
         output/private/Muxer_p.h
         output/Muxer.cpp
+
+        #        output/FrameFileSaver.h
+        #        output/private/FrameFileSaver_p.h
+        #        output/FrameFileSaver.cpp
+        )
+set(SOURCES_LINUX
+        filter/DecoderVAAPI.h
+        filter/private/DecoderVAAPI_p.h
+        filter/DecoderVAAPI.cpp
+
+        filter/DecoderMMAL.h
+        filter/private/DecoderMMAL_p.h
+        filter/DecoderMMAL.cpp
+
+        filter/EncoderVAAPI.h
+        filter/private/EncoderVAAPI_p.h
+        filter/EncoderVAAPI.cpp
+        )
+set(SOURCES_WINDOWS
+        filter/DecoderDXVA2.h
+        filter/private/DecoderDXVA2_p.h
+        filter/DecoderDXVA2.cpp
         )
 
-add_library(AVQt SHARED ${SOURCES})
-add_library(AVQtStatic STATIC ${SOURCES})
+if (WIN32)
+    add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
+    add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
+elseif (UNIX)
+    add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
+    add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
+else ()
+    message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
+endif ()
+
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)
@@ -141,6 +151,7 @@ if (!WIN32)
             -Werror=all
             -Werror=extra
             -Werror=pedantic
+            -Wno-float-equal
             -ansi
             -Werror=init-self
             -Werror=old-style-cast

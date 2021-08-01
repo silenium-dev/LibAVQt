@@ -13,6 +13,7 @@
 #include "output/OpenGLRenderer.h"
 #include "output/OpenALAudioOutput.h"
 
+
 #ifdef Q_OS_LINUX
 
 #include "filter/DecoderVAAPI.h"
@@ -20,7 +21,9 @@
 #include "filter/EncoderVAAPI.h"
 
 #elif Q_OS_WIN
+
 #include "filter/DecoderDXVA2.h"
+
 #endif
 
 #include "filter/AudioDecoder.h"
