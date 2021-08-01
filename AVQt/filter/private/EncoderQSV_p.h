@@ -24,19 +24,20 @@ namespace AVQt {
         IEncoder::CODEC m_codec{IEncoder::CODEC::H264};
         int m_bitrate{5 * 1024 * 1024};
 
-        AVRational m_framerate{0, 1}; // TODO: Remove d->m_framerate
+        AVRational m_framerate{0, 1};
+        int64_t m_duration;
         AVCodec *m_pCodec{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
         AVBufferRef *m_pDeviceCtx{nullptr}, *m_pFramesCtx{nullptr};
         static constexpr auto HW_FRAME_POOL_SIZE = 4;
         AVFrame *m_pHWFrame{nullptr};
-        QMutex m_codecMutex{};
 
         QMutex m_inputQueueMutex{};
-        QQueue<QPair<AVFrame *, int64_t>> m_inputQueue{};
 
+        QQueue<QPair<AVFrame *, int64_t>> m_inputQueue{};
         IFrameSource *m_pLockedSource = nullptr;
         QMutex m_cbListMutex{};
+
         QList<IPacketSink *> m_cbList{};
 
         QMutex m_onFrameMutex{};

@@ -6,6 +6,7 @@
 #include "OpenGLRenderer.h"
 
 #include <QtGui>
+#include <QtConcurrent>
 #include <QImage>
 
 #include <va/va.h>
@@ -15,7 +16,6 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GL/glu.h>
-#include <cstdio>
 #include <unistd.h>
 #include <iostream>
 
@@ -162,7 +162,8 @@ namespace AVQt {
                 QMutexLocker lock(&d->m_renderQueueMutex);
 
                 for (auto &e: d->m_renderQueue) {
-                    av_frame_unref(e.first);
+                    e.waitForFinished();
+                    av_frame_unref(e.result());
                 }
 
                 d->m_renderQueue.clear();
@@ -221,80 +222,69 @@ namespace AVQt {
 
         QMutexLocker onFrameLock{&d->m_onFrameMutex};
 
-        bool shouldBe = true;
+        QFuture<AVFrame *> queueFrame;
 
-        QPair<AVFrame *, int64_t> newFrame;
-
-        newFrame.first = av_frame_alloc();
 //        av_frame_ref(newFrame.first, frame);
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
         qDebug("Pixel format: %s", av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format)));
         switch (frame->format) {
-//            case AV_PIX_FMT_VAAPI:
-//            case AV_PIX_FMT_DRM_PRIME:
+            case AV_PIX_FMT_QSV:
+            case AV_PIX_FMT_CUDA:
+            case AV_PIX_FMT_VDPAU:
+            case AV_PIX_FMT_D3D11VA_VLD:
             case AV_PIX_FMT_DXVA2_VLD:
                 qDebug("Transferring frame from GPU to CPU");
-                av_hwframe_transfer_data(newFrame.first, frame, 0);
+                queueFrame = QtConcurrent::run([](AVFrame *input) {
+                    AVFrame *outFrame = av_frame_alloc();
+                    av_hwframe_transfer_data(outFrame, input, 0);
+                    outFrame->pts = input->pts;
+                    av_frame_free(&input);
+                    return outFrame;
+                }, av_frame_clone(frame));
                 break;
-            case AV_PIX_FMT_QSV:
-                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to VAAPI for rendering");
-#ifdef Q_OS_LINUX
-                if (!d->m_pQSVDerivedDeviceContext) {
-                    int ret = av_hwdevice_ctx_create(&d->m_pQSVDerivedDeviceContext, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr,
-                                                     0);
-                    if (ret != 0) {
-                        qFatal("[AVQt::OpenGLRenderer] %i: Could not create derived VAAPI context: %s", ret,
-                               av_make_error_string(strBuf, strBufSize, ret));
-                    }
-                    d->m_pQSVDerivedFramesContext = av_hwframe_ctx_alloc(d->m_pQSVDerivedDeviceContext);
-                    auto framesCtx = reinterpret_cast<AVHWFramesContext *>(d->m_pQSVDerivedFramesContext->data);
-                    auto framesCtxOld = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
-                    framesCtx->sw_format = framesCtxOld->sw_format;
-                    framesCtx->format = AV_PIX_FMT_VAAPI;
-                    framesCtx->width = framesCtxOld->width;
-                    framesCtx->height = framesCtxOld->height;
-                    framesCtx->initial_pool_size = framesCtxOld->initial_pool_size;
-
-                    ret = av_hwframe_ctx_init(d->m_pQSVDerivedFramesContext);
-
-                    if (ret != 0) {
-                        qFatal("[AVQt::OpenGLRenderer] %i: Could not create derived frames context: %s", ret,
-                               av_make_error_string(strBuf, strBufSize, ret));
-                    }
-                }
-                newFrame.first->hw_frames_ctx = av_buffer_ref(d->m_pQSVDerivedFramesContext);
-                av_hwframe_map(newFrame.first, frame, AV_HWFRAME_MAP_READ);
-#else
-                qFatal("[AVQt::OpenGLRenderer] Mapping QSV frame to other than VAAPI is currently not supported");
-#endif
-                break;
+//            case AV_PIX_FMT_QSV: {
+//                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to CPU for rendering");
+//                queueFrame = QtConcurrent::run([d](AVFrame *input) {
+//                    AVFrame *outFrame = av_frame_alloc();
+//                    int ret = av_hwframe_map(outFrame, input, AV_HWFRAME_MAP_READ);
+//                    if (ret != 0) {
+//                        constexpr auto strBufSize = 64;
+//                        char strBuf[strBufSize];
+//                        qFatal("[AVQt::OpenGLRenderer] %d Could not map QSV frame to CPU: %s", ret,
+//                               av_make_error_string(strBuf, strBufSize, ret));
+//                    }
+//                    outFrame->pts = input->pts;
+//                    av_frame_free(&input);
+//                    return outFrame;
+//                }, av_frame_clone(frame));
+//                break;
+//            }
             default:
                 qDebug("Referencing frame");
-                av_frame_ref(newFrame.first, frame);
+                queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {
+                    bool shouldBe = true;
+                    if (d->m_firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
+                        d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+                        d->m_VADisplay = d->m_pVAContext->display;
+                    }
+                    return input;
+                }, av_frame_clone(frame), pDeviceCtx);
                 break;
         }
 
-        if (d->m_firstFrame.compare_exchange_strong(shouldBe, false) && newFrame.first->format == AV_PIX_FMT_VAAPI) {
-            d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-            d->m_VADisplay = d->m_pVAContext->display;
-            av_buffer_unref(&pDeviceCtx);
-        }
-
-        newFrame.first->pts = frame->pts;
-        newFrame.second = duration;
 //        av_frame_unref(frame);
 
 //        char strBuf[64];
         //qDebug() << "Pixel format:" << av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format));
 
 
-        while (d->m_renderQueue.size() >= 4) {
+        while (d->m_renderQueue.size() > 6) {
             QThread::msleep(4);
         }
 
         QMutexLocker lock(&d->m_renderQueueMutex);
-        d->m_renderQueue.enqueue(newFrame);
+        d->m_renderQueue.enqueue(queueFrame);
     }
 
     void OpenGLRenderer::initializeGL() {
@@ -424,23 +414,22 @@ namespace AVQt {
                 }
                 if (!d->m_renderQueue.isEmpty()) {
                     auto timestamp = d->m_clock->getTimestamp();
-                    if (timestamp >= d->m_renderQueue.first().first->pts) {
+                    if (timestamp >= d->m_renderQueue.first().result()->pts) {
                         d->m_updateRequired.store(true);
                         d->m_updateTimestamp.store(timestamp);
                     }
                 }
                 if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty()) {
                     d->m_updateRequired.store(false);
-                    QPair<AVFrame *, int64_t> frame = d->m_renderQueue.dequeue();
+                    auto frame = d->m_renderQueue.dequeue().result();
                     while (!d->m_renderQueue.isEmpty()) {
-                        if (frame.first->pts <= d->m_updateTimestamp.load()) {
-                            if (d->m_renderQueue.first().first->pts >= d->m_updateTimestamp.load()) {
+                        if (frame->pts <= d->m_updateTimestamp.load()) {
+                            if (d->m_renderQueue.first().result()->pts >= d->m_updateTimestamp.load()) {
                                 break;
                             } else {
-                                qDebug("Discarding video frame at PTS: %lld < PTS: %lld", static_cast<long long>(frame.first->pts),
+                                qDebug("Discarding video frame at PTS: %lld < PTS: %lld", static_cast<long long>(frame->pts),
                                        d->m_updateTimestamp.load());
-                                av_frame_unref(frame.first);
-                                av_frame_free(&frame.first);
+                                av_frame_free(&frame);
                             }
                         }
                         QMutexLocker lock2(&d->m_renderQueueMutex);
@@ -454,7 +443,7 @@ namespace AVQt {
                         QMutexLocker lock(&d->m_currentFrameMutex);
                         firstFrame = !d->m_currentFrame;
                         if (!firstFrame) {
-                            if (d->m_currentFrame->format == frame.first->format) {
+                            if (d->m_currentFrame->format == frame->format) {
                                 differentPixFmt = false;
                             }
                         }
@@ -463,7 +452,7 @@ namespace AVQt {
                             av_frame_free(&d->m_currentFrame);
                         }
 
-                        d->m_currentFrame = frame.first;
+                        d->m_currentFrame = frame;
                     }
 
                     if (firstFrame) {

@@ -11,13 +11,15 @@ find_package(OpenAL)
 #add_compile_options(-fsanitize=address)
 #add_link_options(-fsanitize=address)
 
+add_compile_definitions(ENABLE_QSV_ENCODE)
+
 add_executable(Player main.cpp)
 
-#target_link_libraries(Player Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGLWidgets Qt6::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
-target_link_libraries(Player Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
+#target_link_libraries(Player Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGLWidgets Qt6::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQtStatic)
+target_link_libraries(Player Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQtStatic)
 
 if (LINUX)
-    target_link_libraries(Player openal GL EGL GLU)
+    target_link_libraries(Player openal GL EGL GLU va)
 elseif (WIN32)
     target_link_libraries(Player OpenAL32 opengl32)
 endif ()
