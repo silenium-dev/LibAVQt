@@ -20,7 +20,7 @@
 #include "filter/DecoderMMAL.h"
 #include "filter/EncoderVAAPI.h"
 
-#elif Q_OS_WIN
+#elif defined(Q_OS_WIN)
 
 #include "filter/DecoderDXVA2.h"
 

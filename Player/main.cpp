@@ -40,7 +40,6 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 }
 
 int main(int argc, char *argv[]) {
-    QGuiApplication::setAttribute(Qt::AA_UseOpenGLES);
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
@@ -64,11 +63,11 @@ int main(int argc, char *argv[]) {
     inputFile->open(QIODevice::ReadWrite);
 
     AVQt::Demuxer demuxer(inputFile);
-    AVQt::AudioDecoder decoder;
-    AVQt::OpenALAudioOutput output;
+//    AVQt::AudioDecoder decoder;
+//    AVQt::OpenALAudioOutput output;
 
-    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-    decoder.registerCallback(&output);
+//    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+//    decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder;
     AVQt::IEncoder *videoEncoder;
@@ -77,6 +76,7 @@ int main(int argc, char *argv[]) {
     videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderDXVA2();
+    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #else
 #error "Unsupported OS"
 #endif
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
 #ifdef ENABLE_QSV_ENCODE
-    videoDecoder->registerCallback(videoEncoder);
+//    videoDecoder->registerCallback(videoEncoder);
 #endif
     QFile outputFile("output.mp4");
     outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);

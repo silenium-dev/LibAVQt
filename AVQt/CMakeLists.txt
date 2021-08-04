@@ -9,6 +9,8 @@ set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
+include_directories(F:\\Dev\\mfx_dispatch-master)
+
 #find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 
@@ -198,8 +200,8 @@ target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::
 target_link_libraries(AVQtStatic Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
 
 if (WIN32)
-    target_link_libraries(AVQt opengl32 OpenAL32)
-    target_link_libraries(AVQtStatic opengl32 OpenAL32)
+    target_link_libraries(AVQt opengl32 OpenAL32 d3d9 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
+    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
 else ()
     target_link_libraries(AVQt GL openal EGL GLU va)
     target_link_libraries(AVQtStatic GL openal EGL GLU va)
