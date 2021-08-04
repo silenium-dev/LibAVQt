@@ -8,15 +8,25 @@
 #include <QtCore>
 #include <QtOpenGL>
 
+#ifdef Q_OS_LINUX
 #include <va/va.h>
 #include <va/va_x11.h>
 #include <va/va_drmcommon.h>
+#elif defined(Q_OS_WINDOWS)
+#include <d3d9.h>
+#include <d3d11.h>
+#endif
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
 extern "C" {
+#ifdef Q_OS_LINUX
 #include <libavutil/hwcontext_vaapi.h>
+#elif defined(Q_OS_WINDOWS)
+#include <libavutil/hwcontext_dxva2.h>
+#include <libavutil/hwcontext_d3d11va.h>
+#endif
 #include <libavutil/hwcontext.h>
 }
 
@@ -81,9 +91,21 @@ namespace AVQt {
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
 
+#ifdef Q_OS_LINUX
         // VAAPI stuff
         VADisplay m_VADisplay{nullptr};
         AVVAAPIDeviceContext *m_pVAContext{nullptr};
+#elif defined(Q_OS_WINDOWS)
+        // DXVA2 stuff
+        IDirect3DDeviceManager9 *m_pD3DManager{nullptr};
+        AVDXVA2DeviceContext *m_pDXVAContext{nullptr};
+        IDirect3DSurface9 *m_pSharedSurface{nullptr};
+        HANDLE m_hSharedSurface{}, m_hSharedTexture{}, m_hDXDevice{};
+
+        // D3D11VA stuff
+        AVD3D11VADeviceContext *m_pD3D11VAContext{nullptr};
+        ID3D11Texture2D *m_pSharedTexture{nullptr};
+#endif
         EGLDisplay m_EGLDisplay{nullptr};
         EGLImage m_EGLImages[2]{};
         GLuint m_textures[2]{};

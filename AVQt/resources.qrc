@@ -5,8 +5,4 @@
         <file>textureES.vsh</file>
         <file>textureES.fsh</file>
     </qresource>
-    <qresource prefix="/images">
-        <file>frame.bmp</file>
-        <file>frame.yuv</file>
-    </qresource>
 </RCC>
