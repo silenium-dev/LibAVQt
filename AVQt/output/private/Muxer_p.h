@@ -30,7 +30,7 @@ namespace AVQt {
 
         Muxer::FORMAT m_format{Muxer::FORMAT::INVALID};
 
-        QMutex m_initMutex{};
+        QMutex m_initMutex{}, m_ioMutex{};
         static constexpr int64_t IOBUF_SIZE{4 * 1024};  // 4 KB
         uint8_t *m_pIOBuffer{nullptr};
         AVIOContext *m_pIOContext{nullptr};

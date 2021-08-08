@@ -83,9 +83,9 @@ int main(int argc, char *argv[]) {
     AVQt::OpenGLRenderer renderer;
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-#ifdef ENABLE_QSV_ENCODE
-//    videoDecoder->registerCallback(videoEncoder);
-#endif
+//#ifdef ENABLE_QSV_ENCODE
+    videoDecoder->registerCallback(videoEncoder);
+//#endif
     QFile outputFile("output.mp4");
     outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
     outputFile.seek(0);

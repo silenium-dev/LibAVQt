@@ -5,21 +5,20 @@
 #include "private/OpenGLRenderer_p.h"
 #include "OpenGLRenderer.h"
 
-#include <QtGui>
-#include <QtConcurrent>
-#include <QImage>
-
 #ifdef Q_OS_LINUX
 
 #include <va/va.h>
 #include <va/va_drmcommon.h>
 #include <libdrm/drm_fourcc.h>
 #include <unistd.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <EGL/eglplatform.h>
+#include <GL/glu.h>
 #elif defined(Q_OS_WINDOWS)
 
-#include <Windows.h>
-#include <gl/GL.h>
-#include <d3d9helper.h>
+#include <d3d9.h>
 
 #define WGL_LOOKUP_FUNCTION(type, func) \
     type func = (type) wglGetProcAddress(#func); \
@@ -45,11 +44,16 @@ typedef BOOL (WINAPI *PFNWGLDXOBJECTACCESSNVPROC)(HANDLE hObject, GLenum access)
 #define WGL_ACCESS_READ_WRITE_NV 0x0001
 #define WGL_ACCESS_WRITE_DISCARD_NV 0x0002
 
+#undef ASSERT
+#define ASSERT(expr) if (!expr) { \
+    qFatal("Assertion" #expr "failed");                              \
+}
+
 std::string GetLastErrorAsString() {
     //Get the error message ID, if any.
     DWORD errorMessageID = ::GetLastError();
     if (errorMessageID == 0) {
-        return std::string(); //No error message has been recorded
+        return {}; //No error message has been recorded
     }
 
     LPSTR messageBuffer = nullptr;
@@ -57,7 +61,7 @@ std::string GetLastErrorAsString() {
     //Ask Win32 to give us the string version of that message ID.
     //The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
     size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &messageBuffer, 0, NULL);
+                                 nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &messageBuffer, 0, nullptr);
 
     //Copy the error message into a std::string.
     std::string message(messageBuffer, size);
@@ -68,49 +72,89 @@ std::string GetLastErrorAsString() {
     return message;
 }
 
-QImage SurfaceToQImage(IDirect3DSurface9 *pSurface, int height) {
+[[maybe_unused]] QImage SurfaceToQImage(IDirect3DSurface9 *pSurface/*, IDirect3DDevice9 *pDevice*/, int height) {
     D3DSURFACE_DESC surfaceDesc;
     pSurface->GetDesc(&surfaceDesc);
-    D3DLOCKED_RECT locked;
-    assert(SUCCEEDED(pSurface->LockRect(&locked, nullptr, D3DLOCK_READONLY)));
-    BYTE *dataPtr = reinterpret_cast<BYTE *>(locked.pBits);
+//    IDirect3DSurface9 *pRGBASurface;
+//    HANDLE hRGBASurface;
+//    ASSERT(SUCCEEDED(
+//            pDevice->CreateOffscreenPlainSurface(surfaceDesc.Width, surfaceDesc.Height, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRGBASurface,
+//                                                 &hRGBASurface)));
+//    ASSERT(SUCCEEDED(pDevice->StretchRect(pSurface, nullptr, pRGBASurface, nullptr, D3DTEXF_LINEAR)));
+//    BYTE *dataPtr = reinterpret_cast<BYTE *>(locked.pBits);
 
-//    uint8_t *data = new uint8_t[surfaceDesc.Width * surfaceDesc.Height * 4];
-//    for (uint y = 0; y < surfaceDesc.Height; ++y) {
-//        memcpy(data + y * surfaceDesc.Width * 4, dataPtr + y * locked.Pitch * 4, surfaceDesc.Width * 4);
+//    if (locked.Pitch == 0) {
+//        return {};
+//    }
+//    QThread::sleep(1);
+
+
+    QImage::Format imageFormat;
+    uint bpp;
+    switch (surfaceDesc.Format) {
+//        case D3DFMT_A16B16G16R16:
+//            imageFormat = QImage::Format_RGBA64;
+//            bpp = 64;
+//            break;
+//        case D3DFMT_A8R8G8B8:
+//            imageFormat = QImage::Format_ARGB32;
+//            bpp = 32;
+//            break;
+        default:
+            imageFormat = QImage::Format_Grayscale8;
+            bpp = 8;
+            break;
+    }
+    bpp /= 8;
+
+    QImage result(surfaceDesc.Width, surfaceDesc.Height, imageFormat);
+
+    D3DLOCKED_RECT locked;
+    ASSERT(SUCCEEDED(pSurface->LockRect(&locked, nullptr, D3DLOCK_READONLY)));
+    qDebug("Locked pitch: %d", locked.Pitch);
+//    locked.Pitch = 2048;
+    qDebug() << locked.pBits << locked.Pitch << surfaceDesc.Width;
+    for (uint y = 0; y < surfaceDesc.Height; ++y) {
+        qDebug() << y << ": From" << ((uint8_t *) locked.pBits) + y * locked.Pitch << ", To:"
+                 << result.scanLine(y) << ", Size:" << surfaceDesc.Width * bpp;
+        memcpy(result.scanLine(y), ((uint8_t *) locked.pBits) + y * locked.Pitch,
+               surfaceDesc.Width * bpp);
+    }
+
+//    for (uint i = 0; i < 10; ++i) {
+//        qDebug() << i << ":" << locked.pBits << locked.Pitch << surfaceDesc.Width;
+//        QThread::msleep(20);
 //    }
 
-    QImage result = QImage(dataPtr, surfaceDesc.Width, height, locked.Pitch,
-                           (surfaceDesc.Format == D3DFMT_A8R8G8B8 ? QImage::Format_ARGB32 : QImage::Format_Grayscale8))
-            .copy();
-
-    qDebug() << result.size() << "using" << result.sizeInBytes() << "Byte";
+//    QImage result = QImage((uint8_t*)locked.pBits, locked.Pitch, surfaceDesc.Height, locked.Pitch, QImage::Format_Grayscale8);
+//    QFile out("output2.bmp");
+//    out.open(QIODevice::Truncate | QIODevice::ReadWrite);
+//    result.save(&out, "BMP");
+//    out.flush();
+//    out.close();
+//    qDebug() << result.size() << "using" << result.sizeInBytes() << "Byte";
 
 //    delete[] data;
+    ASSERT(SUCCEEDED(pSurface->UnlockRect()));
 
     return result;
 }
 
 #endif
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <EGL/eglplatform.h>
-#include <GL/glu.h>
-
 #include <iostream>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "HidingNonVirtualFunction"
 extern "C" {
-#include <libavutil/frame.h>
+
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
-#include <libavutil/hwcontext.h>
+
 #ifdef Q_OS_LINUX
 #include <libavutil/hwcontext_vaapi.h>
-#elif defined(Q_OS_WINDOWS)
-#include <libavutil/hwcontext_dxva2.h>
+//#elif defined(Q_OS_WINDOWS)
+//#include <libavutil/hwcontext_dxva2.h>
 #endif
 }
 
@@ -127,6 +171,9 @@ static int closefd(int fd) {
     return close(fd);
 }
 #endif
+
+#include <QtGui>
+#include <QtConcurrent>
 
 std::string eglErrorString(EGLint error) {
     switch (error) {
@@ -366,9 +413,24 @@ namespace AVQt {
                     bool shouldBe = true;
                     if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
                         if (input->format == AV_PIX_FMT_DXVA2_VLD) {
+//                            AVFrame *sw_frame = av_frame_alloc();
+//                            if (av_hwframe_transfer_data(sw_frame, input, 0)) {
+//                                qFatal("Could not map frame");
+//                            }
+//                            QImage result(sw_frame->data[0], sw_frame->width, sw_frame->height, sw_frame->linesize[0], QImage::Format_Grayscale8);
+//                            qDebug() << "Dimensions:" << result.size() << ", Size:" << result.sizeInBytes();
+//                            result.save("output3.bmp");
+//                            exit(0);
                             d->m_pDXVAContext = static_cast<AVDXVA2DeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
                             d->m_pD3DManager = d->m_pDXVAContext->devmgr;
                             d->m_pD3DManager->AddRef();
+//                            HANDLE hDevice;
+//                            IDirect3DDevice9 *pDevice;
+//                            d->m_pD3DManager->OpenDeviceHandle(&hDevice);
+//                            d->m_pD3DManager->LockDevice(hDevice, &pDevice, TRUE);
+//                            SurfaceToQImage(reinterpret_cast<LPDIRECT3DSURFACE9>(input->data[3])/*, pDevice*/, input->height);
+//                            d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
+//                            d->m_pD3DManager->CloseDeviceHandle(hDevice);
                         } else if (input->format == AV_PIX_FMT_D3D11) {
                             d->m_pD3D11VAContext = static_cast<AVD3D11VADeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
                         }
@@ -495,15 +557,15 @@ namespace AVQt {
         LOOKUP_FUNCTION(PFNEGLDESTROYIMAGEKHRPROC, eglDestroyImageKHR)
         LOOKUP_FUNCTION(PFNGLEGLIMAGETARGETTEXTURE2DOESPROC, glEGLImageTargetTexture2DOES)
 #elif defined(Q_OS_WINDOWS)
-        WGL_LOOKUP_FUNCTION(PFNWGLDXOPENDEVICENVPROC, wglDXOpenDeviceNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXCLOSEDEVICENVPROC, wglDXCloseDeviceNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXREGISTEROBJECTNVPROC, wglDXRegisterObjectNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXUNREGISTEROBJECTNVPROC, wglDXUnregisterObjectNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXLOCKOBJECTSNVPROC, wglDXLockObjectsNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXUNLOCKOBJECTSNVPROC, wglDXUnlockObjectsNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXOBJECTACCESSNVPROC, wglDXObjectAccessNV);
-        WGL_LOOKUP_FUNCTION(PFNWGLDXSETRESOURCESHAREHANDLENVPROC, wglDXSetResourceShareHandleNV);
-        WGL_LOOKUP_FUNCTION(PFNGLACTIVETEXTUREPROC, glActiveTexture);
+        WGL_LOOKUP_FUNCTION(PFNWGLDXOPENDEVICENVPROC, wglDXOpenDeviceNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXCLOSEDEVICENVPROC, wglDXCloseDeviceNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXREGISTEROBJECTNVPROC, wglDXRegisterObjectNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXUNREGISTEROBJECTNVPROC, wglDXUnregisterObjectNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXLOCKOBJECTSNVPROC, wglDXLockObjectsNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXUNLOCKOBJECTSNVPROC, wglDXUnlockObjectsNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXOBJECTACCESSNVPROC, wglDXObjectAccessNV)
+        WGL_LOOKUP_FUNCTION(PFNWGLDXSETRESOURCESHAREHANDLENVPROC, wglDXSetResourceShareHandleNV)
+        WGL_LOOKUP_FUNCTION(PFNGLACTIVETEXTUREPROC, glActiveTexture)
 #endif
 
         if (d->m_currentFrame) {
@@ -691,9 +753,11 @@ namespace AVQt {
                             d->m_pD3DManager->OpenDeviceHandle(&hDevice);
                             d->m_pD3DManager->LockDevice(hDevice, &pDevice, TRUE);
 
-                            assert(SUCCEEDED(pDevice->CreateOffscreenPlainSurface(surfaceDesc.Width, surfaceDesc.Height, D3DFMT_A8R8G8B8,
-                                                                                  D3DPOOL_DEFAULT, &d->m_pSharedSurface,
-                                                                                  &d->m_hSharedSurface)));
+                            qWarning("Creating surface with %dx%d pixels", surfaceDesc.Width, surfaceDesc.Height);
+
+                            pDevice->CreateOffscreenPlainSurface(surfaceDesc.Width, surfaceDesc.Height, D3DFMT_A8R8G8B8,
+                                                                 D3DPOOL_DEFAULT, &d->m_pSharedSurface,
+                                                                 &d->m_hSharedSurface);
 
                             d->m_hDXDevice = wglDXOpenDeviceNV(pDevice);
                             if (d->m_hDXDevice) {
@@ -705,6 +769,7 @@ namespace AVQt {
                             pDevice->Release();
                             d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
                         } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
+                            qFatal("D3D11VA -> OpenGL interop is being worked on");
                             glGenTextures(1, d->m_textures);
                             glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -715,10 +780,8 @@ namespace AVQt {
                             d->m_program->setUniformValue("inputFormat", 0);
                             d->m_program->release();
 
-                            ID3D11Texture2D *texture = reinterpret_cast<ID3D11Texture2D*>(d->m_currentFrame->data[0]);
                             d->m_hDXDevice = wglDXOpenDeviceNV(d->m_pD3D11VAContext->device);
 
-                            qFatal("D3D11VA -> OpenGL interop is in progress");
                             //TODO: D3D11 render to texture for NV12/P010 -> RGB conversion, direct NV12/P010 OpenGL mapping not possible, because both planes are in one memory block
                         } else
 #endif
@@ -912,10 +975,19 @@ namespace AVQt {
                         d->m_pD3DManager->LockDevice(hDevice, &pDevice, true);
                         IDirect3D9 *d3d9;
                         pDevice->GetDirect3D(&d3d9);
-                        assert(SUCCEEDED(d3d9->CheckDeviceFormatConversion(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, surfaceDesc.Format,
+                        ASSERT(SUCCEEDED(d3d9->CheckDeviceFormatConversion(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, surfaceDesc.Format,
                                                                            D3DFMT_A8R8G8B8)));
-                        assert(SUCCEEDED(pDevice->StretchRect(surface, nullptr, d->m_pSharedSurface, nullptr, D3DTEXF_LINEAR)));
+                        if (0 != pDevice->StretchRect(surface, nullptr, d->m_pSharedSurface, nullptr, D3DTEXF_LINEAR)) {
+                            qFatal("Could not map NV12/P010 surface to RGB");
+                        }
+
+//                        auto image = SurfaceToQImage(surface/*, pDevice*/, d->m_currentFrame->height);
+//                        if (!image.isNull()) {
+//                            image.save("output.bmp");
+//                        }
+
                         d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
+                        d->m_pD3DManager->CloseDeviceHandle(hDevice);
 //                        auto image = SurfaceToQImage(surface, frame->height);
 //                        qDebug() << "Decoded surface is using" << image.sizeInBytes() << "Byte of memory at" << image.size();
 //                        image.save("decoded.bmp");
@@ -1167,6 +1239,6 @@ namespace AVQt {
         int s = static_cast<int>((ts / 1000) % 60);
         int m = static_cast<int>((ts / 1000 / 60) % 60);
         int h = static_cast<int>(ts / 1000 / 60 / 60);
-        return QTime(h, m, s, ms);
+        return {h, m, s, ms};
     }
 }

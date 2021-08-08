@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
-  <component name="CidrRootsConfiguration">
-    <excludeRoots>
-      <file path="$PROJECT_DIR$/build-qt59" />
-    </excludeRoots>
-  </component>
-  <component name="ProjectPlainTextFileTypeManager">
-    <file url="file://$PROJECT_DIR$/AVQt/mainpage.dox" />
+  <component name="DiscordProjectSettings">
+    <option name="show" value="ASK" />
+    <option name="description" value="" />
   </component>
 </project>

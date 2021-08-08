@@ -58,9 +58,8 @@ endif ()
 target_link_libraries(Player avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
 
 
-find_package(OpenAL)
-
 if (LINUX)
+    find_package(OpenAL)
     target_link_libraries(Player openal GL EGL GLU va)
 elseif (WIN32)
     target_link_libraries(Player OpenAL32 opengl32 dxguid d3d9)

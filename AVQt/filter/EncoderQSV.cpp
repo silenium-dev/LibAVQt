@@ -272,6 +272,7 @@ namespace AVQt {
                 qDebug("Referencing frame");
                 av_frame_ref(queueFrame.first, frame);
                 break;
+            case AV_PIX_FMT_DXVA2_VLD:
             case AV_PIX_FMT_DRM_PRIME:
             case AV_PIX_FMT_VAAPI:
                 if (!d->m_pDeviceCtx) {
@@ -295,11 +296,11 @@ namespace AVQt {
                 }
                 av_frame_ref(queueFrame.first, frame);
                 break;
-            case AV_PIX_FMT_DXVA2_VLD:
-                qDebug("Transferring frame from GPU to CPU");
-                av_hwframe_transfer_data(queueFrame.first, frame, 0);
-                queueFrame.first->pts = frame->pts;
-                break;
+//            case AV_PIX_FMT_DXVA2_VLD:
+//                qDebug("Transferring frame from GPU to CPU");
+//                av_hwframe_transfer_data(queueFrame.first, frame, 0);
+//                queueFrame.first->pts = frame->pts;
+//                break;
             default:
                 qDebug("Referencing frame");
                 av_frame_ref(queueFrame.first, frame);
@@ -400,7 +401,8 @@ namespace AVQt {
                     for (const auto &cb: d->m_cbList) {
                         AVCodecParameters *parameters = avcodec_parameters_alloc();
                         avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
-                        cb->init(this, d->m_framerate, d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
+                        parameters->bit_rate = d->m_bitrate;
+                        cb->init(this, d->m_framerate, d->m_pCodecCtx->time_base, d->m_duration, parameters, nullptr, nullptr);
                         cb->start(this);
                     }
                 }
@@ -412,14 +414,19 @@ namespace AVQt {
                     }
                     if (frame.first->hw_frames_ctx) {
                         AVFrame *outFrame;
+                        std::chrono::time_point<std::chrono::high_resolution_clock> t1;
                         switch (frame.first->format) {
                             case AV_PIX_FMT_VAAPI:
                             case AV_PIX_FMT_DRM_PRIME:
-                                qDebug("[AVQt::EncoderQSV] Mapping VAAPI/DRM_PRIME frame to QSV");
+                            case AV_PIX_FMT_DXVA2_VLD:
+                                qDebug("[AVQt::EncoderQSV] Mapping VAAPI/DRM_PRIME/DXVA2 frame to QSV");
                                 outFrame = av_frame_alloc();
                                 outFrame->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
                                 outFrame->format = AV_PIX_FMT_QSV;
+                                t1 = std::chrono::high_resolution_clock::now();
                                 av_hwframe_map(outFrame, frame.first, AV_HWFRAME_MAP_DIRECT | AV_HWFRAME_MAP_READ);
+                                qDebug("Mapping time: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(
+                                        std::chrono::high_resolution_clock::now() - t1).count());
                                 break;
                             case AV_PIX_FMT_QSV:
                                 outFrame = av_frame_clone(frame.first);
