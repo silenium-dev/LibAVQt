@@ -19,11 +19,7 @@ find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 #    -O3)
 #endif ()
 
-set(SOURCES
-        resources.qrc
-
-        AVQt
-
+set(HEADERS
         input/IPacketSource.h
         input/IFrameSource.h
 
@@ -31,60 +27,87 @@ set(SOURCES
         output/IFrameSink.h
 
         input/Demuxer.h
-        input/private/Demuxer_p.h
-        input/Demuxer.cpp
 
         filter/IDecoder.h
         filter/IEncoder.h
 
         filter/DecoderQSV.h
+
+        filter/AudioDecoder.h
+
+        filter/EncoderQSV.h
+
+        output/RenderClock.h
+
+        output/OpenGLRenderer.h
+
+        output/OpenALAudioOutput.h
+
+        output/Muxer.h
+
+        #        output/FrameFileSaver.h
+)
+set(HEADERS_LINUX
+        filter/DecoderVAAPI.h
+
+        filter/DecoderMMAL.h
+
+        filter/EncoderVAAPI.h
+)
+set(HEADERS_WINDOWS
+        filter/DecoderDXVA2.h
+)
+
+set(SOURCES
+	${HEADERS}
+
+        resources.qrc
+
+        AVQt
+
+        input/private/Demuxer_p.h
+        input/Demuxer.cpp
+
         filter/private/DecoderQSV_p.h
         filter/DecoderQSV.cpp
 
-        filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
         filter/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
-        filter/EncoderQSV.h
         filter/private/EncoderQSV_p.h
         filter/EncoderQSV.cpp
 
-        output/RenderClock.h
         output/private/RenderClock_p.h
         output/RenderClock.cpp
 
-        output/OpenGLRenderer.h
         output/private/OpenGLRenderer_p.h
         output/OpenGLRenderer.cpp
 
-        output/OpenALAudioOutput.h
         output/private/OpenALAudioOutput_p.h
         output/OpenALAudioOutput.cpp
 
-        output/Muxer.h
         output/private/Muxer_p.h
         output/Muxer.cpp
 
-        #        output/FrameFileSaver.h
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
         )
 set(SOURCES_LINUX
-        filter/DecoderVAAPI.h
+        ${HEADERS_LINUX}
+
         filter/private/DecoderVAAPI_p.h
         filter/DecoderVAAPI.cpp
 
-        filter/DecoderMMAL.h
         filter/private/DecoderMMAL_p.h
         filter/DecoderMMAL.cpp
 
-        filter/EncoderVAAPI.h
         filter/private/EncoderVAAPI_p.h
         filter/EncoderVAAPI.cpp
         )
 set(SOURCES_WINDOWS
-        filter/DecoderDXVA2.h
+        ${HEADERS_WINDOWS}
+
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
         )
@@ -92,9 +115,11 @@ set(SOURCES_WINDOWS
 if (WIN32)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
+    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER ${HEADERS} ${HEADERS_WINDOWS})
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
+    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER ${HEADERS} ${HEADERS_LINUX})
     include(GNUInstallDirs)
     install(TARGETS AVQt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 else ()
