@@ -115,13 +115,22 @@ set(SOURCES_WINDOWS
 if (WIN32)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
+
     set_target_properties(AVQt PROPERTIES PUBLIC_HEADER ${HEADERS} ${HEADERS_WINDOWS})
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
+
+    configure_file(AVQt.pc.in AVQt.pc @ONLY)
+
     set_target_properties(AVQt PROPERTIES PUBLIC_HEADER ${HEADERS} ${HEADERS_LINUX})
+
     include(GNUInstallDirs)
-    install(TARGETS AVQt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(TARGETS AVQt
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(FILES ${CMAKE_BINARY_DIR}/AVQt/AVQt.pc
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
