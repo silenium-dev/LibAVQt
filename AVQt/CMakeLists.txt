@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(libAVQt)
+project(libAVQt VERSION 0.4)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC on)
@@ -8,8 +8,6 @@ set(CMAKE_AUTORCC on)
 set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
-
-include_directories(F:\\Dev\\mfx_dispatch-master)
 
 #find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
@@ -97,10 +95,13 @@ if (WIN32)
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
+    include(GNUInstallDirs)
+    install(TARGETS AVQt LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
+set_target_properties(AVQt PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 0)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)
