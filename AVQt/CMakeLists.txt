@@ -116,14 +116,14 @@ if (WIN32)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
 
-    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER ${HEADERS} ${HEADERS_WINDOWS})
+    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER "${HEADERS} ${HEADERS_WINDOWS}")
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
 
     configure_file(AVQt.pc.in AVQt.pc @ONLY)
 
-    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER ${HEADERS} ${HEADERS_LINUX})
+    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER "${HEADERS} ${HEADERS_LINUX}")
 
     include(GNUInstallDirs)
     install(TARGETS AVQt
