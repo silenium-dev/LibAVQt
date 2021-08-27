@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(libAVQt VERSION 0.4)
+project(libAVQt VERSION 0.4 DESCRIPTION "object-oriented, Qt-based library for A/V-Processing with ffmpeg/libav")
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC on)
