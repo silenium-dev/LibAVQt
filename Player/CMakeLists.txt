@@ -13,7 +13,6 @@ set(PROJECT_NAME Player)
 add_executable(${PROJECT_NAME} main.cpp)
 
 set(QT_VERSION "5")
-set(CMAKE_PREFIX_PATH F:\\Dev\\Qt\\5.15.2\\msvc2019_64\\lib\\cmake)
 
 set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
 if (QT_VERSION EQUAL "6")
