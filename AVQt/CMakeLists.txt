@@ -100,10 +100,14 @@ set(SOURCES_WINDOWS
         filter/DecoderDXVA2.cpp
         )
 
-if (WIN32 AND ${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763) # LibAVQt only supports Windows 10 1809 and above
-#    add_compile_options(/EHa)
-    add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
-    add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
+if (WIN32) # LibAVQt only supports Windows 10 1809 and above
+    if (${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763)
+        #    add_compile_options(/EHa)
+        add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
+        add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
+    else ()
+        message(FATAL_ERROR "LibAVQt supports only Windows 10 and up, Build 1809 and up")
+    endif ()
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
