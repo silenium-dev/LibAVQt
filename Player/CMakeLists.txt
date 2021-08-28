@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.12)
+
 function(list_transform_prepend var_out var_in prefix)
     set(temp "")
     foreach (f ${${var_in}})

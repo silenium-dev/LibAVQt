@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(libAVQt)
+function(list_transform_prepend var_out var_in prefix)
+    set(temp "")
+    foreach (f ${${var_in}})
+        list(APPEND temp "${prefix}${f}")
+    endforeach ()
+    set(${var_out} "${temp}" PARENT_SCOPE)
+endfunction()
+
+set(PROJECT_NAME AVQt)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC on)
@@ -20,8 +28,16 @@ if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
 endif ()
 
-#find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
-find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
+set(QT_VERSION "5")
+
+set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
+if (QT_VERSION EQUAL "6")
+    LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
+endif ()
+set(REQUIRED_LIBS_QUALIFIED)
+list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
+
+find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
 #add_compile_options(-fsanitize=address)
 #add_link_options(-fsanitize=address)
@@ -208,10 +224,8 @@ if (!WIN32)
             )
 endif ()
 
-#target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-#target_link_libraries(AVQtStatic Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
-target_link_libraries(AVQtStatic Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
 if (WIN32)
     target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
