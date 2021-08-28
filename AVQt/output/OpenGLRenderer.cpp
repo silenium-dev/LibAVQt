@@ -18,6 +18,8 @@
 #include <GL/glu.h>
 #elif defined(Q_OS_WINDOWS)
 
+
+#include <comdef.h>
 #include <d3d9.h>
 
 #define WGL_LOOKUP_FUNCTION(type, func) \
@@ -45,8 +47,8 @@ typedef BOOL (WINAPI *PFNWGLDXOBJECTACCESSNVPROC)(HANDLE hObject, GLenum access)
 #define WGL_ACCESS_WRITE_DISCARD_NV 0x0002
 
 #undef ASSERT
-#define ASSERT(expr) if (!expr) { \
-    qFatal("Assertion" #expr "failed");                              \
+#define ASSERT(expr) if (!expr) {        \
+    qFatal("Assertion \"" #expr "\" failed");  \
 }
 
 std::string GetLastErrorAsString() {
@@ -144,8 +146,6 @@ std::string GetLastErrorAsString() {
 
 #include <iostream>
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 extern "C" {
 
 #include <libavcodec/avcodec.h>
@@ -545,9 +545,6 @@ namespace AVQt {
         d->m_program->release();
     }
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "modernize-use-auto"
-
     void OpenGLRenderer::paintGL() {
         Q_D(AVQt::OpenGLRenderer);
         //        auto t1 = std::chrono::high_resolution_clock::now();
@@ -769,7 +766,7 @@ namespace AVQt {
                             pDevice->Release();
                             d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
                         } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
-                            qFatal("D3D11VA -> OpenGL interop is being worked on");
+//                            qFatal("D3D11VA -> OpenGL interop is being worked on");
                             glGenTextures(1, d->m_textures);
                             glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -780,9 +777,115 @@ namespace AVQt {
                             d->m_program->setUniformValue("inputFormat", 0);
                             d->m_program->release();
 
-                            d->m_hDXDevice = wglDXOpenDeviceNV(d->m_pD3D11VAContext->device);
 
-                            //TODO: D3D11 render to texture for NV12/P010 -> RGB conversion, direct NV12/P010 OpenGL mapping not possible, because both planes are in one memory block
+                            ID3D11Device* pDevice;
+                            ID3D11DeviceContext* pDeviceCtx;
+                            D3D_FEATURE_LEVEL featureLevel;
+                            UINT flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+#if defined(DEBUG) || defined (_DEBUG)
+                            flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+                            ASSERT(SUCCEEDED(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, nullptr, 0, D3D11_SDK_VERSION, &pDevice, &featureLevel, &pDeviceCtx)));
+                            ASSERT(pDevice && pDeviceCtx);
+
+                            auto surface = reinterpret_cast<ID3D11Texture2D*>(d->m_currentFrame->data[0]);
+
+//                            d->m_hDXDevice = wglDXOpenDeviceNV(pDevice);
+
+                            D3D11_TEXTURE2D_DESC desc, outDesc = {0};
+                            surface->GetDesc(&desc);
+                            ZeroMemory(&outDesc, sizeof(D3D11_TEXTURE2D_DESC));
+                            outDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+                            outDesc.Width = desc.Width;
+                            outDesc.Height = desc.Height;
+                            outDesc.MipLevels = 1;
+                            outDesc.SampleDesc.Count = 1;
+                            outDesc.SampleDesc.Quality = 0;
+                            outDesc.Usage = D3D11_USAGE_DEFAULT;
+                            outDesc.BindFlags = D3D11_BIND_DECODER | D3D11_BIND_RENDER_TARGET;
+
+                            ASSERT(SUCCEEDED(pDevice->CreateTexture2D(&desc, nullptr, &d->m_pSharedTexture)));
+
+                            ASSERT(SUCCEEDED(pDevice->QueryInterface(&d->m_pVideoDevice)));
+                            ASSERT(SUCCEEDED(pDeviceCtx->QueryInterface(&d->m_pVideoDeviceCtx)));
+
+                            D3D11_VIDEO_PROCESSOR_CONTENT_DESC vpDesc;
+                            ZeroMemory(&vpDesc, sizeof(D3D11_VIDEO_PROCESSOR_CONTENT_DESC));
+                            vpDesc.InputFrameFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
+                            vpDesc.InputHeight = desc.Height;
+                            vpDesc.InputWidth = desc.Width;
+                            vpDesc.OutputHeight = desc.Height;
+                            vpDesc.OutputWidth = desc.Width;
+                            vpDesc.Usage = D3D11_VIDEO_USAGE_PLAYBACK_NORMAL;
+                            ASSERT(SUCCEEDED(
+                                    d->m_pVideoDevice->CreateVideoProcessorEnumerator(&vpDesc, &d->m_pVideoProcEnum)));
+                            D3D11_VIDEO_PROCESSOR_CAPS procCaps;
+                            ASSERT(SUCCEEDED(d->m_pVideoProcEnum->GetVideoProcessorCaps(&procCaps)));
+                            uint typeId = 0;
+                            for (uint i = 0; i < procCaps.RateConversionCapsCount; ++i) {
+                                D3D11_VIDEO_PROCESSOR_RATE_CONVERSION_CAPS convCaps;
+                                ASSERT(SUCCEEDED(d->m_pVideoProcEnum->GetVideoProcessorRateConversionCaps(i, &convCaps)));
+                                if ((convCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION) > 0) {
+                                    typeId = i;
+                                    break;
+                                }
+                            }
+                            ASSERT(SUCCEEDED(
+                                    d->m_pVideoDevice->CreateVideoProcessor(d->m_pVideoProcEnum, typeId, &d->m_pVideoProc)));
+
+//                            // Output rate (repeat frames)
+//                            pVideoContext->VideoProcessorSetStreamOutputRate(d->m_pVideoProc, 0, D3D11_VIDEO_PROCESSOR_OUTPUT_RATE_NORMAL,
+//                                                                             TRUE, nullptr);
+//                            // disable automatic video quality by driver
+//                            pVideoContext->VideoProcessorSetStreamAutoProcessingMode(d->m_pVideoProc, 0, FALSE);
+//                            // Output background color (black)
+//                            static const D3D11_VIDEO_COLOR backgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
+//                            pVideoContext->VideoProcessorSetOutputBackgroundColor(d->m_pVideoProc, FALSE, &backgroundColor);
+//                            // other
+//                            pVideoContext->VideoProcessorSetOutputTargetRect(d->m_pVideoProc, FALSE, nullptr);
+//                            pVideoContext->VideoProcessorSetStreamRotation(d->m_pVideoProc, 0, FALSE,
+//                                                                           D3D11_VIDEO_PROCESSOR_ROTATION_IDENTITY);
+
+                            HRESULT hr;
+
+                            {
+                                UINT support;
+                                d->m_pVideoProcEnum->CheckVideoProcessorFormat(desc.Format, &support);
+                                qDebug() << "Input supported:"
+                                         << ((support & D3D11_VIDEO_PROCESSOR_FORMAT_SUPPORT_INPUT) > 0 ? "true" : "false");
+                                d->m_pVideoProcEnum->CheckVideoProcessorFormat(DXGI_FORMAT_R8G8B8A8_UNORM, &support);
+                                qDebug() << "Output supported:"
+                                         << ((support & D3D11_VIDEO_PROCESSOR_FORMAT_SUPPORT_OUTPUT) > 0 ? "true" : "false");
+//                                hr = d->m_pVideoDevice->CreateVideoProcessorOutputView(d->m_pSharedTexture,
+//                                                                                                        d->m_pVideoProcEnum,
+//                                                                                                        &outputViewDesc,
+//                                                                                                        nullptr);
+//                                if (FAILED(hr)) {
+//                                    _com_error err(hr);
+//                                    qFatal(err.ErrorMessage());
+//                                }
+                                D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC outputViewDesc = {D3D11_VPOV_DIMENSION_TEXTURE2D};
+                                outputViewDesc.Texture2D.MipSlice = 0;
+                                outputViewDesc.Texture2DArray.MipSlice = 0;
+                                outputViewDesc.Texture2DArray.FirstArraySlice = 0;
+                                outputViewDesc.Texture2DArray.ArraySize = 1;
+                                d->m_pSharedTexture->GetDesc(&outDesc);
+                                //ASSERT((static_cast<D3D11_BIND_FLAG>(outDesc.BindFlags) & D3D11_BIND_RENDER_TARGET) >= 1);
+                                qDebug() << "D3D11_BIND_RENDER_TARGET:" << D3D11_BIND_RENDER_TARGET;
+                                D3D11_BIND_FLAG flag2 = static_cast<D3D11_BIND_FLAG>(512);
+                                ASSERT(SUCCEEDED(d->m_pVideoDevice->CreateVideoProcessorOutputView(d->m_pSharedTexture,
+                                                                                                   d->m_pVideoProcEnum,
+                                                                                                   &outputViewDesc,
+                                                                                                   &d->m_pVideoProcOutputView)));
+                            }
+
+
+//                            if (d->m_hDXDevice) {
+//                                wglDXSetResourceShareHandleNV(d->m_pSharedTexture, d->m_hSharedSurface);
+//
+//                                d->m_hSharedTexture = wglDXRegisterObjectNV(d->m_hDXDevice, d->m_pSharedTexture, d->m_textures[0],
+//                                                                            GL_TEXTURE_2D_ARRAY, WGL_ACCESS_READ_ONLY_NV);
+//                            }
                         } else
 #endif
                         {
@@ -995,6 +1098,33 @@ namespace AVQt {
 //                        qDebug() << "Mapped surface is using" << image.sizeInBytes() << "Byte of memory at" << image.size();
 //                        image.save("mapped.bmp");
 //                        exit(0);
+                    } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
+                        auto surface = reinterpret_cast<ID3D11Texture2D *>(d->m_currentFrame->data[0]);
+                        D3D11_TEXTURE2D_DESC desc;
+                        surface->GetDesc(&desc);
+                        HRESULT hr;
+
+                        ID3D11VideoProcessorInputView *videoProcInputView;
+                        {
+                            D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC inputViewDesc = {0};
+                            inputViewDesc.ViewDimension = D3D11_VPIV_DIMENSION_TEXTURE2D;
+                            inputViewDesc.Texture2D.ArraySlice = reinterpret_cast<intptr_t>(d->m_currentFrame->data[1]);
+                            inputViewDesc.Texture2D.MipSlice = 0;
+                            ASSERT(SUCCEEDED(
+                                    d->m_pVideoDevice->CreateVideoProcessorInputView(surface, d->m_pVideoProcEnum,
+                                                                                     &inputViewDesc,
+                                                                                     &videoProcInputView)));
+
+                        }
+
+                        D3D11_VIDEO_PROCESSOR_STREAM streams = {0};
+                        streams.Enable = TRUE;
+                        streams.pInputSurface = videoProcInputView;
+                        hr = d->m_pVideoDeviceCtx->VideoProcessorBlt(d->m_pVideoProc, d->m_pVideoProcOutputView, 0, 1, &streams);
+                        _com_error err(hr);
+                        qFatal(err.ErrorMessage());
+                        ASSERT(SUCCEEDED(hr));
+                        videoProcInputView->Release();
                     } else
 #endif
                     {
@@ -1091,14 +1221,12 @@ namespace AVQt {
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[1]);
             } else
 #elif defined(Q_OS_WINDOWS)
-            if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD) {
+            if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                 if (!wglDXLockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture)) {
                     qFatal(GetLastErrorAsString().c_str());
                 }
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
-            } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
-
             } else
 #endif
             {
@@ -1127,7 +1255,7 @@ namespace AVQt {
             d->m_program->release();
             if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
 
-            } else if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD) {
+            } else if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                 wglDXUnlockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture);
             } else {
                 d->m_yTexture->release(0);
@@ -1180,8 +1308,6 @@ namespace AVQt {
             update();
         }
     }
-
-#pragma clang diagnostic pop
 
     void OpenGLRenderer::mouseReleaseEvent(QMouseEvent *event) {
         if (event->button() == Qt::LeftButton) {

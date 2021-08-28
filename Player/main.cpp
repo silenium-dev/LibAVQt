@@ -83,15 +83,15 @@ int main(int argc, char *argv[]) {
     AVQt::OpenGLRenderer renderer;
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-//#ifdef ENABLE_QSV_ENCODE
+#ifdef ENABLE_QSV_ENCODE
     videoDecoder->registerCallback(videoEncoder);
-//#endif
-    QFile outputFile("output.mp4");
-    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-    outputFile.seek(0);
-    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
+#endif
+//    QFile outputFile("output.mp4");
+//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+//    outputFile.seek(0);
+//    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
-    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+//    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-        muxer.deinit(videoEncoder);
+//        muxer.deinit(videoEncoder);
         delete videoEncoder;
         delete videoDecoder;
     });

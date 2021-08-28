@@ -13,8 +13,10 @@
 #include <va/va_x11.h>
 #include <va/va_drmcommon.h>
 #elif defined(Q_OS_WINDOWS)
+
 #include <d3d9.h>
 #include <d3d11.h>
+
 #endif
 
 #include <EGL/egl.h>
@@ -105,6 +107,11 @@ namespace AVQt {
         // D3D11VA stuff
         AVD3D11VADeviceContext *m_pD3D11VAContext{nullptr};
         ID3D11Texture2D *m_pSharedTexture{nullptr};
+        ID3D11VideoDevice *m_pVideoDevice{nullptr};
+        ID3D11VideoContext *m_pVideoDeviceCtx{nullptr};
+        ID3D11VideoProcessorEnumerator *m_pVideoProcEnum{nullptr};
+        ID3D11VideoProcessor *m_pVideoProc{nullptr};
+        ID3D11VideoProcessorOutputView *m_pVideoProcOutputView{nullptr};
 #endif
         EGLDisplay m_EGLDisplay{nullptr};
         EGLImage m_EGLImages[2]{};
