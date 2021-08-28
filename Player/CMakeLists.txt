@@ -21,7 +21,6 @@ if (QT_VERSION EQUAL "6")
 endif ()
 set(REQUIRED_LIBS_QUALIFIED)
 list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
-message("${REQUIRED_LIBS_QUALIFIED}")
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBS_QUALIFIED})
@@ -58,9 +57,8 @@ endif ()
 target_link_libraries(Player avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
 
 
-find_package(OpenAL)
-
 if (LINUX)
+    find_package(OpenAL)
     target_link_libraries(Player openal GL EGL GLU va)
 elseif (WIN32)
     target_link_libraries(Player OpenAL32 opengl32 dxguid d3d9)
