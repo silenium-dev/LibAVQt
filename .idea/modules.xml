@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/LibAVQt.iml" filepath="$PROJECT_DIR$/.idea/LibAVQt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/libAVQt.iml" filepath="$PROJECT_DIR$/.idea/libAVQt.iml" />
     </modules>
   </component>
 </project>
