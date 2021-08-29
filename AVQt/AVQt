@@ -23,6 +23,7 @@
 #elif defined(Q_OS_WIN)
 
 #include "filter/DecoderDXVA2.h"
+#include "filter/DecoderD3D11VA.h"
 
 #endif
 

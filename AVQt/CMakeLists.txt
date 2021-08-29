@@ -9,6 +9,8 @@ set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
+add_compile_options(/EHa)
+
 if (WIN32)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." FIRST_DOT)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." LAST_DOT REVERSE)
@@ -98,6 +100,10 @@ set(SOURCES_WINDOWS
         filter/DecoderDXVA2.h
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
+        
+        filter/DecoderD3D11VA.h
+        filter/private/DecoderD3D11VA_p.h
+        filter/DecoderD3D11VA.cpp
         )
 
 if (WIN32 AND ${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763) # LibAVQt only supports Windows 10 1809 and above

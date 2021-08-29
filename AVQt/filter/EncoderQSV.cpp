@@ -273,6 +273,7 @@ namespace AVQt {
                 av_frame_ref(queueFrame.first, frame);
                 break;
             case AV_PIX_FMT_DXVA2_VLD:
+            case AV_PIX_FMT_D3D11:
             case AV_PIX_FMT_DRM_PRIME:
             case AV_PIX_FMT_VAAPI:
                 if (!d->m_pDeviceCtx) {
