@@ -1411,13 +1411,16 @@ namespace AVQt
             d->m_vao.release();
             d->m_vbo.release();
             d->m_program->release();
+#ifdef Q_OS_LINUX
             if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI)
             {
             }
+#elif defined(Q_OS_WINDOWS)
             else if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11)
             {
                 wglDXUnlockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture);
             }
+#endif
             else
             {
                 d->m_yTexture->release(0);
