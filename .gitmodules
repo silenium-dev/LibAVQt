@@ -1,0 +1,3 @@
+[submodule "mfx_dispatch"]
+	path = mfx_dispatch
+	url = https://github.com/lu-zero/mfx_dispatch/
