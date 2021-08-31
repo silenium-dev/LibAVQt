@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.12)
+
 function(list_transform_prepend var_out var_in prefix)
     set(temp "")
     foreach (f ${${var_in}})
@@ -13,7 +15,6 @@ set(PROJECT_NAME Player)
 add_executable(${PROJECT_NAME} main.cpp)
 
 set(QT_VERSION "5")
-set(CMAKE_PREFIX_PATH F:\\Dev\\Qt\\5.15.2\\msvc2019_64\\lib\\cmake)
 
 set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
 if (QT_VERSION EQUAL "6")

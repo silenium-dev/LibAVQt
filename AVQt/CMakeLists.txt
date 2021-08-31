@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(libAVQt)
+function(list_transform_prepend var_out var_in prefix)
+    set(temp "")
+    foreach (f ${${var_in}})
+        list(APPEND temp "${prefix}${f}")
+    endforeach ()
+    set(${var_out} "${temp}" PARENT_SCOPE)
+endfunction()
+
+project(AVQt VERSION 0.4 DESCRIPTION "object-oriented, Qt-based library for A/V-Processing with ffmpeg/libav")
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC on)
@@ -24,8 +32,16 @@ if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
 endif ()
 
-#find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
-find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
+set(QT_VERSION "5")
+
+set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
+if (QT_VERSION EQUAL "6")
+    LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
+endif ()
+set(REQUIRED_LIBS_QUALIFIED)
+list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
+
+find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
 #add_compile_options(-fsanitize=address)
 #add_link_options(-fsanitize=address)
@@ -34,11 +50,7 @@ find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
 #    -O3)
 #endif ()
 
-set(SOURCES
-        resources.qrc
-
-        AVQt
-
+set(HEADERS
         input/IPacketSource.h
         input/IFrameSource.h
 
@@ -46,60 +58,87 @@ set(SOURCES
         output/IFrameSink.h
 
         input/Demuxer.h
-        input/private/Demuxer_p.h
-        input/Demuxer.cpp
 
         filter/IDecoder.h
         filter/IEncoder.h
 
         filter/DecoderQSV.h
+
+        filter/AudioDecoder.h
+
+        filter/EncoderQSV.h
+
+        output/RenderClock.h
+
+        output/OpenGLRenderer.h
+
+        output/OpenALAudioOutput.h
+
+        output/Muxer.h
+
+        #        output/FrameFileSaver.h
+)
+set(HEADERS_LINUX
+        filter/DecoderVAAPI.h
+
+        filter/DecoderMMAL.h
+
+        filter/EncoderVAAPI.h
+)
+set(HEADERS_WINDOWS
+        filter/DecoderDXVA2.h
+)
+
+set(SOURCES
+	${HEADERS}
+
+        resources.qrc
+
+        AVQt
+
+        input/private/Demuxer_p.h
+        input/Demuxer.cpp
+
         filter/private/DecoderQSV_p.h
         filter/DecoderQSV.cpp
 
-        filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
         filter/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
-        filter/EncoderQSV.h
         filter/private/EncoderQSV_p.h
         filter/EncoderQSV.cpp
 
-        output/RenderClock.h
         output/private/RenderClock_p.h
         output/RenderClock.cpp
 
-        output/OpenGLRenderer.h
         output/private/OpenGLRenderer_p.h
         output/OpenGLRenderer.cpp
 
-        output/OpenALAudioOutput.h
         output/private/OpenALAudioOutput_p.h
         output/OpenALAudioOutput.cpp
 
-        output/Muxer.h
         output/private/Muxer_p.h
         output/Muxer.cpp
 
-        #        output/FrameFileSaver.h
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
         )
 set(SOURCES_LINUX
-        filter/DecoderVAAPI.h
+        ${HEADERS_LINUX}
+
         filter/private/DecoderVAAPI_p.h
         filter/DecoderVAAPI.cpp
 
-        filter/DecoderMMAL.h
         filter/private/DecoderMMAL_p.h
         filter/DecoderMMAL.cpp
 
-        filter/EncoderVAAPI.h
         filter/private/EncoderVAAPI_p.h
         filter/EncoderVAAPI.cpp
         )
 set(SOURCES_WINDOWS
-        filter/DecoderDXVA2.h
+        ${HEADERS_WINDOWS}
+
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
@@ -119,10 +158,22 @@ if (WIN32) # LibAVQt only supports Windows 10 1809 and above
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
+
+    configure_file(AVQt.pc.in AVQt.pc @ONLY)
+
+#    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER "${HEADERS} ${HEADERS_LINUX}")
+
+    include(GNUInstallDirs)
+    install(TARGETS AVQt
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+#        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(FILES ${CMAKE_BINARY_DIR}/AVQt/AVQt.pc
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
+set_target_properties(AVQt PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 0)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)
@@ -216,10 +267,8 @@ if (!WIN32)
             )
 endif ()
 
-#target_link_libraries(AVQt Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-#target_link_libraries(AVQtStatic Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGL Qt6::OpenGLWidgets avformat avfilter avutil avcodec avdevice swscale swresample GL openal)
-target_link_libraries(AVQt Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
-target_link_libraries(AVQtStatic Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Widgets Qt5::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
 if (WIN32)
     target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
