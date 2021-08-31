@@ -23,6 +23,7 @@ namespace AVQt {
 
         IEncoder::CODEC m_codec{IEncoder::CODEC::H264};
         int m_bitrate{5 * 1024 * 1024};
+        qint64 m_duration{};
 
         AVCodec *m_pCodec{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};

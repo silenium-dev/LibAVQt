@@ -161,9 +161,9 @@ namespace AVQt {
 
     int EncoderVAAPI::init(IFrameSource *source, AVRational framerate, int64_t duration) {
         Q_UNUSED(source)
-        Q_UNUSED(duration)
         Q_UNUSED(framerate)
         Q_D(AVQt::EncoderVAAPI);
+        d->m_duration = duration;
         init();
         return 0;
     }
