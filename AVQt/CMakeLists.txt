@@ -9,7 +9,9 @@ set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
-add_compile_options(/EHa)
+if (WIN32)
+    add_compile_options(/EHa)
+endif ()
 
 if (WIN32)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." FIRST_DOT)
@@ -20,7 +22,7 @@ if (WIN32)
     string(SUBSTRING "${CMAKE_SYSTEM_VERSION}" ${LAST_DOT} -1 WINDOWS_BUILD)
     message("Windows ${WINDOWS_VERSION} with build number: ${WINDOWS_BUILD}")
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
-endif()
+endif ()
 
 #find_package(Qt6 COMPONENTS Core Gui Concurrent Widgets OpenGL OpenGLWidgets)
 find_package(Qt5 COMPONENTS Core Gui Concurrent Widgets OpenGL)
@@ -100,7 +102,7 @@ set(SOURCES_WINDOWS
         filter/DecoderDXVA2.h
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
-        
+
         filter/DecoderD3D11VA.h
         filter/private/DecoderD3D11VA_p.h
         filter/DecoderD3D11VA.cpp
