@@ -7,8 +7,6 @@
 #include <QtOpenGL>
 #include <input/IFrameSource.h>
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 extern "C" {
 #include <libavutil/rational.h>
 }
@@ -121,4 +119,3 @@ namespace AVQt {
 
 
 #endif //LIBAVQT_OPENGLRENDERER_H
-#pragma clang diagnostic pop

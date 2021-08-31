@@ -18,6 +18,10 @@ set(CMAKE_AUTOUIC on)
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
 if (WIN32)
+    add_compile_options(/EHa)
+endif ()
+
+if (WIN32)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." FIRST_DOT)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." LAST_DOT REVERSE)
     math(EXPR LAST_DOT "${LAST_DOT}+1") # We don't want the dot in the build number
@@ -137,6 +141,10 @@ set(SOURCES_WINDOWS
 
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
+
+        filter/DecoderD3D11VA.h
+        filter/private/DecoderD3D11VA_p.h
+        filter/DecoderD3D11VA.cpp
         )
 
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above

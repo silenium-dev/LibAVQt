@@ -369,7 +369,7 @@ namespace AVQt {
                 frames_ctx->height = FFALIGN(pCodecCtx->coded_height, 32);
                 frames_ctx->initial_pool_size = 32;
 
-                frames_hwctx->frame_type = MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET;
+                frames_hwctx->frame_type = 0x00100; // 0x00100 is equivalent to MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET, but additional headers would be required to use this constant
 
                 ret = av_hwframe_ctx_init(pCodecCtx->hw_frames_ctx);
                 if (ret < 0)

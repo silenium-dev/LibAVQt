@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     videoDecoder = new AVQt::DecoderQSV;
     videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #elif defined(Q_OS_WINDOWS)
-    videoDecoder = new AVQt::DecoderDXVA2();
+    videoDecoder = new AVQt::DecoderD3D11VA();
     videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #else
 #error "Unsupported OS"
@@ -84,14 +84,14 @@ int main(int argc, char *argv[]) {
 
     demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
 #ifdef ENABLE_QSV_ENCODE
-//    videoDecoder->registerCallback(videoEncoder);
+    videoDecoder->registerCallback(videoEncoder);
 #endif
-    QFile outputFile("output.mp4");
-    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-    outputFile.seek(0);
-    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
+//    QFile outputFile("output.mp4");
+//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+//    outputFile.seek(0);
+//    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
-    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+//    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(app, &QApplication::aboutToQuit, [&] {
         demuxer.deinit();
-        muxer.deinit(videoEncoder);
+//        muxer.deinit(videoEncoder);
         delete videoEncoder;
         delete videoDecoder;
     });

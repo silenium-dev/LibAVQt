@@ -92,7 +92,7 @@ namespace AVQt {
             d->m_pFormatContext = avformat_alloc_context();
             d->m_pFormatContext->oformat = av_guess_format(outputFormat.toLocal8Bit().data(), "", nullptr);
             d->m_pIOBuffer = static_cast<uint8_t *>(av_malloc(MuxerPrivate::IOBUF_SIZE));
-            d->m_pIOContext = avio_alloc_context(d->m_pIOBuffer, MuxerPrivate::IOBUF_SIZE, 1, d->m_outputDevice, nullptr,
+            d->m_pIOContext = avio_alloc_context(d->m_pIOBuffer, MuxerPrivate::IOBUF_SIZE, 1, d, nullptr,
                                                  &MuxerPrivate::writeToIO, &MuxerPrivate::seekIO);
             d->m_pIOContext->seekable = !d->m_outputDevice->isSequential();
             d->m_pFormatContext->pb = d->m_pIOContext;
@@ -120,12 +120,6 @@ namespace AVQt {
             avcodec_parameters_copy(subtitleStream->codecpar, sParams);
             subtitleStream->time_base = timebase;
             d->m_sourceStreamMap[source].insert(subtitleStream, timebase);
-        }
-        int ret = avformat_write_header(d->m_pFormatContext, nullptr);
-        if (ret != 0) {
-            constexpr auto strBufSize = 32;
-            char strBuf[strBufSize];
-            qWarning("[AVQt::Muxer] %d: Couldn't init AVFormatContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
         }
         qDebug("[AVQt::Muxer] Initialized");
     }
@@ -250,6 +244,13 @@ namespace AVQt {
     void Muxer::run() {
         Q_D(AVQt::Muxer);
 
+        int ret = avformat_write_header(d->m_pFormatContext, nullptr);
+        if (ret != 0) {
+            constexpr auto strBufSize = 32;
+            char strBuf[strBufSize];
+            qWarning("[AVQt::Muxer] %d: Couldn't init AVFormatContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+        }
+
         while (d->m_running.load()) {
             if (!d->m_paused.load() && d->m_inputQueue.size() > 5) {
                 QPair<AVPacket *, AVStream *> packet;
@@ -271,37 +272,39 @@ namespace AVQt {
     }
 
     int MuxerPrivate::writeToIO(void *opaque, uint8_t *buf, int buf_size) {
-        auto *outputDevice = reinterpret_cast<QIODevice *>(opaque);
+        auto *d = reinterpret_cast<MuxerPrivate *>(opaque);
+        QMutexLocker lock(&d->m_ioMutex);
 
-        auto bytesWritten = outputDevice->write(reinterpret_cast<const char *>(buf), buf_size);
+        auto bytesWritten = d->m_outputDevice->write(reinterpret_cast<const char *>(buf), buf_size);
         return bytesWritten == 0 ? AVERROR_UNKNOWN : static_cast<int>(bytesWritten);
     }
 
     int64_t MuxerPrivate::seekIO(void *opaque, int64_t offset, int whence) {
-        auto *outputDevice = reinterpret_cast<QIODevice *>(opaque);
+        auto *d = reinterpret_cast<MuxerPrivate *>(opaque);
+        QMutexLocker lock(&d->m_ioMutex);
 
-        if (outputDevice->isSequential()) {
+        if (d->m_outputDevice->isSequential()) {
             return AVERROR_UNKNOWN;
         }
 
         bool result;
         switch (whence) {
             case SEEK_SET:
-                result = outputDevice->seek(offset);
+                result = d->m_outputDevice->seek(offset);
                 break;
             case SEEK_CUR:
-                result = outputDevice->seek(outputDevice->pos() + offset);
+                result = d->m_outputDevice->seek(d->m_outputDevice->pos() + offset);
                 break;
             case SEEK_END:
-                result = outputDevice->seek(outputDevice->size() - offset);
+                result = d->m_outputDevice->seek(d->m_outputDevice->size() - offset);
                 break;
             case AVSEEK_SIZE:
-                return outputDevice->size();
+                return d->m_outputDevice->size();
             default:
                 return AVERROR_UNKNOWN;
         }
 
-        return result ? outputDevice->pos() : AVERROR_UNKNOWN;
+        return result ? d->m_outputDevice->pos() : AVERROR_UNKNOWN;
     }
 
     bool MuxerPrivate::packetQueueCompare(const QPair<AVPacket *, AVStream *> &packet1, const QPair<AVPacket *, AVStream *> &packet2) {
