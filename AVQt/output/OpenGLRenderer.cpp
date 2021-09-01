@@ -1492,12 +1492,6 @@ namespace AVQt
         QWidget::closeEvent(event);
     }
 
-    RenderClock *OpenGLRenderer::getClock()
-    {
-        Q_D(AVQt::OpenGLRenderer);
-        return d->m_clock;
-    }
-
     [[maybe_unused]] GLint
     OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
                                    const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz)

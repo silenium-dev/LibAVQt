@@ -25,7 +25,7 @@ namespace AVQt {
         int m_bitrate{5 * 1024 * 1024};
 
         AVRational m_framerate{0, 1};
-        int64_t m_duration;
+        int64_t m_duration{};
         AVCodec *m_pCodec{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
         AVBufferRef *m_pDeviceCtx{nullptr}, *m_pFramesCtx{nullptr};

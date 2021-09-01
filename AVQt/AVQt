@@ -11,7 +11,7 @@
 #include "input/Demuxer.h"
 #include "output/Muxer.h"
 #include "output/OpenGLRenderer.h"
-#include "output/OpenALAudioOutput.h"
+//#include "output/OpenALAudioOutput.h"
 
 
 #ifdef Q_OS_LINUX

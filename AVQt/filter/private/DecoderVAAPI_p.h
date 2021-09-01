@@ -18,7 +18,11 @@ namespace AVQt {
     /*!
      * \private
      */
-    class DecoderVAAPIPrivate {
+    class DecoderVAAPIPrivate : public QObject {
+    Q_OBJECT
+
+        Q_DECLARE_PUBLIC(AVQt::DecoderVAAPI)
+
     public:
         DecoderVAAPIPrivate(const DecoderVAAPIPrivate &) = delete;
 

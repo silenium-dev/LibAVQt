@@ -49,9 +49,9 @@ namespace AVQt {
 
         /*!
          * \brief Emitted when paused state changes
-         * @param pause
+         * @param paused
          */
-        virtual void paused(bool pause) = 0;
+        virtual void paused(bool paused) = 0;
     };
 }
 

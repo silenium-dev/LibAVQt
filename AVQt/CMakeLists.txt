@@ -72,7 +72,7 @@ set(HEADERS
 
         output/OpenGLRenderer.h
 
-        output/OpenALAudioOutput.h
+#        output/OpenALAudioOutput.h
 
         output/Muxer.h
 
@@ -115,8 +115,8 @@ set(SOURCES
         output/private/OpenGLRenderer_p.h
         output/OpenGLRenderer.cpp
 
-        output/private/OpenALAudioOutput_p.h
-        output/OpenALAudioOutput.cpp
+        #        output/private/OpenALAudioOutput_p.h
+        #        output/OpenALAudioOutput.cpp
 
         output/private/Muxer_p.h
         output/Muxer.cpp

@@ -86,7 +86,6 @@ namespace AVQt {
                     break;
                 case FORMAT::INVALID:
                     qFatal("[AVQt::Muxer] FORMAT::INVALID is just a placeholder, don't pass it as an argument");
-                    break;
             }
 
             d->m_pFormatContext = avformat_alloc_context();
