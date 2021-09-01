@@ -8,7 +8,7 @@ function(list_transform_prepend var_out var_in prefix)
     set(${var_out} "${temp}" PARENT_SCOPE)
 endfunction()
 
-project(AVQt VERSION 0.4 DESCRIPTION "object-oriented, Qt-based library for A/V-Processing with ffmpeg/libav")
+set(PROJECT_NAME AVQt)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC on)
@@ -50,7 +50,11 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 #    -O3)
 #endif ()
 
-set(HEADERS
+set(SOURCES
+        resources.qrc
+
+        AVQt
+
         input/IPacketSource.h
         input/IFrameSource.h
 
@@ -58,87 +62,60 @@ set(HEADERS
         output/IFrameSink.h
 
         input/Demuxer.h
+        input/private/Demuxer_p.h
+        input/Demuxer.cpp
 
         filter/IDecoder.h
         filter/IEncoder.h
 
         filter/DecoderQSV.h
-
-        filter/AudioDecoder.h
-
-        filter/EncoderQSV.h
-
-        output/RenderClock.h
-
-        output/OpenGLRenderer.h
-
-        output/OpenALAudioOutput.h
-
-        output/Muxer.h
-
-        #        output/FrameFileSaver.h
-)
-set(HEADERS_LINUX
-        filter/DecoderVAAPI.h
-
-        filter/DecoderMMAL.h
-
-        filter/EncoderVAAPI.h
-)
-set(HEADERS_WINDOWS
-        filter/DecoderDXVA2.h
-)
-
-set(SOURCES
-	${HEADERS}
-
-        resources.qrc
-
-        AVQt
-
-        input/private/Demuxer_p.h
-        input/Demuxer.cpp
-
         filter/private/DecoderQSV_p.h
         filter/DecoderQSV.cpp
 
+        filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
         filter/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
+        filter/EncoderQSV.h
         filter/private/EncoderQSV_p.h
         filter/EncoderQSV.cpp
 
+        output/RenderClock.h
         output/private/RenderClock_p.h
         output/RenderClock.cpp
 
+        output/OpenGLRenderer.h
         output/private/OpenGLRenderer_p.h
         output/OpenGLRenderer.cpp
 
+        output/OpenALAudioOutput.h
         output/private/OpenALAudioOutput_p.h
         output/OpenALAudioOutput.cpp
 
+        output/Muxer.h
         output/private/Muxer_p.h
         output/Muxer.cpp
 
+        #        output/FrameFileSaver.h
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
         )
 set(SOURCES_LINUX
-        ${HEADERS_LINUX}
-
+        filter/DecoderVAAPI.h
         filter/private/DecoderVAAPI_p.h
         filter/DecoderVAAPI.cpp
 
+        filter/DecoderMMAL.h
         filter/private/DecoderMMAL_p.h
         filter/DecoderMMAL.cpp
 
+        filter/EncoderVAAPI.h
         filter/private/EncoderVAAPI_p.h
         filter/EncoderVAAPI.cpp
         )
 set(SOURCES_WINDOWS
-        ${HEADERS_WINDOWS}
-
+        filter/DecoderDXVA2.h
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
@@ -158,22 +135,10 @@ if (WIN32) # LibAVQt only supports Windows 10 1809 and above
 elseif (UNIX)
     add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
     add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
-
-    configure_file(AVQt.pc.in AVQt.pc @ONLY)
-
-#    set_target_properties(AVQt PROPERTIES PUBLIC_HEADER "${HEADERS} ${HEADERS_LINUX}")
-
-    include(GNUInstallDirs)
-    install(TARGETS AVQt
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-#        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-    install(FILES ${CMAKE_BINARY_DIR}/AVQt/AVQt.pc
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
-set_target_properties(AVQt PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 0)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)
