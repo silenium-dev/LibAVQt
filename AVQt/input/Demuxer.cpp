@@ -21,9 +21,12 @@ namespace AVQt {
         Q_D(AVQt::Demuxer);
 
         bool pauseFlag = !pause;
-        d->m_paused.compare_exchange_strong(pauseFlag, pause);
-        if (pauseFlag != pause) {
+        if (d->m_paused.compare_exchange_strong(pauseFlag, pause)) {
             d->m_paused.store(pause);
+            QMutexLocker lock(&d->m_cbMutex);
+            for (const auto &cb : d->m_cbMap.keys()) {
+                cb->pause(pause);
+            }
         }
     }
 

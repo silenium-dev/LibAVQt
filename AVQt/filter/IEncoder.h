@@ -62,9 +62,9 @@ namespace AVQt {
 
         void paused(bool pause) Q_DECL_OVERRIDE = 0;
 
-        void frameProcessingStarted(qint64 pts) Q_DECL_OVERRIDE = 0;
+        void frameProcessingStarted(qint64 pts, qint64 duration) Q_DECL_OVERRIDE = 0;
 
-        void frameProcessingFinished(qint64 pts) Q_DECL_OVERRIDE = 0;
+        void frameProcessingFinished(qint64 pts, qint64 duration) Q_DECL_OVERRIDE = 0;
     };
 }
 

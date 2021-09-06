@@ -72,7 +72,7 @@ set(HEADERS
 
         output/OpenGLRenderer.h
 
-#        output/OpenALAudioOutput.h
+        output/OpenALAudioOutput.h
 
         output/Muxer.h
 
@@ -103,7 +103,7 @@ set(SOURCES
         filter/DecoderQSV.cpp
 
         filter/private/AudioDecoder_p.h
-        filter/private/OpenALErrorHandler.h
+        output/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
         filter/private/EncoderQSV_p.h
@@ -115,8 +115,8 @@ set(SOURCES
         output/private/OpenGLRenderer_p.h
         output/OpenGLRenderer.cpp
 
-        #        output/private/OpenALAudioOutput_p.h
-        #        output/OpenALAudioOutput.cpp
+        output/private/OpenALAudioOutput_p.h
+        output/OpenALAudioOutput.cpp
 
         output/private/Muxer_p.h
         output/Muxer.cpp
@@ -142,7 +142,6 @@ set(SOURCES_WINDOWS
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
-        filter/DecoderD3D11VA.h
         filter/private/DecoderD3D11VA_p.h
         filter/DecoderD3D11VA.cpp
         )

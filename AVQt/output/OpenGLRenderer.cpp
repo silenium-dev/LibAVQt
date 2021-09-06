@@ -16,6 +16,7 @@
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 #include <GL/glu.h>
+
 #elif defined(Q_OS_WINDOWS)
 
 #include <comdef.h>
@@ -169,91 +170,82 @@ extern "C"
 
 #define LOOKUP_FUNCTION(type, func)             \
     type func = (type)eglGetProcAddress(#func); \
-    if (!(func))                                \
-    {                                           \
-        qFatal("eglGetProcAddress(" #func ")"); \
+    if (!(func)) {                               \
+        qFatal("eglGetProcAddress(" #func ")");  \
     }
 
-static void loadResources()
-{
+static void loadResources() {
     Q_INIT_RESOURCE(resources);
 }
 
 #ifdef Q_OS_LINUX
-static int closefd(int fd)
-{
+
+static int closefd(int fd) {
     return close(fd);
 }
+
 #endif
 
-#include <QtGui>
 #include <QtConcurrent>
+#include <QtGui>
 
-std::string eglErrorString(EGLint error)
-{
-    switch (error)
-    {
-    case EGL_SUCCESS:
-        return "No error";
-    case EGL_NOT_INITIALIZED:
-        return "EGL not initialized or failed to initialize";
-    case EGL_BAD_ACCESS:
-        return "Resource inaccessible";
-    case EGL_BAD_ALLOC:
-        return "Cannot allocate resources";
-    case EGL_BAD_ATTRIBUTE:
-        return "Unrecognized attribute or attribute value";
-    case EGL_BAD_CONTEXT:
-        return "Invalid EGL context";
-    case EGL_BAD_CONFIG:
-        return "Invalid EGL frame buffer configuration";
-    case EGL_BAD_CURRENT_SURFACE:
-        return "Current surface is no longer valid";
-    case EGL_BAD_DISPLAY:
-        return "Invalid EGL display";
-    case EGL_BAD_SURFACE:
-        return "Invalid surface";
-    case EGL_BAD_MATCH:
-        return "Inconsistent arguments";
-    case EGL_BAD_PARAMETER:
-        return "Invalid argument";
-    case EGL_BAD_NATIVE_PIXMAP:
-        return "Invalid native pixmap";
-    case EGL_BAD_NATIVE_WINDOW:
-        return "Invalid native window";
-    case EGL_CONTEXT_LOST:
-        return "Context lost";
-    default:
-        return "Unknown error " + std::to_string(int(error));
+std::string eglErrorString(EGLint error) {
+    switch (error) {
+        case EGL_SUCCESS:
+            return "No error";
+        case EGL_NOT_INITIALIZED:
+            return "EGL not initialized or failed to initialize";
+        case EGL_BAD_ACCESS:
+            return "Resource inaccessible";
+        case EGL_BAD_ALLOC:
+            return "Cannot allocate resources";
+        case EGL_BAD_ATTRIBUTE:
+            return "Unrecognized attribute or attribute value";
+        case EGL_BAD_CONTEXT:
+            return "Invalid EGL context";
+        case EGL_BAD_CONFIG:
+            return "Invalid EGL frame buffer configuration";
+        case EGL_BAD_CURRENT_SURFACE:
+            return "Current surface is no longer valid";
+        case EGL_BAD_DISPLAY:
+            return "Invalid EGL display";
+        case EGL_BAD_SURFACE:
+            return "Invalid surface";
+        case EGL_BAD_MATCH:
+            return "Inconsistent arguments";
+        case EGL_BAD_PARAMETER:
+            return "Invalid argument";
+        case EGL_BAD_NATIVE_PIXMAP:
+            return "Invalid native pixmap";
+        case EGL_BAD_NATIVE_WINDOW:
+            return "Invalid native window";
+        case EGL_CONTEXT_LOST:
+            return "Context lost";
+        default:
+            return "Unknown error " + std::to_string(int(error));
     }
 }
 
-namespace AVQt
-{
+namespace AVQt {
     OpenGLRenderer::OpenGLRenderer(QWidget *parent) : QOpenGLWidget(parent),
-                                                      d_ptr(new OpenGLRendererPrivate(this))
-    {
+                                                      d_ptr(new OpenGLRendererPrivate(this)) {
         setAttribute(Qt::WA_QuitOnClose);
     }
 
-    [[maybe_unused]] [[maybe_unused]] OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p)
-    {
+    [[maybe_unused]] [[maybe_unused]] OpenGLRenderer::OpenGLRenderer(OpenGLRendererPrivate &p) : d_ptr(&p) {
     }
 
-    OpenGLRenderer::OpenGLRenderer(OpenGLRenderer &&other) noexcept : d_ptr(other.d_ptr)
-    {
+    OpenGLRenderer::OpenGLRenderer(OpenGLRenderer &&other) noexcept : d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
 
-    OpenGLRenderer::~OpenGLRenderer() noexcept
-    {
+    OpenGLRenderer::~OpenGLRenderer() noexcept {
         delete d_ptr;
     }
 
-    int OpenGLRenderer::init(IFrameSource *source, AVRational framerate, int64_t duration)
-    {
-        Q_UNUSED(framerate) // Don't use framerate, because it is not always specified in stream information
+    int OpenGLRenderer::init(IFrameSource *source, AVRational framerate, int64_t duration) {
+        Q_UNUSED(framerate)// Don't use framerate, because it is not always specified in stream information
         Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
 
@@ -266,13 +258,11 @@ namespace AVQt
         return 0;
     }
 
-    int OpenGLRenderer::deinit(IFrameSource *source)
-    {
+    int OpenGLRenderer::deinit(IFrameSource *source) {
         Q_D(AVQt::OpenGLRenderer);
         stop(source);
 
-        if (d->m_pQSVDerivedDeviceContext)
-        {
+        if (d->m_pQSVDerivedDeviceContext) {
             av_buffer_unref(&d->m_pQSVDerivedFramesContext);
             av_buffer_unref(&d->m_pQSVDerivedDeviceContext);
         }
@@ -282,14 +272,12 @@ namespace AVQt
         return 0;
     }
 
-    int OpenGLRenderer::start(IFrameSource *source)
-    {
+    int OpenGLRenderer::start(IFrameSource *source) {
         Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
 
         bool stopped = false;
-        if (d->m_running.compare_exchange_strong(stopped, true))
-        {
+        if (d->m_running.compare_exchange_strong(stopped, true)) {
             d->m_paused.store(false);
             qDebug("Started renderer");
 
@@ -302,31 +290,26 @@ namespace AVQt
         return 0;
     }
 
-    int OpenGLRenderer::stop(IFrameSource *source)
-    {
+    int OpenGLRenderer::stop(IFrameSource *source) {
         Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
 
         bool shouldBeCurrent = true;
-        if (d->m_running.compare_exchange_strong(shouldBeCurrent, false))
-        {
+        if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
             hide();
 
-            if (d->m_currentFrame)
-            {
+            if (d->m_currentFrame) {
                 av_frame_free(&d->m_currentFrame);
             }
 
-            if (d->m_clock)
-            {
+            if (d->m_clock) {
                 d->m_clock->stop();
             }
 
             {
                 QMutexLocker lock(&d->m_renderQueueMutex);
 
-                for (auto &e : d->m_renderQueue)
-                {
+                for (auto &e : d->m_renderQueue) {
                     e.waitForFinished();
                     av_frame_unref(e.result());
                 }
@@ -347,10 +330,8 @@ namespace AVQt
             delete d->m_vTexture;
 
 #ifdef Q_OS_LINUX
-            if (d->m_EGLImages[0])
-            {
-                for (auto &EGLImage : d->m_EGLImages)
-                {
+            if (d->m_EGLImages[0]) {
+                for (auto &EGLImage : d->m_EGLImages) {
                     eglDestroyImage(d->m_EGLDisplay, EGLImage);
                 }
             }
@@ -362,17 +343,14 @@ namespace AVQt
         return -1;
     }
 
-    void OpenGLRenderer::pause(IFrameSource *source, bool pause)
-    {
+    void OpenGLRenderer::pause(IFrameSource *source, bool pause) {
         Q_UNUSED(source)
         Q_D(AVQt::OpenGLRenderer);
 
         bool shouldBeCurrent = !pause;
 
-        if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause))
-        {
-            if (d->m_clock->isActive())
-            {
+        if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause)) {
+            if (d->m_clock->isActive()) {
                 d->m_clock->pause(pause);
             }
             qDebug("pause() called");
@@ -381,15 +359,13 @@ namespace AVQt
         }
     }
 
-    bool OpenGLRenderer::isPaused()
-    {
+    bool OpenGLRenderer::isPaused() {
         Q_D(AVQt::OpenGLRenderer);
 
         return d->m_paused.load();
     }
 
-    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration, AVBufferRef *pDeviceCtx)
-    {
+    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration, AVBufferRef *pDeviceCtx) {
         Q_D(AVQt::OpenGLRenderer);
         Q_UNUSED(source)
         Q_UNUSED(duration)
@@ -402,92 +378,87 @@ namespace AVQt
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
         qDebug("Pixel format: %s", av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format)));
-        switch (frame->format)
-        {
-        case AV_PIX_FMT_QSV:
-        case AV_PIX_FMT_CUDA:
-        case AV_PIX_FMT_VDPAU:
-            //        case AV_PIX_FMT_DXVA2_VLD:
-            qDebug("Transferring frame from GPU to CPU");
-            queueFrame = QtConcurrent::run([](AVFrame *input)
-                                           {
-                                               AVFrame *outFrame = av_frame_alloc();
-                                               int ret = av_hwframe_transfer_data(outFrame, input, 0);
-                                               if (ret != 0)
-                                               {
-                                                   char strBuf[strBufSize];
-                                                   qFatal("[AVQt::OpenGLRenderer] %i: Could not transfer frame from GPU to CPU: %s", ret,
-                                                          av_make_error_string(strBuf, strBufSize, ret));
-                                               }
-                                               //                    outFrame->pts = input->pts;
-                                               av_frame_free(&input);
-                                               return outFrame;
-                                           },
-                                           av_frame_clone(frame));
-            break;
-            //            case AV_PIX_FMT_QSV: {
-            //                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to CPU for rendering");
-            //                queueFrame = QtConcurrent::run([d](AVFrame *input) {
-            //                    AVFrame *outFrame = av_frame_alloc();
-            //                    int ret = av_hwframe_map(outFrame, input, AV_HWFRAME_MAP_READ);
-            //                    if (ret != 0) {
-            //                        constexpr auto strBufSize = 64;
-            //                        char strBuf[strBufSize];
-            //                        qFatal("[AVQt::OpenGLRenderer] %d Could not map QSV frame to CPU: %s", ret,
-            //                               av_make_error_string(strBuf, strBufSize, ret));
-            //                    }
-            //                    outFrame->pts = input->pts;
-            //                    av_frame_free(&input);
-            //                    return outFrame;
-            //                }, av_frame_clone(frame));
-            //                break;
-            //            }
-        default:
-            qDebug("Referencing frame");
-            queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx)
-                                           {
+        switch (frame->format) {
+            case AV_PIX_FMT_QSV:
+            case AV_PIX_FMT_CUDA:
+            case AV_PIX_FMT_VDPAU:
+                //        case AV_PIX_FMT_DXVA2_VLD:
+                qDebug("Transferring frame from GPU to CPU");
+                queueFrame = QtConcurrent::run([](AVFrame *input) {
+                    AVFrame *outFrame = av_frame_alloc();
+                    int ret = av_hwframe_transfer_data(outFrame, input, 0);
+                    if (ret != 0) {
+                        char strBuf[strBufSize];
+                        qFatal("[AVQt::OpenGLRenderer] %i: Could not transfer frame from GPU to CPU: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                    //                    outFrame->pts = input->pts;
+                    av_frame_free(&input);
+                    return outFrame;
+                },
+                                               av_frame_clone(frame));
+                break;
+                //            case AV_PIX_FMT_QSV: {
+                //                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to CPU for rendering");
+                //                queueFrame = QtConcurrent::run([d](AVFrame *input) {
+                //                    AVFrame *outFrame = av_frame_alloc();
+                //                    int ret = av_hwframe_map(outFrame, input, AV_HWFRAME_MAP_READ);
+                //                    if (ret != 0) {
+                //                        constexpr auto strBufSize = 64;
+                //                        char strBuf[strBufSize];
+                //                        qFatal("[AVQt::OpenGLRenderer] %d Could not map QSV frame to CPU: %s", ret,
+                //                               av_make_error_string(strBuf, strBufSize, ret));
+                //                    }
+                //                    outFrame->pts = input->pts;
+                //                    av_frame_free(&input);
+                //                    return outFrame;
+                //                }, av_frame_clone(frame));
+                //                break;
+                //            }
+            default:
+                qDebug("Referencing frame");
+                queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {
 #ifdef Q_OS_LINUX
-                                               bool shouldBe = true;
-                                               if (d->m_firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI)
-                                               {
-                                                   d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-                                                   d->m_VADisplay = d->m_pVAContext->display;
-                                               }
+                    bool shouldBe = true;
+                    if (d->m_firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
+                        d->m_pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+                        d->m_VADisplay = d->m_pVAContext->display;
+                    }
 #elif defined(Q_OS_WINDOWS)
-                                               bool shouldBe = true;
-                                               if (d->m_firstFrame.compare_exchange_strong(shouldBe, false))
-                                               {
-                                                   if (input->format == AV_PIX_FMT_DXVA2_VLD)
+                                                   bool shouldBe = true;
+                                                   if (d->m_firstFrame.compare_exchange_strong(shouldBe, false))
                                                    {
-                                                       //                            AVFrame *sw_frame = av_frame_alloc();
-                                                       //                            if (av_hwframe_transfer_data(sw_frame, input, 0)) {
-                                                       //                                qFatal("Could not map frame");
-                                                       //                            }
-                                                       //                            QImage result(sw_frame->data[0], sw_frame->width, sw_frame->height, sw_frame->linesize[0], QImage::Format_Grayscale8);
-                                                       //                            qDebug() << "Dimensions:" << result.size() << ", Size:" << result.sizeInBytes();
-                                                       //                            result.save("output3.bmp");
-                                                       //                            exit(0);
-                                                       d->m_pDXVAContext = static_cast<AVDXVA2DeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-                                                       d->m_pD3DManager = d->m_pDXVAContext->devmgr;
-                                                       d->m_pD3DManager->AddRef();
-                                                       //                            HANDLE hDevice;
-                                                       //                            IDirect3DDevice9 *pDevice;
-                                                       //                            d->m_pD3DManager->OpenDeviceHandle(&hDevice);
-                                                       //                            d->m_pD3DManager->LockDevice(hDevice, &pDevice, TRUE);
-                                                       //                            SurfaceToQImage(reinterpret_cast<LPDIRECT3DSURFACE9>(input->data[3])/*, pDevice*/, input->height);
-                                                       //                            d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
-                                                       //                            d->m_pD3DManager->CloseDeviceHandle(hDevice);
+                                                       if (input->format == AV_PIX_FMT_DXVA2_VLD)
+                                                       {
+                                                           //                            AVFrame *sw_frame = av_frame_alloc();
+                                                           //                            if (av_hwframe_transfer_data(sw_frame, input, 0)) {
+                                                           //                                qFatal("Could not map frame");
+                                                           //                            }
+                                                           //                            QImage result(sw_frame->data[0], sw_frame->width, sw_frame->height, sw_frame->linesize[0], QImage::Format_Grayscale8);
+                                                           //                            qDebug() << "Dimensions:" << result.size() << ", Size:" << result.sizeInBytes();
+                                                           //                            result.save("output3.bmp");
+                                                           //                            exit(0);
+                                                           d->m_pDXVAContext = static_cast<AVDXVA2DeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+                                                           d->m_pD3DManager = d->m_pDXVAContext->devmgr;
+                                                           d->m_pD3DManager->AddRef();
+                                                           //                            HANDLE hDevice;
+                                                           //                            IDirect3DDevice9 *pDevice;
+                                                           //                            d->m_pD3DManager->OpenDeviceHandle(&hDevice);
+                                                           //                            d->m_pD3DManager->LockDevice(hDevice, &pDevice, TRUE);
+                                                           //                            SurfaceToQImage(reinterpret_cast<LPDIRECT3DSURFACE9>(input->data[3])/*, pDevice*/, input->height);
+                                                           //                            d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
+                                                           //                            d->m_pD3DManager->CloseDeviceHandle(hDevice);
+                                                       }
+                                                       else if (input->format == AV_PIX_FMT_D3D11)
+                                                       {
+                                                           d->m_pD3D11VAContext = static_cast<AVD3D11VADeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+                                                       }
                                                    }
-                                                   else if (input->format == AV_PIX_FMT_D3D11)
-                                                   {
-                                                       d->m_pD3D11VAContext = static_cast<AVD3D11VADeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-                                                   }
-                                               }
 #endif
-                                               return input;
-                                           },
-                                           av_frame_clone(frame), pDeviceCtx);
-            break;
+                    return input;
+                },
+                                               av_frame_clone(frame), pDeviceCtx);
+                break;
         }
 
         //        av_frame_unref(frame);
@@ -495,8 +466,7 @@ namespace AVQt
         //        char strBuf[64];
         //qDebug() << "Pixel format:" << av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format));
 
-        while (d->m_renderQueue.size() > 6)
-        {
+        while (d->m_renderQueue.size() > 8) {
             QThread::msleep(4);
         }
 
@@ -504,21 +474,20 @@ namespace AVQt
         d->m_renderQueue.enqueue(queueFrame);
     }
 
-    void OpenGLRenderer::initializeGL()
-    {
+    void OpenGLRenderer::initializeGL() {
         Q_D(AVQt::OpenGLRenderer);
 
         loadResources();
 
 #ifdef Q_OS_LINUX
         EGLint visual_attr[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_RED_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_BLUE_SIZE, 8,
-            EGL_ALPHA_SIZE, 8,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-            EGL_NONE};
+                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+                EGL_RED_SIZE, 8,
+                EGL_GREEN_SIZE, 8,
+                EGL_BLUE_SIZE, 8,
+                EGL_ALPHA_SIZE, 8,
+                EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+                EGL_NONE};
         d->m_EGLDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         //        if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
         //            qDebug("Could not get default EGL display, connecting to X-Server");
@@ -527,24 +496,20 @@ namespace AVQt
         //                qFatal("Could not get X11 display");
         //            }
         //            d->m_EGLDisplay = eglGetDisplay(static_cast<EGLNativeDisplayType>(display));
-        if (d->m_EGLDisplay == EGL_NO_DISPLAY)
-        {
+        if (d->m_EGLDisplay == EGL_NO_DISPLAY) {
             qFatal("Could not get EGL display: %s", eglErrorString(eglGetError()).c_str());
         }
         //        }
-        if (!eglInitialize(d->m_EGLDisplay, nullptr, nullptr))
-        {
+        if (!eglInitialize(d->m_EGLDisplay, nullptr, nullptr)) {
             qFatal("eglInitialize");
         }
-        if (!eglBindAPI(EGL_OPENGL_API))
-        {
+        if (!eglBindAPI(EGL_OPENGL_API)) {
             qFatal("eglBindAPI");
         }
 
         EGLConfig cfg;
         EGLint cfg_count;
-        if (!eglChooseConfig(d->m_EGLDisplay, visual_attr, &cfg, 1, &cfg_count) || (cfg_count < 1))
-        {
+        if (!eglChooseConfig(d->m_EGLDisplay, visual_attr, &cfg, 1, &cfg_count) || (cfg_count < 1)) {
             qFatal("eglChooseConfig: %s", eglErrorString(eglGetError()).c_str());
         }
         //        EGLint ctx_attr[] = {
@@ -565,12 +530,9 @@ namespace AVQt
 
         QByteArray shaderVersionString;
 
-        if (context()->isOpenGLES())
-        {
+        if (context()->isOpenGLES()) {
             shaderVersionString = "#version 300 es\n";
-        }
-        else
-        {
+        } else {
             shaderVersionString = "#version 330 core\n";
         }
 
@@ -590,8 +552,7 @@ namespace AVQt
         d->m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
         d->m_program->bindAttributeLocation("texCoord", OpenGLRendererPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
 
-        if (!d->m_program->link())
-        {
+        if (!d->m_program->link()) {
             qDebug() << "Shader linkers errors:\n"
                      << d->m_program->log();
         }
@@ -603,8 +564,7 @@ namespace AVQt
         d->m_program->release();
     }
 
-    void OpenGLRenderer::paintGL()
-    {
+    void OpenGLRenderer::paintGL() {
         Q_D(AVQt::OpenGLRenderer);
         //        auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -624,12 +584,10 @@ namespace AVQt
         WGL_LOOKUP_FUNCTION(PFNGLACTIVETEXTUREPROC, glActiveTexture)
 #endif
 
-        if (d->m_currentFrame)
-        {
+        if (d->m_currentFrame) {
             int display_width = width();
             int display_height = (width() * d->m_currentFrame->height + d->m_currentFrame->width / 2) / d->m_currentFrame->width;
-            if (display_height > height())
-            {
+            if (display_height > height()) {
                 display_width = (height() * d->m_currentFrame->width + d->m_currentFrame->height / 2) / d->m_currentFrame->height;
                 display_height = height();
             }
@@ -642,44 +600,23 @@ namespace AVQt
 
         //        qDebug("paintGL() – Running: %d", d->m_running.load());
 
-        if (d->m_running.load())
-        {
-            if (!d->m_paused.load())
-            {
-                if (d->m_clock)
-                {
-                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 2)
-                    {
-                        d->m_clock->start();
-                    }
-                    else if (d->m_clock->isPaused())
-                    {
-                        d->m_clock->pause(false);
-                    }
-                }
-                if (!d->m_renderQueue.isEmpty())
-                {
+        if (d->m_running.load()) {
+            if (!d->m_paused.load()) {
+                if (d->m_renderQueue.size() >= 2) {
                     auto timestamp = d->m_clock->getTimestamp();
-                    if (timestamp >= d->m_renderQueue.first().result()->pts)
-                    {
+                    if (timestamp >= d->m_renderQueue.first().result()->pts) {
                         d->m_updateRequired.store(true);
                         d->m_updateTimestamp.store(timestamp);
                     }
                 }
-                if (d->m_updateRequired.load() && !d->m_renderQueue.isEmpty())
-                {
+                if (d->m_updateRequired.load() && d->m_renderQueue.size() >= 2) {
                     d->m_updateRequired.store(false);
                     auto frame = d->m_renderQueue.dequeue().result();
-                    while (!d->m_renderQueue.isEmpty())
-                    {
-                        if (frame->pts <= d->m_updateTimestamp.load())
-                        {
-                            if (d->m_renderQueue.first().result()->pts >= d->m_updateTimestamp.load())
-                            {
+                    while (!d->m_renderQueue.isEmpty()) {
+                        if (frame->pts <= d->m_updateTimestamp.load()) {
+                            if (d->m_renderQueue.first().result()->pts >= d->m_updateTimestamp.load() || d->m_renderQueue.size() == 1) {
                                 break;
-                            }
-                            else
-                            {
+                            } else {
                                 qDebug("Discarding video frame at PTS: %lld < PTS: %lld", static_cast<long long>(frame->pts),
                                        d->m_updateTimestamp.load());
                                 av_frame_free(&frame);
@@ -695,29 +632,27 @@ namespace AVQt
                     {
                         QMutexLocker lock(&d->m_currentFrameMutex);
                         firstFrame = !d->m_currentFrame;
-                        if (!firstFrame)
-                        {
-                            if (d->m_currentFrame->format == frame->format)
-                            {
+                        if (!firstFrame) {
+                            if (d->m_currentFrame->format == frame->format) {
                                 differentPixFmt = false;
                             }
                         }
 
-                        if (d->m_currentFrame)
-                        {
+                        if (d->m_currentFrame) {
                             av_frame_free(&d->m_currentFrame);
                         }
 
                         d->m_currentFrame = frame;
                     }
 
-                    if (firstFrame)
-                    {
+                    if (!d->m_renderQueue.isEmpty()) {
+                        frameProcessingStarted(d->m_currentFrame->pts, d->m_renderQueue.first().result()->pts - d->m_currentFrame->pts);
+                    }
+                    if (firstFrame) {
                         // Frame has 64 pixel alignment, set max height coord to cut off additional pixels
                         float maxTexHeight = 1.0f;
 #ifdef Q_OS_LINUX
-                        if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI)
-                        {
+                        if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
                             VASurfaceID vaSurfaceId = reinterpret_cast<uintptr_t>(d->m_currentFrame->data[3]);
                             VAImage vaImage;
                             vaDeriveImage(d->m_VADisplay, vaSurfaceId, &vaImage);
@@ -725,35 +660,31 @@ namespace AVQt
                             vaDestroyImage(d->m_VADisplay, vaImage.image_id);
                         }
 #elif defined(Q_OS_WINDOWS)
-                        if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD)
-                        {
-                            LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9)d->m_currentFrame->data[3];
+                        if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD) {
+                            LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9) d->m_currentFrame->data[3];
                             D3DSURFACE_DESC surfaceDesc;
                             surface->GetDesc(&surfaceDesc);
                             maxTexHeight = static_cast<float>(d->m_currentFrame->height * 1.0 / surfaceDesc.Height);
-                        }
-                        else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11)
-                        {
+                        } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                         }
 #endif
 
                         float vertices[] = {
-                            1, 1, 0,   // top right
-                            1, -1, 0,  // bottom right
-                            -1, -1, 0, // bottom left
-                            -1, 1, 0   // top left
+                                1, 1, 0,  // top right
+                                1, -1, 0, // bottom right
+                                -1, -1, 0,// bottom left
+                                -1, 1, 0  // top left
                         };
 
                         float vertTexCoords[] = {
-                            0, 0, maxTexHeight, maxTexHeight,
-                            0, 1, 1, 0};
+                                0, 0, maxTexHeight, maxTexHeight,
+                                0, 1, 1, 0};
 
                         std::vector<float> vertexBufferData(5 * 4); // 8 entries per vertex * 4 vertices
 
                         float *buf = vertexBufferData.data();
 
-                        for (int v = 0; v < 4; ++v, buf += 5)
-                        {
+                        for (int v = 0; v < 4; ++v, buf += 5) {
                             buf[0] = vertices[3 * v];
                             buf[1] = vertices[3 * v + 1];
                             buf[2] = vertices[3 * v + 2];
@@ -773,8 +704,8 @@ namespace AVQt
                         d->m_vao.bind();
 
                         uint indices[] = {
-                            0, 1, 3, // first tri
-                            1, 2, 3  // second tri
+                                0, 1, 3,// first tri
+                                1, 2, 3 // second tri
                         };
 
                         d->m_ibo = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
@@ -798,11 +729,9 @@ namespace AVQt
                         d->m_vbo.release();
                         d->m_vao.release();
 #ifdef Q_OS_LINUX
-                        if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI)
-                        {
+                        if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
                             glGenTextures(2, d->m_textures);
-                            for (const auto &texture : d->m_textures)
-                            {
+                            for (const auto &texture : d->m_textures) {
                                 glBindTexture(GL_TEXTURE_2D, texture);
                                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -812,11 +741,9 @@ namespace AVQt
                             d->m_program->bind();
                             d->m_program->setUniformValue("inputFormat", 1);
                             d->m_program->release();
-                        }
-                        else
+                        } else
 #elif defined(Q_OS_WINDOWS)
-                        if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD)
-                        {
+                        if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD) {
                             glGenTextures(1, d->m_textures);
                             glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -842,8 +769,7 @@ namespace AVQt
                                                                  &d->m_hSharedSurface);
 
                             d->m_hDXDevice = wglDXOpenDeviceNV(pDevice);
-                            if (d->m_hDXDevice)
-                            {
+                            if (d->m_hDXDevice) {
                                 wglDXSetResourceShareHandleNV(d->m_pSharedSurface, d->m_hSharedSurface);
                                 d->m_hSharedTexture = wglDXRegisterObjectNV(d->m_hDXDevice, d->m_pSharedSurface, d->m_textures[0],
                                                                             GL_TEXTURE_2D, WGL_ACCESS_READ_ONLY_NV);
@@ -851,9 +777,7 @@ namespace AVQt
 
                             pDevice->Release();
                             d->m_pD3DManager->UnlockDevice(hDevice, TRUE);
-                        }
-                        else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11)
-                        {
+                        } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                             //                            qFatal("D3D11VA -> OpenGL interop is being worked on");
                             glGenTextures(1, d->m_textures);
                             glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
@@ -919,22 +843,20 @@ namespace AVQt
                             vpDesc.OutputWidth = desc.Width;
                             vpDesc.Usage = D3D11_VIDEO_USAGE_PLAYBACK_NORMAL;
                             ASSERT(SUCCEEDED(
-                                d->m_pVideoDevice->CreateVideoProcessorEnumerator(&vpDesc, &d->m_pVideoProcEnum)));
+                                    d->m_pVideoDevice->CreateVideoProcessorEnumerator(&vpDesc, &d->m_pVideoProcEnum)));
                             D3D11_VIDEO_PROCESSOR_CAPS procCaps;
                             ASSERT(SUCCEEDED(d->m_pVideoProcEnum->GetVideoProcessorCaps(&procCaps)));
                             uint typeId = 0;
-                            for (uint i = 0; i < procCaps.RateConversionCapsCount; ++i)
-                            {
+                            for (uint i = 0; i < procCaps.RateConversionCapsCount; ++i) {
                                 D3D11_VIDEO_PROCESSOR_RATE_CONVERSION_CAPS convCaps;
                                 ASSERT(SUCCEEDED(d->m_pVideoProcEnum->GetVideoProcessorRateConversionCaps(i, &convCaps)));
-                                if ((convCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION) > 0)
-                                {
+                                if ((convCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION) > 0) {
                                     typeId = i;
                                     break;
                                 }
                             }
                             ASSERT(SUCCEEDED(
-                                d->m_pVideoDevice->CreateVideoProcessor(d->m_pVideoProcEnum, typeId, &d->m_pVideoProc)));
+                                    d->m_pVideoDevice->CreateVideoProcessor(d->m_pVideoProcEnum, typeId, &d->m_pVideoProc)));
 
                             //                            // Output rate (repeat frames)
                             //                            pVideoContext->VideoProcessorSetStreamOutputRate(d->m_pVideoProc, 0, D3D11_VIDEO_PROCESSOR_OUTPUT_RATE_NORMAL,
@@ -991,20 +913,18 @@ namespace AVQt
                                 inputViewDesc.Texture2D.ArraySlice = 0;
                                 qDebug("Texture array size: %d", desc.ArraySize);
                                 ASSERT(SUCCEEDED(
-                                    d->m_pVideoDevice->CreateVideoProcessorInputView(d->m_pInputTexture, d->m_pVideoProcEnum,
-                                                                                     &inputViewDesc,
-                                                                                     &d->m_pVideoProcInputView)));
+                                        d->m_pVideoDevice->CreateVideoProcessorInputView(d->m_pInputTexture, d->m_pVideoProcEnum,
+                                                                                         &inputViewDesc,
+                                                                                         &d->m_pVideoProcInputView)));
                             }
 
                             d->m_hDXDevice = wglDXOpenDeviceNV(d->m_pD3D11VAContext->device);
 
-                            if (d->m_hDXDevice)
-                            {
+                            if (d->m_hDXDevice) {
                                 d->m_hSharedTexture = wglDXRegisterObjectNV(d->m_hDXDevice, d->m_pSharedTexture, d->m_textures[0],
                                                                             GL_TEXTURE_2D, WGL_ACCESS_READ_ONLY_NV);
                             }
-                        }
-                        else
+                        } else
 #endif
                         {
                             bool VTexActive = false, UTexActive = false;
@@ -1012,68 +932,65 @@ namespace AVQt
                             QOpenGLTexture::TextureFormat textureFormatY{}, textureFormatU{}, textureFormatV{};
                             QOpenGLTexture::PixelFormat pixelFormatY{}, pixelFormatU{}, pixelFormatV{};
                             QOpenGLTexture::PixelType pixelType{};
-                            switch (static_cast<AVPixelFormat>(d->m_currentFrame->format))
-                            {
-                            case AV_PIX_FMT_BGRA:
-                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
-                                textureFormatY = QOpenGLTexture::RGBA8_UNorm;
-                                pixelFormatY = QOpenGLTexture::BGRA;
-                                pixelType = QOpenGLTexture::UInt8;
-                                break;
-                            case AV_PIX_FMT_YUV420P:
-                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
-                                USize = VSize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
-                                textureFormatY = textureFormatU = textureFormatV = QOpenGLTexture::R8_UNorm;
-                                pixelFormatY = pixelFormatU = pixelFormatV = QOpenGLTexture::Red;
-                                pixelType = QOpenGLTexture::UInt8;
-                                UTexActive = VTexActive = true;
-                                break;
-                            case AV_PIX_FMT_YUV420P10:
-                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
-                                USize = VSize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
-                                textureFormatY = textureFormatU = textureFormatV = QOpenGLTexture::R16_UNorm;
-                                pixelFormatY = pixelFormatU = pixelFormatV = QOpenGLTexture::Red;
-                                pixelType = QOpenGLTexture::UInt16;
-                                UTexActive = VTexActive = true;
-                                break;
-                            case AV_PIX_FMT_NV12:
-                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
-                                USize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
-                                textureFormatY = QOpenGLTexture::R8_UNorm;
-                                textureFormatU = QOpenGLTexture::RG8_UNorm;
-                                pixelFormatY = QOpenGLTexture::Red;
-                                pixelFormatU = QOpenGLTexture::RG;
-                                pixelType = QOpenGLTexture::UInt8;
-                                UTexActive = true;
-                                break;
-                            case AV_PIX_FMT_P010:
-                                YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
-                                USize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
-                                textureFormatY = QOpenGLTexture::R16_UNorm;
-                                textureFormatU = QOpenGLTexture::RG16_UNorm;
-                                pixelFormatY = QOpenGLTexture::Red;
-                                pixelFormatU = QOpenGLTexture::RG;
-                                pixelType = QOpenGLTexture::UInt16;
-                                UTexActive = true;
-                                break;
-                            default:
-                                qFatal("[AVQt::OpenGLRenderer] Unsupported pixel format");
+                            switch (static_cast<AVPixelFormat>(d->m_currentFrame->format)) {
+                                case AV_PIX_FMT_BGRA:
+                                    YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                    textureFormatY = QOpenGLTexture::RGBA8_UNorm;
+                                    pixelFormatY = QOpenGLTexture::BGRA;
+                                    pixelType = QOpenGLTexture::UInt8;
+                                    break;
+                                case AV_PIX_FMT_YUV420P:
+                                    YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                    USize = VSize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                    textureFormatY = textureFormatU = textureFormatV = QOpenGLTexture::R8_UNorm;
+                                    pixelFormatY = pixelFormatU = pixelFormatV = QOpenGLTexture::Red;
+                                    pixelType = QOpenGLTexture::UInt8;
+                                    UTexActive = VTexActive = true;
+                                    break;
+                                case AV_PIX_FMT_YUV420P10:
+                                    YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                    USize = VSize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                    textureFormatY = textureFormatU = textureFormatV = QOpenGLTexture::R16_UNorm;
+                                    pixelFormatY = pixelFormatU = pixelFormatV = QOpenGLTexture::Red;
+                                    pixelType = QOpenGLTexture::UInt16;
+                                    UTexActive = VTexActive = true;
+                                    break;
+                                case AV_PIX_FMT_NV12:
+                                    YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                    USize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                    textureFormatY = QOpenGLTexture::R8_UNorm;
+                                    textureFormatU = QOpenGLTexture::RG8_UNorm;
+                                    pixelFormatY = QOpenGLTexture::Red;
+                                    pixelFormatU = QOpenGLTexture::RG;
+                                    pixelType = QOpenGLTexture::UInt8;
+                                    UTexActive = true;
+                                    break;
+                                case AV_PIX_FMT_P010:
+                                    YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);
+                                    USize = QSize(d->m_currentFrame->width / 2, d->m_currentFrame->height / 2);
+                                    textureFormatY = QOpenGLTexture::R16_UNorm;
+                                    textureFormatU = QOpenGLTexture::RG16_UNorm;
+                                    pixelFormatY = QOpenGLTexture::Red;
+                                    pixelFormatU = QOpenGLTexture::RG;
+                                    pixelType = QOpenGLTexture::UInt16;
+                                    UTexActive = true;
+                                    break;
+                                default:
+                                    qFatal("[AVQt::OpenGLRenderer] Unsupported pixel format");
                             }
                             d->m_yTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
                             d->m_yTexture->setSize(YSize.width(), YSize.height());
                             d->m_yTexture->setFormat(textureFormatY);
                             d->m_yTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
                             d->m_yTexture->allocateStorage(pixelFormatY, pixelType);
-                            if (UTexActive)
-                            {
+                            if (UTexActive) {
                                 d->m_uTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
                                 d->m_uTexture->setSize(USize.width(), USize.height());
                                 d->m_uTexture->setFormat(textureFormatU);
                                 d->m_uTexture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
                                 d->m_uTexture->allocateStorage(pixelFormatU, pixelType);
                             }
-                            if (VTexActive)
-                            {
+                            if (VTexActive) {
                                 d->m_vTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
                                 d->m_vTexture->setSize(VSize.width(), VSize.height());
                                 d->m_vTexture->setFormat(textureFormatV);
@@ -1083,10 +1000,8 @@ namespace AVQt
                         }
                     }
 #ifdef Q_OS_LINUX
-                    if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI)
-                    {
-                        for (int i = 0; i < 2; ++i)
-                        {
+                    if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
+                        for (int i = 0; i < 2; ++i) {
                             glActiveTexture(GL_TEXTURE0 + i);
                             glBindTexture(GL_TEXTURE_2D, d->m_textures[i]);
                             eglDestroyImageKHR(d->m_EGLDisplay, d->m_EGLImages[i]);
@@ -1104,34 +1019,30 @@ namespace AVQt
                         VADRMPRIMESurfaceDescriptor prime;
                         if (vaExportSurfaceHandle(d->m_VADisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                                                   VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime) !=
-                            VA_STATUS_SUCCESS)
-                        {
+                            VA_STATUS_SUCCESS) {
                             qFatal("[AVQt::OpenGLRenderer] Could not export VA surface handle");
                         }
                         vaSyncSurface(d->m_VADisplay, va_surface);
 
                         static uint32_t formats[2];
                         char strBuf[AV_FOURCC_MAX_STRING_SIZE];
-                        switch (prime.fourcc)
-                        {
-                        //                        switch (vaImage.format.fourcc) {
-                        case VA_FOURCC_P010:
-                            formats[0] = DRM_FORMAT_R16;
-                            formats[1] = DRM_FORMAT_GR1616;
-                            break;
-                        case VA_FOURCC_NV12:
-                            formats[0] = DRM_FORMAT_R8;
-                            formats[1] = DRM_FORMAT_GR88;
-                            break;
-                        default:
-                            qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, prime.fourcc));
-                            //                                qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, vaImage.format.fourcc));
+                        switch (prime.fourcc) {
+                            //                        switch (vaImage.format.fourcc) {
+                            case VA_FOURCC_P010:
+                                formats[0] = DRM_FORMAT_R16;
+                                formats[1] = DRM_FORMAT_GR1616;
+                                break;
+                            case VA_FOURCC_NV12:
+                                formats[0] = DRM_FORMAT_R8;
+                                formats[1] = DRM_FORMAT_GR88;
+                                break;
+                            default:
+                                qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, prime.fourcc));
+                                //                                qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, vaImage.format.fourcc));
                         }
 
-                        for (int i = 0; i < 2; ++i)
-                        {
-                            if (prime.layers[i].drm_format != formats[i])
-                            {
+                        for (int i = 0; i < 2; ++i) {
+                            if (prime.layers[i].drm_format != formats[i]) {
                                 qFatal("[AVQt::OpenGLRenderer] Invalid pixel format: %s",
                                        av_fourcc_make_string(strBuf, prime.layers[i].drm_format));
                             }
@@ -1139,13 +1050,13 @@ namespace AVQt
 #define LAYER i
 #define PLANE 0
                             const EGLint img_attr[]{
-                                EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(prime.layers[LAYER].drm_format),
-                                EGL_WIDTH, static_cast<EGLint>(prime.width / (i + 1)),
-                                EGL_HEIGHT, static_cast<EGLint>(prime.height / (i + 1)),
-                                EGL_DMA_BUF_PLANE0_FD_EXT, prime.objects[prime.layers[LAYER].object_index[PLANE]].fd,
-                                EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(prime.layers[LAYER].offset[PLANE]),
-                                EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(prime.layers[LAYER].pitch[PLANE]),
-                                EGL_NONE};
+                                    EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(prime.layers[LAYER].drm_format),
+                                    EGL_WIDTH, static_cast<EGLint>(prime.width / (i + 1)),
+                                    EGL_HEIGHT, static_cast<EGLint>(prime.height / (i + 1)),
+                                    EGL_DMA_BUF_PLANE0_FD_EXT, prime.objects[prime.layers[LAYER].object_index[PLANE]].fd,
+                                    EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(prime.layers[LAYER].offset[PLANE]),
+                                    EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(prime.layers[LAYER].pitch[PLANE]),
+                                    EGL_NONE};
 
                             //                            const EGLint *img_attr = new EGLint[]{
                             //                                    EGL_WIDTH, vaImage.width,
@@ -1163,8 +1074,7 @@ namespace AVQt
                                                                   img_attr);
 
                             auto error = eglGetError();
-                            if (!d->m_EGLImages[i] || d->m_EGLImages[i] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS)
-                            {
+                            if (!d->m_EGLImages[i] || d->m_EGLImages[i] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
                                 qFatal("[AVQt::OpenGLRenderer] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
                                        eglErrorString(error).c_str());
                             }
@@ -1178,8 +1088,7 @@ namespace AVQt
                             glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, d->m_EGLImages[i]);
                             auto err = glGetError();
 
-                            if (err != GL_NO_ERROR)
-                            {
+                            if (err != GL_NO_ERROR) {
                                 qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
                             }
 
@@ -1193,15 +1102,12 @@ namespace AVQt
                         }
                         //                        vaReleaseBufferHandle(d->m_VADisplay, vaImage.buf);
                         //                        vaDestroyImage(d->m_VADisplay, vaImage.image_id);
-                        for (int i = 0; i < (int)prime.num_objects; ++i)
-                        {
+                        for (int i = 0; i < (int) prime.num_objects; ++i) {
                             closefd(prime.objects[i].fd);
                         }
-                    }
-                    else
+                    } else
 #elif defined(Q_OS_WINDOWS)
-                    if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD)
-                    {
+                    if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD) {
                         auto surface = reinterpret_cast<LPDIRECT3DSURFACE9>(d->m_currentFrame->data[3]);
                         D3DSURFACE_DESC surfaceDesc;
                         surface->GetDesc(&surfaceDesc);
@@ -1213,8 +1119,7 @@ namespace AVQt
                         pDevice->GetDirect3D(&d3d9);
                         ASSERT(SUCCEEDED(d3d9->CheckDeviceFormatConversion(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, surfaceDesc.Format,
                                                                            D3DFMT_A8R8G8B8)));
-                        if (0 != pDevice->StretchRect(surface, nullptr, d->m_pSharedSurface, nullptr, D3DTEXF_LINEAR))
-                        {
+                        if (0 != pDevice->StretchRect(surface, nullptr, d->m_pSharedSurface, nullptr, D3DTEXF_LINEAR)) {
                             qFatal("Could not map NV12/P010 surface to RGB");
                         }
 
@@ -1232,9 +1137,7 @@ namespace AVQt
                         //                        qDebug() << "Mapped surface is using" << image.sizeInBytes() << "Byte of memory at" << image.size();
                         //                        image.save("mapped.bmp");
                         //                        exit(0);
-                    }
-                    else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11)
-                    {
+                    } else if (d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                         auto surface = reinterpret_cast<ID3D11Texture2D *>(d->m_currentFrame->data[0]);
                         auto index = reinterpret_cast<intptr_t>(d->m_currentFrame->data[1]);
                         D3D11_TEXTURE2D_DESC desc;
@@ -1254,99 +1157,91 @@ namespace AVQt
                         streams.Enable = TRUE;
                         streams.pInputSurface = d->m_pVideoProcInputView;
                         hr = d->m_pVideoDeviceCtx->VideoProcessorBlt(d->m_pVideoProc, d->m_pVideoProcOutputView, 0, 1, &streams);
-                        if (FAILED(hr))
-                        {
+                        if (FAILED(hr)) {
                             _com_error err(hr);
                             qFatal(err.ErrorMessage());
                         }
                         ASSERT(SUCCEEDED(hr));
-                    }
-                    else
+                    } else
 #endif
                     {
                         //                    qDebug("Frame duration: %ld ms", d->m_currentFrameTimeout);
-                        if (differentPixFmt)
-                        {
+                        if (differentPixFmt) {
                             d->m_program->bind();
                         }
                         d->m_yTexture->bind(0);
-                        if (d->m_uTexture)
-                        {
+                        if (d->m_uTexture) {
                             d->m_uTexture->bind(1);
                         }
-                        if (d->m_vTexture)
-                        {
+                        if (d->m_vTexture) {
                             d->m_vTexture->bind(2);
                         }
-                        switch (d->m_currentFrame->format)
-                        {
-                        case AV_PIX_FMT_BGRA:
-                            d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
-                            if (differentPixFmt)
-                            {
-                                d->m_program->setUniformValue("inputFormat", 0);
-                            }
-                            break;
-                        case AV_PIX_FMT_NV12:
-                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
-                            d->m_uTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt8,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
-                            if (differentPixFmt)
-                            {
-                                d->m_program->setUniformValue("inputFormat", 1);
-                            }
-                            break;
-                        case AV_PIX_FMT_P010:
-                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
-                            d->m_uTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt16,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
-                            if (differentPixFmt)
-                            {
-                                d->m_program->setUniformValue("inputFormat", 1);
-                            }
-                            break;
-                        case AV_PIX_FMT_YUV420P:
-                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
-                            d->m_uTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
-                            d->m_vTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[2]));
-                            if (differentPixFmt)
-                            {
-                                d->m_program->setUniformValue("inputFormat", 2);
-                            }
-                            break;
-                        case AV_PIX_FMT_YUV420P10:
-                            d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
-                            d->m_uTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
-                            d->m_vTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
-                                                   const_cast<const uint8_t *>(d->m_currentFrame->data[2]));
-                            if (differentPixFmt)
-                            {
-                                d->m_program->setUniformValue("inputFormat", 3);
-                            }
-                            break;
-                        default:
-                            qFatal("Pixel format not supported");
+                        switch (d->m_currentFrame->format) {
+                            case AV_PIX_FMT_BGRA:
+                                d->m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 0);
+                                }
+                                break;
+                            case AV_PIX_FMT_NV12:
+                                d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
+                                d->m_uTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt8,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 1);
+                                }
+                                break;
+                            case AV_PIX_FMT_P010:
+                                d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
+                                d->m_uTexture->setData(QOpenGLTexture::RG, QOpenGLTexture::UInt16,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 1);
+                                }
+                                break;
+                            case AV_PIX_FMT_YUV420P:
+                                d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
+                                d->m_uTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
+                                d->m_vTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[2]));
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 2);
+                                }
+                                break;
+                            case AV_PIX_FMT_YUV420P10:
+                                d->m_yTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[0]));
+                                d->m_uTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[1]));
+                                d->m_vTexture->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt16,
+                                                       const_cast<const uint8_t *>(d->m_currentFrame->data[2]));
+                                if (differentPixFmt) {
+                                    d->m_program->setUniformValue("inputFormat", 3);
+                                }
+                                break;
+                            default:
+                                qFatal("Pixel format not supported");
                         }
-                        if (differentPixFmt)
-                        {
+                        if (differentPixFmt) {
                             d->m_program->release();
                         }
                     }
                 }
+                if (d->m_clock) {
+                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 2) {
+                        d->m_clock->start();
+                    } else if (d->m_clock->isPaused()) {
+                        d->m_clock->pause(false);
+                    }
+                }
             }
-        }
-        else if (d->m_clock)
-        {
-            if (d->m_clock->isActive())
-            {
+        } else if (d->m_clock) {
+            if (d->m_clock->isActive()) {
                 d->m_clock->pause(true);
             }
         }
@@ -1359,41 +1254,32 @@ namespace AVQt
         //                d->m_clock->start();
         //            }
 
-        if (d->m_currentFrame)
-        {
+        if (d->m_currentFrame) {
             qDebug("Drawing frame with PTS: %lld", static_cast<long long>(d->m_currentFrame->pts));
             d->m_program->bind();
 #ifdef Q_OS_LINUX
-            if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI)
-            {
+            if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
                 glActiveTexture(GL_TEXTURE1);
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[1]);
-            }
-            else
+            } else
 #elif defined(Q_OS_WINDOWS)
-            if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11)
-            {
-                if (!wglDXLockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture))
-                {
+            if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
+                if (!wglDXLockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture)) {
                     qFatal(GetLastErrorAsString().c_str());
                 }
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
-            }
-            else
+            } else
 #endif
             {
-                if (!d->m_yTexture->isBound(0))
-                {
+                if (!d->m_yTexture->isBound(0)) {
                     d->m_yTexture->bind(0);
-                    if (d->m_uTexture)
-                    {
+                    if (d->m_uTexture) {
                         d->m_uTexture->bind(1);
                     }
-                    if (d->m_vTexture)
-                    {
+                    if (d->m_vTexture) {
                         d->m_vTexture->bind(2);
                     }
                 }
@@ -1412,24 +1298,19 @@ namespace AVQt
             d->m_vbo.release();
             d->m_program->release();
 #ifdef Q_OS_LINUX
-            if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI)
-            {
+            if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
             }
 #elif defined(Q_OS_WINDOWS)
-            else if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11)
-            {
+            else if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                 wglDXUnlockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture);
             }
 #endif
-            else
-            {
+            else {
                 d->m_yTexture->release(0);
-                if (d->m_uTexture)
-                {
+                if (d->m_uTexture) {
                     d->m_uTexture->release(1);
                 }
-                if (d->m_vTexture)
-                {
+                if (d->m_vTexture) {
                     d->m_vTexture->release(2);
                 }
             }
@@ -1459,8 +1340,7 @@ namespace AVQt
 
         //            qDebug() << "Current timestamp:" << d->m_position.toString("hh:mm:ss.zzz");
 
-        if (d->m_currentFrame)
-        {
+        if (d->m_currentFrame) {
             d->m_position = OpenGLRendererPrivate::timeFromMillis(d->m_currentFrame->pts / 1000);
         }
 
@@ -1472,30 +1352,25 @@ namespace AVQt
         p.drawText(overlayRect, overlay);
         p.end();
         qDebug() << "Paused:" << (d->m_paused.load() ? "true" : "false");
-        if (!d->m_paused.load())
-        {
+        if (!d->m_paused.load()) {
             update();
         }
     }
 
-    void OpenGLRenderer::mouseReleaseEvent(QMouseEvent *event)
-    {
-        if (event->button() == Qt::LeftButton)
-        {
+    void OpenGLRenderer::mouseReleaseEvent(QMouseEvent *event) {
+        if (event->button() == Qt::LeftButton) {
             pause(nullptr, !isPaused());
         }
     }
 
-    void OpenGLRenderer::closeEvent(QCloseEvent *event)
-    {
+    void OpenGLRenderer::closeEvent(QCloseEvent *event) {
         QApplication::quit();
         QWidget::closeEvent(event);
     }
 
     [[maybe_unused]] GLint
     OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
-                                   const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz)
-    {
+                                   const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz) {
         GLdouble in[4], out[4];
 
         in[0] = objx;
@@ -1519,9 +1394,8 @@ namespace AVQt
         return GL_TRUE;
     }
 
-    void OpenGLRendererPrivate::transformPoint(GLdouble *out, const GLdouble *m, const GLdouble *in)
-    {
-#define M(row, col) m[(col)*4 + (row)]
+    void OpenGLRendererPrivate::transformPoint(GLdouble *out, const GLdouble *m, const GLdouble *in) {
+#define M(row, col) m[(col) *4 + (row)]
         out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
         out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
         out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
@@ -1529,8 +1403,7 @@ namespace AVQt
 #undef M
     }
 
-    QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts)
-    {
+    QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts) {
         int ms = static_cast<int>(ts % 1000);
         int s = static_cast<int>((ts / 1000) % 60);
         int m = static_cast<int>((ts / 1000 / 60) % 60);

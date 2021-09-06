@@ -5,13 +5,15 @@
 #ifndef LIBAVQT_OPENALAUDIOOUTPUT_H
 #define LIBAVQT_OPENALAUDIOOUTPUT_H
 
+#include <QThread>
+
 #include "IAudioSink.h"
 
 namespace AVQt {
     class OpenALAudioOutputPrivate;
 
-    class OpenALAudioOutput : public QObject, public IAudioSink {
-    Q_OBJECT
+    class OpenALAudioOutput : public QThread, public IAudioSink {
+        Q_OBJECT
         Q_INTERFACES(AVQt::IAudioSink)
 
         Q_DECLARE_PRIVATE(AVQt::OpenALAudioOutput)
@@ -19,11 +21,13 @@ namespace AVQt {
     public:
         explicit OpenALAudioOutput(QObject *parent = nullptr);
 
+        OpenALAudioOutput(OpenALAudioOutput &&other) noexcept;
+
         bool isPaused() override;
 
     public slots:
 
-        int init(AVQt::IAudioSource *source, int64_t duration, int sampleRate) override;
+        int init(AVQt::IAudioSource *source, int64_t duration, int sampleRate, AVSampleFormat sampleFormat, uint64_t channelLayout) override;
 
         int deinit(AVQt::IAudioSource *source) override;
 
@@ -35,6 +39,8 @@ namespace AVQt {
 
         void onAudioFrame(AVQt::IAudioSource *source, AVFrame *frame, uint32_t duration) override;
 
+        void enqueueAudioForFrame(qint64 pts, qint64 duration);
+
     signals:
 
         void started() Q_DECL_OVERRIDE;
@@ -45,6 +51,8 @@ namespace AVQt {
 
     protected:
         [[maybe_unused]] explicit OpenALAudioOutput(OpenALAudioOutputPrivate &p);
+
+        void run() Q_DECL_OVERRIDE;
 
         OpenALAudioOutputPrivate *d_ptr;
     };

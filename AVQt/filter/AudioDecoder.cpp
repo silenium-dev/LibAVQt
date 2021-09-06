@@ -2,8 +2,8 @@
 // Created by silas on 3/28/21.
 //
 
-#include "private/AudioDecoder_p.h"
 #include "AudioDecoder.h"
+#include "private/AudioDecoder_p.h"
 
 #include "input/IPacketSource.h"
 #include "output/IAudioSink.h"
@@ -19,7 +19,7 @@ namespace AVQt {
     [[maybe_unused]] AudioDecoder::AudioDecoder(AVQt::AudioDecoderPrivate &p) : d_ptr(&p) {
     }
 
-    AudioDecoder::AudioDecoder(AudioDecoder &&other) noexcept: d_ptr(other.d_ptr) {
+    AudioDecoder::AudioDecoder(AudioDecoder &&other) noexcept : d_ptr(other.d_ptr) {
         d_ptr->q_ptr = this;
         other.d_ptr = nullptr;
     }
@@ -32,12 +32,12 @@ namespace AVQt {
     int AudioDecoder::init() {
         Q_D(AVQt::AudioDecoder);
 
-        {
-            QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb: d->m_cbList) {
-                cb->init(this, d->m_duration, 0);
-            }
-        }
+        //        {
+        //            QMutexLocker lock(&d->m_cbListMutex);
+        //            for (const auto &cb: d->m_cbList) {
+        //                cb->init(this, d->m_duration, 0, AV_SAMPLE_FMT_U8, 0);
+        //            }
+        //        }
 
         return 0;
     }
@@ -67,12 +67,12 @@ namespace AVQt {
             d->m_paused.store(false);
             paused(false);
 
-//            {
-//                QMutexLocker lock(&d->m_cbListMutex);
-//                for (const auto &cb: d->m_cbList) {
-//                    cb->start(this);
-//                }
-//            }
+            //            {
+            //                QMutexLocker lock(&d->m_cbListMutex);
+            //                for (const auto &cb: d->m_cbList) {
+            //                    cb->start(this);
+            //                }
+            //            }
 
             QThread::start();
             started();
@@ -86,12 +86,12 @@ namespace AVQt {
 
         bool shouldBeCurrent = true;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
-//            {
-//                QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb: d->m_cbList) {
+            //            {
+            //                QMutexLocker lock(&d->m_cbListMutex);
+            for (const auto &cb : d->m_cbList) {
                 cb->stop(this);
             }
-//            }
+            //            }
             {
                 QMutexLocker lock(&d->m_inputQueueMutex);
                 for (auto &packet : d->m_inputQueue) {
@@ -101,7 +101,6 @@ namespace AVQt {
                 d->m_inputQueue.clear();
             }
 
-            pause(true);
             wait();
 
             stopped();
@@ -119,6 +118,10 @@ namespace AVQt {
 
         if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause)) {
             paused(pause);
+            QMutexLocker lock(&d->m_cbListMutex);
+            for (const auto &cb : d->m_cbList) {
+                cb->pause(this, pause);
+            }
         }
     }
 
@@ -135,7 +138,7 @@ namespace AVQt {
             d->m_cbList.append(callback);
 
             if (d->m_pCodecCtx) {
-                callback->init(this, d->m_duration, 0);
+                callback->init(this, d->m_duration, d->m_pCodecParams->sample_rate, static_cast<AVSampleFormat>(d->m_pCodecParams->format), d->m_pCodecCtx->channel_layout);
             }
 
             if (d->m_running) {
@@ -152,8 +155,8 @@ namespace AVQt {
 
         QMutexLocker lock(&d->m_cbListMutex);
         if (!d->m_cbList.contains(callback)) {
-            d->m_cbList.append(callback);
-            return d->m_cbList.indexOf(callback);
+            d->m_cbList.removeAll(callback);
+            return 0;
         }
         return -1;
     }
@@ -174,8 +177,8 @@ namespace AVQt {
 
         {
             QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb: d->m_cbList) {
-                cb->init(this, duration, aParams->sample_rate);
+            for (const auto &cb : d->m_cbList) {
+                cb->init(this, duration, aParams->sample_rate, static_cast<AVSampleFormat>(aParams->format), aParams->channel_layout);
             }
         }
 
@@ -206,8 +209,8 @@ namespace AVQt {
 
         if (packetType == IPacketSource::CB_AUDIO) {
             AVPacket *queuePacket = av_packet_clone(packet);
-            while (d->m_inputQueue.size() >= 50) {
-                QThread::msleep(4);
+            while (d->m_inputQueue.size() >= 100) {
+                QThread::usleep(10);
             }
             QMutexLocker lock(&d->m_inputQueueMutex);
             d->m_inputQueue.append(queuePacket);
@@ -244,7 +247,7 @@ namespace AVQt {
                         qFatal("%d: Could not open audio decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
-                    for (const auto &cb: d->m_cbList) {
+                    for (const auto &cb : d->m_cbList) {
                         cb->start(this);
                     }
                 }
@@ -281,10 +284,10 @@ namespace AVQt {
                     }
 
                     QMutexLocker lock2(&d->m_cbListMutex);
-                    for (const auto &cb: d->m_cbList) {
+                    for (const auto &cb : d->m_cbList) {
                         AVFrame *cbFrame = av_frame_clone(frame);
                         cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
-                                                    av_make_q(1, 1000000)); // Rescale pts to microseconds for easier processing
+                                                    av_make_q(1, 1000000));// Rescale pts to microseconds for easier processing
                         qDebug("Calling audio frame callback for PTS: %lld, Timebase: %d/%d", static_cast<long long>(cbFrame->pts),
                                d->m_timebase.num,
                                d->m_timebase.den);
@@ -301,10 +304,9 @@ namespace AVQt {
                 }
                 av_frame_free(&frame);
             } else {
-//                qDebug("Paused or queue empty. Sleeping...");
-                msleep(4);
+                //                qDebug("Paused or queue empty. Sleeping...");
+                usleep(10);
             }
         }
-
     }
-}
+}// namespace AVQt

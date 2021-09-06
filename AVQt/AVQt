@@ -1,17 +1,17 @@
 #include <qglobal.h>
 
-#include "input/IPacketSource.h"
-#include "input/IFrameSource.h"
-#include "input/IAudioSource.h"
-#include "output/IPacketSink.h"
-#include "output/IFrameSink.h"
-#include "output/IAudioSink.h"
 #include "filter/IDecoder.h"
 #include "filter/IEncoder.h"
 #include "input/Demuxer.h"
+#include "input/IAudioSource.h"
+#include "input/IFrameSource.h"
+#include "input/IPacketSource.h"
+#include "output/IAudioSink.h"
+#include "output/IFrameSink.h"
+#include "output/IPacketSink.h"
 #include "output/Muxer.h"
+#include "output/OpenALAudioOutput.h"
 #include "output/OpenGLRenderer.h"
-//#include "output/OpenALAudioOutput.h"
 
 
 #ifdef Q_OS_LINUX

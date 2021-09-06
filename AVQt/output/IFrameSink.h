@@ -113,14 +113,16 @@ namespace AVQt {
         /*!
          * \brief Emitted when frame sink starts processing a frame
          * @param pts Presentation timestamp of the frame being processed
+         * @param duration Duration in microseconds of the frame being processed
          */
-        virtual void frameProcessingStarted(qint64 pts) = 0;
+        virtual void frameProcessingStarted(qint64 pts, qint64 duration) = 0;
 
         /*!
          * \brief Emitted when frame sink finished processing a frame
-         * @param pts Presentation
+         * @param pts Presentation timestamp of the frame that got processed
+         * @param duration Duration in microseconds of the frame that got processed
          */
-        virtual void frameProcessingFinished(qint64 pts) = 0;
+        virtual void frameProcessingFinished(qint64 pts, qint64 duration) = 0;
     };
 }
 

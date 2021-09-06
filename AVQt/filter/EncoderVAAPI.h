@@ -84,9 +84,9 @@ namespace AVQt {
 
         void paused(bool pause) Q_DECL_OVERRIDE;
 
-        void frameProcessingStarted(qint64 pts) override;
+        void frameProcessingStarted(qint64 pts, qint64 duration) override;
 
-        void frameProcessingFinished(qint64 pts) override;
+        void frameProcessingFinished(qint64 pts, qint64 duration) override;
 
     protected:
         [[maybe_unused]] explicit EncoderVAAPI(EncoderVAAPIPrivate &p);
