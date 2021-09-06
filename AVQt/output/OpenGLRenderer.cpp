@@ -1231,6 +1231,9 @@ namespace AVQt {
                             d->m_program->release();
                         }
                     }
+                    if (!d->m_renderQueue.isEmpty()) {
+                        frameProcessingFinished(d->m_currentFrame->pts, d->m_renderQueue.first().result()->pts - d->m_currentFrame->pts);
+                    }
                 }
                 if (d->m_clock) {
                     if (!d->m_clock->isActive() && d->m_renderQueue.size() > 2) {
