@@ -39,7 +39,7 @@ namespace AVQt {
         QMutex m_outputQueueMutex{};
         QQueue<AVFrame *> m_outputQueue{};
 
-        size_t AL_BUFFER_COUNT = 500;
+        int AL_BUFFER_COUNT = 500;
         static constexpr int AL_BUFFER_ALLOC_STEPS = 50;
         static constexpr size_t OUT_SAMPLE_RATE = 48000;
         static constexpr AVSampleFormat OUT_SAMPLE_FORMAT = AV_SAMPLE_FMT_FLT;
@@ -49,8 +49,8 @@ namespace AVQt {
         ALCcontext *m_alcContext{nullptr};
         ALuint m_alSource{0};
 
-        std::atomic_uint_fast64_t m_queuedBuffers{0};
-        QMutex m_alBufferMutex{};
+        //        std::atomic_uint_fast64_t m_queuedBuffers{0};
+        //        QMutex m_alBufferMutex{};
         QVector<ALuint> m_alBuffers{};
         QQueue<ALuint> m_alBufferQueue{};
 

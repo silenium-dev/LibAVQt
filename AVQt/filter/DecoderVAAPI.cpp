@@ -9,7 +9,6 @@
 #include "input/IPacketSource.h"
 
 #include <QApplication>
-#include <QImage>
 //#include <QtConcurrent>
 
 //#ifndef DOXYGEN_SHOULD_SKIP_THIS

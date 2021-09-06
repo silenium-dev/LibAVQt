@@ -3,8 +3,8 @@
 //
 
 #include "Demuxer.h"
-#include "private/Demuxer_p.h"
 #include "output/IPacketSink.h"
+#include "private/Demuxer_p.h"
 
 
 namespace AVQt {
@@ -24,7 +24,8 @@ namespace AVQt {
         if (d->m_paused.compare_exchange_strong(pauseFlag, pause)) {
             d->m_paused.store(pause);
             QMutexLocker lock(&d->m_cbMutex);
-            for (const auto &cb : d->m_cbMap.keys()) {
+            auto cbs = d->m_cbMap.keys();
+            for (const auto &cb : cbs) {
                 cb->pause(pause);
             }
         }
@@ -116,9 +117,9 @@ namespace AVQt {
                 qFatal("Could not open input format context");
             }
 
-//            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
+            //            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
             avformat_find_stream_info(d->m_pFormatCtx, nullptr);
-//            }
+            //            }
 
             for (int64_t si = 0; si < d->m_pFormatCtx->nb_streams; ++si) {
                 switch (d->m_pFormatCtx->streams[si]->codecpar->codec_type) {
@@ -146,7 +147,8 @@ namespace AVQt {
             }
         }
 
-        for (const auto &cb: d->m_cbMap.keys()) {
+        auto cbs = d->m_cbMap.keys();
+        for (const auto &cb : cbs) {
             AVCodecParameters *vParams = nullptr;
             AVCodecParameters *aParams = nullptr;
             AVCodecParameters *sParams = nullptr;
@@ -199,11 +201,12 @@ namespace AVQt {
 
         stop();
 
-        for (const auto &cb: d->m_cbMap.keys()) {
+        auto cbs = d->m_cbMap.keys();
+        for (const auto &cb : cbs) {
             cb->deinit(this);
         }
 
-//        avio_closep(&d->m_pIOCtx);
+        //        avio_closep(&d->m_pIOCtx);
         avformat_close_input(&d->m_pFormatCtx);
 
         d->m_videoStreams.clear();
@@ -223,7 +226,8 @@ namespace AVQt {
             d->m_paused.store(false);
             paused(false);
 
-            for (const auto &cb: d->m_cbMap.keys()) {
+            auto cbs = d->m_cbMap.keys();
+            for (const auto &cb : cbs) {
                 cb->start(this);
             }
 
@@ -238,7 +242,8 @@ namespace AVQt {
         Q_D(AVQt::Demuxer);
         bool running = true;
         if (d->m_running.compare_exchange_strong(running, false)) {
-            for (const auto &cb: d->m_cbMap.keys()) {
+            auto cbs = d->m_cbMap.keys();
+            for (const auto &cb : cbs) {
                 cb->stop(this);
             }
 
@@ -294,7 +299,7 @@ namespace AVQt {
                     av_packet_unref(packet);
                     continue;
                 }
-                for (const auto &cb: cbList) {
+                for (const auto &cb : cbList) {
                     AVPacket *cbPacket = av_packet_clone(packet);
                     cb->onPacket(this, cbPacket, type);
                     av_packet_free(&cbPacket);
@@ -305,11 +310,14 @@ namespace AVQt {
                     vP = QString("%1").arg(videoPackets, 12).toLocal8Bit();
                     sP = QString("%1").arg(sttPackets, 12).toLocal8Bit();
                     aR = QString("%1").arg((static_cast<double>(audioPackets) * 1.0 / static_cast<double>(packetCount)) * 100.0,
-                                           10).toLocal8Bit();
+                                           10)
+                                 .toLocal8Bit();
                     vR = QString("%1").arg((static_cast<double>(videoPackets) * 1.0 / static_cast<double>(packetCount)) * 100.0,
-                                           10).toLocal8Bit();
+                                           10)
+                                 .toLocal8Bit();
                     sR = QString("%1").arg((static_cast<double>(sttPackets) * 1.0 / static_cast<double>(packetCount)) * 100.0,
-                                           10).toLocal8Bit();
+                                           10)
+                                 .toLocal8Bit();
 
                     qDebug() << "Packet statistics";
                     qDebug() << "| Packet type | Packet count |   Percentage |";
@@ -327,7 +335,7 @@ namespace AVQt {
         av_packet_free(&packet);
     }
 
-    Demuxer::Demuxer(Demuxer &&other) noexcept: d_ptr(other.d_ptr) {
+    Demuxer::Demuxer(Demuxer &&other) noexcept : d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
@@ -373,4 +381,4 @@ namespace AVQt {
             return -1;
         }
     }
-}
+}// namespace AVQt

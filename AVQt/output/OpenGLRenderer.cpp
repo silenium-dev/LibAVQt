@@ -928,10 +928,10 @@ namespace AVQt {
 #endif
                         {
                             bool VTexActive = false, UTexActive = false;
-                            QSize YSize{-1, -1}, USize{-1, -1}, VSize{-1, -1};
-                            QOpenGLTexture::TextureFormat textureFormatY{}, textureFormatU{}, textureFormatV{};
-                            QOpenGLTexture::PixelFormat pixelFormatY{}, pixelFormatU{}, pixelFormatV{};
-                            QOpenGLTexture::PixelType pixelType{};
+                            QSize YSize, USize{-1, -1}, VSize{-1, -1};
+                            QOpenGLTexture::TextureFormat textureFormatY, textureFormatU{}, textureFormatV{};
+                            QOpenGLTexture::PixelFormat pixelFormatY, pixelFormatU{}, pixelFormatV{};
+                            QOpenGLTexture::PixelType pixelType;
                             switch (static_cast<AVPixelFormat>(d->m_currentFrame->format)) {
                                 case AV_PIX_FMT_BGRA:
                                     YSize = QSize(d->m_currentFrame->width, d->m_currentFrame->height);

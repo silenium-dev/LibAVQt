@@ -47,7 +47,7 @@ namespace AVQt {
 
         d->m_pSwrContext = swr_alloc_set_opts(nullptr,
                                               OpenALAudioOutputPrivate::OUT_CHANNEL_LAYOUT, OpenALAudioOutputPrivate::OUT_SAMPLE_FORMAT, OpenALAudioOutputPrivate::OUT_SAMPLE_RATE,
-                                              channelLayout, sampleFormat, sampleRate,
+                                              static_cast<int>(channelLayout), sampleFormat, sampleRate,
                                               0, nullptr);
         d->m_sampleFormat = sampleFormat;
         d->m_sampleRate = sampleRate;
@@ -300,7 +300,6 @@ namespace AVQt {
             bool shouldBe = true;
             if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
                 alCall(alSourcePlay, d->m_alSource);
-                //            alCall(alSourcei, d->m_alSource, AL_SOURCE_STATE, AL_PLAYING);
                 qWarning("[AVQt::OpenALAudioOutput] Starting source");
             }
         }
@@ -327,9 +326,10 @@ namespace AVQt {
                     queueFrame->channel_layout = OpenALAudioOutputPrivate::OUT_CHANNEL_LAYOUT;
                     queueFrame->sample_rate = OpenALAudioOutputPrivate::OUT_SAMPLE_RATE;
                     queueFrame->pts = frame->pts;
-                    int ret = 0;
+                    int ret;
                     if ((ret = swr_convert_frame(d->m_pSwrContext, queueFrame, frame)) != 0) {
-                        qFatal("[AVQt::OpenALAudioOutput] Error converting audio frame: %s", av_err2str(ret));
+                        char strBuf[64];
+                        qFatal("[AVQt::OpenALAudioOutput] Error converting audio frame: %s", av_make_error_string(strBuf, 64, ret));
                     }
                 }
                 qDebug("[AVQt::OpenALAudioOutput] Frame output queue size: %d", d->m_outputQueue.size());
