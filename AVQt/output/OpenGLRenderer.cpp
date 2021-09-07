@@ -229,7 +229,7 @@ namespace AVQt {
         char strBuf[strBufSize];
         qDebug("Pixel format: %s", av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format)));
         switch (frame->format) {
-            case AV_PIX_FMT_QSV:
+//            case AV_PIX_FMT_QSV:
             case AV_PIX_FMT_CUDA:
             case AV_PIX_FMT_VDPAU:
             case AV_PIX_FMT_D3D11VA_VLD:
@@ -237,29 +237,33 @@ namespace AVQt {
                 qDebug("Transferring frame from GPU to CPU");
                 queueFrame = QtConcurrent::run([](AVFrame *input) {
                     AVFrame *outFrame = av_frame_alloc();
-                    av_hwframe_transfer_data(outFrame, input, 0);
+                    int ret = av_hwframe_transfer_data(outFrame, input, 0);
+                    if (ret != 0) {
+                        char strBuf[64];
+                        qFatal("%d: Could not transfer frame data: %s", ret, av_make_error_string(strBuf, 64, ret));
+                    }
                     outFrame->pts = input->pts;
                     av_frame_free(&input);
                     return outFrame;
                 }, av_frame_clone(frame));
                 break;
-//            case AV_PIX_FMT_QSV: {
-//                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to CPU for rendering");
-//                queueFrame = QtConcurrent::run([d](AVFrame *input) {
-//                    AVFrame *outFrame = av_frame_alloc();
-//                    int ret = av_hwframe_map(outFrame, input, AV_HWFRAME_MAP_READ);
-//                    if (ret != 0) {
-//                        constexpr auto strBufSize = 64;
-//                        char strBuf[strBufSize];
-//                        qFatal("[AVQt::OpenGLRenderer] %d Could not map QSV frame to CPU: %s", ret,
-//                               av_make_error_string(strBuf, strBufSize, ret));
-//                    }
-//                    outFrame->pts = input->pts;
-//                    av_frame_free(&input);
-//                    return outFrame;
-//                }, av_frame_clone(frame));
-//                break;
-//            }
+            case AV_PIX_FMT_QSV: {
+                qDebug("[AVQt::OpenGLRenderer] Mapping QSV frame to CPU for rendering");
+                queueFrame = QtConcurrent::run([](AVFrame *input) {
+                    AVFrame *outFrame = av_frame_alloc();
+                    int ret = av_hwframe_map(outFrame, input, AV_HWFRAME_MAP_READ);
+                    if (ret != 0) {
+                        constexpr auto strBufSize = 64;
+                        char strBuf[strBufSize];
+                        qFatal("[AVQt::OpenGLRenderer] %d Could not map QSV frame to CPU: %s", ret,
+                               av_make_error_string(strBuf, strBufSize, ret));
+                    }
+                    outFrame->pts = input->pts;
+                    av_frame_free(&input);
+                    return outFrame;
+                }, av_frame_clone(frame));
+                break;
+            }
             default:
                 qDebug("Referencing frame");
                 queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {

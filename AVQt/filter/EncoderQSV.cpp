@@ -262,7 +262,7 @@ namespace AVQt {
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
 
-        QPair<AVFrame *, int64_t> queueFrame{av_frame_alloc(), frameDuration};
+        QPair<AVFrame *, int64_t> queueFrame{nullptr, frameDuration};
         switch (frame->format) {
             case AV_PIX_FMT_QSV:
                 if (!d->m_pDeviceCtx) {
@@ -270,7 +270,7 @@ namespace AVQt {
                     d->m_pFramesCtx = av_buffer_ref(frame->hw_frames_ctx);
                 }
                 qDebug("Referencing frame");
-                av_frame_ref(queueFrame.first, frame);
+                queueFrame.first = av_frame_clone(frame);
                 break;
             case AV_PIX_FMT_DRM_PRIME:
             case AV_PIX_FMT_VAAPI:
@@ -293,16 +293,17 @@ namespace AVQt {
                                av_make_error_string(strBuf, strBufSize, ret));
                     }
                 }
-                av_frame_ref(queueFrame.first, frame);
+                queueFrame.first = av_frame_clone(frame);
                 break;
             case AV_PIX_FMT_DXVA2_VLD:
                 qDebug("Transferring frame from GPU to CPU");
+                queueFrame.first = av_frame_alloc();
                 av_hwframe_transfer_data(queueFrame.first, frame, 0);
                 queueFrame.first->pts = frame->pts;
                 break;
             default:
                 qDebug("Referencing frame");
-                av_frame_ref(queueFrame.first, frame);
+                queueFrame.first = av_frame_clone(frame);
                 break;
         }
 
