@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     AVQt::IDecoder *videoDecoder;
     AVQt::IEncoder *videoEncoder;
 #ifdef Q_OS_LINUX
-    videoDecoder = new AVQt::DecoderQSV;
+    videoDecoder = new AVQt::DecoderVAAPI;
     videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderD3D11VA();
