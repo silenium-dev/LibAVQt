@@ -29,10 +29,10 @@ An object-oriented Qt interface for FFmpeg.
 - C++ Development environment
 - Vulkan + headers (In Qt6, QML defaults to Vulkan instead of OpenGL for
   rendering)
-- Correctly configured Qt6 installation
-    - for linux distributions with Qt6 in the package repositories, just install
+- Correctly configured Qt 5.15 installation
+    - for linux distributions with Qt 5.15 in the package repositories, just install
       it with your distributions package manager
-    - for linux distributions without Qt6 in the repositories, Windows and
+    - for linux distributions without Qt 5.15 in the repositories, Windows and
       macOS, use the installer from the Qt website: (you have to create an Qt
       account in order to install Qt): https://www.qt.io/download-qt-installer
 
