@@ -224,7 +224,6 @@ namespace AVQt {
                             break;
                         default:
                             qFatal("No MMAL decoder found for the specified codec: %s", avcodec_get_name(d->m_pCodecParams->codec_id));
-                            break;
                     }
 
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);

@@ -19,7 +19,11 @@ extern "C" {
 #define LIBAVQT_AUDIODECODER_P_H
 
 namespace AVQt {
-    class AudioDecoderPrivate {
+    class AudioDecoderPrivate : public QObject {
+    Q_OBJECT
+
+        Q_DECLARE_PUBLIC(AVQt::AudioDecoder)
+
     public:
         AudioDecoderPrivate(const AudioDecoderPrivate &) = delete;
 

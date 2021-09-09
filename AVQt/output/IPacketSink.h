@@ -34,15 +34,14 @@ namespace AVQt {
          * @param streamDuration Stream duration in ms
          * @param streamTimebase Stream timebase as AVRational
          */
-        Q_INVOKABLE virtual void
-        init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
-             AVCodecParameters *aParams, AVCodecParameters *sParams) = 0;
+        Q_INVOKABLE virtual void init(AVQt::IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration,
+                                      AVCodecParameters *vParams, AVCodecParameters *aParams, AVCodecParameters *sParams) = 0;
 
-        Q_INVOKABLE virtual void deinit(IPacketSource *source) = 0;
+        Q_INVOKABLE virtual void deinit(AVQt::IPacketSource *source) = 0;
 
-        Q_INVOKABLE virtual void start(IPacketSource *source) = 0;
+        Q_INVOKABLE virtual void start(AVQt::IPacketSource *source) = 0;
 
-        Q_INVOKABLE virtual void stop(IPacketSource *source) = 0;
+        Q_INVOKABLE virtual void stop(AVQt::IPacketSource *source) = 0;
 
         Q_INVOKABLE virtual void pause(bool p) = 0;
 
@@ -54,7 +53,7 @@ namespace AVQt {
          * @param packet AVPacket, contains all necessary information
          * @param packetType Packet type as IPacketSource::CB_TYPE
          */
-        Q_INVOKABLE virtual void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) = 0;
+        Q_INVOKABLE virtual void onPacket(AVQt::IPacketSource *source, AVPacket *packet, int8_t packetType) = 0;
 
     signals:
 

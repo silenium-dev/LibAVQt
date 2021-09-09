@@ -17,7 +17,11 @@ namespace AVQt {
     /*!
      * \private
      */
-    class DecoderQSVPrivate {
+    class DecoderQSVPrivate : public QObject {
+    Q_OBJECT
+
+        Q_DECLARE_PUBLIC(AVQt::DecoderQSV)
+
     public:
         DecoderQSVPrivate(const DecoderQSVPrivate &) = delete;
 

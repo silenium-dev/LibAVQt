@@ -1,22 +1,19 @@
 //
-// Created by silas on 3/28/21.
+// Created by silas on 01.09.21.
 //
-
-#include "IAudioSink.h"
-
-#include <QThread>
 
 #ifndef LIBAVQT_OPENALAUDIOOUTPUT_H
 #define LIBAVQT_OPENALAUDIOOUTPUT_H
 
+#include <QThread>
+
+#include "IAudioSink.h"
 
 namespace AVQt {
     class OpenALAudioOutputPrivate;
 
-    class OpenGLRenderer;
-
     class OpenALAudioOutput : public QThread, public IAudioSink {
-    Q_OBJECT
+        Q_OBJECT
         Q_INTERFACES(AVQt::IAudioSink)
 
         Q_DECLARE_PRIVATE(AVQt::OpenALAudioOutput)
@@ -26,29 +23,23 @@ namespace AVQt {
 
         OpenALAudioOutput(OpenALAudioOutput &&other) noexcept;
 
-        OpenALAudioOutput(const OpenALAudioOutput &) = delete;
-
-        void operator=(const OpenALAudioOutput &) = delete;
-
-        Q_INVOKABLE bool isPaused() Q_DECL_OVERRIDE;
-
-        void run() Q_DECL_OVERRIDE;
-
-        [[maybe_unused]] void syncToOutput(OpenGLRenderer *renderer);
+        bool isPaused() override;
 
     public slots:
 
-        Q_INVOKABLE int init(IAudioSource *source, int64_t duration, int sampleRate) Q_DECL_OVERRIDE;
+        int init(AVQt::IAudioSource *source, int64_t duration, int sampleRate, AVSampleFormat sampleFormat, uint64_t channelLayout) override;
 
-        Q_INVOKABLE int deinit(IAudioSource *source) Q_DECL_OVERRIDE;
+        int deinit(AVQt::IAudioSource *source) override;
 
-        Q_INVOKABLE int start(IAudioSource *source) Q_DECL_OVERRIDE;
+        int start(AVQt::IAudioSource *source) override;
 
-        Q_INVOKABLE int stop(IAudioSource *source) Q_DECL_OVERRIDE;
+        int stop(AVQt::IAudioSource *source) override;
 
-        Q_INVOKABLE void pause(IAudioSource *source, bool pause) Q_DECL_OVERRIDE;
+        void pause(AVQt::IAudioSource *source, bool pause) override;
 
-        Q_INVOKABLE void onAudioFrame(IAudioSource *source, AVFrame *frame, uint32_t duration) Q_DECL_OVERRIDE;
+        void onAudioFrame(AVQt::IAudioSource *source, AVFrame *frame, uint32_t duration) override;
+
+        void enqueueAudioForFrame(qint64 pts, qint64 duration);
 
     signals:
 
@@ -56,18 +47,14 @@ namespace AVQt {
 
         void stopped() Q_DECL_OVERRIDE;
 
-        void paused(bool pause) Q_DECL_OVERRIDE;
+        void paused(bool paused) Q_DECL_OVERRIDE;
 
     protected:
         [[maybe_unused]] explicit OpenALAudioOutput(OpenALAudioOutputPrivate &p);
 
+        void run() Q_DECL_OVERRIDE;
+
         OpenALAudioOutputPrivate *d_ptr;
-
-    private slots:
-
-        void clockIntervalChanged(int64_t interval);
-
-        void clockTriggered(qint64 timestamp);
     };
 }
 

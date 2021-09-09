@@ -24,7 +24,7 @@ namespace AVQt {
 
         void operator=(const RenderClock &) = delete;
 
-        ~RenderClock();
+        ~RenderClock() override;
 
         void setInterval(int interval);
 

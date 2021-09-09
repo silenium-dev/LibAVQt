@@ -74,7 +74,7 @@ set(SOURCES
 
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
-        filter/private/OpenALErrorHandler.h
+        output/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
         filter/EncoderQSV.h
@@ -119,7 +119,6 @@ set(SOURCES_WINDOWS
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
-        filter/DecoderD3D11VA.h
         filter/private/DecoderD3D11VA_p.h
         filter/DecoderD3D11VA.cpp
         )
