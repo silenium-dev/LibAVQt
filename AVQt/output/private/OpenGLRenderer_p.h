@@ -9,9 +9,11 @@
 #include <QtOpenGL>
 
 #ifdef Q_OS_LINUX
+
 #include <va/va.h>
 #include <va/va_x11.h>
 #include <va/va_drmcommon.h>
+
 #elif defined(Q_OS_WINDOWS)
 
 #include <d3d9.h>
@@ -41,90 +43,92 @@ extern "C"
  */
 struct AVFrame;
 
-namespace AVQt
-{
-        class OpenGLRenderer;
+namespace AVQt {
+    class OpenGLRenderer;
 
-        /*!
+    /*!
      * \private
      * \internal
      */
-        class OpenGLRendererPrivate : public QObject
-        {
-        public:
-                OpenGLRendererPrivate(const OpenGLRendererPrivate &) = delete;
+    class OpenGLRendererPrivate : public QObject {
+    Q_OBJECT
 
-                void operator=(const OpenGLRendererPrivate &) = delete;
+        Q_DECLARE_PUBLIC(AVQt::OpenGLRenderer)
 
-        private:
-                explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q){};
+    public:
+        OpenGLRendererPrivate(const OpenGLRendererPrivate &) = delete;
 
-                [[maybe_unused]] static GLint
-                project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
-                        GLdouble *winx, GLdouble *winy, GLdouble *winz);
+        void operator=(const OpenGLRendererPrivate &) = delete;
 
-                static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+    private:
+        explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {};
 
-                static QTime timeFromMillis(int64_t ts);
+        [[maybe_unused]] static GLint
+        project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
+                GLdouble *winx, GLdouble *winy, GLdouble *winz);
 
-                OpenGLRenderer *q_ptr{nullptr};
+        static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
 
-                QMutex m_onFrameMutex{};
-                QMutex m_renderQueueMutex{};
-                QQueue<QFuture<AVFrame *>> m_renderQueue{};
+        static QTime timeFromMillis(int64_t ts);
 
-                RenderClock *m_clock{nullptr};
-                QTime m_duration{};
-                QTime m_position{};
-                std::atomic_bool m_updateRequired{true}, m_paused{false}, m_running{false}, m_firstFrame{true};
-                std::atomic<qint64> m_updateTimestamp{0};
-                std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame{};
+        OpenGLRenderer *q_ptr{nullptr};
 
-                QMutex m_currentFrameMutex{};
-                AVFrame *m_currentFrame{nullptr};
+        QMutex m_onFrameMutex{};
+        QMutex m_renderQueueMutex{};
+        QQueue<QFuture<AVFrame *>> m_renderQueue{};
 
-                AVBufferRef *m_pQSVDerivedDeviceContext{nullptr};
-                AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
+        RenderClock *m_clock{nullptr};
+        QTime m_duration{};
+        QTime m_position{};
+        std::atomic_bool m_updateRequired{true}, m_paused{false}, m_running{false}, m_firstFrame{true};
+        std::atomic<qint64> m_updateTimestamp{0};
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame{};
 
-                //OpenGL stuff
-                QOpenGLVertexArrayObject m_vao{};
-                QOpenGLBuffer m_vbo{}, m_ibo{};
-                QOpenGLShaderProgram *m_program{nullptr};
-                QOpenGLTexture *m_yTexture{nullptr}, *m_uTexture{nullptr}, *m_vTexture{nullptr};
+        QMutex m_currentFrameMutex{};
+        AVFrame *m_currentFrame{nullptr};
 
-                static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
-                static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
+        AVBufferRef *m_pQSVDerivedDeviceContext{nullptr};
+        AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
+
+        //OpenGL stuff
+        QOpenGLVertexArrayObject m_vao{};
+        QOpenGLBuffer m_vbo{}, m_ibo{};
+        QOpenGLShaderProgram *m_program{nullptr};
+        QOpenGLTexture *m_yTexture{nullptr}, *m_uTexture{nullptr}, *m_vTexture{nullptr};
+
+        static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
+        static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
 
 #ifdef Q_OS_LINUX
-                // VAAPI stuff
-                VADisplay m_VADisplay{nullptr};
-                AVVAAPIDeviceContext *m_pVAContext{nullptr};
+        // VAAPI stuff
+        VADisplay m_VADisplay{nullptr};
+        AVVAAPIDeviceContext *m_pVAContext{nullptr};
 #elif defined(Q_OS_WINDOWS)
-                // DXVA2 stuff
-                IDirect3DDeviceManager9 *m_pD3DManager{nullptr};
-                AVDXVA2DeviceContext *m_pDXVAContext{nullptr};
-                IDirect3DSurface9 *m_pSharedSurface{nullptr};
-                HANDLE m_hSharedSurface{}, m_hSharedTexture{}, m_hDXDevice{};
+        // DXVA2 stuff
+        IDirect3DDeviceManager9 *m_pD3DManager{nullptr};
+        AVDXVA2DeviceContext *m_pDXVAContext{nullptr};
+        IDirect3DSurface9 *m_pSharedSurface{nullptr};
+        HANDLE m_hSharedSurface{}, m_hSharedTexture{}, m_hDXDevice{};
 
-                // D3D11VA stuff
-                AVD3D11VADeviceContext *m_pD3D11VAContext{nullptr};
-                ID3D11Device *m_pD3D11Device{nullptr};
-                ID3D11DeviceContext *m_pD3D11DeviceCtx{nullptr};
-                ID3D11Texture2D *m_pSharedTexture{nullptr};
-                ID3D11Texture2D *m_pInputTexture{nullptr};
-                ID3D11VideoDevice *m_pVideoDevice{nullptr};
-                ID3D11VideoContext *m_pVideoDeviceCtx{nullptr};
-                ID3D11VideoProcessorEnumerator *m_pVideoProcEnum{nullptr};
-                ID3D11VideoProcessor *m_pVideoProc{nullptr};
-                ID3D11VideoProcessorOutputView *m_pVideoProcOutputView{nullptr};
-                ID3D11VideoProcessorInputView *m_pVideoProcInputView{nullptr};
+        // D3D11VA stuff
+        AVD3D11VADeviceContext *m_pD3D11VAContext{nullptr};
+        ID3D11Device *m_pD3D11Device{nullptr};
+        ID3D11DeviceContext *m_pD3D11DeviceCtx{nullptr};
+        ID3D11Texture2D *m_pSharedTexture{nullptr};
+        ID3D11Texture2D *m_pInputTexture{nullptr};
+        ID3D11VideoDevice *m_pVideoDevice{nullptr};
+        ID3D11VideoContext *m_pVideoDeviceCtx{nullptr};
+        ID3D11VideoProcessorEnumerator *m_pVideoProcEnum{nullptr};
+        ID3D11VideoProcessor *m_pVideoProc{nullptr};
+        ID3D11VideoProcessorOutputView *m_pVideoProcOutputView{nullptr};
+        ID3D11VideoProcessorInputView *m_pVideoProcInputView{nullptr};
 #endif
-                EGLDisplay m_EGLDisplay{nullptr};
-                EGLImage m_EGLImages[2]{};
-                GLuint m_textures[2]{};
+        EGLDisplay m_EGLDisplay{nullptr};
+        EGLImage m_EGLImages[2]{};
+        GLuint m_textures[2]{};
 
-                friend class OpenGLRenderer;
-        };
+        friend class OpenGLRenderer;
+    };
 }
 
 #endif //LIBAVQT_OPENGLRENDERER_P_H

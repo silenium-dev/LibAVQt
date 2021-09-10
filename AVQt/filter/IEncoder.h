@@ -19,48 +19,52 @@ namespace AVQt {
             H264, HEVC, VP9, VP8, MPEG2, AV1
         };
 
-        virtual ~IEncoder() = default;
+        ~IEncoder() Q_DECL_OVERRIDE = default;
 
-        virtual bool isPaused() = 0;
+        bool isPaused() Q_DECL_OVERRIDE = 0;
 
     public slots:
 
-        Q_INVOKABLE virtual int init(IFrameSource *source, AVRational framerate, int64_t duration) = 0;
+        Q_INVOKABLE int init(IFrameSource *source, AVRational framerate, int64_t duration) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual int deinit(IFrameSource *source) = 0;
+        Q_INVOKABLE int deinit(IFrameSource *source) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual int start(IFrameSource *source) = 0;
+        Q_INVOKABLE int start(IFrameSource *source) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual int stop(IFrameSource *source) = 0;
+        Q_INVOKABLE int stop(IFrameSource *source) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual void pause(IFrameSource *source, bool pause) = 0;
+        Q_INVOKABLE void pause(IFrameSource *source, bool pause) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) = 0;
+        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) Q_DECL_OVERRIDE = 0;
 
 
         // IPacketSource
 
-        Q_INVOKABLE virtual int init() = 0;
+        Q_INVOKABLE int init() Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual int deinit() = 0;
+        Q_INVOKABLE int deinit() Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual int start() = 0;
+        Q_INVOKABLE int start() Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual int stop() = 0;
+        Q_INVOKABLE int stop() Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual void pause(bool pause) = 0;
+        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual qint64 registerCallback(IPacketSink *packetSink, int8_t type) = 0;
+        Q_INVOKABLE qint64 registerCallback(IPacketSink *packetSink, int8_t type) Q_DECL_OVERRIDE = 0;
 
-        Q_INVOKABLE virtual qint64 unregisterCallback(IPacketSink *packetSink) = 0;
+        Q_INVOKABLE qint64 unregisterCallback(IPacketSink *packetSink) Q_DECL_OVERRIDE = 0;
 
     signals:
 
-        virtual void started() = 0;
+        void started() Q_DECL_OVERRIDE = 0;
 
-        virtual void stopped() = 0;
+        void stopped() Q_DECL_OVERRIDE = 0;
 
-        virtual void paused(bool pause) = 0;
+        void paused(bool pause) Q_DECL_OVERRIDE = 0;
+
+        void frameProcessingStarted(qint64 pts, qint64 duration) Q_DECL_OVERRIDE = 0;
+
+        void frameProcessingFinished(qint64 pts, qint64 duration) Q_DECL_OVERRIDE = 0;
     };
 }
 

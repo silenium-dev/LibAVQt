@@ -39,8 +39,6 @@ namespace AVQt {
 
         bool isPaused() Q_DECL_OVERRIDE;
 
-        RenderClock *getClock();
-
     public slots:
         /*!
          * \brief Initialize frame sink (e.g. allocate contexts, open streams)
@@ -101,6 +99,10 @@ namespace AVQt {
         void stopped() Q_DECL_OVERRIDE;
 
         void paused(bool pause) Q_DECL_OVERRIDE;
+
+        void frameProcessingStarted(qint64 pts, qint64 duration) override;
+
+        void frameProcessingFinished(qint64 pts, qint64 duration) override;
 
     protected:
         [[maybe_unused]] explicit OpenGLRenderer(OpenGLRendererPrivate &p);

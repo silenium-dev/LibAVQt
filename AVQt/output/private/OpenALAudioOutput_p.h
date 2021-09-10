@@ -1,13 +1,11 @@
 //
-// Created by silas on 3/28/21.
+// Created by silas on 01.09.21.
 //
 
-#include "../RenderClock.h"
+#ifndef LIBAVQT_OPENALAUDIOOUTPUT_P_H
+#define LIBAVQT_OPENALAUDIOOUTPUT_P_H
 
-extern "C" {
-#include <libavutil/frame.h>
-#include <libswresample/swresample.h>
-}
+#include "../OpenALAudioOutput.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -15,56 +13,55 @@ extern "C" {
 
 #include <QtCore>
 
-#ifndef LIBAVQT_OPENALAUDIOOUTPUT_P_H
-#define LIBAVQT_OPENALAUDIOOUTPUT_P_H
+extern "C" {
+#include <libavutil/frame.h>
+#include <libswresample/swresample.h>
+}
 
 namespace AVQt {
-    class OpenALAudioOutput;
+    class OpenALAudioOutputPrivate : public QObject {
+        Q_OBJECT
 
-    class OpenALAudioOutputPrivate {
-    public:
-        OpenALAudioOutputPrivate(const OpenALAudioOutputPrivate &) = delete;
-
-        void operator=(const OpenALAudioOutputPrivate &) = delete;
+        Q_DECLARE_PUBLIC(AVQt::OpenALAudioOutput)
 
     private:
-        explicit OpenALAudioOutputPrivate(OpenALAudioOutput *q) : q_ptr(q) {};
+        explicit OpenALAudioOutputPrivate(OpenALAudioOutput *q) : q_ptr(q) {}
 
         OpenALAudioOutput *q_ptr;
 
-        QMutex m_inputQueueMutex{};
-        QQueue<QPair<AVFrame *, int64_t>> m_inputQueue{};
-//        AVFrame *m_partialFrame {nullptr};
-//        size_t m_partialFrameOffset {0};
-        QMutex m_outputQueueMutex{};
-        QQueue<QPair<AVFrame *, int64_t>> m_outputQueue{};
-        std::atomic_bool m_outputSliceDurationChanged{false};
-        int64_t m_duration{0}, m_clockInterval{0}, m_sampleRate{0};
-
-        std::atomic<RenderClock *> m_clock{nullptr};
-
-        QMutex m_swrContextMutex{};
         SwrContext *m_pSwrContext{nullptr};
+        int m_sampleRate{0};
+        uint64_t m_channelLayout{0};
+        AVSampleFormat m_sampleFormat{AV_SAMPLE_FMT_NONE};
 
-        int m_ALBufferCount{5};
-        std::atomic_int64_t m_playingBuffers{0};
-        QVector<ALuint> m_ALBuffers{};
-        QMutex m_ALBufferQueueMutex{};
-        QQueue<ALuint> m_ALBufferQueue{};
-        QMutex m_ALBufferSampleMapMutex{};
-        QMap<ALuint, int64_t> m_ALBufferSampleMap{};
-        int64_t m_queuedSamples{0};
-        ALCdevice *m_ALCDevice{nullptr};
-        ALCcontext *m_ALCContext{nullptr};
+        QMutex m_inputQueueMutex{};
+        QQueue<AVFrame *> m_inputQueue{};
+        QMutex m_outputQueueMutex{};
+        QQueue<AVFrame *> m_outputQueue{};
 
-        ALuint m_ALSource{0};
-        // Threading stuff
+        int AL_BUFFER_COUNT = 500;
+        static constexpr int AL_BUFFER_ALLOC_STEPS = 50;
+        static constexpr size_t OUT_SAMPLE_RATE = 48000;
+        static constexpr AVSampleFormat OUT_SAMPLE_FORMAT = AV_SAMPLE_FMT_FLT;
+        static constexpr int OUT_CHANNEL_LAYOUT = AV_CH_LAYOUT_STEREO;
+
+        ALCdevice *m_alcDevice{nullptr};
+        ALCcontext *m_alcContext{nullptr};
+        ALuint m_alSource{0};
+
+        //        std::atomic_uint_fast64_t m_queuedBuffers{0};
+        //        QMutex m_alBufferMutex{};
+        QVector<ALuint> m_alBuffers{};
+        QQueue<ALuint> m_alBufferQueue{};
+
         std::atomic_bool m_running{false};
-        std::atomic_bool m_paused{false};
+        //        std::atomic_bool m_initialized{false};
 
-        std::atomic_bool m_wasPaused{false};
-        std::atomic_int64_t m_lastUpdate{0};
-        std::atomic_size_t m_audioFrame{0};
+        //        std::atomic_bool m_wasPaused{false};
+        //        std::atomic_int64_t m_lastUpdate{0};
+        //        std::atomic_size_t m_audioFrame{0};
+        std::atomic_bool m_firstFrame{true};
+        std::atomic<IAudioSource *> m_sourceLock{nullptr};
 
         friend class OpenALAudioOutput;
     };

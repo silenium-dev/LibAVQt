@@ -7,12 +7,12 @@ build:
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug ..
-    - cmake --build . -j5
+    - cmake --build . -j$(nproc)
     - cd ..
     - mkdir build-release
     - cd build-release
     - cmake -DCMAKE_BUILD_TYPE=Release ..
-    - cmake --build . -j5
+    - cmake --build . -j$(nproc)
   artifacts:
     paths:
       - build/AVQt/libAVQt_static.a

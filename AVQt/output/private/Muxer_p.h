@@ -15,7 +15,9 @@ extern "C" {
 #define LIBAVQT_MUXER_P_H
 
 namespace AVQt {
-    class MuxerPrivate {
+    class MuxerPrivate : public QObject {
+        Q_DECLARE_PUBLIC(AVQt::Muxer)
+
     public:
         MuxerPrivate(const MuxerPrivate &) = delete;
 

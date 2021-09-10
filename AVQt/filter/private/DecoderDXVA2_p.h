@@ -15,7 +15,11 @@ namespace AVQt {
     /*!
     * \private
     */
-    class DecoderDXVA2Private {
+    class DecoderDXVA2Private : public QObject {
+    Q_OBJECT
+
+        Q_DECLARE_PUBLIC(AVQt::DecoderDXVA2)
+
     public:
         DecoderDXVA2Private(const DecoderDXVA2Private &) = delete;
 
