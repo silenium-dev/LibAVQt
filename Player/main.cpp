@@ -73,18 +73,17 @@ int main(int argc, char *argv[]) {
 
     inputFile->open(QIODevice::ReadWrite);
 
-    AVQt::Demuxer demuxer(inputFile);
+    AVQt::Demuxer *demuxer = new AVQt::Demuxer(inputFile);
     AVQt::AudioDecoder decoder;
     AVQt::OpenALAudioOutput output;
 
     demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
     decoder.registerCallback(&output);
 
-    AVQt::IDecoder *videoDecoder;
-    AVQt::IEncoder *videoEncoder;
+    AVQt::IDecoder *videoDecoder = nullptr;
+    AVQt::IEncoder *videoEncoder = nullptr;
 #ifdef Q_OS_LINUX
     videoDecoder = new AVQt::DecoderVAAPI;
-    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderD3D11VA();
     videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
@@ -93,17 +92,18 @@ int main(int argc, char *argv[]) {
 #endif
     AVQt::OpenGLRenderer renderer;
 
-    demuxer.registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
+    demuxer->registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
+//    QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
 #ifdef ENABLE_QSV_ENCODE
+    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
     videoDecoder->registerCallback(videoEncoder);
 #endif
-//    QFile outputFile("output.mp4");
-//    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-//    outputFile.seek(0);
-//    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
+    //    QFile outputFile("output.mp4");
+    //    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+    //    outputFile.seek(0);
+    //    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
-//    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
+    //    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
     videoDecoder->registerCallback(&renderer);
 
     renderer.setMinimumSize(QSize(360, 240));
@@ -115,15 +115,15 @@ int main(int argc, char *argv[]) {
     //        output.start(nullptr);
     //    });
 
-    demuxer.init();
+    demuxer->init();
 
     QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame, Qt::QueuedConnection);
-    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, &demuxer, &AVQt::Demuxer::pause);
+    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
 
-    demuxer.start();
+    demuxer->start();
 
-    QObject::connect(app, &QApplication::aboutToQuit, [&] {
-        demuxer.deinit();
+    QObject::connect(app, &QApplication::aboutToQuit, [demuxer, videoDecoder, videoEncoder] {
+        demuxer->deinit();
         //        muxer.deinit(videoEncoder);
         delete videoEncoder;
         delete videoDecoder;
