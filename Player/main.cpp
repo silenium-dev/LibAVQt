@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     AVQt::AudioDecoder decoder;
     AVQt::OpenALAudioOutput output;
 
-    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+    demuxer->registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
     decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder = nullptr;
