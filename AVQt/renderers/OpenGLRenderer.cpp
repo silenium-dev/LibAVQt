@@ -20,7 +20,6 @@ namespace AVQt {
     OpenGLRenderer::OpenGLRenderer(QWidget *parent) : QObject(parent), QOpenGLFunctions(),
                                                       d_ptr(new OpenGLRendererPrivate(this)) {
         Q_D(AVQt::OpenGLRenderer);
-        d->m_parent = parent;
         bool shouldBe = false;
         if (OpenGLRendererPrivate::resourcesLoaded.compare_exchange_strong(shouldBe, true)) {
             loadResources();
@@ -36,6 +35,9 @@ namespace AVQt {
     }
 
     OpenGLRenderer::~OpenGLRenderer() noexcept {
+        Q_D(AVQt::OpenGLRenderer);
+        d->destroyResources();
+        delete d->m_clock;
         delete d_ptr;
     }
 
@@ -63,6 +65,7 @@ namespace AVQt {
         }
 
         delete d->m_clock;
+        d->m_clock = nullptr;
 
         return 0;
     }
@@ -127,8 +130,11 @@ namespace AVQt {
         d->onFrame(frame, pDeviceCtx);
     }
 
-    void OpenGLRenderer::initializeGL(QOpenGLContext *context) {
+    void OpenGLRenderer::initializeGL(QOpenGLContext *context, QSurface *surface) {
         Q_D(AVQt::OpenGLRenderer);
+
+        d->m_context = context;
+        d->m_surface = surface;
 
         initializeOpenGLFunctions();
 
@@ -136,7 +142,7 @@ namespace AVQt {
         d->initializeGL(context);
     }
 
-    void OpenGLRenderer::paintGL(QOpenGLContext *context) {
+    void OpenGLRenderer::paintGL() {
         Q_D(AVQt::OpenGLRenderer);
         //        auto t1 = std::chrono::high_resolution_clock::now();
 

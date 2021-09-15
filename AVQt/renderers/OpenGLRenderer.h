@@ -38,9 +38,9 @@ namespace AVQt {
 
         bool isPaused() Q_DECL_OVERRIDE;
 
-        void initializeGL(QOpenGLContext *context);
+        void initializeGL(QOpenGLContext *context, QSurface *surface);
 
-        void paintGL(QOpenGLContext *context);
+        void paintGL();
 
         QSize getFrameSize();
 

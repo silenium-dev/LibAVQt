@@ -9,9 +9,10 @@ namespace AVQt {
         Q_D(AVQt::OpenGLWidgetRenderer);
         d->m_renderer = new OpenGLRenderer(this);
     }
+
     OpenGLWidgetRenderer::~OpenGLWidgetRenderer() {
         Q_D(AVQt::OpenGLWidgetRenderer);
-        delete d->m_renderer;
+        delete d_ptr;
     }
 
     OpenGLRenderer *OpenGLWidgetRenderer::getFrameSink() {
@@ -21,7 +22,8 @@ namespace AVQt {
 
     void OpenGLWidgetRenderer::initializeGL() {
         Q_D(AVQt::OpenGLWidgetRenderer);
-        d->m_renderer->initializeGL(context());
+        makeCurrent();
+        d->m_renderer->initializeGL(context(), context()->surface());
     }
     void OpenGLWidgetRenderer::paintGL() {
         Q_D(AVQt::OpenGLWidgetRenderer);
@@ -36,7 +38,7 @@ namespace AVQt {
             qDebug("Viewport (x:%d, y:%d, w:%d, h:%d)", (width() - display_width) / 2, (height() - display_height) / 2, display_width, display_height);
             glViewport((width() - display_width) / 2, (height() - display_height) / 2, display_width, display_height);
         }
-        d->m_renderer->paintGL(context());
+        d->m_renderer->paintGL();
         update();
     }
 
@@ -51,10 +53,17 @@ namespace AVQt {
     }
     void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {
         Q_D(AVQt::OpenGLWidgetRenderer);
+        QOpenGLWidget::closeEvent(event);
         if (d->m_quitOnClose.load()) {
             QCoreApplication::quit();
         }
-        QOpenGLWidget::closeEvent(event);
+    }
+    void OpenGLWidgetRenderer::showEvent(QShowEvent *event) {
+        QWidget::showEvent(event);
+
+        if (isWindow()) {
+            windowHandle()->requestActivate();
+        }
     }
 
     //    void OpenGLWidgetRenderer::resizeEvent(QResizeEvent *e) {

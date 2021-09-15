@@ -249,7 +249,6 @@ namespace AVQt {
 
             wait();
 
-            pause(true);
             stopped();
             return 0;
         }

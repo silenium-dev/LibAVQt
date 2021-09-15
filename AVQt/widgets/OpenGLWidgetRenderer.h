@@ -8,6 +8,7 @@
 #include "output/IFrameSink.h"
 
 #include <QOpenGLWidget>
+#include <QtCore>
 
 namespace AVQt {
     class OpenGLWidgetRendererPrivate;
@@ -33,6 +34,8 @@ namespace AVQt {
 
     protected:
         OpenGLWidgetRendererPrivate *d_ptr;
+
+        void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
     };
 }// namespace AVQt
 

@@ -589,7 +589,7 @@ namespace AVQt {
             av_frame_free(&m_currentFrame);
         }
 
-        {
+        if (!m_renderQueue.isEmpty()) {
             QMutexLocker lock(&m_renderQueueMutex);
 
             for (auto &e : m_renderQueue) {
@@ -599,20 +599,31 @@ namespace AVQt {
 
             m_renderQueue.clear();
         }
+        if (m_context) {
+            if (m_context->isValid() && m_context->makeCurrent(m_surface)) {
+                delete m_program;
+                m_program = nullptr;
 
-        delete m_program;
+                m_ibo.destroy();
+                m_vbo.destroy();
+                m_vao.destroy();
 
-        m_ibo.destroy();
-        m_vbo.destroy();
-        m_vao.destroy();
+                delete m_yTexture;
+                delete m_uTexture;
+                delete m_vTexture;
 
-        delete m_yTexture;
-        delete m_uTexture;
-        delete m_vTexture;
+                m_yTexture = nullptr;
+                m_uTexture = nullptr;
+                m_vTexture = nullptr;
+                m_context->doneCurrent();
+            }
+        }
 
         if (m_EGLImages[0]) {
             for (auto &EGLImage : m_EGLImages) {
-                eglDestroyImage(m_EGLDisplay, EGLImage);
+                if (EGLImage != nullptr) {
+                    eglDestroyImage(m_EGLDisplay, EGLImage);
+                }
             }
         }
     }
@@ -658,9 +669,5 @@ namespace AVQt {
         int m = static_cast<int>((ts / 1000 / 60) % 60);
         int h = static_cast<int>(ts / 1000 / 60 / 60);
         return {h, m, s, ms};
-    }
-
-    void OpenGLRendererPrivate::updateSize(const QSize &size) {
-        m_size = size;
     }
 }// namespace AVQt

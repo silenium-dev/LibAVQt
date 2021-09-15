@@ -16,7 +16,7 @@ namespace AVQt {
         explicit OpenGLWidgetRendererPrivate(OpenGLWidgetRenderer *q) : q_ptr(q){};
         OpenGLWidgetRenderer *q_ptr;
 
-        OpenGLRenderer *m_renderer{nullptr};
+        OpenGLRenderer *m_renderer;
 
         std::atomic_bool m_quitOnClose{false};
 

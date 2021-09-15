@@ -9,7 +9,7 @@
 constexpr auto LOGFILE_LOCATION = "libAVQt.log";
 
 QApplication *app = nullptr;
-std::chrono::time_point<std::chrono::system_clock> start; // NOLINT(cert-err58-cpp)
+std::chrono::time_point<std::chrono::system_clock> start;// NOLINT(cert-err58-cpp)
 
 void signalHandler(int sigNum) {
     Q_UNUSED(sigNum)
@@ -40,6 +40,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 }
 
 int main(int argc, char *argv[]) {
+    QApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
@@ -90,7 +91,7 @@ int main(int argc, char *argv[]) {
 #else
 #error "Unsupported OS"
 #endif
-    AVQt::OpenGLWidgetRenderer renderer;
+    auto renderer = new AVQt::OpenGLWidgetRenderer;
 
     demuxer->registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
 //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
@@ -104,12 +105,12 @@ int main(int argc, char *argv[]) {
     //    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
     //    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(renderer.getFrameSink());
+    videoDecoder->registerCallback(renderer->getFrameSink());
 
-    renderer.setMinimumSize(QSize(360, 240));
-    renderer.setAttribute(Qt::WA_QuitOnClose);
-    renderer.setQuitOnClose(true);
-    renderer.showNormal();
+    renderer->setMinimumSize(QSize(360, 240));
+    renderer->setAttribute(Qt::WA_QuitOnClose);
+    renderer->setQuitOnClose(true);
+    renderer->showNormal();
 
     //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
     //        output.pause(nullptr, paused);
@@ -120,14 +121,16 @@ int main(int argc, char *argv[]) {
 
     demuxer->init();
 
-    output.syncToOutput(renderer.getFrameSink());
-    //    QObject::connect(renderer.getFrameSink(), &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
+    output.syncToOutput(renderer->getFrameSink());
+    //    QObject::connect(renderer->getFrameSink(), &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
 
     demuxer->start();
 
-    QObject::connect(app, &QApplication::aboutToQuit, [demuxer, videoDecoder, videoEncoder] {
+    QObject::connect(app, &QApplication::aboutToQuit, [demuxer, videoDecoder, videoEncoder, renderer] {
         demuxer->deinit();
+        //        renderer->getFrameSink()->stop(videoDecoder);
         //        muxer.deinit(videoEncoder);
+        delete renderer;
         delete videoEncoder;
         delete videoDecoder;
     });

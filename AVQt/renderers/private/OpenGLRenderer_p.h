@@ -70,7 +70,6 @@ namespace AVQt {
 
         void onFrame(AVFrame *frame, AVBufferRef *pDeviceCtx);
         void updatePixelFormat();
-        void updateSize(const QSize &size);
         void mapFrame();
 
         void bindResources();
@@ -88,7 +87,8 @@ namespace AVQt {
 
         OpenGLRenderer *q_ptr{nullptr};
 
-        QWidget *m_parent{nullptr};
+        QOpenGLContext *m_context{nullptr};
+        QSurface *m_surface{nullptr};
 
         // Data
         QMutex m_onFrameMutex{};
@@ -109,12 +109,11 @@ namespace AVQt {
         AVBufferRef *m_pQSVDerivedDeviceContext{nullptr};
         AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
 
-        //OpenGL stuff
+        // OpenGL stuff
         QOpenGLVertexArrayObject m_vao{};
         QOpenGLBuffer m_vbo{}, m_ibo{};
         QOpenGLShaderProgram *m_program{nullptr};
         QOpenGLTexture *m_yTexture{nullptr}, *m_uTexture{nullptr}, *m_vTexture{nullptr};
-        QSize m_size{};
 
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
