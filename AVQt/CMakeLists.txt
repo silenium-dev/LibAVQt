@@ -74,24 +74,28 @@ set(SOURCES
 
         filter/AudioDecoder.h
         filter/private/AudioDecoder_p.h
-        output/private/OpenALErrorHandler.h
+        renderers/private/OpenALErrorHandler.h
         filter/AudioDecoder.cpp
 
         filter/EncoderQSV.h
         filter/private/EncoderQSV_p.h
         filter/EncoderQSV.cpp
 
-        output/RenderClock.h
-        output/private/RenderClock_p.h
-        output/RenderClock.cpp
+        renderers/RenderClock.h
+        renderers/private/RenderClock_p.h
+        renderers/RenderClock.cpp
 
-        output/OpenGLRenderer.h
-        output/private/OpenGLRenderer_p.h
-        output/OpenGLRenderer.cpp
+        renderers/OpenGLRenderer.h
+        renderers/private/OpenGLRenderer_p.h
+        renderers/OpenGLRenderer.cpp
 
-        output/OpenALAudioOutput.h
-        output/private/OpenALAudioOutput_p.h
-        output/OpenALAudioOutput.cpp
+        renderers/OpenALAudioOutput.h
+        renderers/private/OpenALAudioOutput_p.h
+        renderers/OpenALAudioOutput.cpp
+
+        widgets/OpenGLWidgetRenderer.h
+        widgets/private/OpenGLWidgetRenderer_p.h
+        widgets/OpenGLWidgetRenderer.cpp
 
         output/Muxer.h
         output/private/Muxer_p.h
@@ -113,6 +117,8 @@ set(SOURCES_LINUX
         filter/EncoderVAAPI.h
         filter/private/EncoderVAAPI_p.h
         filter/EncoderVAAPI.cpp
+
+        renderers/private/unix/OpenGLRenderer_p.cpp
         )
 set(SOURCES_WINDOWS
         filter/DecoderDXVA2.h
@@ -121,6 +127,8 @@ set(SOURCES_WINDOWS
 
         filter/private/DecoderD3D11VA_p.h
         filter/DecoderD3D11VA.cpp
+
+        renderers/private/windows/OpenGLRenderer_p.cpp
         )
 
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above

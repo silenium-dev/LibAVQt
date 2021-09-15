@@ -2,8 +2,8 @@
 // Created by silas on 3/21/21.
 //
 
-#include "private/OpenGLRenderer_p.h"
 #include "OpenGLRenderer.h"
+#include "renderers/private/OpenGLRenderer_p.h"
 
 #ifdef Q_OS_LINUX
 
@@ -281,10 +281,6 @@ namespace AVQt {
             d->m_paused.store(false);
             qDebug("Started renderer");
 
-            QMetaObject::invokeMethod(this, "showNormal", Qt::QueuedConnection);
-            //            QMetaObject::invokeMethod(this, "requestActivate", Qt::QueuedConnection);
-            QMetaObject::invokeMethod(this, "update", Qt::QueuedConnection);
-
             started();
         }
         return 0;
@@ -317,8 +313,6 @@ namespace AVQt {
                 d->m_renderQueue.clear();
             }
 
-            makeCurrent();
-
             delete d->m_program;
 
             d->m_ibo.destroy();
@@ -350,12 +344,11 @@ namespace AVQt {
         bool shouldBeCurrent = !pause;
 
         if (d->m_paused.compare_exchange_strong(shouldBeCurrent, pause)) {
-            if (d->m_clock->isActive()) {
+            if (d->m_clock->isActive() == !pause) {
                 d->m_clock->pause(pause);
             }
             qDebug("pause() called");
             paused(pause);
-            update();
         }
     }
 

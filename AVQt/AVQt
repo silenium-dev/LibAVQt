@@ -10,14 +10,15 @@
 #include "output/IFrameSink.h"
 #include "output/IPacketSink.h"
 #include "output/Muxer.h"
-#include "output/OpenALAudioOutput.h"
-#include "output/OpenGLRenderer.h"
+#include "renderers/OpenALAudioOutput.h"
+#include "renderers/OpenGLRenderer.h"
+#include "widgets/OpenGLWidgetRenderer.h"
 
 
 #ifdef Q_OS_LINUX
 
-#include "filter/DecoderVAAPI.h"
 #include "filter/DecoderMMAL.h"
+#include "filter/DecoderVAAPI.h"
 #include "filter/EncoderVAAPI.h"
 
 #elif defined(Q_OS_WIN)

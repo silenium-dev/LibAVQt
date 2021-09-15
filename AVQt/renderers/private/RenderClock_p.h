@@ -2,7 +2,7 @@
 // Created by silas on 3/31/21.
 //
 
-#include "../RenderClock.h"
+#include "renderers/RenderClock.h"
 
 #ifndef LIBAVQT_RENDERCLOCK_P_H
 #define LIBAVQT_RENDERCLOCK_P_H

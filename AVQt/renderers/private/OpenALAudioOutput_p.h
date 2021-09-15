@@ -5,7 +5,7 @@
 #ifndef LIBAVQT_OPENALAUDIOOUTPUT_P_H
 #define LIBAVQT_OPENALAUDIOOUTPUT_P_H
 
-#include "../OpenALAudioOutput.h"
+#include "renderers/OpenALAudioOutput.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>

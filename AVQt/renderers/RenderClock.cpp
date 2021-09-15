@@ -2,8 +2,8 @@
 // Created by silas on 3/31/21.
 //
 
-#include "private/RenderClock_p.h"
 #include "RenderClock.h"
+#include "renderers/private/RenderClock_p.h"
 
 namespace AVQt {
     RenderClock::RenderClock(QObject *parent) : QObject(parent), d_ptr(new RenderClockPrivate(this)) {

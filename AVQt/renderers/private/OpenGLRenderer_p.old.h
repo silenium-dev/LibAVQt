@@ -2,8 +2,8 @@
  * \private
  * \internal
  */
-#include "../RenderClock.h"
-#include "../OpenGLRenderer.h"
+#include "renderers/OpenGLRenderer.h"
+#include "renderers/RenderClock.h"
 
 #include <QtCore>
 #include <QtOpenGL>

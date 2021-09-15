@@ -7,7 +7,8 @@
 
 #include <QThread>
 
-#include "IAudioSink.h"
+#include "output/IAudioSink.h"
+#include "output/IFrameSink.h"
 
 namespace AVQt {
     class OpenALAudioOutputPrivate;
@@ -40,6 +41,8 @@ namespace AVQt {
         void onAudioFrame(AVQt::IAudioSource *source, AVFrame *frame, uint32_t duration) override;
 
         void enqueueAudioForFrame(qint64 pts, qint64 duration);
+
+        void syncToOutput(AVQt::IFrameSink *output);
 
     signals:
 

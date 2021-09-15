@@ -3,15 +3,16 @@
 //
 
 #include "OpenALAudioOutput.h"
-#include "private/OpenALAudioOutput_p.h"
+#include "renderers/private/OpenALAudioOutput_p.h"
 
-#include "private/OpenALErrorHandler.h"
+#include "renderers/private/OpenALErrorHandler.h"
 
 extern "C" {
 #include <libswresample/swresample.h>
 }
 
 #include <QThread>
+#include <output/IFrameSink.h>
 
 namespace AVQt {
     OpenALAudioOutput::OpenALAudioOutput(QObject *parent) : QThread(parent), d_ptr(new OpenALAudioOutputPrivate(this)) {
@@ -95,25 +96,27 @@ namespace AVQt {
             return EACCES;
         }
 
-        stop(source);
+        if (d->m_alcDevice) {
+            stop(source);
 
-        {
-            ALCboolean contextCurrent = ALC_FALSE;
-            alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, d->m_alcContext);
+            {
+                ALCboolean contextCurrent = ALC_FALSE;
+                alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, d->m_alcContext);
 
-            alCall(alSourcei, d->m_alSource, AL_SOURCE_STATE, AL_STOPPED);
+                alCall(alSourcei, d->m_alSource, AL_SOURCE_STATE, AL_STOPPED);
 
-            alCall(alDeleteSources, 1, &d->m_alSource);
-            alCall(alDeleteBuffers, d->AL_BUFFER_COUNT, d->m_alBuffers.data());
-            d->m_alBuffers.clear();
-            d->m_alBuffers.squeeze();
-            d->m_alBufferQueue.clear();
+                alCall(alDeleteSources, 1, &d->m_alSource);
+                alCall(alDeleteBuffers, d->AL_BUFFER_COUNT, d->m_alBuffers.data());
+                d->m_alBuffers.clear();
+                d->m_alBuffers.squeeze();
+                d->m_alBufferQueue.clear();
 
-            alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, nullptr);
-            alcCall(alcDestroyContext, d->m_alcDevice, d->m_alcContext);
+                alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, nullptr);
+                alcCall(alcDestroyContext, d->m_alcDevice, d->m_alcContext);
 
-            ALCboolean closed = ALC_FALSE;
-            alcCall(alcCloseDevice, closed, d->m_alcDevice, d->m_alcDevice);
+                ALCboolean closed = ALC_FALSE;
+                alcCall(alcCloseDevice, closed, d->m_alcDevice, d->m_alcDevice);
+            }
         }
 
         {
@@ -229,82 +232,84 @@ namespace AVQt {
 
     void OpenALAudioOutput::enqueueAudioForFrame(qint64 pts, qint64 duration) {
         Q_D(AVQt::OpenALAudioOutput);
-        qDebug("[AVQt::OpenALAudioOutput] frame with PTS %lld and duration %lld is being processed", pts, duration);
+        if (d->m_alcDevice) {
+            qDebug("[AVQt::OpenALAudioOutput] frame with PTS %lld and duration %lld is being processed", pts, duration);
 
-        ALCboolean contextCurrent = ALC_FALSE;
-        if (!alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, d->m_alcContext) || !contextCurrent) {
-            qFatal("[AVQt::OpenALAudioOutput] Error making ALC context current");
-        }
-
-        while (alGetError() != AL_NO_ERROR) {
-        }
-
-        {
-            ALint buffersProcessed = 0;
-            alGetSourcei(d->m_alSource, AL_BUFFERS_PROCESSED, &buffersProcessed);
-            qDebug("Buffers processed: %d", buffersProcessed);
-            ALint buffersQueued = 0;
-            alGetSourcei(d->m_alSource, AL_BUFFERS_QUEUED, &buffersQueued);
-            qDebug("Buffers queued: %d", buffersQueued);
-
-            ALuint buffer = 0;
-            while (buffersProcessed--) {
-                alSourceUnqueueBuffers(d->m_alSource, 1, &buffer);
-                d->m_alBufferQueue.enqueue(buffer);
+            ALCboolean contextCurrent = ALC_FALSE;
+            if (!alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, d->m_alcContext) || !contextCurrent) {
+                qFatal("[AVQt::OpenALAudioOutput] Error making ALC context current");
             }
-        }
 
-        QVector<AVFrame *> audioQueue;
-        if (!d->m_outputQueue.isEmpty()) {
-            AVFrame *frame = frame = d->m_outputQueue.dequeue();
-            QMutexLocker lock(&d->m_outputQueueMutex);
-            while (!d->m_outputQueue.isEmpty() && frame->pts < pts) {
-                qWarning("[AVQt::OpenALAudioOutput] Skipping frame with PTS %ld", frame->pts);
-                av_frame_free(&frame);
-                frame = d->m_outputQueue.dequeue();
+            while (alGetError() != AL_NO_ERROR) {
             }
-            int64_t queuedDuration = frame->nb_samples / frame->sample_rate * 1000000;
-            audioQueue.append(frame);
-            size_t frames = 0;
-            while (!d->m_outputQueue.isEmpty() && queuedDuration < duration) {
-                frame = d->m_outputQueue.dequeue();
-                queuedDuration += frame->nb_samples / frame->sample_rate * 1000000;
+
+            {
+                ALint buffersProcessed = 0;
+                alGetSourcei(d->m_alSource, AL_BUFFERS_PROCESSED, &buffersProcessed);
+                qDebug("Buffers processed: %d", buffersProcessed);
+                ALint buffersQueued = 0;
+                alGetSourcei(d->m_alSource, AL_BUFFERS_QUEUED, &buffersQueued);
+                qDebug("Buffers queued: %d", buffersQueued);
+
+                ALuint buffer = 0;
+                while (buffersProcessed--) {
+                    alSourceUnqueueBuffers(d->m_alSource, 1, &buffer);
+                    d->m_alBufferQueue.enqueue(buffer);
+                }
+            }
+
+            QVector<AVFrame *> audioQueue;
+            if (!d->m_outputQueue.isEmpty()) {
+                AVFrame *frame = frame = d->m_outputQueue.dequeue();
+                QMutexLocker lock(&d->m_outputQueueMutex);
+                while (!d->m_outputQueue.isEmpty() && frame->pts < pts) {
+                    qWarning("[AVQt::OpenALAudioOutput] Skipping frame with PTS %ld", frame->pts);
+                    av_frame_free(&frame);
+                    frame = d->m_outputQueue.dequeue();
+                }
+                int64_t queuedDuration = frame->nb_samples / frame->sample_rate * 1000000;
                 audioQueue.append(frame);
-                ++frames;
+                size_t frames = 0;
+                while (!d->m_outputQueue.isEmpty() && queuedDuration < duration) {
+                    frame = d->m_outputQueue.dequeue();
+                    queuedDuration += frame->nb_samples / frame->sample_rate * 1000000;
+                    audioQueue.append(frame);
+                    ++frames;
+                }
+                qWarning("[AVQt::OpenALAudioOutput] Enqueuing %zu frames", frames);
             }
-            qWarning("[AVQt::OpenALAudioOutput] Enqueuing %zu frames", frames);
-        }
-        std::vector<uint8_t> audioData;
-        QVector<ALuint> buffers;
-        bool hasData = false;
-        for (auto &f : audioQueue) {
-            hasData = true;
-            audioData.resize(av_samples_get_buffer_size(nullptr, f->channels, f->nb_samples, static_cast<AVSampleFormat>(f->format), 1));
-            memcpy(audioData.data(), f->data[0], audioData.size());
-            if (d->m_alBufferQueue.isEmpty()) {
-                qWarning("[AVQt::OpenALAudioOutput] Allocating additional buffers");
-                int oldSize = d->m_alBuffers.size();
-                d->m_alBuffers.resize(d->m_alBuffers.size() + OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS);
-                alCall(alGenBuffers, OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS, d->m_alBuffers.data() + oldSize);
-                d->m_alBufferQueue.append(d->m_alBuffers.mid(oldSize).toList());
-                d->AL_BUFFER_COUNT += OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS;
+            std::vector<uint8_t> audioData;
+            QVector<ALuint> buffers;
+            bool hasData = false;
+            for (auto &f : audioQueue) {
+                hasData = true;
+                audioData.resize(av_samples_get_buffer_size(nullptr, f->channels, f->nb_samples, static_cast<AVSampleFormat>(f->format), 1));
+                memcpy(audioData.data(), f->data[0], audioData.size());
+                if (d->m_alBufferQueue.isEmpty()) {
+                    qWarning("[AVQt::OpenALAudioOutput] Allocating additional buffers");
+                    int oldSize = d->m_alBuffers.size();
+                    d->m_alBuffers.resize(d->m_alBuffers.size() + OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS);
+                    alCall(alGenBuffers, OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS, d->m_alBuffers.data() + oldSize);
+                    d->m_alBufferQueue.append(d->m_alBuffers.mid(oldSize).toList());
+                    d->AL_BUFFER_COUNT += OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS;
+                }
+                auto buffer = d->m_alBufferQueue.dequeue();
+                alBufferData(buffer, AL_FORMAT_STEREO_FLOAT32, audioData.data(), static_cast<ALsizei>(audioData.size()), f->sample_rate);
+                buffers.append(buffer);
+                audioData.clear();
             }
-            auto buffer = d->m_alBufferQueue.dequeue();
-            alBufferData(buffer, AL_FORMAT_STEREO_FLOAT32, audioData.data(), static_cast<ALsizei>(audioData.size()), f->sample_rate);
-            buffers.append(buffer);
-            audioData.clear();
-        }
-        alSourceQueueBuffers(d->m_alSource, buffers.size(), buffers.data());
+            alSourceQueueBuffers(d->m_alSource, buffers.size(), buffers.data());
 
-        if (hasData) {
-            bool shouldBe = true;
-            if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
-                alCall(alSourcePlay, d->m_alSource);
-                qWarning("[AVQt::OpenALAudioOutput] Starting source");
+            if (hasData) {
+                bool shouldBe = true;
+                if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
+                    alCall(alSourcePlay, d->m_alSource);
+                    qWarning("[AVQt::OpenALAudioOutput] Starting source");
+                }
             }
-        }
 
-        alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, nullptr);
+            alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, nullptr);
+        }
     }
 
     void OpenALAudioOutput::run() {
@@ -341,6 +346,12 @@ namespace AVQt {
                     d->m_outputQueue.enqueue(queueFrame);
                 }
             }
+        }
+    }
+    void OpenALAudioOutput::syncToOutput(AVQt::IFrameSink *output) {
+        Q_D(AVQt::OpenALAudioOutput);
+        if (d->m_alcDevice) {// Only connect after initialization
+            connect(dynamic_cast<QObject *>(output), SIGNAL(frameProcessingStarted(qint64, qint64)), this, SLOT(enqueueAudioForFrame(qint64, qint64)), Qt::QueuedConnection);
         }
     }
 }// namespace AVQt

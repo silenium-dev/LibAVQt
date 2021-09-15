@@ -73,11 +73,11 @@ int main(int argc, char *argv[]) {
 
     inputFile->open(QIODevice::ReadWrite);
 
-    AVQt::Demuxer *demuxer = new AVQt::Demuxer(inputFile);
+    auto *demuxer = new AVQt::Demuxer(inputFile);
     AVQt::AudioDecoder decoder;
     AVQt::OpenALAudioOutput output;
 
-    demuxer.registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
+    demuxer->registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
     decoder.registerCallback(&output);
 
     AVQt::IDecoder *videoDecoder = nullptr;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 #else
 #error "Unsupported OS"
 #endif
-    AVQt::OpenGLRenderer renderer;
+    AVQt::OpenGLWidgetRenderer renderer;
 
     demuxer->registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
 //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
@@ -104,9 +104,12 @@ int main(int argc, char *argv[]) {
     //    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
 
     //    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
-    videoDecoder->registerCallback(&renderer);
+    videoDecoder->registerCallback(renderer.getFrameSink());
 
     renderer.setMinimumSize(QSize(360, 240));
+    renderer.setAttribute(Qt::WA_QuitOnClose);
+    renderer.setQuitOnClose(true);
+    renderer.showNormal();
 
     //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
     //        output.pause(nullptr, paused);
@@ -117,8 +120,8 @@ int main(int argc, char *argv[]) {
 
     demuxer->init();
 
-    QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame, Qt::QueuedConnection);
-    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
+    output.syncToOutput(renderer.getFrameSink());
+    //    QObject::connect(renderer.getFrameSink(), &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
 
     demuxer->start();
 

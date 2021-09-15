@@ -2,8 +2,7 @@
 // Created by silas on 3/21/21.
 //
 
-#include "IFrameSink.h"
-//#include <QtOpenGLWidgets>
+#include "output/IFrameSink.h"
 #include <QtOpenGL>
 #include <input/IFrameSource.h>
 
@@ -20,24 +19,30 @@ namespace AVQt {
 
     class RenderClock;
 
-    class OpenGLRenderer : public QOpenGLWidget, public IFrameSink {
-    Q_OBJECT
-//        Q_INTERFACES(AVQt::IFrameSink)
-
+    class OpenGLRenderer : public QObject, public QOpenGLFunctions, public IFrameSink {
+        Q_OBJECT
+        Q_INTERFACES(AVQt::IFrameSink)
         Q_DECLARE_PRIVATE(AVQt::OpenGLRenderer)
+        Q_DISABLE_COPY(OpenGLRenderer)
 
     public:
         explicit OpenGLRenderer(QWidget *parent = nullptr);
 
         OpenGLRenderer(OpenGLRenderer &&other) noexcept;
-
-        OpenGLRenderer(const OpenGLRenderer &) = delete;
-
-        void operator=(const OpenGLRenderer &) = delete;
+        //
+        //        OpenGLRenderer(const OpenGLRenderer &) = delete;
+        //
+        //        void operator=(const OpenGLRenderer &) = delete;
 
         ~OpenGLRenderer() noexcept Q_DECL_OVERRIDE;
 
         bool isPaused() Q_DECL_OVERRIDE;
+
+        void initializeGL(QOpenGLContext *context);
+
+        void paintGL(QOpenGLContext *context);
+
+        QSize getFrameSize();
 
     public slots:
         /*!
@@ -106,14 +111,6 @@ namespace AVQt {
 
     protected:
         [[maybe_unused]] explicit OpenGLRenderer(OpenGLRendererPrivate &p);
-
-        void initializeGL() Q_DECL_OVERRIDE;
-
-        void paintGL() Q_DECL_OVERRIDE;
-
-        void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-
-        void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
         OpenGLRendererPrivate *d_ptr;
     };
