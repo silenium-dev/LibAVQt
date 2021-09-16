@@ -1,3 +1,7 @@
 *.user
 build*
 /cmake-build-*/
+/.vs/
+/.idea_/
+/out/
+/LibAVQt.code-workspace
