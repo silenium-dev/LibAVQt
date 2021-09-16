@@ -9,9 +9,9 @@ set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
 
-add_compile_options(/EHa)
 
 if (WIN32)
+    add_compile_options(/EHa)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." FIRST_DOT)
     string(FIND "${CMAKE_SYSTEM_VERSION}" "." LAST_DOT REVERSE)
     math(EXPR LAST_DOT "${LAST_DOT}+1") # We don't want the dot in the build number

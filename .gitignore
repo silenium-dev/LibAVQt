@@ -1,2 +1,9 @@
 *.user
 build*
+/.vs/
+/.idea_/
+/cmake-build-debug/
+/cmake-build-release/
+/cmake-build-relwithdebinfo/
+/out/
+/LibAVQt.code-workspace
