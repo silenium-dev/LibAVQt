@@ -161,9 +161,9 @@ namespace AVQt {
 
     int EncoderVAAPI::init(IFrameSource *source, AVRational framerate, int64_t duration) {
         Q_UNUSED(source)
-        Q_UNUSED(duration)
         Q_UNUSED(framerate)
         Q_D(AVQt::EncoderVAAPI);
+        d->m_duration = duration;
         init();
         return 0;
     }
@@ -332,7 +332,9 @@ namespace AVQt {
                     for (const auto &cb: d->m_cbList) {
                         AVCodecParameters *parameters = avcodec_parameters_alloc();
                         avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
-                        cb->init(this, av_make_q(0, 1), d->m_pCodecCtx->time_base, 0, parameters, nullptr, nullptr);
+                        parameters->bit_rate = d->m_bitrate;
+                        //TODO: Pass framerate
+                        cb->init(this, av_make_q(0, 1), d->m_pCodecCtx->time_base, d->m_duration, parameters, nullptr, nullptr);
                         cb->start(this);
                     }
                 }

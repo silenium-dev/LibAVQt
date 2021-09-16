@@ -107,7 +107,7 @@ namespace AVQt {
         void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
-        explicit Demuxer(DemuxerPrivate &p);
+        [[maybe_unused]] explicit Demuxer(DemuxerPrivate &p);
 
         DemuxerPrivate *d_ptr;
     };

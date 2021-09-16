@@ -15,7 +15,11 @@ extern "C" {
 #define LIBAVQT_DEMUXER_P_H
 
 namespace AVQt {
-    class DemuxerPrivate {
+    class DemuxerPrivate : public QObject {
+    Q_OBJECT
+
+        Q_DECLARE_PUBLIC(AVQt::Demuxer)
+
     public:
         DemuxerPrivate(const DemuxerPrivate &) = delete;
 

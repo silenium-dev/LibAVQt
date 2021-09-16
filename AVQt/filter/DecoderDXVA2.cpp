@@ -277,7 +277,7 @@ namespace AVQt {
 //                    auto t3 = NOW();
 
                     QMutexLocker lock2(&d->m_cbListMutex);
-                    QList<QFuture<void>> cbFutures;
+//                    QList<QFuture<void>> cbFutures;
                     for (const auto &cb: d->m_cbList) {
 //                        cbFutures.append(QtConcurrent::run([=] {
                         AVFrame *cbFrame = av_frame_clone(frame);
@@ -304,7 +304,6 @@ namespace AVQt {
 //                        }
 //                        usleep(500);
 //                    }
-                    // TODO: Pass HWFrame to sinks to improve performance in renderers, because DXVA2 supports direct mapping to OpenGL textures
 //                    auto t2 = NOW();
 //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
 

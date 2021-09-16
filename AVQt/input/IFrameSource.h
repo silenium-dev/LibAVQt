@@ -18,32 +18,32 @@ namespace AVQt {
      */
     class IFrameSource {
     public:
-        /*!
-         * \enum CB_TYPE
-         * \brief Used to define accepted callback types of a frame source or filter.
-         *
-         * Can be linked with bitwise or to set multiple types
-         */
-        enum CB_TYPE : int8_t {
-            /*!
-             * \private
-             */
-            CB_NONE = -1,
-
-            /*!
-             * \brief Callback type: QImage. When registered with this type, the onFrame(QImage, ...) method will be called
-             */
-            CB_QIMAGE = 0b00000001,
-
-            /*!
-             * \brief Callback type: AVFrame. When registered with this type, the onFrame(AVFrame, ...) method will be called.
-             *
-             * ***Important:*** The AVFrame can be every possible software pixel format, so the frame sink/filter has to be able to
-             * convert the pixel format if necessary. It has to be freed after usage.
-             * If the source processes frames on the GPU, it has to be downloaded to CPU memory before passing to callbacks.
-             */
-            CB_AVFRAME = 0b00000010
-        };
+//        /*!
+//         * \enum CB_TYPE
+//         * \brief Used to define accepted callback types of a frame source or filter.
+//         *
+//         * Can be linked with bitwise or to set multiple types
+//         */
+//        enum CB_TYPE : int8_t {
+//            /*!
+//             * \private
+//             */
+//            CB_NONE = -1,
+//
+//            /*!
+//             * \brief Callback type: QImage. When registered with this type, the onFrame(QImage, ...) method will be called
+//             */
+//            CB_QIMAGE = 0b00000001,
+//
+//            /*!
+//             * \brief Callback type: AVFrame. When registered with this type, the onFrame(AVFrame, ...) method will be called.
+//             *
+//             * ***Important:*** The AVFrame can be every possible software pixel format, so the frame sink/filter has to be able to
+//             * convert the pixel format if necessary. It has to be freed after usage.
+//             * If the source processes frames on the GPU, it has to be downloaded to CPU memory before passing to callbacks.
+//             */
+//            CB_AVFRAME = 0b00000010
+//        };
 
         /*!
          * \private
@@ -63,14 +63,14 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        Q_INVOKABLE virtual qint64 registerCallback(IFrameSink *frameSink) = 0;
+        Q_INVOKABLE virtual qint64 registerCallback(AVQt::IFrameSink *frameSink) = 0;
 
         /*!
          * \brief Removes frame callback \c frameSink from registry
          * @param frameSink Frame sink/filter to be removed
          * @return Previous position of the item, is -1 when not in registry
          */
-        Q_INVOKABLE virtual qint64 unregisterCallback(IFrameSink *frameSink) = 0;
+        Q_INVOKABLE virtual qint64 unregisterCallback(AVQt::IFrameSink *frameSink) = 0;
 
     public slots:
         /*!

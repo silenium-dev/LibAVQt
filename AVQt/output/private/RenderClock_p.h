@@ -8,7 +8,11 @@
 #define LIBAVQT_RENDERCLOCK_P_H
 
 namespace AVQt {
-    class RenderClockPrivate {
+    class RenderClockPrivate : public QObject {
+    Q_OBJECT
+
+        Q_DECLARE_PUBLIC(AVQt::RenderClock)
+
     public:
         RenderClockPrivate(const RenderClockPrivate &) = delete;
 

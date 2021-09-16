@@ -15,7 +15,9 @@ extern "C" {
 #define LIBAVQT_MUXER_P_H
 
 namespace AVQt {
-    class MuxerPrivate {
+    class MuxerPrivate : public QObject {
+        Q_DECLARE_PUBLIC(AVQt::Muxer)
+
     public:
         MuxerPrivate(const MuxerPrivate &) = delete;
 
@@ -30,7 +32,7 @@ namespace AVQt {
 
         Muxer::FORMAT m_format{Muxer::FORMAT::INVALID};
 
-        QMutex m_initMutex{};
+        QMutex m_initMutex{}, m_ioMutex{};
         static constexpr int64_t IOBUF_SIZE{4 * 1024};  // 4 KB
         uint8_t *m_pIOBuffer{nullptr};
         AVIOContext *m_pIOContext{nullptr};

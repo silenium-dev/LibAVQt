@@ -42,25 +42,25 @@ namespace AVQt {
          * \brief Initialize frame sink (e.g. allocate contexts, open streams)
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE virtual int init(IFrameSource *source, AVRational framerate, int64_t duration) = 0;
+        Q_INVOKABLE virtual int init(AVQt::IFrameSource *source, AVRational framerate, int64_t duration) = 0;
 
         /*!
          * \brief Clean up frame sink (e.g. free buffers, close files)
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE virtual int deinit(IFrameSource *source) = 0;
+        Q_INVOKABLE virtual int deinit(AVQt::IFrameSource *source) = 0;
 
         /*!
          * \brief Starts frame sink (e.g. start processing thread)
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE virtual int start(IFrameSource *source) = 0;
+        Q_INVOKABLE virtual int start(AVQt::IFrameSource *source) = 0;
 
         /*!
          * \brief Stops frame sink (e.g interrupt processing thread, flush buffers)
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE virtual int stop(IFrameSource *source) = 0;
+        Q_INVOKABLE virtual int stop(AVQt::IFrameSource *source) = 0;
 
         /*!
          * \brief Sets paused flag, which can be retrieved with \c isPaused() Q_DECL_OVERRIDE.
@@ -68,7 +68,7 @@ namespace AVQt {
          * When Set to true, the frame sink should not process any frames, instead they should be freed immediately
          * \param pause New paused state
          */
-        Q_INVOKABLE virtual void pause(IFrameSource *source, bool pause) = 0;
+        Q_INVOKABLE virtual void pause(AVQt::IFrameSource *source, bool pause) = 0;
 //
 //        /*!
 //         * \brief Image process method, is invoked in objects thread for every frame
@@ -90,7 +90,7 @@ namespace AVQt {
          * @param framerate Source stream framerate
          * @param duration Source frame presentation duration (inverse of framerate)
          */
-        Q_INVOKABLE virtual void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) = 0;
+        Q_INVOKABLE virtual void onFrame(AVQt::IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) = 0;
 
     signals:
 
@@ -109,6 +109,20 @@ namespace AVQt {
          * @param pause
          */
         virtual void paused(bool pause) = 0;
+
+        /*!
+         * \brief Emitted when frame sink starts processing a frame
+         * @param pts Presentation timestamp of the frame being processed
+         * @param duration Duration in microseconds of the frame being processed
+         */
+        virtual void frameProcessingStarted(qint64 pts, qint64 duration) = 0;
+
+        /*!
+         * \brief Emitted when frame sink finished processing a frame
+         * @param pts Presentation timestamp of the frame that got processed
+         * @param duration Duration in microseconds of the frame that got processed
+         */
+        virtual void frameProcessingFinished(qint64 pts, qint64 duration) = 0;
     };
 }
 

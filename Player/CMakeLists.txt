@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.12)
+
 function(list_transform_prepend var_out var_in prefix)
     set(temp "")
     foreach (f ${${var_in}})
@@ -13,7 +15,6 @@ set(PROJECT_NAME Player)
 add_executable(${PROJECT_NAME} main.cpp)
 
 set(QT_VERSION "5")
-set(CMAKE_PREFIX_PATH F:\\Dev\\Qt\\5.15.2\\msvc2019_64\\lib\\cmake)
 
 set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
 if (QT_VERSION EQUAL "6")
@@ -21,7 +22,6 @@ if (QT_VERSION EQUAL "6")
 endif ()
 set(REQUIRED_LIBS_QUALIFIED)
 list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
-message("${REQUIRED_LIBS_QUALIFIED}")
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBS_QUALIFIED})
@@ -58,9 +58,8 @@ endif ()
 target_link_libraries(Player avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
 
 
-find_package(OpenAL)
-
 if (LINUX)
+    find_package(OpenAL)
     target_link_libraries(Player openal GL EGL GLU va)
 elseif (WIN32)
     target_link_libraries(Player OpenAL32 opengl32 dxguid d3d9)

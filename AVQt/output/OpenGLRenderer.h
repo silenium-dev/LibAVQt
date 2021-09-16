@@ -7,8 +7,6 @@
 #include <QtOpenGL>
 #include <input/IFrameSource.h>
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
 extern "C" {
 #include <libavutil/rational.h>
 }
@@ -40,8 +38,6 @@ namespace AVQt {
         ~OpenGLRenderer() noexcept Q_DECL_OVERRIDE;
 
         bool isPaused() Q_DECL_OVERRIDE;
-
-        RenderClock *getClock();
 
     public slots:
         /*!
@@ -104,6 +100,10 @@ namespace AVQt {
 
         void paused(bool pause) Q_DECL_OVERRIDE;
 
+        void frameProcessingStarted(qint64 pts, qint64 duration) override;
+
+        void frameProcessingFinished(qint64 pts, qint64 duration) override;
+
     protected:
         [[maybe_unused]] explicit OpenGLRenderer(OpenGLRendererPrivate &p);
 
@@ -121,4 +121,3 @@ namespace AVQt {
 
 
 #endif //LIBAVQT_OPENGLRENDERER_H
-#pragma clang diagnostic pop
