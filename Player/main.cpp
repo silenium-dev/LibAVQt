@@ -23,34 +23,41 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
     static QFile logFile(LOGFILE_LOCATION);
     static bool logFileIsOpen = logFile.open(QIODevice::Append | QIODevice::Text);
 
-    QString output;
-    QTextStream os(&output);
+#ifndef QT_DEBUG
+    if (type > QtMsgType::QtDebugMsg)
+#endif
+    {
+        QString output;
+        QTextStream os(&output);
 
-    auto now = QDateTime::currentDateTime();
+        auto now = QDateTime::currentDateTime();
 
-    os << now.toString(Qt::ISODateWithMs) << ": ";
-    os << qPrintable(qFormatLogMessage(type, context, message)) << "\n";
+        os << now.toString(Qt::ISODateWithMs) << ": ";
+        os << qPrintable(qFormatLogMessage(type, context, message)) << "\n";
 
-    std::cerr << output.toStdString();
+        std::cerr << output.toStdString();
 
-    if (logFileIsOpen) {
-        logFile.write(output.toLocal8Bit());
-        logFile.flush();
+        if (logFileIsOpen) {
+            logFile.write(output.toLocal8Bit());
+            logFile.flush();
+        }
     }
 }
 
 int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
 #ifdef Q_OS_WINDOWS
-    _set_abort_behavior( 0, _WRITE_ABORT_MSG);
-    SetErrorMode(GetErrorMode () | SEM_NOGPFAULTERRORBOX);
+    _set_abort_behavior(0, _WRITE_ABORT_MSG);
+    SetErrorMode(GetErrorMode() | SEM_NOGPFAULTERRORBOX);
 #endif
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
 
+#ifdef QT_DEBUG
     av_log_set_level(AV_LOG_DEBUG);
     av_log_set_flags(AV_LOG_SKIP_REPEATED);
+#endif
     //    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();

@@ -8,6 +8,9 @@ namespace AVQt {
 
     OpenGLWidgetRenderer::~OpenGLWidgetRenderer() {
         Q_D(AVQt::OpenGLWidgetRenderer);
+        // Manual deletion is required, because OpenGL context won't be valid anymore in OpenGLWidgetPrivate destructor
+        delete d->m_renderer;
+        d->m_renderer = nullptr;
         delete d_ptr;
     }
 

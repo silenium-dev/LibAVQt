@@ -192,7 +192,7 @@ namespace AVQt {
         if (!alcCall(alcMakeContextCurrent, contextCurrent, d->m_alcDevice, d->m_alcContext) || !contextCurrent) {
             qFatal("[AVQt::OpenALAudioOutput] Error making ALC context current");
         }
-        qWarning("Setting paused state to: %d", pause);
+        qDebug("Setting paused state to: %d", pause);
         if (pause) {
             alCall(alSourcePause, d->m_alSource);
         } else {
@@ -259,7 +259,7 @@ namespace AVQt {
                 AVFrame *frame = frame = d->m_outputQueue.dequeue();
                 QMutexLocker lock(&d->m_outputQueueMutex);
                 while (!d->m_outputQueue.isEmpty() && frame->pts < pts) {
-                    qWarning("[AVQt::OpenALAudioOutput] Skipping frame with PTS %ld", frame->pts);
+                    qDebug("[AVQt::OpenALAudioOutput] Skipping frame with PTS %ld", frame->pts);
                     av_frame_free(&frame);
                     frame = d->m_outputQueue.dequeue();
                 }
@@ -272,7 +272,7 @@ namespace AVQt {
                     audioQueue.append(frame);
                     ++frames;
                 }
-                qWarning("[AVQt::OpenALAudioOutput] Enqueuing %zu frames", frames);
+                qDebug("[AVQt::OpenALAudioOutput] Enqueuing %zu frames", frames);
             }
             std::vector<uint8_t> audioData;
             QVector<ALuint> buffers;
@@ -282,7 +282,7 @@ namespace AVQt {
                 audioData.resize(av_samples_get_buffer_size(nullptr, f->channels, f->nb_samples, static_cast<AVSampleFormat>(f->format), 1));
                 memcpy(audioData.data(), f->data[0], audioData.size());
                 if (d->m_alBufferQueue.isEmpty()) {
-                    qWarning("[AVQt::OpenALAudioOutput] Allocating additional buffers");
+                    qDebug("[AVQt::OpenALAudioOutput] Allocating additional buffers");
                     int oldSize = d->m_alBuffers.size();
                     d->m_alBuffers.resize(d->m_alBuffers.size() + OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS);
                     alCall(alGenBuffers, OpenALAudioOutputPrivate::AL_BUFFER_ALLOC_STEPS, d->m_alBuffers.data() + oldSize);
@@ -300,7 +300,7 @@ namespace AVQt {
                 bool shouldBe = true;
                 if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
                     alCall(alSourcePlay, d->m_alSource);
-                    qWarning("[AVQt::OpenALAudioOutput] Starting source");
+                    qDebug("[AVQt::OpenALAudioOutput] Starting source");
                 }
             }
 

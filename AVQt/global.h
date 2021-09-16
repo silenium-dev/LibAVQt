@@ -1,4 +1,5 @@
-// Copyright (c) 2021.
+
+// Copyright (c) 2021-2021.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 // documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -13,37 +14,15 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
+#ifndef LIBAVQT_GLOBAL_H
+#define LIBAVQT_GLOBAL_H
+
 #include <qglobal.h>
 
-#include "filter/IDecoder.h"
-#include "filter/IEncoder.h"
-#include "input/Demuxer.h"
-#include "input/IAudioSource.h"
-#include "input/IFrameSource.h"
-#include "input/IPacketSource.h"
-#include "output/IAudioSink.h"
-#include "output/IFrameSink.h"
-#include "output/IPacketSink.h"
-#include "output/Muxer.h"
-#include "renderers/OpenALAudioOutput.h"
-#include "renderers/OpenGLRenderer.h"
-#include "widgets/OpenGLWidgetRenderer.h"
-
-
-#ifdef Q_OS_LINUX
-
-#include "filter/DecoderMMAL.h"
-#include "filter/DecoderVAAPI.h"
-#include "filter/EncoderVAAPI.h"
-
-#elif defined(Q_OS_WIN)
-
-#include "filter/DecoderDXVA2.h"
-#include "filter/DecoderD3D11VA.h"
-
+#ifdef AVQT_LIBRARY_BUILD
+#define AVQT_DEPRECATED
+#else
+#define AVQT_DEPRECATED Q_DECL_DEPRECATED
 #endif
 
-#include "filter/AudioDecoder.h"
-#include "filter/DecoderQSV.h"
-#include "filter/EncoderQSV.h"
-//#include "output/FrameFileSaver.h"
+#endif//LIBAVQT_GLOBAL_H

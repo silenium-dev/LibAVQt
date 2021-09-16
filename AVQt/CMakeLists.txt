@@ -54,6 +54,7 @@ set(SOURCES
         resources.qrc
 
         AVQt
+        global.h
 
         input/IPacketSource.h
         input/IFrameSource.h
@@ -147,6 +148,8 @@ else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
+target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
+target_compile_definitions(AVQtStatic PRIVATE AVQT_LIBRARY_BUILD)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)

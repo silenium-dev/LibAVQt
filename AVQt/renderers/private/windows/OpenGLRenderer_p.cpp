@@ -11,10 +11,10 @@ extern "C" {
 
 #include <comdef.h>
 #include <d3d9.h>
-#define WGL_LOOKUP_FUNCTION(type, func)            \
-    auto (func) = (type) wglGetProcAddress(#func); \
-    if (!(func)) {                                 \
-        qFatal("wglGetProcAddress(" #func ")");    \
+#define WGL_LOOKUP_FUNCTION(type, func)           \
+    auto(func) = (type) wglGetProcAddress(#func); \
+    if (!(func)) {                                \
+        qFatal("wglGetProcAddress(" #func ")");   \
     }
 
 typedef HANDLE(WINAPI *PFNWGLDXOPENDEVICENVPROC)(void *dxDevice);
@@ -111,8 +111,6 @@ namespace AVQt {
         switch (frame->format) {
             case AV_PIX_FMT_QSV:
             case AV_PIX_FMT_CUDA:
-                //            case AV_PIX_FMT_D3D11:
-                //            case AV_PIX_FMT_DXVA2_VLD:
             case AV_PIX_FMT_VDPAU:
                 qDebug("Transferring frame from GPU to CPU");
                 queueFrame =
@@ -571,17 +569,6 @@ namespace AVQt {
 
             //            saveTexToFile(m_pSharedTexture, m_pD3D11Device, m_pD3D11DeviceCtx, "output_dxtex.bmp");
         } else {
-            m_yTexture->bind(0);
-            auto err = glGetError();
-            if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-            }
-            if (m_uTexture) {
-                m_uTexture->bind(1);
-            }
-            if (m_vTexture) {
-                m_vTexture->bind(2);
-            }
             switch (m_currentFrame->format) {
                 case AV_PIX_FMT_BGRA:
                     m_yTexture->setData(QOpenGLTexture::PixelFormat::BGRA, QOpenGLTexture::UInt8,
@@ -618,13 +605,6 @@ namespace AVQt {
                 default:
                     qFatal("Pixel format not supported");
             }
-            m_yTexture->release();
-            if (m_uTexture->isBound()) {
-                m_uTexture->release();
-            }
-            if (m_vTexture->isBound()) {
-                m_vTexture->release();
-            }
         }
     }
 
@@ -643,63 +623,23 @@ namespace AVQt {
             if (!wglDXLockObjectsNV(m_hDXDevice, 1, &m_hSharedTexture)) {
                 qFatal(GetLastErrorAsString().c_str());
             }
-            auto err = glGetError();
-            if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-            }
             glActiveTexture(GL_TEXTURE0);
-            err = glGetError();
-            if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-            }
             glBindTexture(GL_TEXTURE_2D, m_textures[0]);
-            err = glGetError();
-            if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-            }
         } else {
-            if (!m_yTexture->isBound(0)) {
+            if (m_yTexture) {
                 m_yTexture->bind(0);
-                auto err = glGetError();
-                if (err != GL_NO_ERROR) {
-                    qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-                }
-                if (m_uTexture) {
-                    m_uTexture->bind(1);
-                    err = glGetError();
-                    if (err != GL_NO_ERROR) {
-                        qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-                    }
-                }
-                if (m_vTexture) {
-                    m_vTexture->bind(2);
-                    err = glGetError();
-                    if (err != GL_NO_ERROR) {
-                        qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-                    }
-                }
             }
-            auto err = glGetError();
-            if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+            if (m_uTexture) {
+                m_uTexture->bind(1);
+            }
+            if (m_vTexture) {
+                m_vTexture->bind(2);
             }
         }
 
         m_vao.bind();
-        auto err = glGetError();
-        if (err != GL_NO_ERROR) {
-            qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-        }
         m_ibo.bind();
-        err = glGetError();
-        if (err != GL_NO_ERROR) {
-            qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-        }
         m_program->bind();
-        err = glGetError();
-        if (err != GL_NO_ERROR) {
-            qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
-        }
     }
 
     void OpenGLRendererPrivate::releaseResources() {
@@ -712,26 +652,26 @@ namespace AVQt {
             wglDXUnlockObjectsNV(m_hDXDevice, 1, &m_hSharedTexture);
             auto err = glGetError();
             if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+                qWarning("Error in OpenGL: %s", gluErrorStringWIN(err));
             }
         } else {
             m_yTexture->release(0);
             auto err = glGetError();
             if (err != GL_NO_ERROR) {
-                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+                qWarning("Error in OpenGL: %s", gluErrorStringWIN(err));
             }
             if (m_uTexture) {
                 m_uTexture->release(1);
                 err = glGetError();
                 if (err != GL_NO_ERROR) {
-                    qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+                    qWarning("Error in OpenGL: %s", gluErrorStringWIN(err));
                 }
             }
             if (m_vTexture) {
                 m_vTexture->release(2);
                 err = glGetError();
                 if (err != GL_NO_ERROR) {
-                    qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+                    qWarning("Error in OpenGL: %s", gluErrorStringWIN(err));
                 }
             }
         }
@@ -781,6 +721,8 @@ namespace AVQt {
                     if (m_hDXDevice) {
                         wglDXUnregisterObjectNV(m_hDXDevice, m_hSharedTexture);
                         wglDXCloseDeviceNV(m_hDXDevice);
+                        m_hSharedTexture = nullptr;
+                        m_hDXDevice = nullptr;
                     }
                     m_context->doneCurrent();
                 }
