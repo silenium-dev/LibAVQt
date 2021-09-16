@@ -125,6 +125,7 @@ set(SOURCES_WINDOWS
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
+        filter/DecoderD3D11VA.h
         filter/private/DecoderD3D11VA_p.h
         filter/DecoderD3D11VA.cpp
 
@@ -243,8 +244,8 @@ target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil a
 target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
 if (WIN32)
-    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
-    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
+    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
+    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9  dxguid)
 else ()
     target_link_libraries(AVQt GL openal EGL GLU va)
     target_link_libraries(AVQtStatic GL openal EGL GLU va)

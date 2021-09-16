@@ -41,6 +41,10 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[]) {
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
+#ifdef Q_OS_WINDOWS
+    _set_abort_behavior( 0, _WRITE_ABORT_MSG);
+    SetErrorMode(GetErrorMode () | SEM_NOGPFAULTERRORBOX);
+#endif
     app = new QApplication(argc, argv);
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
@@ -87,7 +91,7 @@ int main(int argc, char *argv[]) {
     videoDecoder = new AVQt::DecoderVAAPI;
 #elif defined(Q_OS_WINDOWS)
     videoDecoder = new AVQt::DecoderD3D11VA();
-    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
+//    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
 #else
 #error "Unsupported OS"
 #endif

@@ -24,6 +24,7 @@ namespace AVQt {
         Q_D(AVQt::OpenGLWidgetRenderer);
         makeCurrent();
         d->m_renderer->initializeGL(context(), context()->surface());
+        doneCurrent();
     }
     void OpenGLWidgetRenderer::paintGL() {
         Q_D(AVQt::OpenGLWidgetRenderer);

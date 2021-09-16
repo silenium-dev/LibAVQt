@@ -782,20 +782,12 @@ namespace AVQt {
                             d->m_program->setUniformValue("inputFormat", 0);
                             d->m_program->release();
 
-                            D3D_FEATURE_LEVEL featureLevel;
-                            UINT flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
-#if defined(DEBUG) || defined(_DEBUG)
-                            flags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
                             d->m_pD3D11Device = d->m_pD3D11VAContext->device;
+                            d->m_pD3D11Device->AddRef();
                             d->m_pD3D11DeviceCtx = d->m_pD3D11VAContext->device_context;
-                            // ASSERT(SUCCEEDED(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, nullptr, 0, D3D11_SDK_VERSION, &d->m_pD3D11Device, &featureLevel, &d->m_pD3D11DeviceCtx)));
-                            // ASSERT(d->m_pD3D11Device && d->m_pD3D11DeviceCtx);
+                            d->m_pD3D11DeviceCtx->AddRef();
 
                             auto surface = reinterpret_cast<ID3D11Texture2D *>(d->m_currentFrame->data[0]);
-
-                            //                            d->m_hDXDevice = wglDXOpenDeviceNV(d->m_pD3D11Device);
 
                             D3D11_TEXTURE2D_DESC desc, outDesc = {0}, inDesc = {0};
                             surface->GetDesc(&desc);
@@ -1295,9 +1287,9 @@ namespace AVQt {
             d->m_program->release();
 #ifdef Q_OS_LINUX
             if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
-            }
+            } else
 #elif defined(Q_OS_WINDOWS)
-            else if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
+            if (d->m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD || d->m_currentFrame->format == AV_PIX_FMT_D3D11) {
                 wglDXUnlockObjectsNV(d->m_hDXDevice, 1, &d->m_hSharedTexture);
             }
 #endif

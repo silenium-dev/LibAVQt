@@ -10,6 +10,8 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
+#include <GL/GLU.h>
+
 static void loadResources() {
     Q_INIT_RESOURCE(resources);
 }
@@ -222,6 +224,10 @@ namespace AVQt {
                         d->updatePixelFormat();
                     }
                     d->mapFrame();
+                    auto err = glGetError();
+                    if (err != GL_NO_ERROR) {
+                        qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+                    }
                     qDebug("Mapped frame");
                 }
                 if (d->m_clock) {
@@ -250,7 +256,15 @@ namespace AVQt {
             qDebug("Drawing frame with PTS: %lld", static_cast<long long>(d->m_currentFrame->pts));
 
             d->bindResources();
+            auto err = glGetError();
+            if (err != GL_NO_ERROR) {
+                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+            }
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+            err = glGetError();
+            if (err != GL_NO_ERROR) {
+                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+            }
             d->releaseResources();
         }
     }
