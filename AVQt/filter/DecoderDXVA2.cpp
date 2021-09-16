@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/1/21.
-//
-
 #include "private/DecoderDXVA2_p.h"
 #include "DecoderDXVA2.h"
 #include "output/IFrameSink.h"

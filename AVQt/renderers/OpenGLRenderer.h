@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/21/21.
-//
-
 #include "output/IFrameSink.h"
 #include <QtOpenGL>
 #include <input/IFrameSource.h>

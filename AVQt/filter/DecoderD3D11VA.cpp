@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/1/21.
-//
-
 #include "private/DecoderD3D11VA_p.h"
 #include "DecoderD3D11VA.h"
 #include "output/IFrameSink.h"

@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/21/21.
-//
-
 #include "OpenGLRenderer.h"
 #include "renderers/private/OpenGLRenderer_p.h"
 
@@ -79,76 +75,6 @@ std::string GetLastErrorAsString()
     LocalFree(messageBuffer);
 
     return message;
-}
-
-[[maybe_unused]] QImage SurfaceToQImage(IDirect3DSurface9 *pSurface /*, IDirect3DDevice9 *pDevice*/, int height)
-{
-    D3DSURFACE_DESC surfaceDesc;
-    pSurface->GetDesc(&surfaceDesc);
-    //    IDirect3DSurface9 *pRGBASurface;
-    //    HANDLE hRGBASurface;
-    //    ASSERT(SUCCEEDED(
-    //            pDevice->CreateOffscreenPlainSurface(surfaceDesc.Width, surfaceDesc.Height, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRGBASurface,
-    //                                                 &hRGBASurface)));
-    //    ASSERT(SUCCEEDED(pDevice->StretchRect(pSurface, nullptr, pRGBASurface, nullptr, D3DTEXF_LINEAR)));
-    //    BYTE *dataPtr = reinterpret_cast<BYTE *>(locked.pBits);
-
-    //    if (locked.Pitch == 0) {
-    //        return {};
-    //    }
-    //    QThread::sleep(1);
-
-    QImage::Format imageFormat;
-    uint bpp;
-    switch (surfaceDesc.Format)
-    {
-        //        case D3DFMT_A16B16G16R16:
-        //            imageFormat = QImage::Format_RGBA64;
-        //            bpp = 64;
-        //            break;
-        //        case D3DFMT_A8R8G8B8:
-        //            imageFormat = QImage::Format_ARGB32;
-        //            bpp = 32;
-        //            break;
-    default:
-        imageFormat = QImage::Format_Grayscale8;
-        bpp = 8;
-        break;
-    }
-    bpp /= 8;
-
-    QImage result(surfaceDesc.Width, surfaceDesc.Height, imageFormat);
-
-    D3DLOCKED_RECT locked;
-    ASSERT(SUCCEEDED(pSurface->LockRect(&locked, nullptr, D3DLOCK_READONLY)));
-    qDebug("Locked pitch: %d", locked.Pitch);
-    //    locked.Pitch = 2048;
-    qDebug() << locked.pBits << locked.Pitch << surfaceDesc.Width;
-    for (uint y = 0; y < surfaceDesc.Height; ++y)
-    {
-        qDebug() << y << ": From" << ((uint8_t *)locked.pBits) + y * locked.Pitch << ", To:"
-                 << result.scanLine(y) << ", Size:" << surfaceDesc.Width * bpp;
-        memcpy(result.scanLine(y), ((uint8_t *)locked.pBits) + y * locked.Pitch,
-               surfaceDesc.Width * bpp);
-    }
-
-    //    for (uint i = 0; i < 10; ++i) {
-    //        qDebug() << i << ":" << locked.pBits << locked.Pitch << surfaceDesc.Width;
-    //        QThread::msleep(20);
-    //    }
-
-    //    QImage result = QImage((uint8_t*)locked.pBits, locked.Pitch, surfaceDesc.Height, locked.Pitch, QImage::Format_Grayscale8);
-    //    QFile out("output2.bmp");
-    //    out.open(QIODevice::Truncate | QIODevice::ReadWrite);
-    //    result.save(&out, "BMP");
-    //    out.flush();
-    //    out.close();
-    //    qDebug() << result.size() << "using" << result.sizeInBytes() << "Byte";
-
-    //    delete[] data;
-    ASSERT(SUCCEEDED(pSurface->UnlockRect()));
-
-    return result;
 }
 
 #endif

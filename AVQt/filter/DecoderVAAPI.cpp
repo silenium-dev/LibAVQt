@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/1/21.
-//
-
 #include "private/DecoderVAAPI_p.h"
 #include "DecoderVAAPI.h"
 #include "output/IFrameSink.h"

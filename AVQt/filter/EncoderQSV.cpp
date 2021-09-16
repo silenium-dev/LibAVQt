@@ -1,7 +1,3 @@
-//
-// Created by silas on 4/18/21.
-//
-
 #include "private/EncoderQSV_p.h"
 #include "EncoderQSV.h"
 

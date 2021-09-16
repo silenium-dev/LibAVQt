@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/1/21.
-//
-
 #include "private/DecoderMMAL_p.h"
 #include "DecoderMMAL.h"
 #include "output/IFrameSink.h"

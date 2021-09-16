@@ -1,7 +1,3 @@
-//
-// Created by silas on 4/28/21.
-//
-
 #include "../DecoderDXVA2.h"
 
 extern "C" {

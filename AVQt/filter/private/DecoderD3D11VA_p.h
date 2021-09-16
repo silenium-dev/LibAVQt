@@ -1,7 +1,3 @@
-//
-// Created by silas on 4/28/21.
-//
-
 #include "../DecoderD3D11VA.h"
 
 extern "C" {

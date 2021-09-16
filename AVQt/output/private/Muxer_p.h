@@ -1,7 +1,3 @@
-//
-// Created by silas on 5/24/21.
-//
-
 #include "../Muxer.h"
 
 extern "C" {

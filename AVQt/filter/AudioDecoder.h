@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/28/21.
-//
-
 #include "output/IPacketSink.h"
 #include "input/IAudioSource.h"
 

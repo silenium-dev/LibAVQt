@@ -1,7 +1,3 @@
-//
-// Created by silas on 15.09.21.
-//
-
 #include "OpenGLWidgetRenderer.h"
 #include "private/OpenGLWidgetRenderer_p.h"
 namespace AVQt {

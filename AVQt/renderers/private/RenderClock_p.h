@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/31/21.
-//
-
 #include "renderers/RenderClock.h"
 
 #ifndef LIBAVQT_RENDERCLOCK_P_H

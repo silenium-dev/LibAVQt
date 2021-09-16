@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/28/21.
-//
-
 #include "AudioDecoder.h"
 #include "private/AudioDecoder_p.h"
 

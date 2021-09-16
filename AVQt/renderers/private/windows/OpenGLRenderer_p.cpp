@@ -1,7 +1,3 @@
-//
-// Created by silas on 14.09.21.
-//
-#define D3D_DEBUG_INFO
 #include "renderers/private/OpenGLRenderer_p.h"
 
 extern "C" {
@@ -15,10 +11,10 @@ extern "C" {
 
 #include <comdef.h>
 #include <d3d9.h>
-#define WGL_LOOKUP_FUNCTION(type, func)          \
-    type func = (type) wglGetProcAddress(#func); \
-    if (!(func)) {                               \
-        qFatal("wglGetProcAddress(" #func ")");  \
+#define WGL_LOOKUP_FUNCTION(type, func)            \
+    auto (func) = (type) wglGetProcAddress(#func); \
+    if (!(func)) {                                 \
+        qFatal("wglGetProcAddress(" #func ")");    \
     }
 
 typedef HANDLE(WINAPI *PFNWGLDXOPENDEVICENVPROC)(void *dxDevice);
@@ -38,8 +34,8 @@ typedef BOOL(WINAPI *PFNWGLDXUNLOCKOBJECTSNVPROC)(HANDLE hDevice, GLint count, H
 typedef BOOL(WINAPI *PFNWGLDXOBJECTACCESSNVPROC)(HANDLE hObject, GLenum access);
 
 #define WGL_ACCESS_READ_ONLY_NV 0x0000
-#define WGL_ACCESS_READ_WRITE_NV 0x0001
-#define WGL_ACCESS_WRITE_DISCARD_NV 0x0002
+//#define WGL_ACCESS_READ_WRITE_NV 0x0001 // Not needed by code, but left here for completeness
+//#define WGL_ACCESS_WRITE_DISCARD_NV 0x0002
 
 #undef ASSERT
 #define ASSERT(expr)                              \
@@ -70,72 +66,33 @@ std::string GetLastErrorAsString() {
     return message;
 }
 
-[[maybe_unused]] QImage SurfaceToQImage(IDirect3DSurface9 *pSurface /*, IDirect3DDevice9 *pDevice*/, int height) {
-    D3DSURFACE_DESC surfaceDesc;
-    pSurface->GetDesc(&surfaceDesc);
-    //    IDirect3DSurface9 *pRGBASurface;
-    //    HANDLE hRGBASurface;
-    //    ASSERT(SUCCEEDED(
-    //            pDevice->CreateOffscreenPlainSurface(surfaceDesc.Width, surfaceDesc.Height, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &pRGBASurface,
-    //                                                 &hRGBASurface)));
-    //    ASSERT(SUCCEEDED(pDevice->StretchRect(pSurface, nullptr, pRGBASurface, nullptr, D3DTEXF_LINEAR)));
-    //    BYTE *dataPtr = reinterpret_cast<BYTE *>(locked.pBits);
+[[maybe_unused]] void saveTexToFile(ID3D11Texture2D *texture, ID3D11Device *pDevice, ID3D11DeviceContext *pDeviceCtx, const QString &filename) {
+    // Create staging texture with the exact same dimensions and format like the original one
+    D3D11_TEXTURE2D_DESC desc;
+    texture->GetDesc(&desc);
+    desc.Usage = D3D11_USAGE_STAGING;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    desc.BindFlags = 0;
+    desc.MiscFlags = 0;
+    ID3D11Texture2D *staging;
+    pDevice->CreateTexture2D(&desc, nullptr, &staging);
 
-    //    if (locked.Pitch == 0) {
-    //        return {};
-    //    }
-    //    QThread::sleep(1);
+    // Copy data in GPU memory
+    pDeviceCtx->CopySubresourceRegion(staging, 0, 0, 0, 0, texture, 0, nullptr);
 
-    QImage::Format imageFormat;
-    uint bpp;
-    switch (surfaceDesc.Format) {
-            //        case D3DFMT_A16B16G16R16:
-            //            imageFormat = QImage::Format_RGBA64;
-            //            bpp = 64;
-            //            break;
-            //        case D3DFMT_A8R8G8B8:
-            //            imageFormat = QImage::Format_ARGB32;
-            //            bpp = 32;
-            //            break;
-        default:
-            imageFormat = QImage::Format_Grayscale8;
-            bpp = 8;
-            break;
-    }
-    bpp /= 8;
+    // Make data accessible by CPU
+    D3D11_MAPPED_SUBRESOURCE mapped;
+    pDeviceCtx->Map(staging, 0, D3D11_MAP_READ, 0, &mapped);
 
-    QImage result(surfaceDesc.Width, surfaceDesc.Height, imageFormat);
+    // Save it
+    QImage image(reinterpret_cast<uint8_t *>(mapped.pData), static_cast<int>(desc.Width), static_cast<int>(desc.Height), mapped.RowPitch, QImage::Format_ARGB32);
+    image.save(filename);
 
-    D3DLOCKED_RECT locked;
-    ASSERT(SUCCEEDED(pSurface->LockRect(&locked, nullptr, D3DLOCK_READONLY)));
-    qDebug("Locked pitch: %d", locked.Pitch);
-    //    locked.Pitch = 2048;
-    qDebug() << locked.pBits << locked.Pitch << surfaceDesc.Width;
-    for (uint y = 0; y < surfaceDesc.Height; ++y) {
-        qDebug() << y << ": From" << ((uint8_t *) locked.pBits) + y * locked.Pitch << ", To:"
-                 << result.scanLine(y) << ", Size:" << surfaceDesc.Width * bpp;
-        memcpy(result.scanLine(y), ((uint8_t *) locked.pBits) + y * locked.Pitch,
-               surfaceDesc.Width * bpp);
-    }
-
-    //    for (uint i = 0; i < 10; ++i) {
-    //        qDebug() << i << ":" << locked.pBits << locked.Pitch << surfaceDesc.Width;
-    //        QThread::msleep(20);
-    //    }
-
-    //    QImage result = QImage((uint8_t*)locked.pBits, locked.Pitch, surfaceDesc.Height, locked.Pitch, QImage::Format_Grayscale8);
-    //    QFile out("output2.bmp");
-    //    out.open(QIODevice::Truncate | QIODevice::ReadWrite);
-    //    result.save(&out, "BMP");
-    //    out.flush();
-    //    out.close();
-    //    qDebug() << result.size() << "using" << result.sizeInBytes() << "Byte";
-
-    //    delete[] data;
-    ASSERT(SUCCEEDED(pSurface->UnlockRect()));
-
-    return result;
+    // Clean up
+    pDeviceCtx->Unmap(staging, 0);
+    staging->Release();
 }
+
 namespace AVQt {
     std::atomic_bool OpenGLRendererPrivate::resourcesLoaded{false};
 
@@ -154,8 +111,8 @@ namespace AVQt {
         switch (frame->format) {
             case AV_PIX_FMT_QSV:
             case AV_PIX_FMT_CUDA:
-//            case AV_PIX_FMT_D3D11:
-//            case AV_PIX_FMT_DXVA2_VLD:
+                //            case AV_PIX_FMT_D3D11:
+                //            case AV_PIX_FMT_DXVA2_VLD:
             case AV_PIX_FMT_VDPAU:
                 qDebug("Transferring frame from GPU to CPU");
                 queueFrame =
@@ -249,7 +206,7 @@ namespace AVQt {
         // Frame has 64 pixel alignment, set max height coord to cut off additional pixels
         float maxTexHeight = 1.0f;
         if (m_currentFrame->format == AV_PIX_FMT_DXVA2_VLD) {
-            LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9) m_currentFrame->data[3];
+            auto surface = (LPDIRECT3DSURFACE9) m_currentFrame->data[3];
             D3DSURFACE_DESC surfaceDesc;
             surface->GetDesc(&surfaceDesc);
             maxTexHeight = static_cast<float>(m_currentFrame->height * 1.0 / surfaceDesc.Height);
@@ -291,8 +248,8 @@ namespace AVQt {
         m_vao.bind();
 
         uint indices[] = {
-                0, 1, 3,// first tri
-                1, 2, 3 // second tri
+                0, 1, 3,// first triangle
+                1, 2, 3 // second triangle
         };
 
         m_ibo = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
@@ -351,7 +308,6 @@ namespace AVQt {
             pDevice->Release();
             m_pD3DManager->UnlockDevice(hDevice, TRUE);
         } else if (m_currentFrame->format == AV_PIX_FMT_D3D11) {
-            //                            qFatal("D3D11VA -> OpenGL interop is being worked on");
             glGenTextures(1, m_textures);
             glBindTexture(GL_TEXTURE_2D, m_textures[0]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -418,23 +374,7 @@ namespace AVQt {
                     break;
                 }
             }
-            ASSERT(SUCCEEDED(
-                    m_pVideoDevice->CreateVideoProcessor(m_pVideoProcEnum, typeId, &m_pVideoProc)));
-
-            //                            // Output rate (repeat frames)
-            //                            pVideoContext->VideoProcessorSetStreamOutputRate(m_pVideoProc, 0, D3D11_VIDEO_PROCESSOR_OUTPUT_RATE_NORMAL,
-            //                                                                             TRUE, nullptr);
-            //                            // disable automatic video quality by driver
-            //                            pVideoContext->VideoProcessorSetStreamAutoProcessingMode(m_pVideoProc, 0, FALSE);
-            //                            // Output background color (black)
-            //                            static const D3D11_VIDEO_COLOR backgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
-            //                            pVideoContext->VideoProcessorSetOutputBackgroundColor(m_pVideoProc, FALSE, &backgroundColor);
-            //                            // other
-            //                            pVideoContext->VideoProcessorSetOutputTargetRect(m_pVideoProc, FALSE, nullptr);
-            //                            pVideoContext->VideoProcessorSetStreamRotation(m_pVideoProc, 0, FALSE,
-            //                                                                           D3D11_VIDEO_PROCESSOR_ROTATION_IDENTITY);
-
-            HRESULT hr = 0;
+            ASSERT(SUCCEEDED(m_pVideoDevice->CreateVideoProcessor(m_pVideoProcEnum, typeId, &m_pVideoProc)));
 
             {
                 UINT support;
@@ -444,23 +384,12 @@ namespace AVQt {
                 m_pVideoProcEnum->CheckVideoProcessorFormat(DXGI_FORMAT_R8G8B8A8_UNORM, &support);
                 qDebug() << "Output supported:"
                          << ((support & D3D11_VIDEO_PROCESSOR_FORMAT_SUPPORT_OUTPUT) > 0 ? "true" : "false");
-                //                                hr = m_pVideoDevice->CreateVideoProcessorOutputView(m_pSharedTexture,
-                //                                                                                                        m_pVideoProcEnum,
-                //                                                                                                        &outputViewDesc,
-                //                                                                                                        nullptr);
-                //                                if (FAILED(hr)) {
-                //                                    _com_error err(hr);
-                //                                    qFatal(err.ErrorMessage());
-                //                                }
                 D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC outputViewDesc = {D3D11_VPOV_DIMENSION_TEXTURE2D};
                 outputViewDesc.Texture2D.MipSlice = 0;
                 outputViewDesc.Texture2DArray.MipSlice = 0;
                 outputViewDesc.Texture2DArray.FirstArraySlice = 0;
                 outputViewDesc.Texture2DArray.ArraySize = 1;
                 m_pSharedTexture->GetDesc(&outDesc);
-                //ASSERT((static_cast<D3D11_BIND_FLAG>(outDesc.BindFlags) & D3D11_BIND_RENDER_TARGET) >= 1);
-                qDebug() << "D3D11_BIND_RENDER_TARGET:" << D3D11_BIND_RENDER_TARGET;
-                D3D11_BIND_FLAG flag2 = static_cast<D3D11_BIND_FLAG>(512);
                 ASSERT(SUCCEEDED(m_pVideoDevice->CreateVideoProcessorOutputView(m_pSharedTexture,
                                                                                 m_pVideoProcEnum,
                                                                                 &outputViewDesc,
@@ -610,23 +539,10 @@ namespace AVQt {
             ASSERT(SUCCEEDED(d3d9->CheckDeviceFormatConversion(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, surfaceDesc.Format,
                                                                D3DFMT_A8R8G8B8)));
             if (0 != pDevice->StretchRect(surface, nullptr, m_pSharedSurface, nullptr, D3DTEXF_LINEAR)) {
-                qFatal("Could not map NV12/P010 surface to RGB");
+                qFatal("Could not stretch NV12/P010 surface to RGB surface");
             }
-
-            //                        auto image = SurfaceToQImage(surface/*, pDevice*/, m_currentFrame->height);
-            //                        if (!image.isNull()) {
-            //                            image.save("output.bmp");
-            //                        }
-
             m_pD3DManager->UnlockDevice(hDevice, TRUE);
             m_pD3DManager->CloseDeviceHandle(hDevice);
-            //                        auto image = SurfaceToQImage(surface, frame->height);
-            //                        qDebug() << "Decoded surface is using" << image.sizeInBytes() << "Byte of memory at" << image.size();
-            //                        image.save("decoded.bmp");
-            //                        image = SurfaceToQImage(m_pSharedSurface, frame->height);
-            //                        qDebug() << "Mapped surface is using" << image.sizeInBytes() << "Byte of memory at" << image.size();
-            //                        image.save("mapped.bmp");
-            //                        exit(0);
         } else if (m_currentFrame->format == AV_PIX_FMT_D3D11) {
             auto surface = reinterpret_cast<ID3D11Texture2D *>(m_currentFrame->data[0]);
             auto index = reinterpret_cast<intptr_t>(m_currentFrame->data[1]);
@@ -652,8 +568,14 @@ namespace AVQt {
                 qFatal(err.ErrorMessage());
             }
             ASSERT(SUCCEEDED(hr));
+
+            //            saveTexToFile(m_pSharedTexture, m_pD3D11Device, m_pD3D11DeviceCtx, "output_dxtex.bmp");
         } else {
             m_yTexture->bind(0);
+            auto err = glGetError();
+            if (err != GL_NO_ERROR) {
+                qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
+            }
             if (m_uTexture) {
                 m_uTexture->bind(1);
             }
@@ -695,6 +617,13 @@ namespace AVQt {
                     break;
                 default:
                     qFatal("Pixel format not supported");
+            }
+            m_yTexture->release();
+            if (m_uTexture->isBound()) {
+                m_uTexture->release();
+            }
+            if (m_vTexture->isBound()) {
+                m_vTexture->release();
             }
         }
     }
@@ -756,20 +685,17 @@ namespace AVQt {
             }
         }
 
+        m_vao.bind();
         auto err = glGetError();
         if (err != GL_NO_ERROR) {
             qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
         }
-
-        if (!m_vao.isCreated()) {
-            qFatal("No VAO");
-        }
-        m_vao.bind();
+        m_ibo.bind();
         err = glGetError();
         if (err != GL_NO_ERROR) {
             qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));
         }
-        m_ibo.bind();
+        m_program->bind();
         err = glGetError();
         if (err != GL_NO_ERROR) {
             qFatal("Error in OpenGL: %s", gluErrorStringWIN(err));

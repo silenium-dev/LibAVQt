@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/1/21.
-//
-
 #include "private/DecoderQSV_p.h"
 #include "DecoderQSV.h"
 #include "output/IFrameSink.h"

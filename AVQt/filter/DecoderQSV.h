@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/1/21.
-//
-
 
 #include <QtCore>
 #include "IDecoder.h"

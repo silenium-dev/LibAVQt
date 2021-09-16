@@ -1,7 +1,3 @@
-//
-// Created by silas on 15.09.21.
-//
-
 #ifndef LIBAVQT_OPENGLWIDGETRENDERER_H
 #define LIBAVQT_OPENGLWIDGETRENDERER_H
 

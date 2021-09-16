@@ -1,8 +1,4 @@
-﻿//
-// Created by silas on 4/18/21.
-//
-
-#include "private/EncoderVAAPI_p.h"
+﻿#include "private/EncoderVAAPI_p.h"
 #include "EncoderVAAPI.h"
 
 #include "output/IPacketSink.h"

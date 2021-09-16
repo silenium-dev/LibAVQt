@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/31/21.
-//
-
 #include "RenderClock.h"
 #include "renderers/private/RenderClock_p.h"
 
