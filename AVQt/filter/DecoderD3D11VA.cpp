@@ -1,10 +1,11 @@
-#include "private/DecoderVAAPI_p.h"
-#include "DecoderVAAPI.h"
+#include "private/DecoderD3D11VA_p.h"
+#include "DecoderD3D11VA.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
 #include "input/IPacketSource.h"
 
 #include <QApplication>
+#include <QImage>
 //#include <QtConcurrent>
 
 //#ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -14,27 +15,27 @@
 
 
 namespace AVQt {
-    DecoderVAAPI::DecoderVAAPI(QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {
+    DecoderD3D11VA::DecoderD3D11VA(QObject *parent) : QThread(parent), d_ptr(new DecoderD3D11VAPrivate(this)) {
     }
 
-    [[maybe_unused]] DecoderVAAPI::DecoderVAAPI(DecoderVAAPIPrivate &p) : d_ptr(&p) {
+    [[maybe_unused]] DecoderD3D11VA::DecoderD3D11VA(DecoderD3D11VAPrivate &p) : d_ptr(&p) {
 
     }
 
-    DecoderVAAPI::DecoderVAAPI(DecoderVAAPI &&other) noexcept: d_ptr(other.d_ptr) {
+    DecoderD3D11VA::DecoderD3D11VA(DecoderD3D11VA &&other) noexcept: d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
 
-    DecoderVAAPI::~DecoderVAAPI() {
+    DecoderD3D11VA::~DecoderD3D11VA() {
         delete d_ptr;
     }
 
-    void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+    void DecoderD3D11VA::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
                             AVCodecParameters *aParams, AVCodecParameters *sParams) {
         Q_UNUSED(aParams)
         Q_UNUSED(sParams)
-        Q_D(AVQt::DecoderVAAPI);
+        Q_D(AVQt::DecoderD3D11VA);
         Q_UNUSED(source)
         if (d->m_pCodecParams) {
             avcodec_parameters_free(&d->m_pCodecParams);
@@ -53,26 +54,19 @@ namespace AVQt {
         init();
     }
 
-    int DecoderVAAPI::init() {
+    int DecoderD3D11VA::init() {
         return 0;
     }
 
-    void DecoderVAAPI::deinit(IPacketSource *source) {
+    void DecoderD3D11VA::deinit(IPacketSource *source) {
         Q_UNUSED(source)
         deinit();
     }
 
-    int DecoderVAAPI::deinit() {
-        Q_D(AVQt::DecoderVAAPI);
+    int DecoderD3D11VA::deinit() {
+        Q_D(AVQt::DecoderD3D11VA);
 
         stop();
-
-        {
-            QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb: d->m_cbList) {
-                cb->deinit(this);
-            }
-        }
 
         if (d->m_pCodecParams) {
             avcodec_parameters_free(&d->m_pCodecParams);
@@ -90,13 +84,13 @@ namespace AVQt {
         return 0;
     }
 
-    void DecoderVAAPI::start(IPacketSource *source) {
+    void DecoderD3D11VA::start(IPacketSource *source) {
         Q_UNUSED(source)
         start();
     }
 
-    int DecoderVAAPI::start() {
-        Q_D(AVQt::DecoderVAAPI);
+    int DecoderD3D11VA::start() {
+        Q_D(AVQt::DecoderD3D11VA);
 
         bool notRunning = false;
         if (d->m_running.compare_exchange_strong(notRunning, true)) {
@@ -109,13 +103,13 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderVAAPI::stop(IPacketSource *source) {
+    void DecoderD3D11VA::stop(IPacketSource *source) {
         Q_UNUSED(source)
         stop();
     }
 
-    int DecoderVAAPI::stop() {
-        Q_D(AVQt::DecoderVAAPI);
+    int DecoderD3D11VA::stop() {
+        Q_D(AVQt::DecoderD3D11VA);
 
         bool shouldBeCurrent = true;
         if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
@@ -142,8 +136,8 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderVAAPI::pause(bool pause) {
-        Q_D(AVQt::DecoderVAAPI);
+    void DecoderD3D11VA::pause(bool pause) {
+        Q_D(AVQt::DecoderD3D11VA);
         if (d->m_running.load() != pause) {
             d->m_paused.store(pause);
 
@@ -155,13 +149,13 @@ namespace AVQt {
         }
     }
 
-    bool DecoderVAAPI::isPaused() {
-        Q_D(AVQt::DecoderVAAPI);
+    bool DecoderD3D11VA::isPaused() {
+        Q_D(AVQt::DecoderD3D11VA);
         return d->m_paused.load();
     }
 
-    qint64 DecoderVAAPI::registerCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderVAAPI);
+    qint64 DecoderD3D11VA::registerCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderD3D11VA);
 
         QMutexLocker lock(&d->m_cbListMutex);
         if (!d->m_cbList.contains(frameSink)) {
@@ -175,8 +169,8 @@ namespace AVQt {
         return -1;
     }
 
-    qint64 DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderVAAPI);
+    qint64 DecoderD3D11VA::unregisterCallback(IFrameSink *frameSink) {
+        Q_D(AVQt::DecoderD3D11VA);
         QMutexLocker lock(&d->m_cbListMutex);
         if (d->m_cbList.contains(frameSink)) {
             auto result = d->m_cbList.indexOf(frameSink);
@@ -188,10 +182,10 @@ namespace AVQt {
         return -1;
     }
 
-    void DecoderVAAPI::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
+    void DecoderD3D11VA::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
         Q_UNUSED(source)
 
-        Q_D(AVQt::DecoderVAAPI);
+        Q_D(AVQt::DecoderD3D11VA);
 
         if (packetType == IPacketSource::CB_VIDEO) {
             AVPacket *queuePacket = av_packet_clone(packet);
@@ -203,8 +197,8 @@ namespace AVQt {
         }
     }
 
-    void DecoderVAAPI::run() {
-        Q_D(AVQt::DecoderVAAPI);
+    void DecoderD3D11VA::run() {
+        Q_D(AVQt::DecoderD3D11VA);
 
         while (d->m_running) {
             if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
@@ -215,25 +209,25 @@ namespace AVQt {
                 if (d->m_pCodecParams && !d->m_pCodecCtx) {
                     d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
                     if (!d->m_pCodec) {
-                        qFatal("No video decoder found");
+                        qFatal("No audio decoder found");
                     }
 
                     d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
                     if (!d->m_pCodecCtx) {
-                        qFatal("Could not allocate video decoder context, probably out of memory");
+                        qFatal("Could not allocate audio decoder context, probably out of memory");
                     }
 
-                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
+                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_D3D11VA, "", nullptr, 0);
                     if (ret != 0) {
                         qFatal("%d: Could not create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
-                    d->m_pCodecCtx->time_base = d->m_timebase;
+                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_D3D11;
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
-                        qFatal("%d: Could not open VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Could not open D3D11VA decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     for (const auto &cb: d->m_cbList) {
@@ -255,24 +249,20 @@ namespace AVQt {
                             d->m_inputQueue.prepend(packet);
                             break;
                         } else if (ret < 0) {
-                            qFatal("%d: Error sending packet to VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                            qFatal("%d: Error sending packet to D3D11VA decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                         }
+                        av_packet_unref(packet);
                         av_packet_free(&packet);
                         lock.relock();
                     }
                 }
+                AVFrame *frame = av_frame_alloc();
                 while (true) {
-                    AVFrame *frame = av_frame_alloc();
                     ret = avcodec_receive_frame(d->m_pCodecCtx, frame);
                     if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                         break;
-                    } else if (ret == -12) { // -12 == Out of memory, didn't know the macro name
-                        av_frame_free(&frame);
-                        msleep(1);
-                        continue;
                     } else if (ret < 0) {
-                        qFatal("%d: Error receiving frame %d from VAAPI decoder: %s", ret, d->m_pCodecCtx->frame_number,
-                               av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Error receiving frame from D3D11VA decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
 //                    auto t1 = NOW();
@@ -296,6 +286,7 @@ namespace AVQt {
                         QTime time = QTime::currentTime();
                         cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0), d->m_pDeviceCtx);
                         qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
+                        av_frame_unref(cbFrame);
                         av_frame_free(&cbFrame);
 //                        }));
                     }
@@ -314,9 +305,9 @@ namespace AVQt {
 //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
 
 //                    av_frame_free(&swFrame);
-                    av_frame_free(&frame);
+                    av_frame_unref(frame);
                 }
-//                av_frame_free(&frame);
+                av_frame_free(&frame);
             } else {
                 msleep(4);
             }

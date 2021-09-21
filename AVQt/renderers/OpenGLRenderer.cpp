@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/21/21.
-//
-
 #include "OpenGLRenderer.h"
 #include "renderers/private/OpenGLRenderer_p.h"
 
@@ -144,24 +140,10 @@ namespace AVQt {
 
     void OpenGLRenderer::paintGL() {
         Q_D(AVQt::OpenGLRenderer);
-        //        auto t1 = std::chrono::high_resolution_clock::now();
-
-        //        if (d->m_currentFrame) {
-        //            int display_width = d->m_parent->width();
-        //            int display_height = (d->m_parent->width() * d->m_currentFrame->height + d->m_currentFrame->width / 2) / d->m_currentFrame->width;
-        //            if (display_height > d->m_parent->height()) {
-        //                display_width = (d->m_parent->height() * d->m_currentFrame->width + d->m_currentFrame->height / 2) / d->m_currentFrame->height;
-        //                display_height = d->m_parent->height();
-        //            }
-        //            qDebug("Viewport (x:%d, y:%d, w:%d, h:%d)", (d->m_parent->width() - display_width) / 2, (d->m_parent->height() - display_height) / 2, display_width, display_height);
-        //            glViewport((d->m_parent->width() - display_width) / 2, (d->m_parent->height() - display_height) / 2, display_width, display_height);
-        //        }
 
         //         Clear background
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        //        qDebug("paintGL() – Running: %d", d->m_running.load());
 
         if (d->m_running.load()) {
             if (!d->m_paused.load()) {
@@ -238,14 +220,6 @@ namespace AVQt {
             }
         }
 
-        //            if (!d->m_clock) {
-        //                d->m_clock = new RenderClock;
-        //                d->m_clock->setInterval((d->m_currentFrameTimeout < 0 ? 1 : d->m_currentFrameTimeout));
-        //                connect(d->m_clock, &RenderClock::timeout, this, &OpenGLRenderer::triggerUpdate);
-        //                qDebug("starting timer");
-        //                d->m_clock->start();
-        //            }
-
         if (d->m_currentFrame) {
             qDebug("Drawing frame with PTS: %lld", static_cast<long long>(d->m_currentFrame->pts));
 
@@ -262,8 +236,4 @@ namespace AVQt {
             return {};
         }
     }
-    //    void OpenGLRenderer::resized(QSize size) {
-    //        Q_D(AVQt::OpenGLRenderer);
-    //        d->updateSize(size);
-    //    }
 }// namespace AVQt

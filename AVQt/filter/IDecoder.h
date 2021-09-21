@@ -1,7 +1,3 @@
-//
-// Created by silas on 5/1/21.
-//
-
 #include "input/IFrameSource.h"
 #include "output/IPacketSink.h"
 

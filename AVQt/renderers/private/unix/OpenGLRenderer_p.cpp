@@ -1,7 +1,3 @@
-//
-// Created by silas on 14.09.21.
-//
-
 #include "renderers/private/OpenGLRenderer_p.h"
 
 extern "C" {

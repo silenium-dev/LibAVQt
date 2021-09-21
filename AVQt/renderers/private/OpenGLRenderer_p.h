@@ -51,14 +51,8 @@ namespace AVQt {
      */
     class OpenGLRendererPrivate : public QObject {
         Q_OBJECT
-
         Q_DECLARE_PUBLIC(AVQt::OpenGLRenderer)
-
-    public:
-        OpenGLRendererPrivate(const OpenGLRendererPrivate &) = delete;
-
-        void operator=(const OpenGLRendererPrivate &) = delete;
-
+        Q_DISABLE_COPY(OpenGLRendererPrivate)
     private:
         explicit OpenGLRendererPrivate(OpenGLRenderer *q);
 

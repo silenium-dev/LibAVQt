@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/3/21.
-//
-
 #include "private/FrameFileSaver_p.h"
 #include "FrameFileSaver.h"
 

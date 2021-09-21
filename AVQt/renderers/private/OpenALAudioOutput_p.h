@@ -1,7 +1,3 @@
-//
-// Created by silas on 01.09.21.
-//
-
 #ifndef LIBAVQT_OPENALAUDIOOUTPUT_P_H
 #define LIBAVQT_OPENALAUDIOOUTPUT_P_H
 

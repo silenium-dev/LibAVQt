@@ -1,21 +1,13 @@
-//
-// Created by silas on 3/1/21.
-//
+#define AVQT_INCLUDE_INTERNAL
+#include "DecoderDXVA2.h"
+#undef AVQT_INCLUDE_INTERNAL
 
 #include "private/DecoderDXVA2_p.h"
-#include "DecoderDXVA2.h"
 #include "output/IFrameSink.h"
 #include "output/IAudioSink.h"
 #include "input/IPacketSource.h"
 
 #include <QApplication>
-#include <QImage>
-//#include <QtConcurrent>
-
-//#ifndef DOXYGEN_SHOULD_SKIP_THIS
-//#define NOW() std::chrono::high_resolution_clock::now()
-//#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
-//#endif
 
 
 namespace AVQt {

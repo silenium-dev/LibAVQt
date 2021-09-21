@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/17/21.
-//
-
 #include <QObject>
 
 extern "C" {

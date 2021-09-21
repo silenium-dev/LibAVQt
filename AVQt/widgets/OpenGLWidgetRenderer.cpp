@@ -1,7 +1,3 @@
-//
-// Created by silas on 15.09.21.
-//
-
 #include "OpenGLWidgetRenderer.h"
 #include "private/OpenGLWidgetRenderer_p.h"
 namespace AVQt {
@@ -12,6 +8,9 @@ namespace AVQt {
 
     OpenGLWidgetRenderer::~OpenGLWidgetRenderer() {
         Q_D(AVQt::OpenGLWidgetRenderer);
+        // Manual deletion is required, because OpenGL context won't be valid anymore in OpenGLWidgetPrivate destructor
+        delete d->m_renderer;
+        d->m_renderer = nullptr;
         delete d_ptr;
     }
 
@@ -24,6 +23,7 @@ namespace AVQt {
         Q_D(AVQt::OpenGLWidgetRenderer);
         makeCurrent();
         d->m_renderer->initializeGL(context(), context()->surface());
+        doneCurrent();
     }
     void OpenGLWidgetRenderer::paintGL() {
         Q_D(AVQt::OpenGLWidgetRenderer);

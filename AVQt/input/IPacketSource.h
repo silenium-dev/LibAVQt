@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/25/21.
-//
-
 #include <QObject>
 
 #ifndef LIBAVQT_IPACKETSOURCE_H

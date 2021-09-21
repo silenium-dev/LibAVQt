@@ -54,6 +54,7 @@ set(SOURCES
         resources.qrc
 
         AVQt
+        global.h
 
         input/IPacketSource.h
         input/IFrameSource.h
@@ -125,6 +126,7 @@ set(SOURCES_WINDOWS
         filter/private/DecoderDXVA2_p.h
         filter/DecoderDXVA2.cpp
 
+        filter/DecoderD3D11VA.h
         filter/private/DecoderD3D11VA_p.h
         filter/DecoderD3D11VA.cpp
 
@@ -146,6 +148,8 @@ else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
+target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
+target_compile_definitions(AVQtStatic PRIVATE AVQT_LIBRARY_BUILD)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)
@@ -243,8 +247,8 @@ target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil a
 target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
 if (WIN32)
-    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
-    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
+    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
+    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9  dxguid)
 else ()
     target_link_libraries(AVQt GL openal EGL GLU va)
     target_link_libraries(AVQtStatic GL openal EGL GLU va)

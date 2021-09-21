@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/24/21.
-//
-
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>

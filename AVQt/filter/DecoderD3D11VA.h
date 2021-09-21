@@ -16,27 +16,27 @@ extern "C" {
 }
 
 
-#ifndef TRANSCODE_DECODERVAAPI_H
-#define TRANSCODE_DECODERVAAPI_H
+#ifndef TRANSCODE_DECODERD3D11VA_H
+#define TRANSCODE_DECODERD3D11VA_H
 
 namespace AVQt {
-    class DecoderVAAPIPrivate;
+    class DecoderD3D11VAPrivate;
 
     /*!
-     * \class DecoderVAAPI
-     * \brief VAAPI accelerated video decoder
+     * \class DecoderD3D11VA
+     * \brief D3D11VA accelerated video decoder
      *
-     * Decodes video from packet source into single frames, that are passed to every via registerCallback registered callback.
+     * Decodes video from QIODevice into single frames, that are passed to every via registerCallback registered callback.
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class DecoderVAAPI : public QThread, public IDecoder {
+    class DecoderD3D11VA : public QThread, public IDecoder {
     Q_OBJECT
         Q_INTERFACES(AVQt::IDecoder)
-//        Q_INTERFACES(AVQt::IFrameSource)
-//        Q_INTERFACES(AVQt::IPacketSink)
+        //        Q_INTERFACES(AVQt::IFrameSource)
+        //        Q_INTERFACES(AVQt::IPacketSink)
 
-        Q_DECLARE_PRIVATE(AVQt::DecoderVAAPI)
+        Q_DECLARE_PRIVATE(AVQt::DecoderD3D11VA)
 
     public:
 
@@ -46,24 +46,24 @@ namespace AVQt {
          * @param inputDevice QIODevice to read video from
          * @param parent Pointer to parent QObject for Qt's meta object system
          */
-        explicit DecoderVAAPI(QObject *parent = nullptr);
+        explicit DecoderD3D11VA(QObject *parent = nullptr);
 
-        DecoderVAAPI(DecoderVAAPI &&other) noexcept;
-
-        /*!
-         * \private
-         */
-        DecoderVAAPI(const DecoderVAAPI &) = delete;
+        DecoderD3D11VA(DecoderD3D11VA &&other) noexcept;
 
         /*!
          * \private
          */
-        void operator=(const DecoderVAAPI &) = delete;
+        DecoderD3D11VA(const DecoderD3D11VA &) = delete;
 
         /*!
          * \private
          */
-        ~DecoderVAAPI() Q_DECL_OVERRIDE;
+        void operator=(const DecoderD3D11VA &) = delete;
+
+        /*!
+         * \private
+         */
+        ~DecoderD3D11VA() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns paused state of decoder
@@ -153,7 +153,7 @@ namespace AVQt {
          * Protected constructor for use in derived classes to initialize private struct
          * @param p Private struct
          */
-        [[maybe_unused]] explicit DecoderVAAPI(DecoderVAAPIPrivate &p);
+        [[maybe_unused]] explicit DecoderD3D11VA(DecoderD3D11VAPrivate &p);
 
         /*!
          * \private
@@ -163,9 +163,9 @@ namespace AVQt {
         /*!
          * \private
          */
-        DecoderVAAPIPrivate *d_ptr;
+        DecoderD3D11VAPrivate *d_ptr;
     };
 
 }
 
-#endif //TRANSCODE_DECODERVAAPI_H
+#endif //TRANSCODE_DECODERD3D11VA_H
