@@ -77,9 +77,8 @@ namespace AVQt {
         void destroyResources();
 
         // Utilities
-        [[maybe_unused]] static GLint
-        project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
-                GLdouble *winx, GLdouble *winy, GLdouble *winz);
+        static GLint project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
+                             GLdouble *winx, GLdouble *winy, GLdouble *winz);
 
         static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
 

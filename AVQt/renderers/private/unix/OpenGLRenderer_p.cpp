@@ -69,6 +69,109 @@ namespace AVQt {
     OpenGLRendererPrivate::OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {
     }
 
+    void OpenGLRendererPrivate::initializeGL(QOpenGLContext *context) {
+        Q_Q(AVQt::OpenGLRenderer);
+        QByteArray shaderVersionString;
+
+        if (context->isOpenGLES()) {
+            shaderVersionString = "#version 300 es\n";
+        } else {
+            shaderVersionString = "#version 330 core\n";
+        }
+
+        QFile vsh{":/shaders/texture.vsh"};
+        QFile fsh{":/shaders/texture.fsh"};
+        vsh.open(QIODevice::ReadOnly);
+        fsh.open(QIODevice::ReadOnly);
+        QByteArray vertexShader = vsh.readAll().prepend(shaderVersionString);
+        QByteArray fragmentShader = fsh.readAll().prepend(shaderVersionString);
+        vsh.close();
+        fsh.close();
+
+        m_program = new QOpenGLShaderProgram();
+        m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
+        m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
+
+        m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
+        m_program->bindAttributeLocation("texCoord", OpenGLRendererPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
+
+        if (!m_program->link()) {
+            qDebug() << "Shader linkers errors:\n"
+                     << m_program->log();
+        }
+
+        m_program->bind();
+        m_program->setUniformValue("textureY", 0);
+        m_program->setUniformValue("textureU", 1);
+        m_program->setUniformValue("textureV", 2);
+        m_program->release();
+    }// Generic
+
+    GLint OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
+                                         const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz) {
+        GLdouble in[4], out[4];
+
+        in[0] = objx;
+        in[1] = objy;
+        in[2] = objz;
+        in[3] = 1.0;
+        transformPoint(out, model, in);
+        transformPoint(in, proj, out);
+
+        if (in[3] < 0.0001)
+            return GL_FALSE;
+
+        in[0] /= in[3];
+        in[1] /= in[3];
+        in[2] /= in[3];
+
+        *winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
+        *winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
+
+        *winz = (1 + in[2]) / 2;
+        return GL_TRUE;
+    }// Generic
+
+    void OpenGLRendererPrivate::transformPoint(GLdouble *out, const GLdouble *m, const GLdouble *in) {
+#define M(row, col) m[(col) *4 + (row)]
+        out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
+        out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
+        out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
+        out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
+#undef M
+    }// Generic
+
+    QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts) {
+        int ms = static_cast<int>(ts % 1000);
+        int s = static_cast<int>((ts / 1000) % 60);
+        int m = static_cast<int>((ts / 1000 / 60) % 60);
+        int h = static_cast<int>(ts / 1000 / 60 / 60);
+        return {h, m, s, ms};
+    }// Generic
+
+    void OpenGLRendererPrivate::updatePixelFormat() {
+        m_program->bind();
+        switch (m_currentFrame->format) {
+            case AV_PIX_FMT_BGRA:
+                m_program->setUniformValue("inputFormat", 0);
+                break;
+            case AV_PIX_FMT_VAAPI:
+            case AV_PIX_FMT_NV12:
+            case AV_PIX_FMT_P010:
+                m_program->setUniformValue("inputFormat", 1);
+                break;
+            case AV_PIX_FMT_YUV420P:
+                m_program->setUniformValue("inputFormat", 2);
+                break;
+            case AV_PIX_FMT_YUV420P10:
+                m_program->setUniformValue("inputFormat", 3);
+                break;
+            default:
+                qFatal("Unsupported pixel format");
+        }
+        m_program->release();
+    }// Platform
+
     void OpenGLRendererPrivate::onFrame(AVFrame *frame, AVBufferRef *pDeviceCtx) {
         QMutexLocker onFrameLock{&m_onFrameMutex};
 
@@ -119,7 +222,7 @@ namespace AVQt {
 
         QMutexLocker lock(&m_renderQueueMutex);
         m_renderQueue.enqueue(queueFrame);
-    }
+    }// Platform
 
     void OpenGLRendererPrivate::initializePlatformAPI() {
         EGLint visual_attr[] = {
@@ -168,45 +271,7 @@ namespace AVQt {
         //        }
 
         qDebug("EGL Version: %s", eglQueryString(m_EGLDisplay, EGL_VERSION));
-    }
-
-    void OpenGLRendererPrivate::initializeGL(QOpenGLContext *context) {
-        Q_Q(AVQt::OpenGLRenderer);
-        QByteArray shaderVersionString;
-
-        if (context->isOpenGLES()) {
-            shaderVersionString = "#version 300 es\n";
-        } else {
-            shaderVersionString = "#version 330 core\n";
-        }
-
-        QFile vsh{":/shaders/texture.vsh"};
-        QFile fsh{":/shaders/texture.fsh"};
-        vsh.open(QIODevice::ReadOnly);
-        fsh.open(QIODevice::ReadOnly);
-        QByteArray vertexShader = vsh.readAll().prepend(shaderVersionString);
-        QByteArray fragmentShader = fsh.readAll().prepend(shaderVersionString);
-        vsh.close();
-        fsh.close();
-
-        m_program = new QOpenGLShaderProgram();
-        m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
-        m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
-
-        m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
-        m_program->bindAttributeLocation("texCoord", OpenGLRendererPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
-
-        if (!m_program->link()) {
-            qDebug() << "Shader linkers errors:\n"
-                     << m_program->log();
-        }
-
-        m_program->bind();
-        m_program->setUniformValue("textureY", 0);
-        m_program->setUniformValue("textureU", 1);
-        m_program->setUniformValue("textureV", 2);
-        m_program->release();
-    }
+    }// Platform
 
     void OpenGLRendererPrivate::initializeOnFirstFrame() {
         // Frame has 64 pixel alignment, set max height coord to cut off additional pixels
@@ -364,30 +429,7 @@ namespace AVQt {
                 m_vTexture->allocateStorage(pixelFormatV, pixelType);
             }
         }
-    }
-
-    void OpenGLRendererPrivate::updatePixelFormat() {
-        m_program->bind();
-        switch (m_currentFrame->format) {
-            case AV_PIX_FMT_BGRA:
-                m_program->setUniformValue("inputFormat", 0);
-                break;
-            case AV_PIX_FMT_VAAPI:
-            case AV_PIX_FMT_NV12:
-            case AV_PIX_FMT_P010:
-                m_program->setUniformValue("inputFormat", 1);
-                break;
-            case AV_PIX_FMT_YUV420P:
-                m_program->setUniformValue("inputFormat", 2);
-                break;
-            case AV_PIX_FMT_YUV420P10:
-                m_program->setUniformValue("inputFormat", 3);
-                break;
-            default:
-                qFatal("Unsupported pixel format");
-        }
-        m_program->release();
-    }
+    }// Platform
 
     void OpenGLRendererPrivate::mapFrame() {
         LOOKUP_FUNCTION(PFNEGLCREATEIMAGEKHRPROC, eglCreateImageKHR)
@@ -544,7 +586,7 @@ namespace AVQt {
                     qFatal("Pixel format not supported");
             }
         }
-    }
+    }// Platform
 
     void OpenGLRendererPrivate::bindResources() {
         m_program->bind();
@@ -567,7 +609,7 @@ namespace AVQt {
 
         m_vao.bind();
         m_ibo.bind();
-    }
+    }// Platform
 
     void OpenGLRendererPrivate::releaseResources() {
         m_vao.release();
@@ -583,7 +625,8 @@ namespace AVQt {
                 m_vTexture->release(2);
             }
         }
-    }
+    }// Platform
+
     void OpenGLRendererPrivate::destroyResources() {
         if (m_currentFrame) {
             av_frame_free(&m_currentFrame);
@@ -626,48 +669,5 @@ namespace AVQt {
                 }
             }
         }
-    }
-
-    [[maybe_unused]] GLint
-    OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],
-                                   const GLint viewport[4], GLdouble *winx, GLdouble *winy, GLdouble *winz) {
-        GLdouble in[4], out[4];
-
-        in[0] = objx;
-        in[1] = objy;
-        in[2] = objz;
-        in[3] = 1.0;
-        transformPoint(out, model, in);
-        transformPoint(in, proj, out);
-
-        if (in[3] < 0.0001)
-            return GL_FALSE;
-
-        in[0] /= in[3];
-        in[1] /= in[3];
-        in[2] /= in[3];
-
-        *winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
-        *winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
-
-        *winz = (1 + in[2]) / 2;
-        return GL_TRUE;
-    }
-
-    void OpenGLRendererPrivate::transformPoint(GLdouble *out, const GLdouble *m, const GLdouble *in) {
-#define M(row, col) m[(col) *4 + (row)]
-        out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
-        out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
-        out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
-        out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
-#undef M
-    }
-
-    QTime OpenGLRendererPrivate::timeFromMillis(int64_t ts) {
-        int ms = static_cast<int>(ts % 1000);
-        int s = static_cast<int>((ts / 1000) % 60);
-        int m = static_cast<int>((ts / 1000 / 60) % 60);
-        int h = static_cast<int>(ts / 1000 / 60 / 60);
-        return {h, m, s, ms};
-    }
+    }// Platform
 }// namespace AVQt
