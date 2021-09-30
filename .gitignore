@@ -1,3 +1,4 @@
 *.user
 build*
 /cmake-build-*/
+/mfx_dispatch

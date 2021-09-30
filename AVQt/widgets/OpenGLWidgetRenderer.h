@@ -3,6 +3,7 @@
 
 #include "output/IFrameSink.h"
 
+#include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 #include <QtCore>
 
@@ -23,15 +24,26 @@ namespace AVQt {
         bool quitOnClose();
 
     protected:
-        void initializeGL() Q_DECL_OVERRIDE;
-        void paintGL() Q_DECL_OVERRIDE;
+        //        void initializeGL() Q_DECL_OVERRIDE;
+        //        void paintGL() Q_DECL_OVERRIDE;
         void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
         //        void resizeEvent(QResizeEvent *e) Q_DECL_OVERRIDE;
 
-    protected:
         OpenGLWidgetRendererPrivate *d_ptr;
 
+        void paintEvent(QPaintEvent *ev) Q_DECL_OVERRIDE;
         void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+        //        void resizeEvent(QResizeEvent *e);
+
+    signals:
+        void renderRequested();
+
+    protected slots:
+        void onAboutToCompose();
+        void onFrameSwapped();
+        void onAboutToResize();
+        void onResized();
+        void grabContext();
     };
 }// namespace AVQt
 

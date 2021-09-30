@@ -56,27 +56,17 @@ namespace AVQt {
     private:
         explicit OpenGLRendererPrivate(OpenGLRenderer *q);
 
-        // Platform-dependent
-        void initializePlatformAPI();
-
-        void initializeGL(QOpenGLContext *context);
-        void initializeOnFirstFrame();
-
-        void onFrame(AVFrame *frame, AVBufferRef *pDeviceCtx);
-        void updatePixelFormat();
-        void mapFrame();
-
         void bindResources();
         void releaseResources();
         void destroyResources();
 
+        void updatePixelFormat();
+
         // Utilities
+        static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+        static QTime timeFromMillis(int64_t ts);
         static GLint project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
                              GLdouble *winx, GLdouble *winy, GLdouble *winz);
-
-        static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
-
-        static QTime timeFromMillis(int64_t ts);
 
         OpenGLRenderer *q_ptr{nullptr};
 

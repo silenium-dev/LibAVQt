@@ -51,7 +51,7 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 #endif ()
 
 set(SOURCES
-        resources.qrc
+        AVQtShader.qrc
 
         AVQt
         global.h
@@ -88,6 +88,7 @@ set(SOURCES
 
         renderers/OpenGLRenderer.h
         renderers/private/OpenGLRenderer_p.h
+        renderers/private/OpenGLRenderer_p.cpp
         renderers/OpenGLRenderer.cpp
 
         renderers/OpenALAudioOutput.h
@@ -120,6 +121,7 @@ set(SOURCES_LINUX
         filter/EncoderVAAPI.cpp
 
         renderers/private/unix/OpenGLRenderer_p.cpp
+        renderers/unix/OpenGLRenderer.cpp
         )
 set(SOURCES_WINDOWS
         filter/DecoderDXVA2.h

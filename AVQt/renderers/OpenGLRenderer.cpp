@@ -6,14 +6,17 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-static void loadResources() {
-    Q_INIT_RESOURCE(resources);
-}
-
+#include <QOpenGLFramebufferObject>
+#include <QtConcurrent>
 #include <QtOpenGL>
 
+
+static void loadResources() {
+    Q_INIT_RESOURCE(AVQtShader);
+}
+
 namespace AVQt {
-    OpenGLRenderer::OpenGLRenderer(QWidget *parent) : QObject(parent), QOpenGLFunctions(),
+    OpenGLRenderer::OpenGLRenderer(QObject *parent) : QObject(parent), QOpenGLFunctions(),
                                                       d_ptr(new OpenGLRendererPrivate(this)) {
         Q_D(AVQt::OpenGLRenderer);
         bool shouldBe = false;
@@ -119,40 +122,71 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration, AVBufferRef *pDeviceCtx) {
+    void OpenGLRenderer::initializeGL(QOpenGLContext *context) {
         Q_D(AVQt::OpenGLRenderer);
-        Q_UNUSED(source)
-        Q_UNUSED(duration)
-        d->onFrame(frame, pDeviceCtx);
-    }
-
-    void OpenGLRenderer::initializeGL(QOpenGLContext *context, QSurface *surface) {
-        Q_D(AVQt::OpenGLRenderer);
-
-        d->m_context = context;
-        d->m_surface = surface;
 
         initializeOpenGLFunctions();
 
-        d->initializePlatformAPI();
-        d->initializeGL(context);
+        initializePlatformAPI();
+
+        QByteArray shaderVersionString;
+
+        if (context->isOpenGLES()) {
+            shaderVersionString = "#version 300 es\n";
+        } else {
+            shaderVersionString = "#version 330 core\n";
+        }
+
+        QFile vsh{":/shaders/texture.vsh"};
+        QFile fsh{":/shaders/texture.fsh"};
+        vsh.open(QIODevice::ReadOnly);
+        fsh.open(QIODevice::ReadOnly);
+        QByteArray vertexShader = vsh.readAll().prepend(shaderVersionString);
+        QByteArray fragmentShader = fsh.readAll().prepend(shaderVersionString);
+        vsh.close();
+        fsh.close();
+
+        d->m_program = new QOpenGLShaderProgram();
+        d->m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
+        d->m_program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
+
+        d->m_program->bindAttributeLocation("vertex", OpenGLRendererPrivate::PROGRAM_VERTEX_ATTRIBUTE);
+        d->m_program->bindAttributeLocation("texCoord", OpenGLRendererPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
+
+        if (!d->m_program->link()) {
+            qDebug() << "Shader linkers errors:\n"
+                     << d->m_program->log();
+        }
+
+        d->m_program->bind();
+        d->m_program->setUniformValue("textureY", 0);
+        d->m_program->setUniformValue("textureU", 1);
+        d->m_program->setUniformValue("textureV", 2);
+        d->m_program->release();
     }
 
     void OpenGLRenderer::paintGL() {
         Q_D(AVQt::OpenGLRenderer);
 
+        //        if (d->m_currentFrame) {
+        //            int display_width = rect.width();
+        //            int display_height = (rect.width() * d->m_currentFrame->height + d->m_currentFrame->width / 2) / d->m_currentFrame->width;
+        //            if (display_height > rect.height()) {
+        //                display_width = (rect.height() * d->m_currentFrame->width + d->m_currentFrame->height / 2) / d->m_currentFrame->height;
+        //                display_height = rect.height();
+        //            }
+        //            glViewport((rect.width() - display_width) / 2, (rect.height() - display_height) / 2, display_width, display_height);
+        //        }
+
         //         Clear background
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        //        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        //        glClear(GL_COLOR_BUFFER_BIT);
 
         if (d->m_running.load()) {
             if (!d->m_paused.load()) {
-                if (d->m_renderQueue.size() >= 2) {
-                    auto timestamp = d->m_clock->getTimestamp();
-                    if (timestamp >= d->m_renderQueue.first().result()->pts) {
-                        d->m_updateRequired.store(true);
-                        d->m_updateTimestamp.store(timestamp);
-                    }
+                if (isUpdateRequired()) {
+                    d->m_updateRequired.store(true);
+                    d->m_updateTimestamp.store(d->m_clock->getTimestamp());
                 }
                 if (d->m_updateRequired.load() && d->m_renderQueue.size() >= 2) {
                     d->m_updateRequired.store(false);
@@ -168,7 +202,7 @@ namespace AVQt {
                             }
                         }
                         QMutexLocker lock2(&d->m_renderQueueMutex);
-                        frame = d->m_renderQueue.dequeue();
+                        frame = d->m_renderQueue.dequeue().result();
                     }
 
                     bool firstFrame;
@@ -197,17 +231,17 @@ namespace AVQt {
                         frameProcessingFinished(d->m_currentFrame->pts, d->m_renderQueue.first().result()->pts - d->m_currentFrame->pts);
                     }
                     if (firstFrame) {
-                        d->initializeOnFirstFrame();
+                        initializeInterop();
                         qDebug("First frame");
                     }
                     if (differentPixFmt) {
                         d->updatePixelFormat();
                     }
-                    d->mapFrame();
+                    mapFrame();
                     qDebug("Mapped frame");
                 }
                 if (d->m_clock) {
-                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 2) {
+                    if (!d->m_clock->isActive() && d->m_renderQueue.size() > 1) {
                         d->m_clock->start();
                     } else if (d->m_clock->isPaused()) {
                         d->m_clock->pause(false);
@@ -227,13 +261,40 @@ namespace AVQt {
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
             d->releaseResources();
         }
+        glFinish();
     }
+
+    void OpenGLRenderer::paintFBO(QOpenGLFramebufferObject *fbo) {
+        fbo->bind();
+        glViewport(0, 0, fbo->width(), fbo->height());
+        paintGL();
+        QOpenGLFramebufferObject::bindDefault();
+    }
+
     QSize OpenGLRenderer::getFrameSize() {
         Q_D(AVQt::OpenGLRenderer);
         if (d->m_currentFrame) {
             return {d->m_currentFrame->width, d->m_currentFrame->height};
+        } else if (!d->m_renderQueue.isEmpty()) {
+            return {d->m_renderQueue.first().result()->width, d->m_renderQueue.first().result()->height};
         } else {
             return {};
         }
+    }
+
+    bool OpenGLRenderer::isUpdateRequired() {
+        Q_D(AVQt::OpenGLRenderer);
+        if (!d->m_renderQueue.isEmpty()) {
+            auto timestamp = d->m_clock->getTimestamp();
+            if (timestamp >= d->m_renderQueue.first().result()->pts) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void OpenGLRenderer::cleanupGL() {
+        Q_D(AVQt::OpenGLRenderer);
+        d->destroyResources();
     }
 }// namespace AVQt

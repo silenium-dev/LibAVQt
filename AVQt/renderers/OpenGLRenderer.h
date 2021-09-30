@@ -22,7 +22,7 @@ namespace AVQt {
         Q_DISABLE_COPY(OpenGLRenderer)
 
     public:
-        explicit OpenGLRenderer(QWidget *parent = nullptr);
+        explicit OpenGLRenderer(QObject *parent = nullptr);
 
         OpenGLRenderer(OpenGLRenderer &&other) noexcept;
         //
@@ -34,11 +34,17 @@ namespace AVQt {
 
         bool isPaused() Q_DECL_OVERRIDE;
 
-        void initializeGL(QOpenGLContext *context, QSurface *surface);
+        void initializeGL(QOpenGLContext *context);
 
         void paintGL();
 
+        void paintFBO(QOpenGLFramebufferObject *fbo);
+
+        void cleanupGL();
+
         QSize getFrameSize();
+
+        bool isUpdateRequired();
 
     public slots:
         /*!
@@ -81,7 +87,7 @@ namespace AVQt {
          * @param entireDuration Source stream time base, if you don't know what this means, you probably don't want to use it.
          * @param framerate Source stream framerate
          */
-//        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) Q_DECL_OVERRIDE;
+        //        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Image process method, is invoked in objects thread for every frame
@@ -109,8 +115,14 @@ namespace AVQt {
         [[maybe_unused]] explicit OpenGLRenderer(OpenGLRendererPrivate &p);
 
         OpenGLRendererPrivate *d_ptr;
+
+        // Platform-dependent
+        void initializePlatformAPI();
+        void initializeInterop();
+        void updatePixelFormat();
+        void mapFrame();
     };
-}
+}// namespace AVQt
 
 
-#endif //LIBAVQT_OPENGLRENDERER_H
+#endif//LIBAVQT_OPENGLRENDERER_H

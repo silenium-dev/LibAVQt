@@ -492,8 +492,6 @@ namespace AVQt {
         qDebug("Update pixel format :%s", av_get_pix_fmt_name(static_cast<AVPixelFormat>(m_currentFrame->format)));
         m_program->bind();
         switch (m_currentFrame->format) {
-            case AV_PIX_FMT_DXVA2_VLD:
-            case AV_PIX_FMT_D3D11:
             case AV_PIX_FMT_BGRA:
                 m_program->setUniformValue("inputFormat", 0);
                 break;
