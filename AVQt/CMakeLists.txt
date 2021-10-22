@@ -48,9 +48,10 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 #endif ()
 
 set(SOURCES
-        resources.qrc
+        AVQtShader.qrc
 
         AVQt
+        global.h
 
         input/IPacketSource.h
         input/IFrameSource.h
@@ -62,33 +63,38 @@ set(SOURCES
         input/private/Demuxer_p.h
         input/Demuxer.cpp
 
-        filter/IDecoder.h
-        filter/IEncoder.h
+        decoder/IDecoder.h
+        encoder/IEncoder.h
 
-        filter/DecoderQSV.h
-        filter/private/DecoderQSV_p.h
-        filter/DecoderQSV.cpp
+        decoder/DecoderQSV.h
+        decoder/private/DecoderQSV_p.h
+        decoder/DecoderQSV.cpp
 
-        filter/AudioDecoder.h
-        filter/private/AudioDecoder_p.h
-        output/private/OpenALErrorHandler.h
-        filter/AudioDecoder.cpp
+        decoder/AudioDecoder.h
+        decoder/private/AudioDecoder_p.h
+        renderers/private/OpenALErrorHandler.h
+        decoder/AudioDecoder.cpp
 
-        filter/EncoderQSV.h
-        filter/private/EncoderQSV_p.h
-        filter/EncoderQSV.cpp
+        encoder/EncoderQSV.h
+        encoder/private/EncoderQSV_p.h
+        encoder/EncoderQSV.cpp
 
-        output/RenderClock.h
-        output/private/RenderClock_p.h
-        output/RenderClock.cpp
+        renderers/RenderClock.h
+        renderers/private/RenderClock_p.h
+        renderers/RenderClock.cpp
 
-        output/OpenGLRenderer.h
-        output/private/OpenGLRenderer_p.h
-        output/OpenGLRenderer.cpp
+        renderers/OpenGLRenderer.h
+        renderers/private/OpenGLRenderer_p.h
+        renderers/private/OpenGLRenderer_p.cpp
+        renderers/OpenGLRenderer.cpp
 
-        output/OpenALAudioOutput.h
-        output/private/OpenALAudioOutput_p.h
-        output/OpenALAudioOutput.cpp
+        renderers/OpenALAudioOutput.h
+        renderers/private/OpenALAudioOutput_p.h
+        renderers/OpenALAudioOutput.cpp
+
+        widgets/OpenGLWidgetRenderer.h
+        widgets/private/OpenGLWidgetRenderer_p.h
+        widgets/OpenGLWidgetRenderer.cpp
 
         output/Muxer.h
         output/private/Muxer_p.h
@@ -99,26 +105,31 @@ set(SOURCES
         #        output/FrameFileSaver.cpp
         )
 set(SOURCES_LINUX
-        filter/DecoderVAAPI.h
-        filter/private/DecoderVAAPI_p.h
-        filter/DecoderVAAPI.cpp
+        decoder/DecoderVAAPI.h
+        decoder/private/DecoderVAAPI_p.h
+        decoder/DecoderVAAPI.cpp
 
-        filter/DecoderMMAL.h
-        filter/private/DecoderMMAL_p.h
-        filter/DecoderMMAL.cpp
+        decoder/DecoderMMAL.h
+        decoder/private/DecoderMMAL_p.h
+        decoder/DecoderMMAL.cpp
 
-        filter/EncoderVAAPI.h
-        filter/private/EncoderVAAPI_p.h
-        filter/EncoderVAAPI.cpp
+        encoder/EncoderVAAPI.h
+        encoder/private/EncoderVAAPI_p.h
+        encoder/EncoderVAAPI.cpp
+
+        renderers/private/unix/OpenGLRenderer_p.cpp
+        renderers/unix/OpenGLRenderer.cpp
         )
 set(SOURCES_WINDOWS
-        filter/DecoderDXVA2.h
-        filter/private/DecoderDXVA2_p.h
-        filter/DecoderDXVA2.cpp
+        decoder/DecoderDXVA2.h
+        decoder/private/DecoderDXVA2_p.h
+        decoder/DecoderDXVA2.cpp
 
-        filter/DecoderD3D11VA.h
-        filter/private/DecoderD3D11VA_p.h
-        filter/DecoderD3D11VA.cpp
+        decoder/DecoderD3D11VA.h
+        decoder/private/DecoderD3D11VA_p.h
+        decoder/DecoderD3D11VA.cpp
+
+        renderers/private/windows/OpenGLRenderer_p.cpp
         )
 
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above
@@ -136,6 +147,8 @@ else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
+target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
+target_compile_definitions(AVQtStatic PRIVATE AVQT_LIBRARY_BUILD)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 if (!WIN32)
@@ -233,8 +246,8 @@ target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil a
 target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
 if (WIN32)
-    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
-    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
+    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
+    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9  dxguid)
 else ()
     target_link_libraries(AVQt GL openal EGL GLU va)
     target_link_libraries(AVQtStatic GL openal EGL GLU va)

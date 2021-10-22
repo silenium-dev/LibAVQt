@@ -1,7 +1,3 @@
-//
-// Created by silas on 3/25/21.
-//
-
 #include "../Demuxer.h"
 
 #include <QtCore>

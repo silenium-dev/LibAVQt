@@ -5,3 +5,5 @@ build*
 /.idea_/
 /out/
 /LibAVQt.code-workspace
+
+/mfx_dispatch

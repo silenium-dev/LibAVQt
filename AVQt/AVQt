@@ -1,7 +1,22 @@
+// Copyright (c) 2021.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+// documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and t
+//  permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
+// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+
 #include <qglobal.h>
 
-#include "filter/IDecoder.h"
-#include "filter/IEncoder.h"
+#include "decoder/IDecoder.h"
+#include "encoder/IEncoder.h"
 #include "input/Demuxer.h"
 #include "input/IAudioSource.h"
 #include "input/IFrameSource.h"
@@ -10,24 +25,25 @@
 #include "output/IFrameSink.h"
 #include "output/IPacketSink.h"
 #include "output/Muxer.h"
-#include "output/OpenALAudioOutput.h"
-#include "output/OpenGLRenderer.h"
+#include "renderers/OpenALAudioOutput.h"
+#include "renderers/OpenGLRenderer.h"
+#include "widgets/OpenGLWidgetRenderer.h"
 
 
 #ifdef Q_OS_LINUX
 
-#include "filter/DecoderVAAPI.h"
-#include "filter/DecoderMMAL.h"
-#include "filter/EncoderVAAPI.h"
+#include "decoder/DecoderMMAL.h"
+#include "decoder/DecoderVAAPI.h"
+#include "encoder/EncoderVAAPI.h"
 
 #elif defined(Q_OS_WIN)
 
-#include "filter/DecoderDXVA2.h"
-#include "filter/DecoderD3D11VA.h"
+#include "decoder/DecoderD3D11VA.h"
+#include "decoder/DecoderDXVA2.h"
 
 #endif
 
-#include "filter/AudioDecoder.h"
-#include "filter/DecoderQSV.h"
-#include "filter/EncoderQSV.h"
+#include "decoder/AudioDecoder.h"
+#include "decoder/DecoderQSV.h"
+#include "encoder/EncoderQSV.h"
 //#include "output/FrameFileSaver.h"
