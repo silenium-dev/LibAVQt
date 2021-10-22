@@ -13,10 +13,9 @@ namespace AVQt {
     }
 
     [[maybe_unused]] EncoderVAAPI::EncoderVAAPI(EncoderVAAPIPrivate &p) : d_ptr(&p) {
-
     }
 
-    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) noexcept: d_ptr(other.d_ptr) {
+    EncoderVAAPI::EncoderVAAPI(EncoderVAAPI &&other) noexcept : d_ptr(other.d_ptr) {
         other.d_ptr = nullptr;
         d_ptr->q_ptr = this;
     }
@@ -28,9 +27,9 @@ namespace AVQt {
     int EncoderVAAPI::init() {
         Q_D(AVQt::EncoderVAAPI);
 
-//        int ret = 0;
-//        constexpr auto strBufSize = 64;
-//        char strBuf[strBufSize];
+        //        int ret = 0;
+        //        constexpr auto strBufSize = 64;
+        //        char strBuf[strBufSize];
 
         std::string codec_name;
         switch (d->m_codec) {
@@ -72,7 +71,7 @@ namespace AVQt {
 
         {
             QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb: d->m_cbList) {
+            for (const auto &cb : d->m_cbList) {
                 cb->deinit(this);
             }
         }
@@ -121,7 +120,7 @@ namespace AVQt {
 
             {
                 QMutexLocker lock{&d->m_cbListMutex};
-                for (const auto &cb: d->m_cbList) {
+                for (const auto &cb : d->m_cbList) {
                     cb->stop(this);
                 }
             }
@@ -241,10 +240,10 @@ namespace AVQt {
         {
             QMutexLocker lock{&d->m_inputQueueMutex};
             d->m_inputQueue.enqueue(queueFrame);
-//            std::sort(d->m_inputQueue.begin(), d->m_inputQueue.end(),
-//                      [&](const QPair<AVFrame *, int64_t> &f1, const QPair<AVFrame *, int64_t> &f2) {
-//                          return f1.first->pts < f2.first->pts;
-//                      });
+            //            std::sort(d->m_inputQueue.begin(), d->m_inputQueue.end(),
+            //                      [&](const QPair<AVFrame *, int64_t> &f1, const QPair<AVFrame *, int64_t> &f2) {
+            //                          return f1.first->pts < f2.first->pts;
+            //                      });
         }
     }
 
@@ -288,7 +287,7 @@ namespace AVQt {
                     framesContext->height = d->m_pCodecCtx->height;
                     framesContext->sw_format = d->m_pCodecCtx->sw_pix_fmt;
                     framesContext->format = AV_PIX_FMT_VAAPI;
-                    framesContext->initial_pool_size = 20;
+                    framesContext->initial_pool_size = 64;
 
                     ret = av_hwframe_ctx_init(d->m_pFramesCtx);
                     if (ret != 0) {
@@ -326,7 +325,7 @@ namespace AVQt {
                     }
 
                     QMutexLocker lock(&d->m_cbListMutex);
-                    for (const auto &cb: d->m_cbList) {
+                    for (const auto &cb : d->m_cbList) {
                         AVCodecParameters *parameters = avcodec_parameters_alloc();
                         avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
                         parameters->bit_rate = d->m_bitrate;
@@ -340,15 +339,14 @@ namespace AVQt {
                         QMutexLocker lock(&d->m_inputQueueMutex);
                         frame = d->m_inputQueue.dequeue();
                     }
-                    if (frame.first->hw_frames_ctx) {
-                        ret = av_hwframe_map(d->m_pHWFrame, frame.first, AV_HWFRAME_MAP_READ);
-                    } else {
-                        av_hwframe_transfer_data(d->m_pHWFrame, frame.first, 0);
-                    }
+                    ret = av_hwframe_map(d->m_pHWFrame, frame.first, AV_HWFRAME_MAP_READ);
+
+                    qWarning("Transfer: %d: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+
                     d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
                                                       d->m_pCodecCtx->time_base);// Incoming timestamps are always microseconds
                                                                                  //                    d->m_pHWFrame->pts = frame.first->pts;
-                    av_frame_free(&frame.first);
+                                                                                 //                    av_frame_free(&frame.first);
                     AVFrame *swFrame = av_frame_alloc();
                     av_hwframe_transfer_data(swFrame, d->m_pHWFrame, 0);
                     QImage image{swFrame->data[0], d->m_pHWFrame->width, d->m_pHWFrame->height, swFrame->linesize[0], QImage::Format_Grayscale8};
@@ -366,10 +364,10 @@ namespace AVQt {
                     //                    avcodec_send_frame(d->m_pCodecCtx, nullptr);
                     //
                     //                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-//                        break;
-//                    } else if (ret != 0) {
-//                        qFatal("%i: Could not flush VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-//                    }
+                    //                        break;
+                    //                    } else if (ret != 0) {
+                    //                        qFatal("%i: Could not flush VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                    //                    }
                 }
                 AVPacket *packet = av_packet_alloc();
                 while (true) {
@@ -379,9 +377,9 @@ namespace AVQt {
                     } else if (ret != 0) {
                         qFatal("%i: Could not receive packet from encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
-//                    packet->pts = d->m_pHWFrame->pts;
-//                    packet->pts = d->m_pCodecCtx->coded_frame->pts;
-//                    packet->pts = packet->dts;
+                    //                    packet->pts = d->m_pHWFrame->pts;
+                    //                    packet->pts = d->m_pCodecCtx->coded_frame->pts;
+                    //                    packet->pts = packet->dts;
                     packet->pos = -1;
                     av_packet_rescale_ts(packet, d->m_pCodecCtx->time_base, av_make_q(1, 1000000));
                     qDebug("[AVQt::EncoderVAAPI] Got packet from encoder with PTS: %lld, DTS: %lld, duration: %lld, timebase: %d/%d",
@@ -391,7 +389,7 @@ namespace AVQt {
                            d->m_pCodecCtx->time_base.num, d->m_pCodecCtx->time_base.den);
                     if (packet->buf) {
                         QMutexLocker lock(&d->m_cbListMutex);
-                        for (const auto &cb: d->m_cbList) {
+                        for (const auto &cb : d->m_cbList) {
                             AVPacket *cbPacket = av_packet_clone(packet);
                             cb->onPacket(this, cbPacket, IPacketSource::CB_VIDEO);
                             av_packet_free(&cbPacket);
@@ -413,4 +411,4 @@ namespace AVQt {
 
         return *this;
     }
-}
+}// namespace AVQt

@@ -247,6 +247,7 @@ namespace AVQt {
                     avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
                     d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
                     d->m_pCodecCtx->time_base = d->m_timebase;
+                    //                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_VAAPI;
                     d->m_pCodecCtx->get_format = &DecoderVAAPIPrivate::getFormat;
                     ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
                     if (ret != 0) {
@@ -352,16 +353,16 @@ namespace AVQt {
         }
 
         ctx->hw_frames_ctx = av_hwframe_ctx_alloc(ctx->hw_device_ctx);
-        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx);
+        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx->data);
         framesContext->width = ctx->width;
         framesContext->height = ctx->height;
         framesContext->format = result;
         framesContext->sw_format = ctx->sw_pix_fmt;
-        framesContext->initial_pool_size = 64;
+        framesContext->initial_pool_size = 100;
         int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
         if (ret != 0) {
             char strBuf[64];
-            qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", av_make_error_string(strBuf, 64, ret));
+            qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
         }
         return result;
     }
