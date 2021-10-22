@@ -258,7 +258,7 @@ namespace AVQt {
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
 
-        QPair<AVFrame *, int64_t> queueFrame{av_frame_alloc(), frameDuration};
+        QPair<AVFrame *, int64_t> queueFrame{nullptr, frameDuration};
         switch (frame->format) {
             case AV_PIX_FMT_QSV:
                 if (!d->m_pDeviceCtx) {
@@ -266,7 +266,7 @@ namespace AVQt {
                     d->m_pFramesCtx = av_buffer_ref(frame->hw_frames_ctx);
                 }
                 qDebug("Referencing frame");
-                av_frame_ref(queueFrame.first, frame);
+                queueFrame.first = av_frame_clone(frame);
                 break;
             case AV_PIX_FMT_DXVA2_VLD:
             case AV_PIX_FMT_D3D11:
@@ -278,20 +278,21 @@ namespace AVQt {
                         qFatal("[AVQt::EncoderQSV] %d: Could not create derived AVHWDeviceContext: %s", ret,
                                av_make_error_string(strBuf, strBufSize, ret));
                     }
-                    ret = av_hwframe_ctx_create_derived(&d->m_pFramesCtx, AV_PIX_FMT_QSV, d->m_pDeviceCtx, frame->hw_frames_ctx,
-                                                        AV_HWFRAME_MAP_READ);
+                    AVHWFramesContext *framesCtx, *framesCtxOld;
+                    framesCtxOld = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
+                    ret = av_hwframe_ctx_create_derived(&d->m_pFramesCtx, framesCtxOld->sw_format, d->m_pDeviceCtx, frame->hw_frames_ctx, AV_HWFRAME_MAP_READ);
                     if (ret != 0) {
                         qFatal("[AVQt::EncoderQSV] %d: Could not create derived AVHWFramesContext: %s", ret,
                                av_make_error_string(strBuf, strBufSize, ret));
                     }
-
-                    ret = av_hwframe_ctx_init(d->m_pFramesCtx);
-                    if (ret != 0) {
-                        qFatal("[AVQt::EncoderQSV] %d: Could not init HW frames context: %s", ret,
-                               av_make_error_string(strBuf, strBufSize, ret));
-                    }
                 }
-                av_frame_ref(queueFrame.first, frame);
+                queueFrame.first->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
+                av_hwframe_get_buffer(d->m_pFramesCtx, queueFrame.first, 0);
+                ret = av_hwframe_map(queueFrame.first, frame, AV_HWFRAME_MAP_READ);
+                if (ret != 0) {
+                    qFatal("[AVQt::EncoderQSV] %d: Could not map frame from source device to QSV: %s", ret,
+                           av_make_error_string(strBuf, strBufSize, ret));
+                }
                 break;
 //            case AV_PIX_FMT_DXVA2_VLD:
 //                qDebug("Transferring frame from GPU to CPU");
@@ -300,7 +301,7 @@ namespace AVQt {
 //                break;
             default:
                 qDebug("Referencing frame");
-                av_frame_ref(queueFrame.first, frame);
+                queueFrame.first = av_frame_clone(frame);
                 break;
         }
 
@@ -410,32 +411,11 @@ namespace AVQt {
                         frame = d->m_inputQueue.dequeue();
                     }
                     if (frame.first->hw_frames_ctx) {
-                        AVFrame *outFrame;
-                        std::chrono::time_point<std::chrono::high_resolution_clock> t1;
-                        switch (frame.first->format) {
-                            case AV_PIX_FMT_VAAPI:
-                            case AV_PIX_FMT_DRM_PRIME:
-                            case AV_PIX_FMT_DXVA2_VLD:
-                                qDebug("[AVQt::EncoderQSV] Mapping VAAPI/DRM_PRIME/DXVA2 frame to QSV");
-                                outFrame = av_frame_alloc();
-                                outFrame->hw_frames_ctx = av_buffer_ref(d->m_pFramesCtx);
-                                outFrame->format = AV_PIX_FMT_QSV;
-                                t1 = std::chrono::high_resolution_clock::now();
-                                av_hwframe_map(outFrame, frame.first, AV_HWFRAME_MAP_DIRECT | AV_HWFRAME_MAP_READ);
-                                qDebug("Mapping time: %ld us", std::chrono::duration_cast<std::chrono::microseconds>(
-                                        std::chrono::high_resolution_clock::now() - t1).count());
-                                break;
-                            case AV_PIX_FMT_QSV:
-                                outFrame = av_frame_clone(frame.first);
-                                break;
-
-                        }
-                        outFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
-                                                     d->m_pCodecCtx->time_base); // Incoming timestamps are always microseconds
-                        ret = avcodec_send_frame(d->m_pCodecCtx, outFrame);
-                        qDebug("[AVQt::EncoderQSV] Sent frame with PTS %lld to encoder", static_cast<long long>(outFrame->pts));
+                        frame.first->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
+                                                        d->m_pCodecCtx->time_base); // Incoming timestamps are always microseconds
+                        ret = avcodec_send_frame(d->m_pCodecCtx, frame.first);
+                        qDebug("[AVQt::EncoderQSV] Sent frame with PTS %lld to encoder", static_cast<long long>(frame.first->pts));
                         av_frame_free(&frame.first);
-                        av_frame_free(&outFrame);
                     } else {
                         av_hwframe_transfer_data(d->m_pHWFrame, frame.first, 0);
                         d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),

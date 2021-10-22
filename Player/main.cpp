@@ -9,7 +9,7 @@
 constexpr auto LOGFILE_LOCATION = "libAVQt.log";
 
 QApplication *app = nullptr;
-std::chrono::time_point<std::chrono::system_clock> start;// NOLINT(cert-err58-cpp)
+std::chrono::time_point<std::chrono::system_clock> start; // NOLINT(cert-err58-cpp)
 
 void signalHandler(int sigNum) {
     Q_UNUSED(sigNum)
