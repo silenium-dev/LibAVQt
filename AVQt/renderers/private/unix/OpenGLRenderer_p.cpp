@@ -82,9 +82,16 @@ namespace AVQt {
         delete m_program;
         m_program = nullptr;
 
-        m_ibo.destroy();
-        m_vbo.destroy();
-        m_vao.destroy();
+        if (m_ibo.isCreated()) {
+            m_ibo.destroy();
+        }
+        if (m_vbo.isCreated()) {
+            m_vbo.destroy();
+        }
+        if (m_vao.isCreated()) {
+            m_vao.destroy();
+        }
+
 
         delete m_yTexture;
         delete m_uTexture;

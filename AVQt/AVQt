@@ -15,8 +15,8 @@
 
 #include <qglobal.h>
 
-#include "filter/IDecoder.h"
-#include "filter/IEncoder.h"
+#include "decoder/IDecoder.h"
+#include "encoder/IEncoder.h"
 #include "input/Demuxer.h"
 #include "input/IAudioSource.h"
 #include "input/IFrameSource.h"
@@ -32,18 +32,18 @@
 
 #ifdef Q_OS_LINUX
 
-#include "filter/DecoderMMAL.h"
-#include "filter/DecoderVAAPI.h"
-#include "filter/EncoderVAAPI.h"
+#include "decoder/DecoderMMAL.h"
+#include "decoder/DecoderVAAPI.h"
+#include "encoder/EncoderVAAPI.h"
 
 #elif defined(Q_OS_WIN)
 
-#include "filter/DecoderDXVA2.h"
-#include "filter/DecoderD3D11VA.h"
+#include "decoder/DecoderD3D11VA.h"
+#include "decoder/DecoderDXVA2.h"
 
 #endif
 
-#include "filter/AudioDecoder.h"
-#include "filter/DecoderQSV.h"
-#include "filter/EncoderQSV.h"
+#include "decoder/AudioDecoder.h"
+#include "decoder/DecoderQSV.h"
+#include "encoder/EncoderQSV.h"
 //#include "output/FrameFileSaver.h"

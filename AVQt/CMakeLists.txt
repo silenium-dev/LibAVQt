@@ -66,21 +66,21 @@ set(SOURCES
         input/private/Demuxer_p.h
         input/Demuxer.cpp
 
-        filter/IDecoder.h
-        filter/IEncoder.h
+        decoder/IDecoder.h
+        encoder/IEncoder.h
 
-        filter/DecoderQSV.h
-        filter/private/DecoderQSV_p.h
-        filter/DecoderQSV.cpp
+        decoder/DecoderQSV.h
+        decoder/private/DecoderQSV_p.h
+        decoder/DecoderQSV.cpp
 
-        filter/AudioDecoder.h
-        filter/private/AudioDecoder_p.h
+        decoder/AudioDecoder.h
+        decoder/private/AudioDecoder_p.h
         renderers/private/OpenALErrorHandler.h
-        filter/AudioDecoder.cpp
+        decoder/AudioDecoder.cpp
 
-        filter/EncoderQSV.h
-        filter/private/EncoderQSV_p.h
-        filter/EncoderQSV.cpp
+        encoder/EncoderQSV.h
+        encoder/private/EncoderQSV_p.h
+        encoder/EncoderQSV.cpp
 
         renderers/RenderClock.h
         renderers/private/RenderClock_p.h
@@ -108,29 +108,29 @@ set(SOURCES
         #        output/FrameFileSaver.cpp
         )
 set(SOURCES_LINUX
-        filter/DecoderVAAPI.h
-        filter/private/DecoderVAAPI_p.h
-        filter/DecoderVAAPI.cpp
+        decoder/DecoderVAAPI.h
+        decoder/private/DecoderVAAPI_p.h
+        decoder/DecoderVAAPI.cpp
 
-        filter/DecoderMMAL.h
-        filter/private/DecoderMMAL_p.h
-        filter/DecoderMMAL.cpp
+        decoder/DecoderMMAL.h
+        decoder/private/DecoderMMAL_p.h
+        decoder/DecoderMMAL.cpp
 
-        filter/EncoderVAAPI.h
-        filter/private/EncoderVAAPI_p.h
-        filter/EncoderVAAPI.cpp
+        encoder/EncoderVAAPI.h
+        encoder/private/EncoderVAAPI_p.h
+        encoder/EncoderVAAPI.cpp
 
         renderers/private/unix/OpenGLRenderer_p.cpp
         renderers/unix/OpenGLRenderer.cpp
         )
 set(SOURCES_WINDOWS
-        filter/DecoderDXVA2.h
-        filter/private/DecoderDXVA2_p.h
-        filter/DecoderDXVA2.cpp
+        decoder/DecoderDXVA2.h
+        decoder/private/DecoderDXVA2_p.h
+        decoder/DecoderDXVA2.cpp
 
-        filter/DecoderD3D11VA.h
-        filter/private/DecoderD3D11VA_p.h
-        filter/DecoderD3D11VA.cpp
+        decoder/DecoderD3D11VA.h
+        decoder/private/DecoderD3D11VA_p.h
+        decoder/DecoderD3D11VA.cpp
 
         renderers/private/windows/OpenGLRenderer_p.cpp
         )

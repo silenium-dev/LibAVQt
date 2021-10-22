@@ -55,7 +55,15 @@ namespace AVQt {
             case AV_PIX_FMT_BGRA:
                 m_program->setUniformValue("inputFormat", 0);
                 break;
-            case AV_PIX_FMT_VAAPI:
+            case AV_PIX_FMT_VAAPI: {
+                auto format = reinterpret_cast<AVHWFramesContext *>(m_currentFrame->hw_frames_ctx->data)->sw_format;
+                if (format == AV_PIX_FMT_NV12 || format == AV_PIX_FMT_P010) {
+                    m_program->setUniformValue("inputFormat", 1);
+                } else {
+                    m_program->setUniformValue("inputFormat", 0);
+                }
+                break;
+            }
             case AV_PIX_FMT_NV12:
             case AV_PIX_FMT_P010:
                 m_program->setUniformValue("inputFormat", 1);

@@ -3,11 +3,11 @@
  * \internal
  */
 
-#include "../DecoderVAAPI.h"
+#include "decoder/DecoderVAAPI.h"
 
 extern "C" {
-#include <libavutil/rational.h>
 #include <libavutil/frame.h>
+#include <libavutil/rational.h>
 }
 
 
@@ -19,7 +19,7 @@ namespace AVQt {
      * \private
      */
     class DecoderVAAPIPrivate : public QObject {
-    Q_OBJECT
+        Q_OBJECT
 
         Q_DECLARE_PUBLIC(AVQt::DecoderVAAPI)
 
@@ -29,7 +29,9 @@ namespace AVQt {
         void operator=(const DecoderVAAPIPrivate &) = delete;
 
     private:
-        explicit DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q) {};
+        explicit DecoderVAAPIPrivate(DecoderVAAPI *q) : q_ptr(q){};
+
+        static AVPixelFormat getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts);
 
         DecoderVAAPI *q_ptr;
 
@@ -54,6 +56,6 @@ namespace AVQt {
 
         friend class DecoderVAAPI;
     };
-}
+}// namespace AVQt
 
-#endif //TRANSCODE_DECODERVAAPI_P_H
+#endif//TRANSCODE_DECODERVAAPI_P_H

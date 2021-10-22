@@ -108,11 +108,11 @@ namespace AVQt {
                             }
                             return input;
                         },
-                                          av_frame_clone(frame), pDeviceCtx);
+                                          av_frame_clone(frame), av_buffer_ref(pDeviceCtx));
                 break;
         }
 
-        while (d->m_renderQueue.size() > 8) {
+        while (d->m_renderQueue.size() >= 2) {
             QThread::msleep(4);
         }
 
@@ -253,20 +253,24 @@ namespace AVQt {
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    glBindTexture(GL_TEXTURE_2D, 0);
                 }
                 d->m_program->bind();
                 d->m_program->setUniformValue("inputFormat", 1);
                 d->m_program->release();
-            } else if (framesContext->sw_format == AV_PIX_FMT_RGB0) {
-                glGenTextures(1, d->m_textures);
+            } else if (framesContext->sw_format == AV_PIX_FMT_BGRA) {
+                glGenTextures(1, &d->m_textures[0]);
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glBindTexture(GL_TEXTURE_2D, 0);
                 d->m_program->bind();
                 d->m_program->setUniformValue("inputFormat", 0);
                 d->m_program->release();
+            } else {
+                qFatal("Invalid pixel format");
             }
         } else {
             bool VTexActive = false, UTexActive = false;
@@ -351,6 +355,7 @@ namespace AVQt {
         if (d->m_currentFrame->format == AV_PIX_FMT_VAAPI) {
             auto *framesContext = reinterpret_cast<AVHWFramesContext *>(d->m_currentFrame->hw_frames_ctx->data);
             if (framesContext->sw_format == AV_PIX_FMT_NV12 || framesContext->sw_format == AV_PIX_FMT_P010) {
+                qDebug("YUV VAAPI frame");
                 for (int i = 0; i < 2; ++i) {
                     glActiveTexture(GL_TEXTURE0 + i);
                     glBindTexture(GL_TEXTURE_2D, d->m_textures[i]);
@@ -436,6 +441,7 @@ namespace AVQt {
                     while (glGetError() != GL_NO_ERROR)
                         ;
                     glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, d->m_EGLImages[i]);
+                    glBindTexture(GL_TEXTURE_2D, 0);
                     auto err = glGetError();
 
                     if (err != GL_NO_ERROR) {
@@ -455,10 +461,13 @@ namespace AVQt {
                 for (int i = 0; i < (int) prime.num_objects; ++i) {
                     ::close(prime.objects[i].fd);
                 }
-            } else if (framesContext->sw_format == AV_PIX_FMT_RGB0) {
+            } else if (framesContext->sw_format == AV_PIX_FMT_BGRA) {
+                qDebug("BGRA VAAPI frame");
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
-                eglDestroyImageKHR(d->m_EGLDisplay, d->m_EGLImages[0]);
+                if (d->m_EGLImages[0]) {
+                    eglDestroyImageKHR(d->m_EGLDisplay, d->m_EGLImages[0]);
+                }
 
                 VASurfaceID va_surface = reinterpret_cast<uintptr_t>(d->m_currentFrame->data[3]);
 
@@ -479,8 +488,8 @@ namespace AVQt {
 
                 uint32_t format;
 
-                if (prime.fourcc == VA_FOURCC_RGBX) {
-                    format = DRM_FORMAT_RGBX8888;
+                if (prime.fourcc == VA_FOURCC_ARGB) {
+                    format = DRM_FORMAT_ARGB8888;
                 } else {
                     qFatal("[AVQt::OpenGLRenderer] Illegal VASurface format");
                 }
@@ -511,11 +520,14 @@ namespace AVQt {
                 glBindTexture(GL_TEXTURE_2D, d->m_textures[0]);
 
                 glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, d->m_EGLImages[0]);
+                glBindTexture(GL_TEXTURE_2D, 0);
                 auto err = glGetError();
 
                 if (err != GL_NO_ERROR) {
                     qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
                 }
+            } else {
+                qFatal("Invalid pixel format");
             }
         } else {
             d->m_yTexture->bind(0);
@@ -560,6 +572,13 @@ namespace AVQt {
                     break;
                 default:
                     qFatal("Pixel format not supported");
+            }
+            d->m_yTexture->release(0);
+            if (d->m_uTexture) {
+                d->m_uTexture->release(1);
+            }
+            if (d->m_vTexture) {
+                d->m_vTexture->release(2);
             }
         }
     }

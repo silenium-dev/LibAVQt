@@ -1,4 +1,4 @@
-#include "../AudioDecoder.h"
+#include "decoder/AudioDecoder.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

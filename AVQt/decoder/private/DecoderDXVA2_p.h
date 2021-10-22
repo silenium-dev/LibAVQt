@@ -1,27 +1,31 @@
-#include "../DecoderD3D11VA.h"
+#include "decoder/DecoderDXVA2.h"
 
 extern "C" {
 #include <libavutil/rational.h>
 }
 
-#ifndef LIBAVQT_DECODERD3D11VA_P_H
-#define LIBAVQT_DECODERD3D11VA_P_H
+#ifndef LIBAVQT_DECODERDXVA2_P_H
+#define LIBAVQT_DECODERDXVA2_P_H
 
 namespace AVQt {
     /*!
     * \private
     */
-    class DecoderD3D11VAPrivate {
-    public:
-        DecoderD3D11VAPrivate(const DecoderD3D11VAPrivate &) = delete;
+    class DecoderDXVA2Private : public QObject {
+    Q_OBJECT
 
-        void operator=(const DecoderD3D11VAPrivate &) = delete;
+        Q_DECLARE_PUBLIC(AVQt::DecoderDXVA2)
+
+    public:
+        DecoderDXVA2Private(const DecoderDXVA2Private &) = delete;
+
+        void operator=(const DecoderDXVA2Private &) = delete;
 
     private:
 
-        explicit DecoderD3D11VAPrivate(DecoderD3D11VA *q) : q_ptr(q) {};
+        explicit DecoderDXVA2Private(DecoderDXVA2 *q) : q_ptr(q) {};
 
-        DecoderD3D11VA *q_ptr;
+        DecoderDXVA2 *q_ptr;
 
         QMutex m_inputQueueMutex{};
         QQueue<AVPacket *> m_inputQueue{};
@@ -42,8 +46,8 @@ namespace AVQt {
         std::atomic_bool m_running{false};
         std::atomic_bool m_paused{false};
 
-        friend class DecoderD3D11VA;
+        friend class DecoderDXVA2;
     };
 }
 
-#endif //LIBAVQT_DECODERD3D11VA_P_H
+#endif //LIBAVQT_DECODERDXVA2_P_H

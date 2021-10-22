@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(PROJECT_NAME Player)
 
+add_compile_definitions(ENABLE_QSV_ENCODE)
+
 add_executable(${PROJECT_NAME} main.cpp)
 
 set(QT_VERSION "5")

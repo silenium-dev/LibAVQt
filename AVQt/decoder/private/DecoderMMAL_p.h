@@ -3,34 +3,35 @@
  * \internal
  */
 
-#include "../DecoderQSV.h"
+#include "decoder/DecoderMMAL.h"
 
 extern "C" {
 #include <libavutil/rational.h>
+#include <libavutil/frame.h>
 }
 
 
-#ifndef TRANSCODE_DECODERQSV_P_H
-#define TRANSCODE_DECODERQSV_P_H
+#ifndef TRANSCODE_DECODERMMAL_P_H
+#define TRANSCODE_DECODERMMAL_P_H
 
 namespace AVQt {
     /*!
      * \private
      */
-    class DecoderQSVPrivate : public QObject {
+    class DecoderMMALPrivate : public QObject {
     Q_OBJECT
 
-        Q_DECLARE_PUBLIC(AVQt::DecoderQSV)
+        Q_DECLARE_PUBLIC(AVQt::DecoderMMAL)
 
     public:
-        DecoderQSVPrivate(const DecoderQSVPrivate &) = delete;
+        DecoderMMALPrivate(const DecoderMMALPrivate &) = delete;
 
-        void operator=(const DecoderQSVPrivate &) = delete;
+        void operator=(const DecoderMMALPrivate &) = delete;
 
     private:
-        explicit DecoderQSVPrivate(DecoderQSV *q) : q_ptr(q) {};
+        explicit DecoderMMALPrivate(DecoderMMAL *q) : q_ptr(q) {};
 
-        DecoderQSV *q_ptr;
+        DecoderMMAL *q_ptr;
 
         QMutex m_inputQueueMutex{};
         QQueue<AVPacket *> m_inputQueue{};
@@ -41,7 +42,6 @@ namespace AVQt {
         AVCodec *m_pCodec{nullptr};
         AVCodecParameters *m_pCodecParams{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
-        AVBufferRef *m_pDeviceCtx{nullptr};
 
         // Callback stuff
         QMutex m_cbListMutex{};
@@ -51,10 +51,8 @@ namespace AVQt {
         std::atomic_bool m_running{false};
         std::atomic_bool m_paused{false};
 
-        static AVPixelFormat getFormat(AVCodecContext *pCodecCtx, const enum AVPixelFormat *pix_fmts);
-
-        friend class DecoderQSV;
+        friend class DecoderMMAL;
     };
 }
 
-#endif //TRANSCODE_DECODERQSV_P_H
+#endif //TRANSCODE_DECODERMMAL_P_H

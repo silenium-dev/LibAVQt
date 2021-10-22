@@ -1,5 +1,6 @@
-﻿#include "private/EncoderVAAPI_p.h"
-#include "EncoderVAAPI.h"
+﻿#include "EncoderVAAPI.h"
+#include "private/EncoderVAAPI_p.h"
+#include <QImage>
 
 #include "output/IPacketSink.h"
 
@@ -221,7 +222,7 @@ namespace AVQt {
 
         QPair<AVFrame *, int64_t> queueFrame{av_frame_alloc(), frameDuration};
         switch (frame->format) {
-            case AV_PIX_FMT_VAAPI:
+                //            case AV_PIX_FMT_VAAPI:
             case AV_PIX_FMT_DRM_PRIME:
             case AV_PIX_FMT_DXVA2_VLD:
                 qDebug("Transferring frame from GPU to CPU");
@@ -329,7 +330,6 @@ namespace AVQt {
                         AVCodecParameters *parameters = avcodec_parameters_alloc();
                         avcodec_parameters_from_context(parameters, d->m_pCodecCtx);
                         parameters->bit_rate = d->m_bitrate;
-                        //TODO: Pass framerate
                         cb->init(this, av_make_q(0, 1), d->m_pCodecCtx->time_base, d->m_duration, parameters, nullptr, nullptr);
                         cb->start(this);
                     }
@@ -341,25 +341,31 @@ namespace AVQt {
                         frame = d->m_inputQueue.dequeue();
                     }
                     if (frame.first->hw_frames_ctx) {
-                        av_hwframe_map(d->m_pHWFrame, frame.first, AV_HWFRAME_MAP_READ);
+                        ret = av_hwframe_map(d->m_pHWFrame, frame.first, AV_HWFRAME_MAP_READ);
                     } else {
                         av_hwframe_transfer_data(d->m_pHWFrame, frame.first, 0);
                     }
                     d->m_pHWFrame->pts = av_rescale_q(frame.first->pts, av_make_q(1, 1000000),
-                                                      d->m_pCodecCtx->time_base); // Incoming timestamps are always microseconds
-//                    d->m_pHWFrame->pts = frame.first->pts;
+                                                      d->m_pCodecCtx->time_base);// Incoming timestamps are always microseconds
+                                                                                 //                    d->m_pHWFrame->pts = frame.first->pts;
                     av_frame_free(&frame.first);
+                    AVFrame *swFrame = av_frame_alloc();
+                    av_hwframe_transfer_data(swFrame, d->m_pHWFrame, 0);
+                    QImage image{swFrame->data[0], d->m_pHWFrame->width, d->m_pHWFrame->height, swFrame->linesize[0], QImage::Format_Grayscale8};
+                    image.save("output.bmp");
+                    qApp->quit();
                     ret = avcodec_send_frame(d->m_pCodecCtx, d->m_pHWFrame);
                     qDebug("[AVQt::EncoderVAAPI] Sent frame with PTS %lld to encoder", static_cast<long long>(d->m_pHWFrame->pts));
                     /*if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                         break;
-                    } else */if (ret != 0) {
+                    } else */
+                    if (ret != 0) {
                         qFatal("%i: Could not send frame to VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
-//                    avcodec_send_frame(d->m_pCodecCtx, nullptr);
-//
-//                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                    //                    avcodec_send_frame(d->m_pCodecCtx, nullptr);
+                    //
+                    //                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
 //                        break;
 //                    } else if (ret != 0) {
 //                        qFatal("%i: Could not flush VAAPI encoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
