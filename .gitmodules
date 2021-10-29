@@ -4,3 +4,4 @@
 [submodule "libprocessinggraph"]
 	path = libprocessinggraph
 	url = https://edugit.org/sdcieo0330/libprocessinggraph
+	branch = main
