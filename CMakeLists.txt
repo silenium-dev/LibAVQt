@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(LibAVQt)
 
+include(CheckIncludeFileCXX)
+
 set(CMAKE_CXX_STANDARD 20)
 
 if (WIN32)
@@ -23,12 +25,10 @@ if (WIN32)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif ()
 
-find_path(MFX_INCLUDE "mfx/mfxvideo.h")
-if (NOT MFX_INCLUDE)
-    message("mfx not found")
+CHECK_INCLUDE_FILE_CXX("mfx/mfxvideo.h" MFX_FOUND)
+if (NOT MFX_FOUND)
+    message("Including submodule")
     include_directories("mfx_dispatch")
-else ()
-    message("mfx found")
 endif ()
 
 include_directories("libprocessinggraph/include")

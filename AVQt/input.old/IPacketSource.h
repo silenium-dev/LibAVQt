@@ -1,44 +1,51 @@
-#include "IPacketSource.h"
+#include <QObject>
 
-#include <ProcessingGraph/Producer.h>
-#include <QIODevice>
-#include <QThread>
-
-extern "C" {
-#include <libavcodec/packet.h>
-}
-
-#ifndef LIBAVQT_DEMUXER_H
-#define LIBAVQT_DEMUXER_H
+#ifndef LIBAVQT_IPACKETSOURCE_H
+#define LIBAVQT_IPACKETSOURCE_H
 
 namespace AVQt {
-    class DemuxerPrivate;
+    class IPacketSink;
 
-    class Demuxer : public QThread, public ProcessingGraph::Producer {
-        Q_OBJECT
-        //        Q_INTERFACES(AVQt::IPacketSource)
-
-        Q_DECLARE_PRIVATE(AVQt::Demuxer)
-
+    class IPacketSource {
     public:
-        explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
+        /*!
+         * \enum CB_TYPE
+         * \brief Used to define accepted callback types of a packet sink.
+         *
+         * Can be linked with bitwise-or to set multiple types
+         */
+        enum CB_TYPE : int8_t {
+            /*!
+             * \private
+             */
+            CB_NONE = -1,
 
-        explicit Demuxer(Demuxer &other) = delete;
+            /*!
+             * \brief Callback type: Audio packet, if an audio packet is read, it will be passed to all registered audio packet sinks
+             */
+            CB_AUDIO = 0b00000001,
 
-        Demuxer &operator=(const Demuxer &other) = delete;
+            /*!
+             * \brief Callback type: Video packet
+             */
+            CB_VIDEO = 0b00000010,
 
-        //        Demuxer(Demuxer &&other) noexcept;
+            /*!
+             * \brief Callback type: Subtitle packet
+             */
+            CB_SUBTITLE = 0b00000100
+        };
 
         /*!
          * \private
          */
-        //        void run() override;
+        virtual ~IPacketSource() = default;
 
         /*!
          * \brief Returns, whether the frame source is currently paused.
          * @return Paused state
          */
-        bool isPaused();
+        virtual bool isPaused() = 0;
 
         /*!
          * \brief Register packet callback \c packetSink with given \c type
@@ -46,39 +53,39 @@ namespace AVQt {
          * @param type Callback type, can be linked with bitwise or to set multiple options
          * @return
          */
-        //        Q_INVOKABLE qint64 registerCallback(IPacketSink *packetSink, int8_t type);
+        Q_INVOKABLE virtual qint64 registerCallback(IPacketSink *packetSink, int8_t type) = 0;
 
         /*!
          * \brief Removes packet callback \c packetSink from registry
          * @param packetSink Packet sink/filter to be removed
          * @return Previous position of the item, is -1 when not in registry
          */
-        //        Q_INVOKABLE qint64 unregisterCallback(IPacketSink *packetSink);
+        Q_INVOKABLE virtual qint64 unregisterCallback(IPacketSink *packetSink) = 0;
 
     public slots:
         /*!
          * \brief Initialize packet source (e.g. open files, allocate buffers).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int init();
+        Q_INVOKABLE virtual int init() = 0;
 
         /*!
          * \brief Clean up packet source (e.g. close network connections, free buffers).
          * @return Status code (0 = Success)
          */
-        //        Q_INVOKABLE int deinit();
+        Q_INVOKABLE virtual int deinit() = 0;
 
         /*!
          * \brief Starts packet source (e.g. Start processing thread, activate camera).
          * @return Status code (0 = Success)
          */
-        //        Q_INVOKABLE int start();
+        Q_INVOKABLE virtual int start() = 0;
 
         /*!
          * \brief Stops packet source (e.g. Interrupt processing thread, free camera).
          * @return Status code (0 = Success)
          */
-        //        Q_INVOKABLE int stop();
+        Q_INVOKABLE virtual int stop() = 0;
 
         /*!
          * \brief Sets paused flag of packet source
@@ -87,33 +94,28 @@ namespace AVQt {
          * @param pause Paused flag
          * @return
          */
-        Q_INVOKABLE void pause(bool pause);
+        Q_INVOKABLE virtual void pause(bool pause) = 0;
 
     signals:
 
         /*!
          * \brief Emitted when started
          */
-        void started();
+        virtual void started() = 0;
 
         /*!
          * \brief Emitted when stopped
          */
-        void stopped();
+        virtual void stopped() = 0;
 
         /*!
          * \brief Emitted when paused state changed
          * @param pause Current paused state
          */
-        void paused(bool pause);
-
-    protected:
-        [[maybe_unused]] explicit Demuxer(DemuxerPrivate &p);
-
-        DemuxerPrivate *d_ptr;
+        virtual void paused(bool pause) = 0;
     };
 }// namespace AVQt
 
-PG_DECLARE_DATATYPE(AVPacket *)
+Q_DECLARE_INTERFACE(AVQt::IPacketSource, "AVQt::IPacketSource")
 
-#endif//LIBAVQT_DEMUXER_H
+#endif//LIBAVQT_IPACKETSOURCE_H
