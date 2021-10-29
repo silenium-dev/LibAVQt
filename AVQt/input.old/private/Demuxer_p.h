@@ -28,8 +28,6 @@ namespace AVQt {
 
         static int64_t seekIO(void *opaque, int64_t pos, int whence);
 
-        static bool linkValidator(const ProcessingGraph::Pad<AVPacket *> &pad1, const ProcessingGraph::Pad<AVPacket *> &pad2);
-
         Demuxer *q_ptr;
 
         std::atomic_bool m_running{false}, m_paused{false}, m_initialized{false};
@@ -44,9 +42,6 @@ namespace AVQt {
         AVFormatContext *m_pFormatCtx{nullptr};
         AVIOContext *m_pIOCtx{nullptr};
         QIODevice *m_inputDevice{nullptr};
-
-        QMap<int64_t, quint32> m_commandPadIds;
-        QMap<int64_t, quint32> m_streamPadIds;
 
         friend class Demuxer;
     };
