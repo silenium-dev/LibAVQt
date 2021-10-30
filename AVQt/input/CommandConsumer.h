@@ -22,7 +22,7 @@
 #ifndef LIBAVQT_COMMANDCONSUMER_H
 #define LIBAVQT_COMMANDCONSUMER_H
 
-#include <communication/Command.h>
+#include <communication/Message.h>
 
 class CommandConsumer : public ProcessingGraph::Consumer {
 public:

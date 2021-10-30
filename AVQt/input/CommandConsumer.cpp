@@ -20,13 +20,17 @@
 //
 
 #include "CommandConsumer.h"
+
+#include "communication/PacketPadParams.h"
+
+
 CommandConsumer::CommandConsumer() : ProcessingGraph::Consumer(false) {
-    m_commandInputPadId = createPad<AVQt::Command>();
+    m_commandInputPadId = createPad<AVQt::Message>(QVariant::fromValue(AVQt::PacketPadParams{AVMEDIA_TYPE_VIDEO, AV_CODEC_ID_NONE, 0}));
 }
 
 void CommandConsumer::consume(QVariant data, quint32 padId) {
     if (padId == m_commandInputPadId) {
-        qDebug() << "Incoming command" << data.value<AVQt::Command>().getType().name() << "with payload:";
-        qDebug() << data.value<AVQt::Command>().getPayloads();
+        qDebug() << "Incoming command" << data.value<AVQt::Message>().getType().name() << "with payload:";
+        qDebug() << data.value<AVQt::Message>().getPayloads();
     }
 }

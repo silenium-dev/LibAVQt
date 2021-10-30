@@ -1,7 +1,10 @@
 ﻿#include "AVQt"
-#include "communication/Command.h"
+#include "communication/Message.h"
 #include "communication/PacketPadParams.h"
 #include "input/CommandConsumer.h"
+
+#include "ProcessingGraph/Input.h"
+#include "ProcessingGraph/Input.impl.h"
 
 #include <QApplication>
 #include <QFileDialog>
@@ -92,9 +95,10 @@ int main(int argc, char *argv[]) {
 
     auto *cc = new CommandConsumer;
 
-    cc->getInput()->getPads<AVQt::Command>().first()->link(demuxer->getOutput()->getPads<AVQt::Command>().first());
     demuxer->init();
+    cc->getInput()->getPads<AVQt::Message>().first()->link(demuxer->getOutput()->getPads<AVQt::Message>().first());
     demuxer->pause(true);
+    demuxer->deinit();
 
     delete demuxer;
     delete cc;

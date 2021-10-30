@@ -30,12 +30,14 @@ extern "C" {
 #include <libavcodec/packet.h>
 }
 
-struct PacketPadParams {
-    AVMediaType mediaType{AVMEDIA_TYPE_UNKNOWN};
-    AVCodecID codec{AV_CODEC_ID_NONE};
-    int64_t stream{};
-};
+namespace AVQt {
+    struct PacketPadParams {
+        AVMediaType mediaType{AVMEDIA_TYPE_UNKNOWN};
+        AVCodecID codec{AV_CODEC_ID_NONE};
+        int64_t stream{};
+    };
+}// namespace AVQt
 
-Q_DECLARE_METATYPE(PacketPadParams);
+Q_DECLARE_METATYPE(AVQt::PacketPadParams);
 
 #endif//LIBAVQT_PACKETPADPARAMS_H

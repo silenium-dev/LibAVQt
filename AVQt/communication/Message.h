@@ -19,17 +19,17 @@
 // Created by silas on 23.10.21.
 //
 
-#ifndef LIBAVQT_COMMAND_H
-#define LIBAVQT_COMMAND_H
+#ifndef LIBAVQT_MESSAGE_H
+#define LIBAVQT_MESSAGE_H
 
 #include <ProcessingGraph/Pad.h>
 #include <QtCore>
 
 
 namespace AVQt {
-    class CommandBuilder;
+    class MessageBuilder;
 
-    class Command {
+    class Message {
     public:
         class Type {
         public:
@@ -39,6 +39,7 @@ namespace AVQt {
                 START,
                 STOP,
                 PAUSE,
+                DATA,
                 NONE
             };
             QString name();
@@ -52,50 +53,50 @@ namespace AVQt {
             Enum m_type;
         };
 
-        explicit Command(QObject *parent = nullptr) {
+        explicit Message(QObject *parent = nullptr) { // Constructor is required by Qt's metatype system, it won't be called
             qFatal("Error");
         };
 
-        Command(Command &&c) noexcept;
-        Command(const Command &c);
+        Message(Message &&c) noexcept;
+        Message(const Message &c);
 
-        static CommandBuilder builder();
+        static MessageBuilder builder();
 
         QVariant getPayload(const QString &key);
         QVariantMap getPayloads();
         Type getType();
 
     private:
-        Command(Type type, QVariantMap payload);
+        Message(Type type, QVariantMap payload);
 
         Type m_type;
         QVariantMap m_payload;
 
-        friend class CommandBuilder;
+        friend class MessageBuilder;
     };
 
-    class CommandBuilder {
+    class MessageBuilder {
     public:
-        CommandBuilder &withType(Command::Type::Enum type);
+        MessageBuilder &withType(Message::Type::Enum type);
         template<typename T, typename... Ts>
-        CommandBuilder &withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl);
-        CommandBuilder &withPayload(const QVariantMap &pl);
-        CommandBuilder &withPayload(const QString &key, const QVariant &p);
+        MessageBuilder &withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl);
+        MessageBuilder &withPayload(const QVariantMap &pl);
+        MessageBuilder &withPayload(const QString &key, const QVariant &p);
 
-        Command build();
+        Message build();
 
     private:
-        CommandBuilder();
+        MessageBuilder();
 
-        Command::Type m_type;
+        Message::Type m_type;
         QVariantMap m_payload;
 
-        friend class Command;
+        friend class Message;
     };
 
-    using CommandPad = ProcessingGraph::Pad<Command>;
+    using MessagePad = ProcessingGraph::Pad<Message>;
 }// namespace AVQt
 
-PG_DECLARE_DATATYPE(AVQt::Command)
+PG_DECLARE_DATATYPE(AVQt::Message)
 
-#endif//LIBAVQT_COMMAND_H
+#endif//LIBAVQT_MESSAGE_H

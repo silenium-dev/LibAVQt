@@ -1,4 +1,5 @@
 #include "../Demuxer.h"
+#include "communication/Message.h"
 
 #include <QtCore>
 
@@ -28,7 +29,11 @@ namespace AVQt {
 
         static int64_t seekIO(void *opaque, int64_t pos, int whence);
 
-        static bool linkValidator(const ProcessingGraph::Pad<AVPacket *> &pad1, const ProcessingGraph::Pad<AVPacket *> &pad2);
+        static bool linkValidator(const ProcessingGraph::Pad<Message> &pad1, const ProcessingGraph::Pad<Message> &pad2);
+
+        void initPads();
+
+        void deinitPads();
 
         Demuxer *q_ptr;
 
@@ -45,8 +50,7 @@ namespace AVQt {
         AVIOContext *m_pIOCtx{nullptr};
         QIODevice *m_inputDevice{nullptr};
 
-        QMap<int64_t, quint32> m_commandPadIds;
-        QMap<int64_t, quint32> m_streamPadIds;
+        QMap<int64_t, quint32> m_messagePadIds;
 
         friend class Demuxer;
     };

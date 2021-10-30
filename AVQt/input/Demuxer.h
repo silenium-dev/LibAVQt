@@ -27,6 +27,8 @@ namespace AVQt {
 
         Demuxer &operator=(const Demuxer &other) = delete;
 
+        ~Demuxer() override = default;
+
         //        Demuxer(Demuxer &&other) noexcept;
 
         /*!
@@ -66,7 +68,7 @@ namespace AVQt {
          * \brief Clean up packet source (e.g. close network connections, free buffers).
          * @return Status code (0 = Success)
          */
-        //        Q_INVOKABLE int deinit();
+        Q_INVOKABLE int deinit();
 
         /*!
          * \brief Starts packet source (e.g. Start processing thread, activate camera).

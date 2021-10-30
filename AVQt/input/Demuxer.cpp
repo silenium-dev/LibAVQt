@@ -1,9 +1,8 @@
 #include "Demuxer.h"
-#include "communication/Command.h"
+#include "communication/Message.h"
 #include "communication/PacketPadParams.h"
 #include "output/IPacketSink.h"
 #include "private/Demuxer_p.h"
-#include <communication/CommandPadParams.h>
 
 namespace AVQt {
     [[maybe_unused]] Demuxer::Demuxer(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DemuxerPrivate(this)), ProcessingGraph::Producer(false) {
@@ -21,10 +20,10 @@ namespace AVQt {
         bool pauseFlag = !pause;
         if (d->m_paused.compare_exchange_strong(pauseFlag, pause)) {
             d->m_paused.store(pause);
-            //            auto commandPtr = new Command(command);
-            auto commandPads = d->m_commandPadIds.values();
+            //            auto commandPtr = new Message(command);
+            auto commandPads = d->m_messagePadIds.values();
             for (const auto &commandPadId : commandPads) {
-                produce(Command::builder().withType(Command::Type::PAUSE).withPayload("state", pause).build(), commandPadId);
+                produce(Message::builder().withType(Message::Type::PAUSE).withPayload("state", pause).build(), commandPadId);
             }
             paused(pause);
         }
@@ -72,59 +71,26 @@ namespace AVQt {
                 packetPadParams.mediaType = d->m_pFormatCtx->streams[si]->codecpar->codec_type;
                 packetPadParams.codec = d->m_pFormatCtx->streams[si]->codecpar->codec_id;
                 packetPadParams.stream = si;
-                CommandPadParams commandPadParams{};
-                commandPadParams.stream = si;
-                d->m_streamPadIds.insert(si, createPad<AVPacket *>(QVariant::fromValue(packetPadParams), &AVQt::DemuxerPrivate::linkValidator));
-                d->m_commandPadIds.insert(si, createPad<Command>(QVariant::fromValue(commandPadParams)));
-                qDebug("Creating pad %ul", d->m_streamPadIds[si]);
+                d->m_messagePadIds.insert(si, createPad<Message>(QVariant::fromValue(packetPadParams), &AVQt::DemuxerPrivate::linkValidator));
+                qDebug("Creating pad %ul", d->m_messagePadIds[si]);
             }
         }
 
-        //        auto cbs = d->m_cbMap.keys();
-        //        for (const auto &cb : cbs) {
-        //            AVCodecParameters *vParams = nullptr;
-        //            AVCodecParameters *aParams = nullptr;
-        //            AVCodecParameters *sParams = nullptr;
-        //            if (d->m_cbMap[cb] & CB_VIDEO && d->m_videoStream >= 0) {
-        //                vParams = avcodec_parameters_alloc();
-        //                avcodec_parameters_copy(vParams, d->m_pFormatCtx->streams[d->m_videoStream]->codecpar);
-        //            }
-        //            if (d->m_cbMap[cb] & CB_AUDIO && d->m_audioStream >= 0) {
-        //                aParams = avcodec_parameters_alloc();
-        //                avcodec_parameters_copy(aParams, d->m_pFormatCtx->streams[d->m_audioStream]->codecpar);
-        //            }
-        //            if (d->m_cbMap[cb] & CB_SUBTITLE && d->m_subtitleStream >= 0) {
-        //                sParams = avcodec_parameters_alloc();
-        //                avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
-        //            }
-        //            if (vParams) {
-        //                cb->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate,
-        //                         d->m_pFormatCtx->streams[d->m_videoStream]->time_base,
-        //                         static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), vParams, nullptr,
-        //                         nullptr);
-        //            }
-        //            if (aParams) {
-        //                cb->init(this, d->m_pFormatCtx->streams[d->m_audioStream]->avg_frame_rate,
-        //                         d->m_pFormatCtx->streams[d->m_audioStream]->time_base,
-        //                         static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), nullptr, aParams,
-        //                         nullptr);
-        //            }
-        //            if (sParams) {
-        //                cb->init(this, d->m_pFormatCtx->streams[d->m_subtitleStream]->avg_frame_rate,
-        //                         d->m_pFormatCtx->streams[d->m_subtitleStream]->time_base,
-        //                         static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), nullptr, nullptr,
-        //                         sParams);
-        //            }
-        //            if (vParams) {
-        //                avcodec_parameters_free(&vParams);
-        //            }
-        //            if (aParams) {
-        //                avcodec_parameters_free(&aParams);
-        //            }
-        //            if (sParams) {
-        //                avcodec_parameters_free(&sParams);
-        //            }
-        //        }
+        return 0;
+    }
+
+    int Demuxer::deinit() {
+        Q_D(AVQt::Demuxer);
+
+        d->deinitPads();
+
+        const auto pads{d->m_messagePadIds.values()};
+
+        for (const auto &pad : pads) {
+            destroyPad(pad);
+        }
+
+        d->m_messagePadIds.clear();
 
         return 0;
     }
@@ -380,10 +346,30 @@ namespace AVQt {
         }
     }
 
-    bool DemuxerPrivate::linkValidator(const ProcessingGraph::Pad<AVPacket *> &pad1, const ProcessingGraph::Pad<AVPacket *> &pad2) {
+    bool DemuxerPrivate::linkValidator(const ProcessingGraph::Pad<Message> &pad1, const ProcessingGraph::Pad<Message> &pad2) {
         if (pad1.getOpaque().canConvert<PacketPadParams>() && pad2.getOpaque().canConvert<PacketPadParams>()) {
             return pad1.getOpaque().value<PacketPadParams>().mediaType == pad2.getOpaque().value<PacketPadParams>().mediaType;
         }
         return false;
     }
+
+    void DemuxerPrivate::initPads() {
+        Q_Q(AVQt::Demuxer);
+
+        for (int64_t si = 0; si < m_pFormatCtx->nb_streams; ++si) {
+            AVCodecParameters *parameters = avcodec_parameters_alloc();
+            avcodec_parameters_copy(parameters, m_pFormatCtx->streams[si]->codecpar);
+            q->produce(Message::builder().withType(Message::Type::INIT).withPayload("codec_par", QVariant::fromValue(parameters)).build(), m_messagePadIds[si]);
+        }
+    }
+
+    void DemuxerPrivate::deinitPads() {
+        Q_Q(AVQt::Demuxer);
+
+        for (int64_t si = 0; si < m_pFormatCtx->nb_streams; ++si) {
+            q->produce(Message::builder().withType(Message::Type::CLEANUP).build(), m_messagePadIds[si]);
+        }
+    }
 }// namespace AVQt
+
+Q_DECLARE_METATYPE(AVCodecParameters *)

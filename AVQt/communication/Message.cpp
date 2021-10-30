@@ -15,65 +15,65 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
-#include "Command.h"
+#include "Message.h"
 
 #include <utility>
 
 namespace AVQt {
-    Command::Command(Command::Type type, QVariantMap payload) : m_type(type), m_payload(std::move(payload)) {
+    Message::Message(Message::Type type, QVariantMap payload) : m_type(type), m_payload(std::move(payload)) {
     }
 
-    Command::Command(Command &&c) noexcept : m_type(c.m_type), m_payload(std::move(c.m_payload)) {
+    Message::Message(Message &&c) noexcept : m_type(c.m_type), m_payload(std::move(c.m_payload)) {
     }
 
-    Command::Command(const Command &c) : m_type(c.m_type) {
+    Message::Message(const Message &c) : m_type(c.m_type) {
         m_payload.insert(c.m_payload);
     }
-    QVariantMap Command::getPayloads() {
+    QVariantMap Message::getPayloads() {
         return m_payload;
     }
 
-    QVariant Command::getPayload(const QString &key) {
+    QVariant Message::getPayload(const QString &key) {
         if (m_payload.contains(key)) {
             return m_payload[key];
         }
         return {};
     }
 
-    Command::Type Command::getType() {
+    Message::Type Message::getType() {
         return m_type;
     }
-    CommandBuilder Command::builder() {
+    MessageBuilder Message::builder() {
         return {};
     }
 
-    CommandBuilder::CommandBuilder() = default;
+    MessageBuilder::MessageBuilder() = default;
 
-    CommandBuilder &CommandBuilder::withType(Command::Type::Enum type) {
+    MessageBuilder &MessageBuilder::withType(Message::Type::Enum type) {
         m_type = type;
         return *this;
     }
     template<typename T, typename... Ts>
-    CommandBuilder &CommandBuilder::withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl) {
+    MessageBuilder &MessageBuilder::withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl) {
         m_payload.insert(p.first, p.second);
         m_payload.insert({{pl.first, pl.second}...});
         QMap<int, int> map{{0, 1}, {0, 1}};
         map.first();
         return *this;
     }
-    CommandBuilder &CommandBuilder::withPayload(const QString &key, const QVariant &p) {
+    MessageBuilder &MessageBuilder::withPayload(const QString &key, const QVariant &p) {
         m_payload.insert(key, p);
         return *this;
     }
-    CommandBuilder &CommandBuilder::withPayload(const QVariantMap &pl) {
+    MessageBuilder &MessageBuilder::withPayload(const QVariantMap &pl) {
         m_payload.insert(pl);
         return *this;
     }
-    Command CommandBuilder::build() {
+    Message MessageBuilder::build() {
         return {m_type, m_payload};
     }
 
-    QString Command::Type::name() {
+    QString Message::Type::name() {
         switch (m_type) {
             case INIT:
                 return "INIT";
@@ -92,13 +92,13 @@ namespace AVQt {
         }
     }
 
-    Command::Type::Type(const Command::Type::Enum &type) : m_type(type) {
+    Message::Type::Type(const Message::Type::Enum &type) : m_type(type) {
     }
 
-    Command::Type::Type() : m_type(NONE) {
+    Message::Type::Type() : m_type(NONE) {
     }
 
-    Command::Type &Command::Type::operator=(Command::Type::Enum &type) {
+    Message::Type &Message::Type::operator=(Message::Type::Enum &type) {
         m_type = type;
         return *this;
     }

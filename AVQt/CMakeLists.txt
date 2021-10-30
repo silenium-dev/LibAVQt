@@ -103,13 +103,13 @@ set(SOURCES
         #        output/FrameFileSaver.h
         #        output/private/FrameFileSaver_p.h
         #        output/FrameFileSaver.cpp
-        communication/Command.cpp
-        communication/Command.h
+        communication/Message.cpp
+        communication/Message.h
         communication/PacketPadParams.h
 
         input/CommandConsumer.cpp
         input/CommandConsumer.h
-        communication/CommandPadParams.h)
+        )
 set(SOURCES_LINUX
         decoder/DecoderVAAPI.h
         decoder/private/DecoderVAAPI_p.h

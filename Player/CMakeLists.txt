@@ -57,8 +57,11 @@ if (WIN32)
 endif ()
 
 #target_link_libraries(Player Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGLWidgets Qt6::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
-target_link_libraries(Player avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
+target_link_libraries(Player avformat avfilter avutil avcodec avdevice swscale swresample AVQt ProcessingGraph)
 
+target_precompile_headers(AVQt PRIVATE
+        [["ProcessingGraph/ProcessingGraph.h"]]
+        )
 
 if (LINUX)
     find_package(OpenAL)
