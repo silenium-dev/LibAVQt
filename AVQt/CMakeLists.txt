@@ -141,12 +141,12 @@ set(SOURCES_WINDOWS
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above
     if (${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763)
         #    add_compile_options(/EHa)
-        add_library(AVQtObject SHARED ${SOURCES} ${SOURCES_WINDOWS})
+        add_library(AVQtObject OBJECT ${SOURCES} ${SOURCES_WINDOWS})
     else ()
         message(FATAL_ERROR "LibAVQt supports only Windows 10 and up, Build 1809 and up")
     endif ()
 elseif (UNIX)
-    add_library(AVQtObject SHARED ${SOURCES} ${SOURCES_LINUX})
+    add_library(AVQtObject OBJECT ${SOURCES} ${SOURCES_LINUX})
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
@@ -202,7 +202,7 @@ endif ()
 
 
 add_library(AVQtStatic STATIC $<TARGET_OBJECTS:AVQtObject>)
-add_library(AVQt STATIC $<TARGET_OBJECTS:AVQtObject>)
+add_library(AVQt SHARED $<TARGET_OBJECTS:AVQtObject>)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
 target_link_libraries(AVQtObject ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
