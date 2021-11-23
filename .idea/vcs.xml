@@ -10,6 +10,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/libpgraph" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libpgraph_network" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/mfx_dispatch" vcs="Git" />
   </component>
 </project>

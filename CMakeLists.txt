@@ -31,9 +31,9 @@ if (NOT MFX_FOUND)
     include_directories("mfx_dispatch")
 endif ()
 
-include_directories("libpgraph/include")
+include_directories("libpgraph_network/libpgraph/include")
 include_directories("libpgraph_network/include")
-add_subdirectory(libpgraph)
+#add_subdirectory(libpgraph_network/libpgraph)
 add_subdirectory(libpgraph_network)
 
 set(CMAKE_AUTOMOC on)
