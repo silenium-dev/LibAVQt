@@ -20,17 +20,21 @@
 //
 
 #include "CommandConsumer.h"
-
 #include "communication/PacketPadParams.h"
+#include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
 
-CommandConsumer::CommandConsumer() : ProcessingGraph::Consumer(false) {
-    m_commandInputPadId = createPad<AVQt::Message>(QVariant::fromValue(AVQt::PacketPadParams{AVMEDIA_TYPE_VIDEO, AV_CODEC_ID_NONE, 0}));
+CommandConsumer::CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry)
+    : pgraph::impl::SimpleConsumer(std::make_shared<pgraph::network::impl::RegisteringPadFactory>(std::move(padRegistry))) {
 }
 
-void CommandConsumer::consume(QVariant data, quint32 padId) {
-    if (padId == m_commandInputPadId) {
-        qDebug() << "Incoming command" << data.value<AVQt::Message>().getType().name() << "with payload:";
-        qDebug() << data.value<AVQt::Message>().getPayloads();
+void CommandConsumer::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
+    if (pad == m_commandInputPadId && data->getType() == AVQt::Message::Type) {
+        auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
+        qDebug() << "Incoming command" << message->getAction().name() << "with payload:";
+        qDebug() << message->getPayloads();
     }
+}
+void CommandConsumer::init() {
+    m_commandInputPadId = pgraph::impl::SimpleConsumer::createInputPad(pgraph::api::PadUserData::emptyUserData());
 }

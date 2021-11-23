@@ -17,18 +17,18 @@
 
 #include "Message.h"
 
+#include <boost/uuid/string_generator.hpp>
 #include <utility>
 
 namespace AVQt {
-    Message::Message(Message::Type type, QVariantMap payload) : m_type(type), m_payload(std::move(payload)) {
+    const boost::uuids::uuid Message::Type = boost::uuids::string_generator()("{1db2f16c89f3de68086c5124c5272bab}");
+
+    Message::Message(Message::Action type, QVariantMap payload) : m_type(type), m_payload(std::move(payload)) {
     }
 
     Message::Message(Message &&c) noexcept : m_type(c.m_type), m_payload(std::move(c.m_payload)) {
     }
 
-    Message::Message(const Message &c) : m_type(c.m_type) {
-        m_payload.insert(c.m_payload);
-    }
     QVariantMap Message::getPayloads() {
         return m_payload;
     }
@@ -40,16 +40,21 @@ namespace AVQt {
         return {};
     }
 
-    Message::Type Message::getType() {
+    Message::Action Message::getAction() {
         return m_type;
     }
+
+    boost::uuids::uuid Message::getType() {
+        return Type;
+    }
+
     MessageBuilder Message::builder() {
         return {};
     }
 
     MessageBuilder::MessageBuilder() = default;
 
-    MessageBuilder &MessageBuilder::withType(Message::Type::Enum type) {
+    MessageBuilder &MessageBuilder::withAction(Message::Action::Enum type) {
         m_type = type;
         return *this;
     }
@@ -57,8 +62,6 @@ namespace AVQt {
     MessageBuilder &MessageBuilder::withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl) {
         m_payload.insert(p.first, p.second);
         m_payload.insert({{pl.first, pl.second}...});
-        QMap<int, int> map{{0, 1}, {0, 1}};
-        map.first();
         return *this;
     }
     MessageBuilder &MessageBuilder::withPayload(const QString &key, const QVariant &p) {
@@ -69,12 +72,12 @@ namespace AVQt {
         m_payload.insert(pl);
         return *this;
     }
-    Message MessageBuilder::build() {
-        return {m_type, m_payload};
+    std::shared_ptr<Message> MessageBuilder::build() {
+        return std::make_shared<Message>(m_type, m_payload);
     }
 
-    QString Message::Type::name() {
-        switch (m_type) {
+    QString Message::Action::name() {
+        switch (m_action) {
             case INIT:
                 return "INIT";
             case CLEANUP:
@@ -85,6 +88,8 @@ namespace AVQt {
                 return "STOP";
             case PAUSE:
                 return "PAUSE";
+            case DATA:
+                return "DATA";
             case NONE:
                 return "NONE";
             default:
@@ -92,14 +97,14 @@ namespace AVQt {
         }
     }
 
-    Message::Type::Type(const Message::Type::Enum &type) : m_type(type) {
+    Message::Action::Action(const Message::Action::Enum &type) : m_action(type) {
     }
 
-    Message::Type::Type() : m_type(NONE) {
+    Message::Action::Action() : m_action(NONE) {
     }
 
-    Message::Type &Message::Type::operator=(Message::Type::Enum &type) {
-        m_type = type;
+    Message::Action &Message::Action::operator=(Message::Action::Enum &type) {
+        m_action = type;
         return *this;
     }
 }// namespace AVQt

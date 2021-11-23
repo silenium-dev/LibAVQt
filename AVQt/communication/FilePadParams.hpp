@@ -16,28 +16,26 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 26.10.21.
+// Created by silas on 23.11.21.
 //
 
-#ifndef LIBAVQT_COMMANDCONSUMER_H
-#define LIBAVQT_COMMANDCONSUMER_H
+#ifndef LIBAVQT_FILEPADPARAMS_HPP
+#define LIBAVQT_FILEPADPARAMS_HPP
 
-#include <communication/Message.h>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph_network/api/PadRegistry.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <pgraph/api/PadUserData.hpp>
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+namespace AVQt {
+    class FilePadParams : public pgraph::api::PadUserData {
+    public:
+        ~FilePadParams() override = default;
 
-    void init();
+        boost::uuids::uuid getType() const override;
+        boost::json::object toJSON() const override;
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
-
-private:
-    quint32 m_commandInputPadId;
-};
+        const static boost::uuids::uuid Type;
+    };
+}// namespace AVQt
 
 
-#endif//LIBAVQT_COMMANDCONSUMER_H
+#endif//LIBAVQT_FILEPADPARAMS_HPP

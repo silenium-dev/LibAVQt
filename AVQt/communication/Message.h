@@ -22,16 +22,17 @@
 #ifndef LIBAVQT_MESSAGE_H
 #define LIBAVQT_MESSAGE_H
 
-#include <ProcessingGraph/Pad.h>
 #include <QtCore>
+#include <pgraph/api/Data.hpp>
 
 
 namespace AVQt {
     class MessageBuilder;
 
-    class Message {
+    class Message : public pgraph::api::Data {
+        Q_DISABLE_COPY(Message)
     public:
-        class Type {
+        class Action {
         public:
             enum Enum {
                 INIT,
@@ -44,32 +45,31 @@ namespace AVQt {
             };
             QString name();
 
-            Type &operator=(Enum &type);
+            Action &operator=(Enum &type);
 
-            explicit Type(const Enum &type);
-            Type();
+            explicit Action(const Enum &type);
+            Action();
 
         private:
-            Enum m_type;
+            Enum m_action;
         };
 
-        explicit Message(QObject *parent = nullptr) { // Constructor is required by Qt's metatype system, it won't be called
-            qFatal("Error");
-        };
-
+        Message(Action type, QVariantMap payload);
         Message(Message &&c) noexcept;
-        Message(const Message &c);
+        ~Message() override = default;
 
         static MessageBuilder builder();
 
         QVariant getPayload(const QString &key);
         QVariantMap getPayloads();
-        Type getType();
+        Action getAction();
+
+        boost::uuids::uuid getType() override;
+
+        static const boost::uuids::uuid Type;
 
     private:
-        Message(Type type, QVariantMap payload);
-
-        Type m_type;
+        Action m_type;
         QVariantMap m_payload;
 
         friend class MessageBuilder;
@@ -77,26 +77,22 @@ namespace AVQt {
 
     class MessageBuilder {
     public:
-        MessageBuilder &withType(Message::Type::Enum type);
+        MessageBuilder &withAction(Message::Action::Enum type);
         template<typename T, typename... Ts>
         MessageBuilder &withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl);
         MessageBuilder &withPayload(const QVariantMap &pl);
         MessageBuilder &withPayload(const QString &key, const QVariant &p);
 
-        Message build();
+        std::shared_ptr<Message> build();
 
     private:
         MessageBuilder();
 
-        Message::Type m_type;
+        Message::Action m_type;
         QVariantMap m_payload;
 
         friend class Message;
     };
-
-    using MessagePad = ProcessingGraph::Pad<Message>;
 }// namespace AVQt
-
-PG_DECLARE_DATATYPE(AVQt::Message)
 
 #endif//LIBAVQT_MESSAGE_H

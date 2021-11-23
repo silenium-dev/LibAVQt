@@ -16,28 +16,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 26.10.21.
+// Created by silas on 23.11.21.
 //
 
-#ifndef LIBAVQT_COMMANDCONSUMER_H
-#define LIBAVQT_COMMANDCONSUMER_H
+#ifndef LIBAVQT_FILEINPUT_HPP
+#define LIBAVQT_FILEINPUT_HPP
 
-#include <communication/Message.h>
-#include <pgraph/impl/SimpleConsumer.hpp>
+#include "IInput.hpp"
+#include <QtCore>
+#include <pgraph/impl/SimpleProducer.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+namespace AVQt {
+    class FileInputPrivate;
+    class FileInput : public QThread, public pgraph::impl::SimpleProducer, public IInput {
+        Q_OBJECT
+        Q_DECLARE_PRIVATE(AVQt::FileInput)
+    public:
+        FileInput(const QString &fileName, std::shared_ptr<pgraph::api::PadFactory> padFactory, QObject *parent = nullptr);
+        ~FileInput() override;
 
-    void init();
+        bool open() override;
+        void close() override;
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+        bool start() override;
+        void stop() override;
 
-private:
-    quint32 m_commandInputPadId;
-};
+        void pause(bool state) override;
+        bool isPaused() override;
+
+        uint32_t getOutputPadId() const override;
+
+    signals:
+        void started() override;
+        void stopped() override;
+        void paused(bool state) override;
+
+    protected:
+        void run() override;
+
+    private:
+        std::unique_ptr<FileInputPrivate> d_ptr;
+    };
+}// namespace AVQt
 
 
-#endif//LIBAVQT_COMMANDCONSUMER_H
+#endif//LIBAVQT_FILEINPUT_HPP

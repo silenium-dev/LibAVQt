@@ -1,12 +1,11 @@
+#ifndef LIBAVQT_IPACKETSINK_H
+#define LIBAVQT_IPACKETSINK_H
+
 #include <QObject>
-//#include "IPacketSource.h"
 
 extern "C" {
 #include <libavutil/rational.h>
 }
-
-#ifndef LIBAVQT_IPACKETSINK_H
-#define LIBAVQT_IPACKETSINK_H
 
 struct AVPacket;
 struct AVCodecParameters;
@@ -59,8 +58,8 @@ namespace AVQt {
 
         virtual void paused(bool pause) = 0;
     };
-}
+}// namespace AVQt
 
 Q_DECLARE_INTERFACE(AVQt::IPacketSink, "IPacketSink")
 
-#endif //LIBAVQT_IPACKETSINK_H
+#endif//LIBAVQT_IPACKETSINK_H

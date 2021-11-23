@@ -1,17 +1,22 @@
 #include "Demuxer.h"
-#include "communication/Message.h"
-#include "communication/PacketPadParams.h"
 #include "output/IPacketSink.h"
 #include "private/Demuxer_p.h"
 
+#include <communication/PacketPadParams.h>
+#include <pgraph/api/PadUserData.hpp>
+#include <pgraph/impl/SimplePadFactory.hpp>
+#include <pgraph_network/api/PadRegistry.hpp>
+#include <pgraph_network/impl/RegisteringPadFactory.hpp>
+
 namespace AVQt {
-    [[maybe_unused]] Demuxer::Demuxer(QIODevice *inputDevice, QObject *parent) : QThread(parent), d_ptr(new DemuxerPrivate(this)), ProcessingGraph::Producer(false) {
+    [[maybe_unused]] Demuxer::Demuxer(QIODevice *inputDevice, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+        : QThread(parent), d_ptr(new DemuxerPrivate(this)), pgraph::impl::SimpleProducer(std::make_shared<pgraph::network::impl::RegisteringPadFactory>(std::move(padRegistry))) {
         Q_D(AVQt::Demuxer);
 
         d->m_inputDevice = inputDevice;
     }
 
-    Demuxer::Demuxer(DemuxerPrivate &p) : d_ptr(&p) {
+    Demuxer::Demuxer(DemuxerPrivate &p) : d_ptr(&p), pgraph::impl::SimpleProducer(std::make_shared<pgraph::impl::SimplePadFactory>()) {
     }
 
     void Demuxer::pause(bool pause) {
@@ -21,10 +26,7 @@ namespace AVQt {
         if (d->m_paused.compare_exchange_strong(pauseFlag, pause)) {
             d->m_paused.store(pause);
             //            auto commandPtr = new Message(command);
-            auto commandPads = d->m_messagePadIds.values();
-            for (const auto &commandPadId : commandPads) {
-                produce(Message::builder().withType(Message::Type::PAUSE).withPayload("state", pause).build(), commandPadId);
-            }
+            produce(Message::builder().withAction(Message::Action::PAUSE).withPayload("state", pause).build(), d->m_commandPadId);
             paused(pause);
         }
     }
@@ -38,6 +40,7 @@ namespace AVQt {
         Q_D(AVQt::Demuxer);
         bool shouldBe = false;
         if (d->m_initialized.compare_exchange_strong(shouldBe, true)) {
+            d->m_commandPadId = pgraph::impl::SimpleProducer::createOutputPad(pgraph::api::PadUserData::emptyUserData());
             d->m_pBuffer = static_cast<uint8_t *>(av_malloc(DemuxerPrivate::BUFFER_SIZE));
             d->m_pIOCtx = avio_alloc_context(d->m_pBuffer, DemuxerPrivate::BUFFER_SIZE, 0, d->m_inputDevice,
                                              &DemuxerPrivate::readFromIO, nullptr, &DemuxerPrivate::seekIO);
@@ -67,11 +70,11 @@ namespace AVQt {
                     default:
                         break;
                 }
-                PacketPadParams packetPadParams{};
-                packetPadParams.mediaType = d->m_pFormatCtx->streams[si]->codecpar->codec_type;
-                packetPadParams.codec = d->m_pFormatCtx->streams[si]->codecpar->codec_id;
-                packetPadParams.stream = si;
-                d->m_messagePadIds.insert(si, createPad<Message>(QVariant::fromValue(packetPadParams), &AVQt::DemuxerPrivate::linkValidator));
+                auto packetPadParams = std::make_shared<PacketPadParams>();
+                packetPadParams->mediaType = d->m_pFormatCtx->streams[si]->codecpar->codec_type;
+                packetPadParams->codec = d->m_pFormatCtx->streams[si]->codecpar->codec_id;
+                packetPadParams->streamIdx = si;
+                d->m_messagePadIds.insert(si, pgraph::impl::SimpleProducer::createOutputPad(packetPadParams));
                 qDebug("Creating pad %ul", d->m_messagePadIds[si]);
             }
         }
@@ -87,12 +90,18 @@ namespace AVQt {
         const auto pads{d->m_messagePadIds.values()};
 
         for (const auto &pad : pads) {
-            destroyPad(pad);
+            pgraph::impl::SimpleProducer::destroyOutputPad(pad);
         }
 
         d->m_messagePadIds.clear();
+        pgraph::impl::SimpleProducer::destroyOutputPad(d->m_commandPadId);
 
         return 0;
+    }
+
+    uint32_t Demuxer::getCommandPadId() const {
+        Q_D(const AVQt::Demuxer);
+        return d->m_commandPadId;
     }
 
     //    qint64 Demuxer::registerCallback(IPacketSink *packetSink, int8_t type) {
@@ -346,29 +355,19 @@ namespace AVQt {
         }
     }
 
-    bool DemuxerPrivate::linkValidator(const ProcessingGraph::Pad<Message> &pad1, const ProcessingGraph::Pad<Message> &pad2) {
-        if (pad1.getOpaque().canConvert<PacketPadParams>() && pad2.getOpaque().canConvert<PacketPadParams>()) {
-            return pad1.getOpaque().value<PacketPadParams>().mediaType == pad2.getOpaque().value<PacketPadParams>().mediaType;
-        }
-        return false;
-    }
-
     void DemuxerPrivate::initPads() {
         Q_Q(AVQt::Demuxer);
 
         for (int64_t si = 0; si < m_pFormatCtx->nb_streams; ++si) {
             AVCodecParameters *parameters = avcodec_parameters_alloc();
             avcodec_parameters_copy(parameters, m_pFormatCtx->streams[si]->codecpar);
-            q->produce(Message::builder().withType(Message::Type::INIT).withPayload("codec_par", QVariant::fromValue(parameters)).build(), m_messagePadIds[si]);
+            q->produce(Message::builder().withAction(Message::Action::INIT).withPayload("codec_par", QVariant::fromValue(parameters)).build(), m_messagePadIds[si]);
         }
     }
 
     void DemuxerPrivate::deinitPads() {
         Q_Q(AVQt::Demuxer);
-
-        for (int64_t si = 0; si < m_pFormatCtx->nb_streams; ++si) {
-            q->produce(Message::builder().withType(Message::Type::CLEANUP).build(), m_messagePadIds[si]);
-        }
+        q->produce(Message::builder().withAction(Message::Action::CLEANUP).build(), m_commandPadId);
     }
 }// namespace AVQt
 

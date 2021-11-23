@@ -16,28 +16,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 26.10.21.
+// Created by silas on 23.11.21.
 //
 
-#ifndef LIBAVQT_COMMANDCONSUMER_H
-#define LIBAVQT_COMMANDCONSUMER_H
+#include "PacketPadParams.h"
+#include <boost/json.hpp>
 
-#include <communication/Message.h>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph_network/api/PadRegistry.hpp>
+const boost::uuids::uuid AVQt::PacketPadParams::Type = boost::uuids::string_generator()("{03de5c18bf2d1d7ac97e42cb89121a95}");
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+boost::uuids::uuid AVQt::PacketPadParams::getType() const {
+    return Type;
+}
 
-    void init();
+bool AVQt::PacketPadParams::isEmpty() const {
+    return false;
+}
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
-
-private:
-    quint32 m_commandInputPadId;
-};
-
-
-#endif//LIBAVQT_COMMANDCONSUMER_H
+boost::json::object AVQt::PacketPadParams::toJSON() const {
+    boost::json::object obj, data;
+    obj["type"] = boost::uuids::hash_value(Type);
+    data["mediaType"] = mediaType;
+    data["codec"] = codec;
+    data["streamIndex"] = streamIdx;
+    obj["data"] = data;
+    return obj;
+}

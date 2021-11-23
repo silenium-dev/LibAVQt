@@ -23,6 +23,7 @@
 #define LIBAVQT_PACKETPADPARAMS_H
 
 #include <QMetaType>
+#include <pgraph/api/PadUserData.hpp>
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -31,10 +32,21 @@ extern "C" {
 }
 
 namespace AVQt {
-    struct PacketPadParams {
+    class PacketPadParams : public pgraph::api::PadUserData {
+    public:
+        ~PacketPadParams() override = default;
+        boost::uuids::uuid getType() const override;
+        boost::json::object toJSON() const override;
+
+        static const boost::uuids::uuid Type;
+
+    protected:
+        bool isEmpty() const override;
+
+    public:
         AVMediaType mediaType{AVMEDIA_TYPE_UNKNOWN};
         AVCodecID codec{AV_CODEC_ID_NONE};
-        int64_t stream{};
+        int64_t streamIdx{};
     };
 }// namespace AVQt
 

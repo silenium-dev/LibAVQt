@@ -16,28 +16,28 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 26.10.21.
+// Created by silas on 23.11.21.
 //
 
-#ifndef LIBAVQT_COMMANDCONSUMER_H
-#define LIBAVQT_COMMANDCONSUMER_H
+#ifndef LIBAVQT_FILEINPUT_P_HPP
+#define LIBAVQT_FILEINPUT_P_HPP
 
-#include <communication/Message.h>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph_network/api/PadRegistry.hpp>
+#include "../FileInput.hpp"
+#include <QtGlobal>
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+namespace AVQt {
+    class FileInputPrivate {
+        Q_DECLARE_PUBLIC(AVQt::FileInput)
+    private:
+        FileInputPrivate(FileInput *q) : q_ptr(q) {}
+        FileInput *q_ptr;
 
-    void init();
+        uint32_t m_outputPadId{0};
+        QString filename{};
+        std::unique_ptr<QFile> inputFile{};
+        std::atomic_bool m_running{false}, m_paused{false};
+    };
+}// namespace AVQt
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
-private:
-    quint32 m_commandInputPadId;
-};
-
-
-#endif//LIBAVQT_COMMANDCONSUMER_H
+#endif//LIBAVQT_FILEINPUT_P_HPP

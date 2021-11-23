@@ -18,6 +18,7 @@
 #include "decoder/IDecoder.h"
 #include "encoder/IEncoder.h"
 #include "input/Demuxer.h"
+#include "input/FileInput.hpp"
 #include "input/IAudioSource.h"
 #include "input/IFrameSource.h"
 #include "input/IPacketSource.h"

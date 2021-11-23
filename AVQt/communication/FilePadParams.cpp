@@ -16,28 +16,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 26.10.21.
+// Created by silas on 23.11.21.
 //
 
-#ifndef LIBAVQT_COMMANDCONSUMER_H
-#define LIBAVQT_COMMANDCONSUMER_H
+#include "FilePadParams.hpp"
 
-#include <communication/Message.h>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph_network/api/PadRegistry.hpp>
+namespace AVQt {
+    const boost::uuids::uuid FilePadParams::Type = boost::uuids::string_generator()("e621cc91719179e202870609dba0438e");
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+    boost::uuids::uuid FilePadParams::getType() const {
+        return Type;
+    }
 
-    void init();
-
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
-
-private:
-    quint32 m_commandInputPadId;
-};
-
-
-#endif//LIBAVQT_COMMANDCONSUMER_H
+    boost::json::object FilePadParams::toJSON() const {
+        boost::json::object obj;
+        obj.emplace("type", boost::uuids::hash_value(Type));
+        obj.emplace("data", boost::json::object());
+        return obj;
+    }
+}// namespace AVQt

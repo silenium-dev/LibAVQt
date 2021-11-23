@@ -16,28 +16,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 26.10.21.
+// Created by silas on 23.11.21.
 //
 
-#ifndef LIBAVQT_COMMANDCONSUMER_H
-#define LIBAVQT_COMMANDCONSUMER_H
+#ifndef LIBAVQT_IINPUT_HPP
+#define LIBAVQT_IINPUT_HPP
 
-#include <communication/Message.h>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph_network/api/PadRegistry.hpp>
+#include <QtCore>
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+namespace AVQt {
+    class IInput {
+    public:
+        virtual ~IInput() = default;
+        virtual bool open() = 0;
+        virtual void close() = 0;
 
-    void init();
+        virtual bool start() = 0;
+        virtual void stop() = 0;
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+        virtual void pause(bool state) = 0;
+        virtual bool isPaused() = 0;
 
-private:
-    quint32 m_commandInputPadId;
-};
+        virtual uint32_t getOutputPadId() const = 0;
+    signals:
+        virtual void started() = 0;
+        virtual void stopped() = 0;
+        virtual void paused(bool state) = 0;
+    };
+}// namespace AVQt
 
+Q_DECLARE_INTERFACE(AVQt::IInput, "AVQt.IInput")
 
-#endif//LIBAVQT_COMMANDCONSUMER_H
+#endif//LIBAVQT_IINPUT_HPP

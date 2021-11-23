@@ -1,8 +1,9 @@
 #include "IPacketSource.h"
 
-#include <ProcessingGraph/Producer.h>
 #include <QIODevice>
 #include <QThread>
+#include <pgraph/impl/SimpleProducer.hpp>
+#include <pgraph_network/api/PadRegistry.hpp>
 
 extern "C" {
 #include <libavcodec/packet.h>
@@ -11,23 +12,27 @@ extern "C" {
 #ifndef LIBAVQT_DEMUXER_H
 #define LIBAVQT_DEMUXER_H
 
+Q_DECLARE_INTERFACE(pgraph::api::Producer, "pgraph.api.Producer")
+
 namespace AVQt {
     class DemuxerPrivate;
 
-    class Demuxer : public QThread, public ProcessingGraph::Producer {
+    class Demuxer : public QThread, public pgraph::impl::SimpleProducer {
         Q_OBJECT
-        //        Q_INTERFACES(AVQt::IPacketSource)
+        Q_INTERFACES(pgraph::api::Producer)
 
         Q_DECLARE_PRIVATE(AVQt::Demuxer)
 
     public:
-        explicit Demuxer(QIODevice *inputDevice, QObject *parent = nullptr);
+        explicit Demuxer(QIODevice *inputDevice, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
 
         explicit Demuxer(Demuxer &other) = delete;
 
         Demuxer &operator=(const Demuxer &other) = delete;
 
         ~Demuxer() override = default;
+
+        uint32_t getCommandPadId() const;
 
         //        Demuxer(Demuxer &&other) noexcept;
 
@@ -115,7 +120,5 @@ namespace AVQt {
         DemuxerPrivate *d_ptr;
     };
 }// namespace AVQt
-
-PG_DECLARE_DATATYPE(AVPacket *)
 
 #endif//LIBAVQT_DEMUXER_H

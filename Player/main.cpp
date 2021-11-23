@@ -2,9 +2,9 @@
 #include "communication/Message.h"
 #include "communication/PacketPadParams.h"
 #include "input/CommandConsumer.h"
-
-#include "ProcessingGraph/Input.h"
-#include "ProcessingGraph/Input.impl.h"
+#include <pgraph_network/data/ApiInfo.hpp>
+#include <pgraph_network/impl/RegisteringPadFactory.hpp>
+#include <pgraph_network/impl/SimplePadRegistry.hpp>
 
 #include <QApplication>
 #include <QFileDialog>
@@ -91,17 +91,32 @@ int main(int argc, char *argv[]) {
 
     inputFile->open(QIODevice::ReadWrite);
 
-    auto *demuxer = new AVQt::Demuxer(inputFile);
+    auto registry = std::make_shared<pgraph::network::impl::SimplePadRegistry>();
 
-    auto *cc = new CommandConsumer;
+    auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
+    auto cc = std::make_shared<CommandConsumer>(registry);
+    auto fileInput = std::make_shared<AVQt::FileInput>(filepath, std::make_shared<pgraph::network::impl::RegisteringPadFactory>(registry));
 
-    demuxer->init();
-    cc->getInput()->getPads<AVQt::Message>().first()->link(demuxer->getOutput()->getPads<AVQt::Message>().first());
-    demuxer->pause(true);
-    demuxer->deinit();
+    //    demuxer->init();
+    if (!fileInput->open()) {
+        qWarning() << "Could not open file input";
+        return 0;
+    }
+    cc->init();
 
-    delete demuxer;
-    delete cc;
+    //    cc->getInputPads().begin()->second->link(demuxer->getOutputPad(demuxer->getCommandPadId()));
+    cc->getInputPads().begin()->second->link(fileInput->getOutputPad(fileInput->getOutputPadId()));
+
+    pgraph::network::data::APIInfo apiInfo(registry);
+
+    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString();
+
+    fileInput->start();
+    QThread::msleep(10);
+    fileInput->close();
+    //    demuxer->pause(true);
+    //    demuxer->deinit();
+
     exit(0);
     //    AVQt::AudioDecoder decoder;
     //    AVQt::OpenALAudioOutput output;

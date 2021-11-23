@@ -14,7 +14,6 @@ extern "C" {
 namespace AVQt {
     class DemuxerPrivate : public QObject {
         Q_OBJECT
-
         Q_DECLARE_PUBLIC(AVQt::Demuxer)
 
     public:
@@ -28,8 +27,6 @@ namespace AVQt {
         static int readFromIO(void *opaque, uint8_t *buf, int bufSize);
 
         static int64_t seekIO(void *opaque, int64_t pos, int whence);
-
-        static bool linkValidator(const ProcessingGraph::Pad<Message> &pad1, const ProcessingGraph::Pad<Message> &pad2);
 
         void initPads();
 
@@ -50,6 +47,7 @@ namespace AVQt {
         AVIOContext *m_pIOCtx{nullptr};
         QIODevice *m_inputDevice{nullptr};
 
+        uint32_t m_commandPadId;
         QMap<int64_t, quint32> m_messagePadIds;
 
         friend class Demuxer;
