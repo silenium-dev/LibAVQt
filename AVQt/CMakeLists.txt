@@ -141,68 +141,20 @@ set(SOURCES_WINDOWS
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above
     if (${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763)
         #    add_compile_options(/EHa)
-        add_library(AVQt SHARED ${SOURCES} ${SOURCES_WINDOWS})
-        add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_WINDOWS})
+        add_library(AVQtObject SHARED ${SOURCES} ${SOURCES_WINDOWS})
     else ()
         message(FATAL_ERROR "LibAVQt supports only Windows 10 and up, Build 1809 and up")
     endif ()
 elseif (UNIX)
-    add_library(AVQt SHARED ${SOURCES} ${SOURCES_LINUX})
-    add_library(AVQtStatic STATIC ${SOURCES} ${SOURCES_LINUX})
+    add_library(AVQtObject SHARED ${SOURCES} ${SOURCES_LINUX})
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
-target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
-target_compile_definitions(AVQtStatic PRIVATE AVQT_LIBRARY_BUILD)
-set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
+target_compile_definitions(AVQtObject PRIVATE AVQT_LIBRARY_BUILD)
 
 if (!WIN32)
-    target_compile_options(AVQt PRIVATE
-            -std=c++20
-            -Werror=all
-            -Werror=extra
-            -Werror=pedantic
-            -Wno-float-equal
-            -ansi
-            -Werror=init-self
-            -Werror=old-style-cast
-            -Werror=overloaded-virtual
-            -Werror=uninitialized
-            -Werror=missing-declarations
-            -Werror=init-self
-            #    -Wall -Wextra
-            -Wno-error=non-virtual-dtor
-            #        -Wno-unused-result
-            #-Wpedantic
-            -Wshadow
-            -Wfatal-errors
-            -Wundef
-            -Wuninitialized
-            -Winit-self
-            -Wconversion
-            -Wfloat-equal
-            -Wstrict-aliasing
-            -Wtrigraphs
-            -Wodr # one definition rule
-            -Wzero-as-null-pointer-constant
-            -Wsizeof-array-argument
-            -Winline
-            -Wcast-qual
-            -Weffc++
-
-
-            #    -fno-common # each global variable is only declared once.
-            #    -fmerge-all-constants
-            #    -ffunction-sections
-            #    -fdata-sections
-            #    -fno-use-cxa-atexit
-            #    -fverbose-asm
-            #    -fstrict-enums
-            -Wstack-protector
-            -Wdouble-promotion
-            )
-    target_compile_options(AVQtStatic PRIVATE
+    target_compile_options(AVQtObject PRIVATE
             -std=c++20
             -Werror=all
             -Werror=extra
@@ -248,16 +200,25 @@ if (!WIN32)
             )
 endif ()
 
-target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
-target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
-target_link_libraries(AVQt pgraph pgraph_network boost_json)
+add_library(AVQtStatic STATIC $<TARGET_OBJECTS:AVQtObject>)
+add_library(AVQt STATIC $<TARGET_OBJECTS:AVQtObject>)
+set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
+
+target_link_libraries(AVQtObject ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
+target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
+
+target_link_libraries(AVQtObject pgraph pgraph_network boost_json)
 target_link_libraries(AVQtStatic pgraph pgraph_network boost_json)
+target_link_libraries(AVQt pgraph pgraph_network boost_json)
 
 if (WIN32)
+    target_link_libraries(AVQtObject opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
+    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
     target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
-    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 dxguid)
 else ()
-    target_link_libraries(AVQt GL openal EGL GLU va)
+    target_link_libraries(AVQtObject GL openal EGL GLU va)
     target_link_libraries(AVQtStatic GL openal EGL GLU va)
+    target_link_libraries(AVQt GL openal EGL GLU va)
 endif ()
