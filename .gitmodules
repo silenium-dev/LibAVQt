@@ -6,3 +6,7 @@
 	path = mfx_dispatch
 	url = https://github.com/lu-zero/mfx_dispatch
 	branch = master
+[submodule "libpgraph"]
+	path = libpgraph
+	url = https://edugit.org/sdcieo0330/libpgraph
+	branch = main
