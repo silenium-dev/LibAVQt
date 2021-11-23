@@ -1,0 +1,12 @@
+[submodule "libpgraph_network"]
+	path = libpgraph_network
+	url = https://edugit.org/sdcieo0330/libpgraph_network
+	branch = main
+[submodule "libpgraph"]
+	path = libpgraph
+	url = https://edugit.org/sdcieo0330/libpgraph
+	branch = main
+[submodule "mfx_dispatch"]
+	path = mfx_dispatch
+	url = https://github.com/lu-zero/mfx_dispatch
+	branch = master
