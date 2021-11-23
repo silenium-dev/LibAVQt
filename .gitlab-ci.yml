@@ -1,5 +1,7 @@
 build:
   stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   image:
     name: sdc0/manjaro-qt6-ffmpeg
     entrypoint: ["/bin/sh", "-c"]
