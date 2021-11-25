@@ -8,15 +8,18 @@
 #include <pgraph_network/api/PadRegistry.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
-namespace AVQt {
-    [[maybe_unused]] Demuxer::Demuxer(QIODevice *inputDevice, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
-        : QThread(parent), d_ptr(new DemuxerPrivate(this)), pgraph::impl::SimpleProducer(std::make_shared<pgraph::network::impl::RegisteringPadFactory>(std::move(padRegistry))) {
-        Q_D(AVQt::Demuxer);
+Q_DECLARE_METATYPE(AVPacket *)
 
-        d->m_inputDevice = inputDevice;
+namespace AVQt {
+    [[maybe_unused]] Demuxer::Demuxer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+        : QThread(parent), d_ptr(new DemuxerPrivate(this)),
+          pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)) {
+        Q_D(AVQt::Demuxer);
     }
 
-    Demuxer::Demuxer(DemuxerPrivate &p) : d_ptr(&p), pgraph::impl::SimpleProducer(std::make_shared<pgraph::impl::SimplePadFactory>()) {
+    Demuxer::Demuxer(DemuxerPrivate &p)
+        : d_ptr(&p),
+          pgraph::impl::SimpleProcessor(pgraph::impl::SimplePadFactory::getInstance()) {
     }
 
     void Demuxer::pause(bool pause) {
@@ -26,7 +29,7 @@ namespace AVQt {
         if (d->m_paused.compare_exchange_strong(pauseFlag, pause)) {
             d->m_paused.store(pause);
             //            auto commandPtr = new Message(command);
-            produce(Message::builder().withAction(Message::Action::PAUSE).withPayload("state", pause).build(), d->m_commandPadId);
+            produce(Message::builder().withAction(Message::Action::PAUSE).withPayload("state", pause).build(), d->m_commandOutputPadId);
             paused(pause);
         }
     }
@@ -36,23 +39,88 @@ namespace AVQt {
         return d->m_paused.load();
     }
 
-    int Demuxer::init() {
+    bool Demuxer::open() {
         Q_D(AVQt::Demuxer);
         bool shouldBe = false;
         if (d->m_initialized.compare_exchange_strong(shouldBe, true)) {
-            d->m_commandPadId = pgraph::impl::SimpleProducer::createOutputPad(pgraph::api::PadUserData::emptyUserData());
             d->m_pBuffer = static_cast<uint8_t *>(av_malloc(DemuxerPrivate::BUFFER_SIZE));
-            d->m_pIOCtx = avio_alloc_context(d->m_pBuffer, DemuxerPrivate::BUFFER_SIZE, 0, d->m_inputDevice,
+            d->m_pIOCtx = avio_alloc_context(d->m_pBuffer, DemuxerPrivate::BUFFER_SIZE, 0, d,
                                              &DemuxerPrivate::readFromIO, nullptr, &DemuxerPrivate::seekIO);
             d->m_pFormatCtx = avformat_alloc_context();
             d->m_pFormatCtx->pb = d->m_pIOCtx;
             d->m_pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
 
+            //            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
+        }
+
+        return true;
+    }
+
+    void Demuxer::close() {
+        Q_D(AVQt::Demuxer);
+
+        d->deinitPads();
+
+        const auto pads{d->m_messagePadIds.values()};
+
+        for (const auto &pad : pads) {
+            pgraph::impl::SimpleProcessor::destroyOutputPad(pad);
+        }
+
+        d->m_messagePadIds.clear();
+        pgraph::impl::SimpleProcessor::destroyOutputPad(d->m_commandOutputPadId);
+    }
+
+    uint32_t Demuxer::getCommandOutputPadId() const {
+        Q_D(const AVQt::Demuxer);
+        return d->m_commandOutputPadId;
+    }
+
+    uint32_t Demuxer::getInputPadId() const {
+        Q_D(const AVQt::Demuxer);
+        return d->m_inputPadId;
+    }
+
+    void Demuxer::consume(uint32_t padId, std::shared_ptr<pgraph::api::Data> data) {
+        Q_D(AVQt::Demuxer);
+        if (d->m_inputPadId == padId && data->getType() == Message::Type) {
+            std::shared_ptr<Message> message = std::dynamic_pointer_cast<Message>(data);
+            //            qDebug() << Q_FUNC_INFO << message->getAction().name() << message->getPayloads();
+            switch ((Message::Action::Enum) message->getAction()) {
+                case Message::Action::INIT:
+                    open();
+                    break;
+                case Message::Action::CLEANUP:
+                    close();
+                    break;
+                case Message::Action::START:
+                    start();
+                    break;
+                case Message::Action::STOP:
+                    stop();
+                    break;
+                case Message::Action::PAUSE:
+                    pause(message->getPayload("state").toBool());
+                    break;
+                case Message::Action::DATA:
+                    d->enqueueData(message->getPayload("data").toByteArray());
+                    break;
+                default:
+                    qWarning() << Q_FUNC_INFO << "Unknown action";
+                    break;
+            }
+        }
+    }
+
+    bool Demuxer::start() {
+        Q_D(AVQt::Demuxer);
+
+        bool shouldBe = false;
+        if (d->m_running.compare_exchange_strong(shouldBe, true)) {
             if (avformat_open_input(&d->m_pFormatCtx, "", nullptr, nullptr) < 0) {
                 qFatal("Could not open input format context");
             }
 
-            //            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
             avformat_find_stream_info(d->m_pFormatCtx, nullptr);
             //            }
 
@@ -74,34 +142,97 @@ namespace AVQt {
                 packetPadParams->mediaType = d->m_pFormatCtx->streams[si]->codecpar->codec_type;
                 packetPadParams->codec = d->m_pFormatCtx->streams[si]->codecpar->codec_id;
                 packetPadParams->streamIdx = si;
-                d->m_messagePadIds.insert(si, pgraph::impl::SimpleProducer::createOutputPad(packetPadParams));
+                d->m_messagePadIds.insert(si, pgraph::impl::SimpleProcessor::createOutputPad(packetPadParams));
                 qDebug("Creating pad %ul", d->m_messagePadIds[si]);
             }
-        }
 
-        return 0;
+            pgraph::impl::SimpleProcessor::produce(Message::builder().withAction(Message::Action::INIT).build(), d->m_commandOutputPadId);
+
+            QThread::start();
+
+            return true;
+        }
+        return false;
     }
 
-    int Demuxer::deinit() {
+    void Demuxer::stop() {
         Q_D(AVQt::Demuxer);
 
-        d->deinitPads();
+        bool shouldBe = true;
+        if (d->m_running.compare_exchange_strong(shouldBe, false)) {
+            QThread::quit();
+            QThread::wait();
+            pgraph::impl::SimpleProcessor::produce(Message::builder().withAction(Message::Action::CLEANUP).build(), d->m_commandOutputPadId);
+        }
+    }
+    void Demuxer::init() {
+        Q_D(AVQt::Demuxer);
 
-        const auto pads{d->m_messagePadIds.values()};
+        d->m_commandOutputPadId = pgraph::impl::SimpleProcessor::createOutputPad(pgraph::api::PadUserData::emptyUserData());
+        d->m_inputPadId = pgraph::impl::SimpleProcessor::createInputPad(pgraph::api::PadUserData::emptyUserData());
+    }
+    void Demuxer::run() {
+        Q_D(AVQt::Demuxer);
 
-        for (const auto &pad : pads) {
-            pgraph::impl::SimpleProducer::destroyOutputPad(pad);
+        auto streamids = d->m_messagePadIds.keys();
+        for (const int64_t &si : streamids) {
+            AVCodecParameters *params = avcodec_parameters_alloc();
+            avcodec_parameters_copy(params, d->m_pFormatCtx->streams[si]->codecpar);
+            pgraph::impl::SimpleProcessor::produce(Message::builder()
+                                                           .withAction(Message::Action::INIT)
+                                                           .withPayload("streamIdx", QVariant::fromValue(si))
+                                                           .withPayload("codecparams", QVariant::fromValue(params))
+                                                           .build(),
+                                                   d->m_messagePadIds[si]);
+            avcodec_parameters_free(&params);
         }
 
-        d->m_messagePadIds.clear();
-        pgraph::impl::SimpleProducer::destroyOutputPad(d->m_commandPadId);
+        pgraph::impl::SimpleProcessor::produce(Message::builder().withAction(Message::Action::START).build(), d->m_commandOutputPadId);
 
-        return 0;
-    }
+        int ret;
+        constexpr size_t strBufSize = 1024;
+        char strBuf[strBufSize];
 
-    uint32_t Demuxer::getCommandPadId() const {
-        Q_D(const AVQt::Demuxer);
-        return d->m_commandPadId;
+        AVPacket *packet = av_packet_alloc();
+
+        while (d->m_running) {
+            if (d->m_paused || d->m_inputData.size() < 4) {
+                QThread::msleep(2);
+                continue;
+            }
+            //            if (d->m_pFormatCtx->pb->eof_reached) {
+            //                qDebug() << Q_FUNC_INFO << "End of file reached";
+            //                break;
+            //            }
+            if (d->m_pFormatCtx->pb->error) {
+                qDebug() << Q_FUNC_INFO << "Error occured";
+                break;
+            }
+            {
+                QMutexLocker lock(&d->m_inputDataMutex);
+                if (d->m_inputData.size() > 3) {
+                    ret = av_read_frame(d->m_pFormatCtx, packet);
+                    lock.unlock();
+
+                    if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+                        av_packet_unref(packet);
+                        continue;
+                    } else if (ret < 0) {
+                        qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
+                        break;
+                    }
+
+                    if (d->m_messagePadIds.contains(packet->stream_index)) {
+                        av_packet_rescale_ts(packet, d->m_pFormatCtx->streams[packet->stream_index]->time_base, {1, 1000000});
+                        auto message = Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet)).build();
+                        pgraph::impl::SimpleProcessor::produce(message, d->m_messagePadIds[packet->stream_index]);
+                    }
+                }
+            }
+
+            av_packet_unref(packet);
+        }
+        pgraph::impl::SimpleProcessor::produce(Message::builder().withAction(Message::Action::STOP).build(), d->m_commandOutputPadId);
     }
 
     //    qint64 Demuxer::registerCallback(IPacketSink *packetSink, int8_t type) {
@@ -129,7 +260,7 @@ namespace AVQt {
     //                sParams = avcodec_parameters_alloc();
     //                avcodec_parameters_copy(sParams, d->m_pFormatCtx->streams[d->m_subtitleStream]->codecpar);
     //            }
-    //            packetSink->init(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, av_make_q(1, AV_TIME_BASE),
+    //            packetSink->open(this, d->m_pFormatCtx->streams[d->m_videoStream]->avg_frame_rate, av_make_q(1, AV_TIME_BASE),
     //                             static_cast<int64_t>(static_cast<double>(d->m_pFormatCtx->duration) * 1000.0 / AV_TIME_BASE), vParams, aParams,
     //                             sParams);
     //            if (vParams) {
@@ -160,7 +291,7 @@ namespace AVQt {
     //                packetSink->stop(this);
     //            }
     //            if (d->m_initialized.load()) {
-    //                packetSink->deinit(this);
+    //                packetSink->close(this);
     //            }
     //
     //            return 0;
@@ -170,14 +301,14 @@ namespace AVQt {
     //    }
     //
     //
-    //    int Demuxer::deinit() {
+    //    int Demuxer::close() {
     //        Q_D(AVQt::Demuxer);
     //
     //        stop();
     //
     //        auto cbs = d->m_cbMap.keys();
     //        for (const auto &cb : cbs) {
-    //            cb->deinit(this);
+    //            cb->close(this);
     //        }
     //
     //        //        avio_closep(&d->m_pIOCtx);
@@ -314,45 +445,61 @@ namespace AVQt {
     //    }
     //
     int DemuxerPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
-        auto *inputDevice = reinterpret_cast<QIODevice *>(opaque);
-
-        auto bytesRead = inputDevice->read(reinterpret_cast<char *>(buf), bufSize);
-        if (bytesRead == 0) {
-            return AVERROR_EOF;
-        } else {
-            return static_cast<int>(bytesRead);
+        auto *d = reinterpret_cast<DemuxerPrivate *>(opaque);
+        QMutexLocker lock(&d->m_inputDataMutex);
+        int bytesRead = 0;
+        while (!d->m_inputData.isEmpty() && bytesRead < bufSize) {
+            auto &data = d->m_inputData.first();
+            int toRead = qMin(bufSize - bytesRead, data.size());
+            memcpy(buf + bytesRead, data.constData(), toRead);
+            bytesRead += toRead;
+            data.remove(0, toRead);
+            if (data.isEmpty()) {
+                d->m_inputData.removeFirst();
+            }
         }
+
+        return bytesRead;
+        //        auto *inputDevice = reinterpret_cast<QIODevice *>(opaque);
+        //
+        //        auto bytesRead = inputDevice->read(reinterpret_cast<char *>(buf), bufSize);
+        //        if (bytesRead == 0) {
+        //            return AVERROR_EOF;
+        //        } else {
+        //            return static_cast<int>(bytesRead);
+        //        }
     }
 
     int64_t DemuxerPrivate::seekIO(void *opaque, int64_t pos, int whence) {
-        auto *inputDevice = reinterpret_cast<QIODevice *>(opaque);
-
-        if (inputDevice->isSequential()) {
-            return -1;
-        }
-
-        bool result;
-        switch (whence) {
-            case SEEK_SET:
-                result = inputDevice->seek(pos);
-                break;
-            case SEEK_CUR:
-                result = inputDevice->seek(inputDevice->pos() + pos);
-                break;
-            case SEEK_END:
-                result = inputDevice->seek(inputDevice->size() - pos);
-                break;
-            case AVSEEK_SIZE:
-                return inputDevice->size();
-            default:
-                return -1;
-        }
-
-        if (result) {
-            return inputDevice->pos();
-        } else {
-            return -1;
-        }
+        return -1;
+        //        auto *inputDevice = reinterpret_cast<QIODevice *>(opaque);
+        //
+        //        if (inputDevice->isSequential()) {
+        //            return -1;
+        //        }
+        //
+        //        bool result;
+        //        switch (whence) {
+        //            case SEEK_SET:
+        //                result = inputDevice->seek(pos);
+        //                break;
+        //            case SEEK_CUR:
+        //                result = inputDevice->seek(inputDevice->pos() + pos);
+        //                break;
+        //            case SEEK_END:
+        //                result = inputDevice->seek(inputDevice->size() - pos);
+        //                break;
+        //            case AVSEEK_SIZE:
+        //                return inputDevice->size();
+        //            default:
+        //                return -1;
+        //        }
+        //
+        //        if (result) {
+        //            return inputDevice->pos();
+        //        } else {
+        //            return -1;
+        //        }
     }
 
     void DemuxerPrivate::initPads() {
@@ -367,7 +514,16 @@ namespace AVQt {
 
     void DemuxerPrivate::deinitPads() {
         Q_Q(AVQt::Demuxer);
-        q->produce(Message::builder().withAction(Message::Action::CLEANUP).build(), m_commandPadId);
+        q->produce(Message::builder().withAction(Message::Action::CLEANUP).build(), m_commandOutputPadId);
+    }
+
+    void DemuxerPrivate::enqueueData(const QByteArray &data) {
+        if (!data.isEmpty()) {
+            QMutexLocker lock(&m_inputDataMutex);
+            m_inputData.enqueue(data);
+        } else {
+            qWarning() << Q_FUNC_INFO << "Empty data received";
+        }
     }
 }// namespace AVQt
 

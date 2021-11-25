@@ -28,8 +28,9 @@ namespace AVQt {
 
         static int64_t seekIO(void *opaque, int64_t pos, int whence);
 
-        void initPads();
+        void enqueueData(const QByteArray &data);
 
+        void initPads();
         void deinitPads();
 
         Demuxer *q_ptr;
@@ -45,9 +46,11 @@ namespace AVQt {
         uint8_t *m_pBuffer{nullptr};
         AVFormatContext *m_pFormatCtx{nullptr};
         AVIOContext *m_pIOCtx{nullptr};
-        QIODevice *m_inputDevice{nullptr};
 
-        uint32_t m_commandPadId;
+        QRecursiveMutex m_inputDataMutex{};
+        QQueue<QByteArray> m_inputData{};
+
+        uint32_t m_commandOutputPadId{0}, m_inputPadId{0};
         QMap<int64_t, quint32> m_messagePadIds;
 
         friend class Demuxer;

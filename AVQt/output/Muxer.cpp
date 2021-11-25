@@ -29,7 +29,7 @@ namespace AVQt {
         Q_D(AVQt::Muxer);
 
         if ((vParams && aParams) || (vParams && sParams) || (aParams && sParams)) {
-            qWarning("[AVQt::Muxer] init() called for multiple stream types at once. Ignoring call");
+            qWarning("[AVQt::Muxer] open() called for multiple stream types at once. Ignoring call");
             return;
         }
 
@@ -44,7 +44,7 @@ namespace AVQt {
                 }
             }
             if (alreadyCalled) {
-                qWarning("[AVQt::Muxer] init() called multiple times for the same stream type by the same source. Ignoring call");
+                qWarning("[AVQt::Muxer] open() called multiple times for the same stream type by the same source. Ignoring call");
                 return;
             }
         }
@@ -124,12 +124,12 @@ namespace AVQt {
         Q_D(AVQt::Muxer);
 
         stop(source);
-        qDebug("[AVQt::Muxer] deinit() called");
+        qDebug("[AVQt::Muxer] close() called");
 
         if (d->m_sourceStreamMap.contains(source)) {
             d->m_sourceStreamMap.remove(source);
         } else {
-            qWarning("[AVQt::Muxer] deinit() called without preceding init() from source. Ignoring call");
+            qWarning("[AVQt::Muxer] close() called without preceding open() from source. Ignoring call");
             return;
         }
 
@@ -218,7 +218,7 @@ namespace AVQt {
                 }
             }
             if (unknownSource || !initStream) {
-                qWarning("[AVQt::Muxer] onPacket() called without preceding call to init() for stream type. Ignoring packet");
+                qWarning("[AVQt::Muxer] onPacket() called without preceding call to open() for stream type. Ignoring packet");
                 return;
             }
 
@@ -244,7 +244,7 @@ namespace AVQt {
         if (ret != 0) {
             constexpr auto strBufSize = 32;
             char strBuf[strBufSize];
-            qWarning("[AVQt::Muxer] %d: Couldn't init AVFormatContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+            qWarning("[AVQt::Muxer] %d: Couldn't open AVFormatContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
         }
 
         while (d->m_running.load()) {

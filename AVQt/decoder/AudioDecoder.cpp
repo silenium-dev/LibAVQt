@@ -48,7 +48,7 @@ namespace AVQt {
         //        {
         //            QMutexLocker lock(&d->m_cbListMutex);
         //            for (const auto &cb: d->m_cbList) {
-        //                cb->init(this, d->m_duration, 0, AV_SAMPLE_FMT_U8, 0);
+        //                cb->open(this, d->m_duration, 0, AV_SAMPLE_FMT_U8, 0);
         //            }
         //        }
 

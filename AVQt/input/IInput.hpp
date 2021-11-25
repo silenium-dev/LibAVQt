@@ -37,7 +37,7 @@ namespace AVQt {
         virtual void pause(bool state) = 0;
         virtual bool isPaused() = 0;
 
-        virtual uint32_t getOutputPadId() const = 0;
+        [[nodiscard]] virtual uint32_t getCommandOutputPadId() const = 0;
     signals:
         virtual void started() = 0;
         virtual void stopped() = 0;

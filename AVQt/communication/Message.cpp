@@ -55,7 +55,7 @@ namespace AVQt {
     MessageBuilder::MessageBuilder() = default;
 
     MessageBuilder &MessageBuilder::withAction(Message::Action::Enum type) {
-        m_type = type;
+        m_action = type;
         return *this;
     }
     template<typename T, typename... Ts>
@@ -73,7 +73,7 @@ namespace AVQt {
         return *this;
     }
     std::shared_ptr<Message> MessageBuilder::build() {
-        return std::make_shared<Message>(m_type, m_payload);
+        return std::make_shared<Message>(m_action, m_payload);
     }
 
     QString Message::Action::name() {
@@ -106,5 +106,21 @@ namespace AVQt {
     Message::Action &Message::Action::operator=(Message::Action::Enum &type) {
         m_action = type;
         return *this;
+    }
+
+    bool operator==(const AVQt::Message::Action &lhs, const AVQt::Message::Action &rhs) {
+        return lhs.m_action == rhs.m_action;
+    }
+
+    bool operator==(const AVQt::Message::Action &lhs, const AVQt::Message::Action::Enum &rhs) {
+        return lhs.m_action == rhs;
+    }
+
+    bool operator==(const AVQt::Message::Action::Enum &lhs, const AVQt::Message::Action &rhs) {
+        return lhs == rhs.m_action;
+    }
+
+    Message::Action::operator Enum() {
+        return m_action;
     }
 }// namespace AVQt

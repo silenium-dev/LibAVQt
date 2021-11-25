@@ -109,7 +109,7 @@ set(SOURCES
 
         input/CommandConsumer.cpp
         input/CommandConsumer.h
-        communication/PacketPadParams.cpp input/FileInput.cpp input/FileInput.hpp input/IInput.hpp input/private/FileInput_p.hpp communication/FilePadParams.cpp communication/FilePadParams.hpp)
+        communication/PacketPadParams.cpp input/FileInput.cpp input/FileInput.hpp input/IInput.hpp input/private/FileInput_p.hpp communication/FilePadParams.cpp communication/FilePadParams.hpp communication/IBitstreamProcessor.hpp communication/IOutput.hpp)
 set(SOURCES_LINUX
         decoder/DecoderVAAPI.h
         decoder/private/DecoderVAAPI_p.h
@@ -210,7 +210,7 @@ target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter av
 target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
 
 target_link_libraries(AVQtObject pgraph pgraph_network boost_json)
-target_link_libraries(AVQtStatic pgraph pgraph_network boost_json)
+target_link_libraries(AVQtStatic pgraph_static pgraph_network_static boost_json)
 target_link_libraries(AVQt pgraph pgraph_network boost_json)
 
 if (WIN32)

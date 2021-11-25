@@ -36,6 +36,8 @@ namespace AVQt {
         FileInput(const QString &fileName, std::shared_ptr<pgraph::api::PadFactory> padFactory, QObject *parent = nullptr);
         ~FileInput() override;
 
+        bool waitForStarted(int msecs = 30000);
+
         bool open() override;
         void close() override;
 
@@ -45,7 +47,7 @@ namespace AVQt {
         void pause(bool state) override;
         bool isPaused() override;
 
-        uint32_t getOutputPadId() const override;
+        uint32_t getCommandOutputPadId() const override;
 
     signals:
         void started() override;

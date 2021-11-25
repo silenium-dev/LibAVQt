@@ -2,6 +2,7 @@
 #include "communication/Message.h"
 #include "communication/PacketPadParams.h"
 #include "input/CommandConsumer.h"
+#include <pgraph/api/Link.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 #include <pgraph_network/impl/SimplePadRegistry.hpp>
@@ -60,10 +61,10 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
 
-#ifdef QT_DEBUG
-    av_log_set_level(AV_LOG_DEBUG);
-    av_log_set_flags(AV_LOG_SKIP_REPEATED);
-#endif
+    #ifdef QT_DEBUG
+        av_log_set_level(AV_LOG_DEBUG);
+        av_log_set_flags(AV_LOG_SKIP_REPEATED);
+    #endif
     //    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();
@@ -93,29 +94,42 @@ int main(int argc, char *argv[]) {
 
     auto registry = std::make_shared<pgraph::network::impl::SimplePadRegistry>();
 
-    auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
+    auto demuxer = std::make_shared<AVQt::Demuxer>(registry);
     auto cc = std::make_shared<CommandConsumer>(registry);
     auto fileInput = std::make_shared<AVQt::FileInput>(filepath, std::make_shared<pgraph::network::impl::RegisteringPadFactory>(registry));
 
-    //    demuxer->init();
+    //    demuxer->open();
     if (!fileInput->open()) {
         qWarning() << "Could not open file input";
         return 0;
     }
+
     cc->init();
+    demuxer->init();
 
-    //    cc->getInputPads().begin()->second->link(demuxer->getOutputPad(demuxer->getCommandPadId()));
-    cc->getInputPads().begin()->second->link(fileInput->getOutputPad(fileInput->getOutputPadId()));
+    //    cc->getInputPads().begin()->second->link(demuxer->getOutputPad(demuxer->getCommandOutputPadId()));
+    //    cc->getInputPads().begin()->second->link(fileInput->getOutputPad(fileInput->getCommandOutputPadId()));
+    demuxer->getInputPad(demuxer->getInputPadId())->link(fileInput->getOutputPad(fileInput->getCommandOutputPadId()));
 
-    pgraph::network::data::APIInfo apiInfo(registry);
-
-    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString();
+    //    pgraph::network::data::APIInfo apiInfo(registry);
 
     fileInput->start();
+    fileInput->waitForStarted();
+//    QThread::sleep(3);
+
+    //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString();
+
+    auto demuxerOutPad = demuxer->getOutputPads().begin().operator++()->second;
+    auto ccInPad = cc->getInputPads().begin()->second;
+    ccInPad->link(demuxerOutPad);
+
+    fileInput->pause(true);
     QThread::msleep(10);
+    fileInput->pause(false);
+    QThread::sleep(1);
     fileInput->close();
     //    demuxer->pause(true);
-    //    demuxer->deinit();
+    //    demuxer->close();
 
     exit(0);
     //    AVQt::AudioDecoder decoder;
@@ -162,7 +176,7 @@ int main(int argc, char *argv[]) {
     //    //        output.start(nullptr);
     //    //    });
     //
-    //    demuxer->init();
+    //    demuxer->open();
     //
     //    //    output.syncToOutput(renderer->getFrameSink());
     //    //    QObject::connect(renderer->getFrameSink(), &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
@@ -171,9 +185,9 @@ int main(int argc, char *argv[]) {
     //
     //    QObject::connect(app, &QApplication::aboutToQuit, [demuxer, videoDecoder, videoEncoder, renderer] {
     //        demuxer->stop();
-    //        demuxer->deinit();
+    //        demuxer->close();
     //        renderer->getFrameSink()->stop(videoDecoder);
-    //        //        muxer.deinit(videoEncoder);
+    //        //        muxer.close(videoEncoder);
     //        delete renderer;
     //        delete videoEncoder;
     //        delete videoDecoder;

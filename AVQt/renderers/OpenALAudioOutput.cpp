@@ -32,13 +32,13 @@ namespace AVQt {
         Q_D(AVQt::OpenALAudioOutput);
 
         if (source == nullptr || duration < 0 || sampleRate < 1 || sampleFormat == AV_SAMPLE_FMT_NONE || channelLayout < 0) {
-            qWarning("[AVQt::OpenALAudioOutput] Invalid parameters passed to init()");
+            qWarning("[AVQt::OpenALAudioOutput] Invalid parameters passed to open()");
             return EINVAL;
         }
 
         IAudioSource *shouldBe = nullptr;
         if (!d->m_sourceLock.compare_exchange_strong(shouldBe, source)) {
-            qWarning("[AVAt::OpenALAudioOutput] Output was locked on source in init(), please call deinit() from this source before reusing output");
+            qWarning("[AVAt::OpenALAudioOutput] Output was locked on source in open(), please call close() from this source before reusing output");
             return EACCES;
         }
 
@@ -88,7 +88,7 @@ namespace AVQt {
         Q_D(AVQt::OpenALAudioOutput);
 
         if (!d->m_sourceLock.compare_exchange_strong(source, nullptr)) {
-            qWarning("[AVQt::OpenALAudioOutput] Calling deinit() from other source than locked on in init() is forbidden");
+            qWarning("[AVQt::OpenALAudioOutput] Calling close() from other source than locked on in open() is forbidden");
             return EACCES;
         }
 
@@ -137,12 +137,12 @@ namespace AVQt {
         Q_D(AVQt::OpenALAudioOutput);
 
         if (source != d->m_sourceLock) {
-            qWarning("[AVQt::OpenALAudioOutput] Starting output from other source than locked on in init() is forbidden");
+            qWarning("[AVQt::OpenALAudioOutput] Starting output from other source than locked on in open() is forbidden");
             return EACCES;
         }
 
         bool shouldBe = false;
-        if (d->m_alcContext && d->m_running.compare_exchange_strong(shouldBe, true)) {// Check for alcContext to ensure init() was called
+        if (d->m_alcContext && d->m_running.compare_exchange_strong(shouldBe, true)) {// Check for alcContext to ensure open() was called
             QThread::start(QThread::TimeCriticalPriority);
             started();
         }
@@ -155,7 +155,7 @@ namespace AVQt {
         Q_D(AVQt::OpenALAudioOutput);
 
         if (source != d->m_sourceLock) {
-            qWarning("[AVQt::OpenALAudioOutput] Stopping output from other source than locked on in init() is forbidden");
+            qWarning("[AVQt::OpenALAudioOutput] Stopping output from other source than locked on in open() is forbidden");
             return EACCES;
         }
 
@@ -204,7 +204,7 @@ namespace AVQt {
     void OpenALAudioOutput::onAudioFrame(IAudioSource *source, AVFrame *frame, uint32_t duration) {
         Q_D(AVQt::OpenALAudioOutput);
         if (d->m_sourceLock != source) {
-            qWarning("[AVQt::OpenALAudioOutput] No audio samples from an other source than the one locked on in init() are allowed");
+            qWarning("[AVQt::OpenALAudioOutput] No audio samples from an other source than the one locked on in open() are allowed");
             return;
         }
         if (frame->sample_rate != d->m_sampleRate || frame->format != d->m_sampleFormat || frame->channel_layout != d->m_channelLayout) {

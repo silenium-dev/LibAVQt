@@ -2,7 +2,8 @@
 
 #include <QIODevice>
 #include <QThread>
-#include <pgraph/impl/SimpleProducer.hpp>
+#include <communication/IBitstreamProcessor.hpp>
+#include <pgraph/impl/SimpleProcessor.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
 
 extern "C" {
@@ -12,19 +13,16 @@ extern "C" {
 #ifndef LIBAVQT_DEMUXER_H
 #define LIBAVQT_DEMUXER_H
 
-Q_DECLARE_INTERFACE(pgraph::api::Producer, "pgraph.api.Producer")
 
 namespace AVQt {
     class DemuxerPrivate;
 
-    class Demuxer : public QThread, public pgraph::impl::SimpleProducer {
+    class Demuxer : public QThread, public pgraph::impl::SimpleProcessor, public IBitstreamProcessor {
         Q_OBJECT
-        Q_INTERFACES(pgraph::api::Producer)
-
         Q_DECLARE_PRIVATE(AVQt::Demuxer)
 
     public:
-        explicit Demuxer(QIODevice *inputDevice, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        explicit Demuxer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
 
         explicit Demuxer(Demuxer &other) = delete;
 
@@ -32,7 +30,11 @@ namespace AVQt {
 
         ~Demuxer() override = default;
 
-        uint32_t getCommandPadId() const;
+        uint32_t getCommandOutputPadId() const override;
+
+        uint32_t getInputPadId() const override;
+
+        void consume(uint32_t padId, std::shared_ptr<pgraph::api::Data> data) override;
 
         //        Demuxer(Demuxer &&other) noexcept;
 
@@ -63,29 +65,30 @@ namespace AVQt {
         //        Q_INVOKABLE qint64 unregisterCallback(IPacketSink *packetSink);
 
     public slots:
+        Q_INVOKABLE void init();
         /*!
          * \brief Initialize packet source (e.g. open files, allocate buffers).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int init();
+        Q_INVOKABLE bool open() override;
 
         /*!
          * \brief Clean up packet source (e.g. close network connections, free buffers).
          * @return Status code (0 = Success)
          */
-        Q_INVOKABLE int deinit();
+        Q_INVOKABLE void close() override;
 
         /*!
          * \brief Starts packet source (e.g. Start processing thread, activate camera).
          * @return Status code (0 = Success)
          */
-        //        Q_INVOKABLE int start();
+        Q_INVOKABLE bool start() override;
 
         /*!
          * \brief Stops packet source (e.g. Interrupt processing thread, free camera).
          * @return Status code (0 = Success)
          */
-        //        Q_INVOKABLE int stop();
+        Q_INVOKABLE void stop() override;
 
         /*!
          * \brief Sets paused flag of packet source
@@ -94,7 +97,7 @@ namespace AVQt {
          * @param pause Paused flag
          * @return
          */
-        Q_INVOKABLE void pause(bool pause);
+        Q_INVOKABLE void pause(bool pause) override;
 
     signals:
 
@@ -115,6 +118,8 @@ namespace AVQt {
         void paused(bool pause);
 
     protected:
+        void run() override;
+
         [[maybe_unused]] explicit Demuxer(DemuxerPrivate &p);
 
         DemuxerPrivate *d_ptr;

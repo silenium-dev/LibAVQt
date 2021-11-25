@@ -257,7 +257,7 @@ namespace AVQt {
         while (d->m_running.load()) {
             if (!d->m_paused.load() && d->m_inputQueue.size() > 1) {
                 bool shouldBe = true;
-                // Encoder init is only possible with frame parameters
+                // Encoder open is only possible with frame parameters
                 if (d->m_firstFrame.compare_exchange_strong(shouldBe, false)) {
                     auto frame = d->m_inputQueue.first().first;
 
@@ -291,7 +291,7 @@ namespace AVQt {
 
                     ret = av_hwframe_ctx_init(d->m_pFramesCtx);
                     if (ret != 0) {
-                        qFatal("%i: Could not init HW frames context: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%i: Could not open HW frames context: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     d->m_pCodecCtx->pix_fmt = framesContext->format;

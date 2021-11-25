@@ -75,7 +75,7 @@ namespace AVQt {
     }
     bool FileInput::start() {
         Q_D(AVQt::FileInput);
-        if (!d->inputFile->isOpen()) {
+        if (!d->inputFile || !d->inputFile->isOpen()) {
             qWarning() << "File not open";
             return false;
         }
@@ -85,6 +85,8 @@ namespace AVQt {
         bool shouldBe = false;
         if (d->m_running.compare_exchange_strong(shouldBe, true)) {
             pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::INIT).build(), d->m_outputPadId);
+            d->m_sendStart = d->m_sendStartIf.future();
+            d->m_sendStartIf.reportStarted();
             QThread::start();
             return true;
         }
@@ -97,12 +99,14 @@ namespace AVQt {
         if (d->m_running.compare_exchange_strong(shouldBe, false)) {
             QThread::quit();
             QThread::wait();
+            d->m_sendStartIf = QFutureInterface<void>();
         }
     }
     void FileInput::pause(bool state) {
         Q_D(AVQt::FileInput);
         bool shouldBe = !state;
         if (d->m_paused.compare_exchange_strong(shouldBe, state)) {
+            pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::PAUSE).withPayload("state", state).build(), d->m_outputPadId);
             paused(state);
         }
     }
@@ -112,7 +116,6 @@ namespace AVQt {
     }
     void FileInput::run() {
         Q_D(AVQt::FileInput);
-        pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::START).build(), d->m_outputPadId);
         while (d->m_running) {
             if (d->m_paused) {
                 QThread::msleep(10);
@@ -124,17 +127,37 @@ namespace AVQt {
                 continue;
             }
 
+            if (d->m_loopCount++ == 256) {
+                pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::START).build(), d->m_outputPadId);
+                d->m_sendStartIf.reportFinished();
+                qDebug() << "Started";
+            }
             pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::DATA).withPayload("data", data).build(), d->m_outputPadId);
         }
         pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::STOP).build(), d->m_outputPadId);
     }
 
-    uint32_t FileInput::getOutputPadId() const {
+    uint32_t FileInput::getCommandOutputPadId() const {
         Q_D(const AVQt::FileInput);
         if (d->inputFile->isOpen()) {
             return d->m_outputPadId;
         } else {
             throw std::runtime_error("File not opened");
         }
+    }
+
+    bool FileInput::waitForStarted(int msecs) {
+        Q_D(AVQt::FileInput);
+
+        QElapsedTimer timer;
+        timer.start();
+
+        while (!timer.hasExpired(msecs)) {
+            if (d->m_sendStart.isFinished()) {
+                return true;
+            }
+            QThread::msleep(1);
+        }
+        return false;
     }
 }// namespace AVQt

@@ -47,6 +47,12 @@ namespace AVQt {
 
             Action &operator=(Enum &type);
 
+            explicit operator Enum();
+
+            friend bool operator==(const Action &lhs, const Enum &rhs);
+            friend bool operator==(const Enum &lhs, const Action &rhs);
+            friend bool operator==(const Action &lhs, const Action &rhs);
+
             explicit Action(const Enum &type);
             Action();
 
@@ -88,7 +94,7 @@ namespace AVQt {
     private:
         MessageBuilder();
 
-        Message::Action m_type;
+        Message::Action m_action;
         QVariantMap m_payload;
 
         friend class Message;

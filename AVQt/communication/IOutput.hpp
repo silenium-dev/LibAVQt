@@ -16,34 +16,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 23.11.21.
+// Created by silas on 24.11.21.
 //
 
-#ifndef LIBAVQT_FILEINPUT_P_HPP
-#define LIBAVQT_FILEINPUT_P_HPP
-
-#include "../FileInput.hpp"
-#include <QtGlobal>
+#ifndef LIBAVQT_IOUTPUT_HPP
+#define LIBAVQT_IOUTPUT_HPP
 
 namespace AVQt {
-    class FileInputPrivate {
-        Q_DECLARE_PUBLIC(AVQt::FileInput)
-    private:
-        FileInputPrivate(FileInput *q) : q_ptr(q) {}
-        FileInput *q_ptr;
+    class IOutput {
+    public:
+        virtual ~IOutput() = default;
 
-        uint32_t m_outputPadId{0};
-        QString filename{};
-        std::unique_ptr<QFile> inputFile{};
-        std::atomic_bool m_running{false}, m_paused{false};
-        std::atomic_size_t m_loopCount{0};
-
-        QFutureInterface<void> m_sendStartIf{};
-        QFuture<void> m_sendStart{};
-
-        static constexpr size_t START_DATA_SIZE = 256;
+        [[nodiscard]] virtual uint32_t getInputPadId() const = 0;
     };
 }// namespace AVQt
 
 
-#endif//LIBAVQT_FILEINPUT_P_HPP
+#endif//LIBAVQT_IOUTPUT_HPP
