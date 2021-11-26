@@ -1,10 +1,14 @@
+default:
+  image:
+    name: sdc0/manjaro-qt6-ffmpeg
+    entrypoint: ["/bin/sh", "-c"]
+  tags:
+    - arm64
+
 build:
   stage: build
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-  image:
-    name: sdc0/manjaro-qt6-ffmpeg
-    entrypoint: ["/bin/sh", "-c"]
   script:
     - mkdir build
     - cd build
