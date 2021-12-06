@@ -1,5 +1,5 @@
 #include "global.h"
-#include "IDecoderOld.h"
+#include "IDecoder.h"
 
 #include <QtCore>
 #include <QtGui>

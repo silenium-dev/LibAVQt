@@ -2,7 +2,7 @@
 
 #include <QIODevice>
 #include <QThread>
-#include <communication/IBitstreamProcessor.hpp>
+#include <communication/IProcessor.hpp>
 #include <pgraph/impl/SimpleProcessor.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
 
@@ -17,7 +17,7 @@ extern "C" {
 namespace AVQt {
     class DemuxerPrivate;
 
-    class Demuxer : public QThread, public pgraph::impl::SimpleProcessor, public IBitstreamProcessor {
+    class Demuxer : public QThread, public pgraph::impl::SimpleProcessor, public IProcessor {
         Q_OBJECT
         Q_DECLARE_PRIVATE(AVQt::Demuxer)
 
@@ -47,7 +47,7 @@ namespace AVQt {
          * \brief Returns, whether the frame source is currently paused.
          * @return Paused state
          */
-        bool isPaused();
+        bool isPaused() override;
 
         /*!
          * \brief Register packet callback \c packetSink with given \c type
@@ -104,18 +104,18 @@ namespace AVQt {
         /*!
          * \brief Emitted when started
          */
-        void started();
+        void started() override;
 
         /*!
          * \brief Emitted when stopped
          */
-        void stopped();
+        void stopped() override;
 
         /*!
          * \brief Emitted when paused state changed
          * @param pause Current paused state
          */
-        void paused(bool pause);
+        void paused(bool pause) override;
 
     protected:
         void run() override;

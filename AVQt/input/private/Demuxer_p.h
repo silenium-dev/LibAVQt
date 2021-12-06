@@ -28,7 +28,7 @@ namespace AVQt {
 
         static int64_t seekIO(void *opaque, int64_t pos, int whence);
 
-        void enqueueData(const QByteArray &data);
+        void enqueueData(QByteArray data);
 
         void initPads();
         void deinitPads();
@@ -42,12 +42,14 @@ namespace AVQt {
         QList<int64_t> m_videoStreams{}, m_audioStreams{}, m_subtitleStreams{};
         int64_t m_videoStream{-1}, m_audioStream{-1}, m_subtitleStream{-1};
 
-        static constexpr size_t BUFFER_SIZE{32 * 1024};
+        static constexpr size_t BUFFER_SIZE{32 * 1024}; // 32KB
         uint8_t *m_pBuffer{nullptr};
         AVFormatContext *m_pFormatCtx{nullptr};
         AVIOContext *m_pIOCtx{nullptr};
 
-        QRecursiveMutex m_inputDataMutex{};
+        static constexpr int INPUT_BLOCK_SIZE = 32 * 1024; // 24KB
+        QMutex m_inputDataMutex{};
+        QWaitCondition m_inputDataCond{};
         QQueue<QByteArray> m_inputData{};
 
         uint32_t m_commandOutputPadId{0}, m_inputPadId{0};

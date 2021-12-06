@@ -115,7 +115,6 @@ int main(int argc, char *argv[]) {
 
     fileInput->start();
     fileInput->waitForStarted();
-//    QThread::sleep(3);
 
     //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString();
 
@@ -138,7 +137,7 @@ int main(int argc, char *argv[]) {
     //    demuxer->registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
     //    decoder.registerCallback(&output);
 
-    //    AVQt::IDecoder *videoDecoder = nullptr;
+    //    AVQt::IDecoderOld *videoDecoder = nullptr;
     //    AVQt::IEncoder *videoEncoder = nullptr;
     //#ifdef Q_OS_LINUX
     //    videoDecoder = new AVQt::DecoderVAAPI;

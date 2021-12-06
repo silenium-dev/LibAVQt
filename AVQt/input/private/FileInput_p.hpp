@@ -36,7 +36,7 @@ namespace AVQt {
         QString filename{};
         std::unique_ptr<QFile> inputFile{};
         std::atomic_bool m_running{false}, m_paused{false};
-        std::atomic_size_t m_loopCount{0};
+        std::atomic_size_t m_dataRead{0};
 
         QFutureInterface<void> m_sendStartIf{};
         QFuture<void> m_sendStart{};

@@ -28,7 +28,6 @@ namespace AVQt {
         bool pauseFlag = !pause;
         if (d->m_paused.compare_exchange_strong(pauseFlag, pause)) {
             d->m_paused.store(pause);
-            //            auto commandPtr = new Message(command);
             produce(Message::builder().withAction(Message::Action::PAUSE).withPayload("state", pause).build(), d->m_commandOutputPadId);
             paused(pause);
         }
@@ -45,12 +44,10 @@ namespace AVQt {
         if (d->m_initialized.compare_exchange_strong(shouldBe, true)) {
             d->m_pBuffer = static_cast<uint8_t *>(av_malloc(DemuxerPrivate::BUFFER_SIZE));
             d->m_pIOCtx = avio_alloc_context(d->m_pBuffer, DemuxerPrivate::BUFFER_SIZE, 0, d,
-                                             &DemuxerPrivate::readFromIO, nullptr, &DemuxerPrivate::seekIO);
+                                             &DemuxerPrivate::readFromIO, nullptr, nullptr);
             d->m_pFormatCtx = avformat_alloc_context();
             d->m_pFormatCtx->pb = d->m_pIOCtx;
             d->m_pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
-
-            //            if (d->m_pFormatCtx->iformat == av_find_input_format("mpegts") || d->m_pFormatCtx->iformat == av_find_input_format("rtp")) {
         }
 
         return true;
@@ -59,7 +56,7 @@ namespace AVQt {
     void Demuxer::close() {
         Q_D(AVQt::Demuxer);
 
-        d->deinitPads();
+//        d->deinitPads();
 
         const auto pads{d->m_messagePadIds.values()};
 
@@ -117,6 +114,7 @@ namespace AVQt {
 
         bool shouldBe = false;
         if (d->m_running.compare_exchange_strong(shouldBe, true)) {
+            qDebug() << "Input queue: " << d->m_inputData.size() * DemuxerPrivate::INPUT_BLOCK_SIZE << "B";
             if (avformat_open_input(&d->m_pFormatCtx, "", nullptr, nullptr) < 0) {
                 qFatal("Could not open input format context");
             }
@@ -160,6 +158,7 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->m_running.compare_exchange_strong(shouldBe, false)) {
+            d->m_inputDataCond.wakeAll();
             QThread::quit();
             QThread::wait();
             pgraph::impl::SimpleProcessor::produce(Message::builder().withAction(Message::Action::CLEANUP).build(), d->m_commandOutputPadId);
@@ -196,7 +195,7 @@ namespace AVQt {
         AVPacket *packet = av_packet_alloc();
 
         while (d->m_running) {
-            if (d->m_paused || d->m_inputData.size() < 4) {
+            if (d->m_paused || d->m_inputData.isEmpty()) {
                 QThread::msleep(2);
                 continue;
             }
@@ -209,24 +208,20 @@ namespace AVQt {
                 break;
             }
             {
-                QMutexLocker lock(&d->m_inputDataMutex);
-                if (d->m_inputData.size() > 3) {
-                    ret = av_read_frame(d->m_pFormatCtx, packet);
-                    lock.unlock();
+                ret = av_read_frame(d->m_pFormatCtx, packet);
 
-                    if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
-                        av_packet_unref(packet);
-                        continue;
-                    } else if (ret < 0) {
-                        qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
-                        break;
-                    }
+                if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR_EXIT) {
+                    av_packet_unref(packet);
+                    break;
+                } else if (ret < 0) {
+                    qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
+                    break;
+                }
 
-                    if (d->m_messagePadIds.contains(packet->stream_index)) {
-                        av_packet_rescale_ts(packet, d->m_pFormatCtx->streams[packet->stream_index]->time_base, {1, 1000000});
-                        auto message = Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet)).build();
-                        pgraph::impl::SimpleProcessor::produce(message, d->m_messagePadIds[packet->stream_index]);
-                    }
+                if (d->m_messagePadIds.contains(packet->stream_index)) {
+                    av_packet_rescale_ts(packet, d->m_pFormatCtx->streams[packet->stream_index]->time_base, {1, 1000000});
+                    auto message = Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet)).build();
+                    pgraph::impl::SimpleProcessor::produce(message, d->m_messagePadIds[packet->stream_index]);
                 }
             }
 
@@ -446,8 +441,18 @@ namespace AVQt {
     //
     int DemuxerPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
         auto *d = reinterpret_cast<DemuxerPrivate *>(opaque);
+        if (!d->m_running.load()) {
+            return AVERROR_EOF;
+        }
         QMutexLocker lock(&d->m_inputDataMutex);
         int bytesRead = 0;
+        if (d->m_inputData.isEmpty()) {
+            d->m_inputDataMutex.unlock();
+            d->m_inputDataCond.wait(&d->m_inputDataMutex);
+            if (!d->m_running.load()) {
+                return AVERROR_EXIT;
+            }
+        }
         while (!d->m_inputData.isEmpty() && bytesRead < bufSize) {
             auto &data = d->m_inputData.first();
             int toRead = qMin(bufSize - bytesRead, data.size());
@@ -459,7 +464,7 @@ namespace AVQt {
             }
         }
 
-        return bytesRead;
+        return bytesRead == 0 ? AVERROR_EOF : bytesRead;
         //        auto *inputDevice = reinterpret_cast<QIODevice *>(opaque);
         //
         //        auto bytesRead = inputDevice->read(reinterpret_cast<char *>(buf), bufSize);
@@ -517,10 +522,40 @@ namespace AVQt {
         q->produce(Message::builder().withAction(Message::Action::CLEANUP).build(), m_commandOutputPadId);
     }
 
-    void DemuxerPrivate::enqueueData(const QByteArray &data) {
+    void DemuxerPrivate::enqueueData(QByteArray data) {
+        static int64_t callCount = 0;
+        //        if (callCount++ % 100 == 0) {
+        //            qDebug() << "DemuxerPrivate::enqueueData" << data.size();
+        //        }
         if (!data.isEmpty()) {
+            //            qDebug("Enqueuing %d B of data", data.size());
+
             QMutexLocker lock(&m_inputDataMutex);
-            m_inputData.enqueue(data);
+            if (m_inputData.isEmpty()) {
+                //            qDebug("%ld: Enqueueing %d B of data", callCount++, data.size());
+                m_inputData.enqueue(data);
+            } else {
+                while (data.size() > 0) {
+                    if (m_inputData.last().size() < INPUT_BLOCK_SIZE) {
+                        auto last = m_inputData.last();
+                        auto lastSize = last.size();
+                        auto toAppend = qMin(data.size(), INPUT_BLOCK_SIZE - lastSize);
+                        //                        qDebug("Appending %d B to last element", qMin(data.size(), INPUT_BLOCK_SIZE - m_inputData.last().size()));
+                        //                        qDebug() << "Concatenating:" << last.toHex() << "+" << data.toHex();
+                        m_inputData.last().append(data.left(toAppend));
+                        //                        qDebug() << "Result:" << m_inputData.last().toHex() << "+" << data.toHex();
+                        if (!m_inputData.last().contains(last) || !m_inputData.last().contains(data.left(toAppend)) || m_inputData.last().size() != toAppend + lastSize) {
+                            qFatal("Concatenation failed");
+                        }
+                        data.remove(0, toAppend);
+                    } else {
+                        //                        qDebug("Enqueuing new element with %d B", qMin(data.size(), INPUT_BLOCK_SIZE));
+                        m_inputData.enqueue(data.left(INPUT_BLOCK_SIZE));
+                        data.remove(0, INPUT_BLOCK_SIZE);
+                    }
+                }
+            }
+            m_inputDataCond.wakeAll();
         } else {
             qWarning() << Q_FUNC_INFO << "Empty data received";
         }

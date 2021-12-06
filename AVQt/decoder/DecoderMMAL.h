@@ -1,4 +1,4 @@
-#include "IDecoder.h"
+#include "IDecoderOld.h"
 
 #include <QtCore>
 #include <QtGui>
@@ -30,9 +30,9 @@ namespace AVQt {
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class DecoderMMAL : public QThread, public IDecoder {
+    class DecoderMMAL : public QThread, public IDecoderOld {
     Q_OBJECT
-        Q_INTERFACES(AVQt::IDecoder)
+//        Q_INTERFACES(AVQt::IDecoder)
 //        Q_INTERFACES(AVQt::IFrameSource)
 //        Q_INTERFACES(AVQt::IPacketSink)
 

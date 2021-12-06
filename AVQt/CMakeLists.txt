@@ -63,7 +63,7 @@ set(SOURCES
         input/private/Demuxer_p.h
         input/Demuxer.cpp
 
-        decoder/IDecoder.h
+        decoder/IDecoderOld.h
         encoder/IEncoder.h
 
         decoder/DecoderQSV.h
@@ -109,7 +109,7 @@ set(SOURCES
 
         input/CommandConsumer.cpp
         input/CommandConsumer.h
-        communication/PacketPadParams.cpp input/FileInput.cpp input/FileInput.hpp input/IInput.hpp input/private/FileInput_p.hpp communication/FilePadParams.cpp communication/FilePadParams.hpp communication/IBitstreamProcessor.hpp communication/IOutput.hpp)
+        communication/PacketPadParams.cpp input/FileInput.cpp input/FileInput.hpp input/IInput.hpp input/private/FileInput_p.hpp communication/FilePadParams.cpp communication/FilePadParams.hpp communication/IProcessor.hpp communication/IOutput.hpp)
 set(SOURCES_LINUX
         decoder/DecoderVAAPI.h
         decoder/private/DecoderVAAPI_p.h

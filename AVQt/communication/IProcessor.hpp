@@ -19,18 +19,18 @@
 // Created by silas on 24.11.21.
 //
 
-#ifndef LIBAVQT_IBITSTREAMPROCESSOR_HPP
-#define LIBAVQT_IBITSTREAMPROCESSOR_HPP
+#ifndef LIBAVQT_IPROCESSOR_HPP
+#define LIBAVQT_IPROCESSOR_HPP
 
 #include "IOutput.hpp"
 #include <input/IInput.hpp>
 
 namespace AVQt {
-    class IBitstreamProcessor : public IInput, public IOutput {
+    class IProcessor : public IInput, public IOutput {
     public:
-        ~IBitstreamProcessor() override = default;
+        ~IProcessor() override = default;
     };
 }// namespace AVQt
 
 
-#endif//LIBAVQT_IBITSTREAMPROCESSOR_HPP
+#endif//LIBAVQT_IPROCESSOR_HPP

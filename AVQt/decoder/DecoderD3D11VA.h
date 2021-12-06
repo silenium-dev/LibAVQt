@@ -2,7 +2,7 @@
 // Created by silas on 3/1/21.
 //
 
-#include "IDecoder.h"
+#include "IDecoderOld.h"
 
 #include <QtCore>
 #include <QtGui>

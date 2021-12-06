@@ -1,57 +1,73 @@
-#include "global.h"
-#include "IDecoderOld.h"
+//
+// Created by silas on 3/1/21.
+//
+
+#include "IDecoder.h"
 
 #include <QtCore>
 #include <QtGui>
 
 extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavdevice/avdevice.h>
-#include <libavfilter/avfilter.h>
-#include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libavutil/hwcontext.h>
-#include <libavutil/imgutils.h>
-#include <libswresample/swresample.h>
+#include <libavfilter/avfilter.h>
+#include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
+#include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
+#include <libavutil/imgutils.h>
 }
 
-#ifndef TRANSCODE_DECODERDXVA2_H
-#define TRANSCODE_DECODERDXVA2_H
+
+#ifndef TRANSCODE_DECODERD3D11VA_H
+#define TRANSCODE_DECODERD3D11VA_H
 
 namespace AVQt {
-    class DecoderDXVA2Private;
+    class DecoderD3D11VAPrivate;
 
     /*!
-     * \class DecoderDXVA2
-     * \brief DXVA2 accelerated video decoder
+     * \class DecoderD3D11VA
+     * \brief D3D11VA accelerated video decoder
      *
      * Decodes video from QIODevice into single frames, that are passed to every via registerCallback registered callback.
      * It does ***not*** stop when no callbacks are registered, so make sure,
      * that either at least one callback is registered or the decoder is paused, or frames will be dropped
      */
-    class AVQT_DEPRECATED DecoderDXVA2 : public QThread, public IDecoder {
-        Q_OBJECT
+    class DecoderD3D11VA : public QThread, public IDecoder {
+    Q_OBJECT
         Q_INTERFACES(AVQt::IDecoder)
         //        Q_INTERFACES(AVQt::IFrameSource)
         //        Q_INTERFACES(AVQt::IPacketSink)
 
-        Q_DECLARE_PRIVATE(AVQt::DecoderDXVA2)
-        Q_DISABLE_COPY(DecoderDXVA2)
+        Q_DECLARE_PRIVATE(AVQt::DecoderD3D11VA)
 
     public:
+
         /*!
-         * Standard public constructor.
+         * Standard public constructor. Creates new instance with given input device. This device can not be changed afterwards,
+         * because the decoder would have to be completely reinitialized thereafter
+         * @param inputDevice QIODevice to read video from
          * @param parent Pointer to parent QObject for Qt's meta object system
          */
-        explicit DecoderDXVA2(QObject *parent = nullptr);
+        explicit DecoderD3D11VA(QObject *parent = nullptr);
 
-        DecoderDXVA2(DecoderDXVA2 && other) noexcept;
+        DecoderD3D11VA(DecoderD3D11VA &&other) noexcept;
 
         /*!
          * \private
          */
-        ~DecoderDXVA2() Q_DECL_OVERRIDE;
+        DecoderD3D11VA(const DecoderD3D11VA &) = delete;
+
+        /*!
+         * \private
+         */
+        void operator=(const DecoderD3D11VA &) = delete;
+
+        /*!
+         * \private
+         */
+        ~DecoderD3D11VA() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns paused state of decoder
@@ -65,14 +81,14 @@ namespace AVQt {
          * @param type One element or some bitwise or combination of elements of IFrameSource::CB_TYPE
          * @return Current position in callback list
          */
-        Q_INVOKABLE qint64 registerCallback(IFrameSink * frameSink) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 registerCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
         /*!
          * \brief Removes frame sink/filter from registry
          * @param frameSink Frame sink/filter to be removed
          * @return Last position in callback list, -1 when not found
          */
-        Q_INVOKABLE qint64 unregisterCallback(IFrameSink * frameSink) Q_DECL_OVERRIDE;
+        Q_INVOKABLE qint64 unregisterCallback(IFrameSink *frameSink) Q_DECL_OVERRIDE;
 
     public slots:
         /*!
@@ -107,16 +123,16 @@ namespace AVQt {
 
 
         Q_INVOKABLE void
-        init(IPacketSource * source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters * vParams,
-             AVCodecParameters * aParams, AVCodecParameters * sParams) Q_DECL_OVERRIDE;
+        init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+             AVCodecParameters *aParams, AVCodecParameters *sParams) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void deinit(IPacketSource * source) Q_DECL_OVERRIDE;
+        Q_INVOKABLE void deinit(IPacketSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void start(IPacketSource * source) Q_DECL_OVERRIDE;
+        Q_INVOKABLE void start(IPacketSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void stop(IPacketSource * source) Q_DECL_OVERRIDE;
+        Q_INVOKABLE void stop(IPacketSource *source) Q_DECL_OVERRIDE;
 
-        Q_INVOKABLE void onPacket(IPacketSource * source, AVPacket * packet, int8_t packetType) Q_DECL_OVERRIDE;
+        Q_INVOKABLE void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) Q_DECL_OVERRIDE;
 
     signals:
 
@@ -141,7 +157,7 @@ namespace AVQt {
          * Protected constructor for use in derived classes to initialize private struct
          * @param p Private struct
          */
-        [[maybe_unused]] explicit DecoderDXVA2(DecoderDXVA2Private & p);
+        [[maybe_unused]] explicit DecoderD3D11VA(DecoderD3D11VAPrivate &p);
 
         /*!
          * \private
@@ -151,9 +167,9 @@ namespace AVQt {
         /*!
          * \private
          */
-        DecoderDXVA2Private *d_ptr;
+        DecoderD3D11VAPrivate *d_ptr;
     };
 
-}// namespace AVQt
+}
 
-#endif//TRANSCODE_DECODERDXVA2_H
+#endif //TRANSCODE_DECODERD3D11VA_H

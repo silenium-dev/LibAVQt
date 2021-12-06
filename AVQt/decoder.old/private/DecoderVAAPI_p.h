@@ -3,21 +3,18 @@
  * \internal
  */
 
+#include "decoder/DecoderVAAPI.h"
 
 extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/rational.h>
 }
 
-#include <pgraph_network/api/PadRegistry.hpp>
-#include "decoder/DecoderVAAPI.h"
-
 
 #ifndef TRANSCODE_DECODERVAAPI_P_H
 #define TRANSCODE_DECODERVAAPI_P_H
 
 namespace AVQt {
-    class DecoderVAAPI;
     /*!
      * \private
      */
@@ -38,11 +35,6 @@ namespace AVQt {
 
         DecoderVAAPI *q_ptr;
 
-        std::shared_ptr<pgraph::network::api::PadRegistry> m_padRegistry;
-
-        uint32_t m_inputPadId{};
-        uint32_t m_commandOutputPadId{};
-
         QMutex m_inputQueueMutex{};
         QQueue<AVPacket *> m_inputQueue{};
         int64_t m_duration{0};
@@ -53,10 +45,10 @@ namespace AVQt {
         AVCodecParameters *m_pCodecParams{nullptr};
         AVCodecContext *m_pCodecCtx{nullptr};
         AVBufferRef *m_pDeviceCtx{nullptr};
-//
-//        // Callback stuff
-//        QMutex m_cbListMutex{};
-//        QList<IFrameSink *> m_cbList{};
+
+        // Callback stuff
+        QMutex m_cbListMutex{};
+        QList<IFrameSink *> m_cbList{};
 
         // Threading stuff
         std::atomic_bool m_running{false};
@@ -64,7 +56,6 @@ namespace AVQt {
 
         friend class DecoderVAAPI;
     };
-
 }// namespace AVQt
 
 #endif//TRANSCODE_DECODERVAAPI_P_H

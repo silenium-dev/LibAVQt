@@ -15,7 +15,7 @@
 
 #include <qglobal.h>
 
-#include "decoder/IDecoder.h"
+#include "decoder/IDecoderOld.h"
 #include "encoder/IEncoder.h"
 #include "input/Demuxer.h"
 #include "input/FileInput.hpp"

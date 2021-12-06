@@ -17,9 +17,11 @@
 
 #include "DecoderVAAPI.h"
 #include "decoder/private/DecoderVAAPI_p.h"
-#include "input/IPacketSource.h"
-#include "output/IAudioSink.h"
-#include "output/IFrameSink.h"
+#include "communication/Message.h"
+
+#include <pgraph/api/Data.hpp>
+#include <pgraph_network/api/PadRegistry.hpp>
+#include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
 #include <QApplication>
 //#include <QtConcurrent>
@@ -31,315 +33,392 @@
 
 
 namespace AVQt {
-    DecoderVAAPI::DecoderVAAPI(QObject *parent) : QThread(parent), d_ptr(new DecoderVAAPIPrivate(this)) {
-    }
-
-    [[maybe_unused]] DecoderVAAPI::DecoderVAAPI(DecoderVAAPIPrivate &p) : d_ptr(&p) {
-    }
-
-    DecoderVAAPI::DecoderVAAPI(DecoderVAAPI &&other) noexcept : d_ptr(other.d_ptr) {
-        other.d_ptr = nullptr;
-        d_ptr->q_ptr = this;
+    DecoderVAAPI::DecoderVAAPI(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+        : QThread(parent),
+          pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
+          d_ptr(new DecoderVAAPIPrivate(this)) {
+        Q_D(DecoderVAAPI);
+        d->m_padRegistry = std::move(padRegistry);
     }
 
     DecoderVAAPI::~DecoderVAAPI() {
+        DecoderVAAPI::close();
         delete d_ptr;
     }
 
-    void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
-                            AVCodecParameters *aParams, AVCodecParameters *sParams) {
-        Q_UNUSED(aParams)
-        Q_UNUSED(sParams)
-        Q_D(AVQt::DecoderVAAPI);
-        Q_UNUSED(source)
-        if (d->m_pCodecParams) {
-            avcodec_parameters_free(&d->m_pCodecParams);
-        }
-        d->m_pCodecParams = avcodec_parameters_alloc();
-        avcodec_parameters_copy(d->m_pCodecParams, vParams);
-        d->m_duration = duration;
-        d->m_framerate = framerate;
-        d->m_timebase = timebase;
-        {
-            QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb : d->m_cbList) {
-                cb->init(this, framerate, duration);
-            }
-        }
-        init();
+    uint32_t DecoderVAAPI::getInputPadId() const {
+        Q_D(const DecoderVAAPI);
+        return d->m_inputPadId;
     }
-
-    int DecoderVAAPI::init() {
-        return 0;
-    }
-
-    void DecoderVAAPI::deinit(IPacketSource *source) {
-        Q_UNUSED(source)
-        deinit();
-    }
-
-    int DecoderVAAPI::deinit() {
-        Q_D(AVQt::DecoderVAAPI);
-
-        stop();
-
-        {
-            QMutexLocker lock(&d->m_cbListMutex);
-            for (const auto &cb : d->m_cbList) {
-                cb->deinit(this);
-            }
-        }
-
-        if (d->m_pCodecParams) {
-            avcodec_parameters_free(&d->m_pCodecParams);
-            d->m_pCodecParams = nullptr;
-        }
-        if (d->m_pCodecCtx) {
-            avcodec_close(d->m_pCodecCtx);
-            avcodec_free_context(&d->m_pCodecCtx);
-            d->m_pCodecCtx = nullptr;
-            d->m_pCodec = nullptr;
-            av_buffer_unref(&d->m_pDeviceCtx);
-            d->m_pDeviceCtx = nullptr;
-        }
-
-        return 0;
-    }
-
-    void DecoderVAAPI::start(IPacketSource *source) {
-        Q_UNUSED(source)
-        start();
-    }
-
-    int DecoderVAAPI::start() {
-        Q_D(AVQt::DecoderVAAPI);
-
-        bool notRunning = false;
-        if (d->m_running.compare_exchange_strong(notRunning, true)) {
-            d->m_paused.store(false);
-            paused(false);
-
-            QThread::start();
-            return 0;
-        }
-        return -1;
-    }
-
-    void DecoderVAAPI::stop(IPacketSource *source) {
-        Q_UNUSED(source)
-        stop();
-    }
-
-    int DecoderVAAPI::stop() {
-        Q_D(AVQt::DecoderVAAPI);
-
-        bool shouldBeCurrent = true;
-        if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
-            {
-                //                QMutexLocker lock(&d->m_cbListMutex);
-                for (const auto &cb : d->m_cbList) {
-                    cb->stop(this);
-                }
-            }
-            {
-                QMutexLocker lock(&d->m_inputQueueMutex);
-                for (auto &packet : d->m_inputQueue) {
-                    av_packet_unref(packet);
-                    av_packet_free(&packet);
-                }
-                d->m_inputQueue.clear();
-            }
-
-            wait();
-
-            return 0;
-        }
-
-        return -1;
-    }
-
-    void DecoderVAAPI::pause(bool pause) {
-        Q_D(AVQt::DecoderVAAPI);
-        if (d->m_running.load() != pause) {
-            d->m_paused.store(pause);
-
-            for (const auto &cb : d->m_cbList) {
-                cb->pause(this, pause);
-            }
-
-            paused(pause);
-        }
+    uint32_t DecoderVAAPI::getCommandOutputPadId() const {
+        Q_D(const DecoderVAAPI);
+        return d->m_commandOutputPadId;
     }
 
     bool DecoderVAAPI::isPaused() {
-        Q_D(AVQt::DecoderVAAPI);
-        return d->m_paused.load();
+        Q_D(DecoderVAAPI);
+        return d->m_paused;
     }
 
-    qint64 DecoderVAAPI::registerCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderVAAPI);
-
-        QMutexLocker lock(&d->m_cbListMutex);
-        if (!d->m_cbList.contains(frameSink)) {
-            d->m_cbList.append(frameSink);
-            if (d->m_running.load() && d->m_pCodecCtx) {
-                frameSink->init(this, d->m_framerate, d->m_duration);
-                frameSink->start(this);
+    void DecoderVAAPI::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
+        Q_D(DecoderVAAPI);
+        if (data->getType() == Message::Type) {
+            auto message = std::dynamic_pointer_cast<Message>(data);
+            switch (static_cast<Message::Action::Enum>(message->getAction())) {
+                case Message::Action::INIT:
+                    if (!open()) {
+                        qWarning() << "Failed to open decoder";
+                    }
+                    break;
+                case Message::Action::CLEANUP:
+                    close();
+                    break;
+                case Message::Action::START:
+                    if (!start()) {
+                        qWarning() << "Failed to start decoder";
+                    }
+                    break;
+                case Message::Action::STOP:
+                    stop();
+                    break;
+                case Message::Action::PAUSE:
+                    pause(message->getPayload("state").toBool());
+                    break;
+                case Message::Action::DATA:
+                    // TODO: handle data
+                    break;
+                default:
+                    qFatal("Unimplemented action %s", message->getAction().name().toLocal8Bit().data());
             }
-            return d->m_cbList.indexOf(frameSink);
         }
-        return -1;
     }
 
-    qint64 DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
-        Q_D(AVQt::DecoderVAAPI);
-        QMutexLocker lock(&d->m_cbListMutex);
-        if (d->m_cbList.contains(frameSink)) {
-            auto result = d->m_cbList.indexOf(frameSink);
-            d->m_cbList.removeOne(frameSink);
-            frameSink->stop(this);
-            frameSink->deinit(this);
-            return result;
-        }
-        return -1;
+    bool DecoderVAAPI::open() {
+        //TODO: implement
+        return false;
     }
 
-    void DecoderVAAPI::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
-        Q_UNUSED(source)
+    void DecoderVAAPI::close() {
+        //TODO: implement
+    }
 
-        Q_D(AVQt::DecoderVAAPI);
+    bool DecoderVAAPI::start() {
+        //TODO: implement
+        return false;
+    }
 
-        if (packetType == IPacketSource::CB_VIDEO) {
-            AVPacket *queuePacket = av_packet_clone(packet);
-            while (d->m_inputQueue.size() >= 50) {
-                QThread::msleep(4);
-            }
-            QMutexLocker lock(&d->m_inputQueueMutex);
-            d->m_inputQueue.append(queuePacket);
+    void DecoderVAAPI::stop() {
+        //TODO: implement
+    }
+
+    void DecoderVAAPI::pause(bool pause) {
+        Q_D(DecoderVAAPI);
+        bool shouldBe = !pause;
+        if (d->m_paused.compare_exchange_strong(shouldBe, pause)) {
+            paused(pause);
+            qDebug("Changed paused state of decoder to %s", pause ? "true" : "false");
         }
     }
 
     void DecoderVAAPI::run() {
-        Q_D(AVQt::DecoderVAAPI);
-
-        while (d->m_running) {
-            if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
-                int ret;
-                constexpr size_t strBufSize = 64;
-                char strBuf[strBufSize];
-                // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
-                if (d->m_pCodecParams && !d->m_pCodecCtx) {
-                    d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
-                    if (!d->m_pCodec) {
-                        qFatal("No video decoder found");
-                    }
-
-                    d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
-                    if (!d->m_pCodecCtx) {
-                        qFatal("Could not allocate video decoder context, probably out of memory");
-                    }
-
-                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
-                    if (ret != 0) {
-                        qFatal("%d: Could not create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-                    }
-
-                    avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
-                    d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
-                    d->m_pCodecCtx->time_base = d->m_timebase;
-                    //                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_VAAPI;
-                    d->m_pCodecCtx->get_format = &DecoderVAAPIPrivate::getFormat;
-                    ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
-                    if (ret != 0) {
-                        qFatal("%d: Could not open VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-                    }
-
-                    for (const auto &cb : d->m_cbList) {
-                        cb->start(this);
-                    }
-                    started();
-                }
-                {
-                    QMutexLocker lock(&d->m_inputQueueMutex);
-                    while (!d->m_inputQueue.isEmpty()) {
-                        AVPacket *packet = d->m_inputQueue.dequeue();
-                        lock.unlock();
-
-                        qDebug("Video packet queue size: %d", d->m_inputQueue.size());
-
-                        ret = avcodec_send_packet(d->m_pCodecCtx, packet);
-                        if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
-                            lock.relock();
-                            d->m_inputQueue.prepend(packet);
-                            break;
-                        } else if (ret < 0) {
-                            qFatal("%d: Error sending packet to VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-                        }
-                        av_packet_free(&packet);
-                        lock.relock();
-                    }
-                }
-                while (true) {
-                    AVFrame *frame = av_frame_alloc();
-                    ret = avcodec_receive_frame(d->m_pCodecCtx, frame);
-                    if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
-                        break;
-                    } else if (ret == -12) {// -12 == Out of memory, didn't know the macro name
-                        av_frame_free(&frame);
-                        msleep(1);
-                        continue;
-                    } else if (ret < 0) {
-                        qFatal("%d: Error receiving frame %d from VAAPI decoder: %s", ret, d->m_pCodecCtx->frame_number,
-                               av_make_error_string(strBuf, strBufSize, ret));
-                    }
-
-                    //                    auto t1 = NOW();
-                    //                    AVFrame *swFrame = av_frame_alloc();
-                    //                    ret = av_hwframe_transfer_data(swFrame, frame, 0);
-                    //                    if (ret != 0) {
-                    //                        qFatal("%d: Could not get hw frame: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
-                    //                    }
-                    //                    auto t3 = NOW();
-
-                    QMutexLocker lock2(&d->m_cbListMutex);
-                    //                    QList<QFuture<void>> cbFutures;
-                    for (const auto &cb : d->m_cbList) {
-                        //                        cbFutures.append(QtConcurrent::run([=] {
-                        AVFrame *cbFrame = av_frame_clone(frame);
-                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
-                                                    av_make_q(1, 1000000));// Rescale pts to microseconds for easier processing
-                        qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", static_cast<long long>(cbFrame->pts),
-                               1,
-                               1000000);
-                        QTime time = QTime::currentTime();
-                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0), d->m_pDeviceCtx);
-                        qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
-                        av_frame_free(&cbFrame);
-                        //                        }));
-                    }
-                    //                    bool cbBusy = true;
-                    //                    while (cbBusy) {
-                    //                        cbBusy = false;
-                    //                        for (const auto &future: cbFutures) {
-                    //                            if (future.isRunning()) {
-                    //                                cbBusy = true;
-                    //                                break;
-                    //                            }
-                    //                        }
-                    //                        usleep(500);
-                    //                    }
-                    //                    auto t2 = NOW();
-                    //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
-
-                    //                    av_frame_free(&swFrame);
-                    av_frame_free(&frame);
-                }
-                //                av_frame_free(&frame);
-            } else {
-                msleep(4);
-            }
-        }
+        //TODO: implement
     }
+
+    //
+    //    void DecoderVAAPI::init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
+    //                            AVCodecParameters *aParams, AVCodecParameters *sParams) {
+    //        Q_UNUSED(aParams)
+    //        Q_UNUSED(sParams)
+    //        Q_D(AVQt::DecoderVAAPI);
+    //        Q_UNUSED(source)
+    //        if (d->m_pCodecParams) {
+    //            avcodec_parameters_free(&d->m_pCodecParams);
+    //        }
+    //        d->m_pCodecParams = avcodec_parameters_alloc();
+    //        avcodec_parameters_copy(d->m_pCodecParams, vParams);
+    //        d->m_duration = duration;
+    //        d->m_framerate = framerate;
+    //        d->m_timebase = timebase;
+    //        {
+    //            QMutexLocker lock(&d->m_cbListMutex);
+    //            for (const auto &cb : d->m_cbList) {
+    //                cb->init(this, framerate, duration);
+    //            }
+    //        }
+    //        init();
+    //    }
+    //
+    //    int DecoderVAAPI::init() {
+    //        return 0;
+    //    }
+    //
+    //    void DecoderVAAPI::deinit(IPacketSource *source) {
+    //        Q_UNUSED(source)
+    //        deinit();
+    //    }
+    //
+    //    int DecoderVAAPI::deinit() {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //
+    //        stop();
+    //
+    //        {
+    //            QMutexLocker lock(&d->m_cbListMutex);
+    //            for (const auto &cb : d->m_cbList) {
+    //                cb->deinit(this);
+    //            }
+    //        }
+    //
+    //        if (d->m_pCodecParams) {
+    //            avcodec_parameters_free(&d->m_pCodecParams);
+    //            d->m_pCodecParams = nullptr;
+    //        }
+    //        if (d->m_pCodecCtx) {
+    //            avcodec_close(d->m_pCodecCtx);
+    //            avcodec_free_context(&d->m_pCodecCtx);
+    //            d->m_pCodecCtx = nullptr;
+    //            d->m_pCodec = nullptr;
+    //            av_buffer_unref(&d->m_pDeviceCtx);
+    //            d->m_pDeviceCtx = nullptr;
+    //        }
+    //
+    //        return 0;
+    //    }
+    //
+    //    void DecoderVAAPI::start(IPacketSource *source) {
+    //        Q_UNUSED(source)
+    //        start();
+    //    }
+    //
+    //    int DecoderVAAPI::start() {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //
+    //        bool notRunning = false;
+    //        if (d->m_running.compare_exchange_strong(notRunning, true)) {
+    //            d->m_paused.store(false);
+    //            paused(false);
+    //
+    //            QThread::start();
+    //            return 0;
+    //        }
+    //        return -1;
+    //    }
+    //
+    //    void DecoderVAAPI::stop(IPacketSource *source) {
+    //        Q_UNUSED(source)
+    //        stop();
+    //    }
+    //
+    //    int DecoderVAAPI::stop() {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //
+    //        bool shouldBeCurrent = true;
+    //        if (d->m_running.compare_exchange_strong(shouldBeCurrent, false)) {
+    //            {
+    //                //                QMutexLocker lock(&d->m_cbListMutex);
+    //                for (const auto &cb : d->m_cbList) {
+    //                    cb->stop(this);
+    //                }
+    //            }
+    //            {
+    //                QMutexLocker lock(&d->m_inputQueueMutex);
+    //                for (auto &packet : d->m_inputQueue) {
+    //                    av_packet_unref(packet);
+    //                    av_packet_free(&packet);
+    //                }
+    //                d->m_inputQueue.clear();
+    //            }
+    //
+    //            wait();
+    //
+    //            return 0;
+    //        }
+    //
+    //        return -1;
+    //    }
+    //
+    //    void DecoderVAAPI::pause(bool pause) {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //        if (d->m_running.load() != pause) {
+    //            d->m_paused.store(pause);
+    //
+    //            for (const auto &cb : d->m_cbList) {
+    //                cb->pause(this, pause);
+    //            }
+    //
+    //            paused(pause);
+    //        }
+    //    }
+    //
+    //    bool DecoderVAAPI::isPaused() {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //        return d->m_paused.load();
+    //    }
+    //
+    //    qint64 DecoderVAAPI::registerCallback(IFrameSink *frameSink) {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //
+    //        QMutexLocker lock(&d->m_cbListMutex);
+    //        if (!d->m_cbList.contains(frameSink)) {
+    //            d->m_cbList.append(frameSink);
+    //            if (d->m_running.load() && d->m_pCodecCtx) {
+    //                frameSink->init(this, d->m_framerate, d->m_duration);
+    //                frameSink->start(this);
+    //            }
+    //            return d->m_cbList.indexOf(frameSink);
+    //        }
+    //        return -1;
+    //    }
+    //
+    //    qint64 DecoderVAAPI::unregisterCallback(IFrameSink *frameSink) {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //        QMutexLocker lock(&d->m_cbListMutex);
+    //        if (d->m_cbList.contains(frameSink)) {
+    //            auto result = d->m_cbList.indexOf(frameSink);
+    //            d->m_cbList.removeOne(frameSink);
+    //            frameSink->stop(this);
+    //            frameSink->deinit(this);
+    //            return result;
+    //        }
+    //        return -1;
+    //    }
+    //
+    //    void DecoderVAAPI::onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) {
+    //        Q_UNUSED(source)
+    //
+    //        Q_D(AVQt::DecoderVAAPI);
+    //
+    //        if (packetType == IPacketSource::CB_VIDEO) {
+    //            AVPacket *queuePacket = av_packet_clone(packet);
+    //            while (d->m_inputQueue.size() >= 50) {
+    //                QThread::msleep(4);
+    //            }
+    //            QMutexLocker lock(&d->m_inputQueueMutex);
+    //            d->m_inputQueue.append(queuePacket);
+    //        }
+    //    }
+
+    //    void DecoderVAAPI::run() {
+    //        Q_D(AVQt::DecoderVAAPI);
+    //
+    //        while (d->m_running) {
+    //            if (!d->m_paused.load() && !d->m_inputQueue.isEmpty()) {
+    //                int ret;
+    //                constexpr size_t strBufSize = 64;
+    //                char strBuf[strBufSize];
+    //                // If m_pCodecParams is nullptr, it is not initialized by packet source, if video codec context is nullptr, this is the first packet
+    //                if (d->m_pCodecParams && !d->m_pCodecCtx) {
+    //                    d->m_pCodec = avcodec_find_decoder(d->m_pCodecParams->codec_id);
+    //                    if (!d->m_pCodec) {
+    //                        qFatal("No video decoder found");
+    //                    }
+    //
+    //                    d->m_pCodecCtx = avcodec_alloc_context3(d->m_pCodec);
+    //                    if (!d->m_pCodecCtx) {
+    //                        qFatal("Could not allocate video decoder context, probably out of memory");
+    //                    }
+    //
+    //                    ret = av_hwdevice_ctx_create(&d->m_pDeviceCtx, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0);
+    //                    if (ret != 0) {
+    //                        qFatal("%d: Could not create AVHWDeviceContext: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+    //                    }
+    //
+    //                    avcodec_parameters_to_context(d->m_pCodecCtx, d->m_pCodecParams);
+    //                    d->m_pCodecCtx->hw_device_ctx = av_buffer_ref(d->m_pDeviceCtx);
+    //                    d->m_pCodecCtx->time_base = d->m_timebase;
+    //                    //                    d->m_pCodecCtx->pix_fmt = AV_PIX_FMT_VAAPI;
+    //                    d->m_pCodecCtx->get_format = &DecoderVAAPIPrivate::getFormat;
+    //                    ret = avcodec_open2(d->m_pCodecCtx, d->m_pCodec, nullptr);
+    //                    if (ret != 0) {
+    //                        qFatal("%d: Could not open VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+    //                    }
+    //
+    //                    for (const auto &cb : d->m_cbList) {
+    //                        cb->start(this);
+    //                    }
+    //                    started();
+    //                }
+    //                {
+    //                    QMutexLocker lock(&d->m_inputQueueMutex);
+    //                    while (!d->m_inputQueue.isEmpty()) {
+    //                        AVPacket *packet = d->m_inputQueue.dequeue();
+    //                        lock.unlock();
+    //
+    //                        qDebug("Video packet queue size: %d", d->m_inputQueue.size());
+    //
+    //                        ret = avcodec_send_packet(d->m_pCodecCtx, packet);
+    //                        if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+    //                            lock.relock();
+    //                            d->m_inputQueue.prepend(packet);
+    //                            break;
+    //                        } else if (ret < 0) {
+    //                            qFatal("%d: Error sending packet to VAAPI decoder: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+    //                        }
+    //                        av_packet_free(&packet);
+    //                        lock.relock();
+    //                    }
+    //                }
+    //                while (true) {
+    //                    AVFrame *frame = av_frame_alloc();
+    //                    ret = avcodec_receive_frame(d->m_pCodecCtx, frame);
+    //                    if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+    //                        break;
+    //                    } else if (ret == -12) {// -12 == Out of memory, didn't know the macro name
+    //                        av_frame_free(&frame);
+    //                        msleep(1);
+    //                        continue;
+    //                    } else if (ret < 0) {
+    //                        qFatal("%d: Error receiving frame %d from VAAPI decoder: %s", ret, d->m_pCodecCtx->frame_number,
+    //                               av_make_error_string(strBuf, strBufSize, ret));
+    //                    }
+    //
+    //                    //                    auto t1 = NOW();
+    //                    //                    AVFrame *swFrame = av_frame_alloc();
+    //                    //                    ret = av_hwframe_transfer_data(swFrame, frame, 0);
+    //                    //                    if (ret != 0) {
+    //                    //                        qFatal("%d: Could not get hw frame: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+    //                    //                    }
+    //                    //                    auto t3 = NOW();
+    //
+    //                    QMutexLocker lock2(&d->m_cbListMutex);
+    //                    //                    QList<QFuture<void>> cbFutures;
+    //                    for (const auto &cb : d->m_cbList) {
+    //                        //                        cbFutures.append(QtConcurrent::run([=] {
+    //                        AVFrame *cbFrame = av_frame_clone(frame);
+    //                        cbFrame->pts = av_rescale_q(frame->pts, d->m_timebase,
+    //                                                    av_make_q(1, 1000000));// Rescale pts to microseconds for easier processing
+    //                        qDebug("Calling video frame callback for PTS: %lld, Timebase: %d/%d", static_cast<long long>(cbFrame->pts),
+    //                               1,
+    //                               1000000);
+    //                        QTime time = QTime::currentTime();
+    //                        cb->onFrame(this, cbFrame, static_cast<int64_t>(av_q2d(av_inv_q(d->m_framerate)) * 1000.0), d->m_pDeviceCtx);
+    //                        qDebug() << "Video CB time:" << time.msecsTo(QTime::currentTime());
+    //                        av_frame_free(&cbFrame);
+    //                        //                        }));
+    //                    }
+    //                    //                    bool cbBusy = true;
+    //                    //                    while (cbBusy) {
+    //                    //                        cbBusy = false;
+    //                    //                        for (const auto &future: cbFutures) {
+    //                    //                            if (future.isRunning()) {
+    //                    //                                cbBusy = true;
+    //                    //                                break;
+    //                    //                            }
+    //                    //                        }
+    //                    //                        usleep(500);
+    //                    //                    }
+    //                    //                    auto t2 = NOW();
+    //                    //                    qDebug("Decoder frame transfer time: %ld us", TIME_US(t1, t3));
+    //
+    //                    //                    av_frame_free(&swFrame);
+    //                    av_frame_free(&frame);
+    //                }
+    //                //                av_frame_free(&frame);
+    //            } else {
+    //                msleep(4);
+    //            }
+    //        }
+    //    }
 
     AVPixelFormat DecoderVAAPIPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
         auto *iFmt = pix_fmts;

@@ -22,6 +22,8 @@
 #ifndef LIBAVQT_IOUTPUT_HPP
 #define LIBAVQT_IOUTPUT_HPP
 
+#include <cstdint>
+
 namespace AVQt {
     class IOutput {
     public:

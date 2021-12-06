@@ -55,7 +55,6 @@ namespace AVQt {
         d->inputFile->seek(0);
 
         d->m_outputPadId = pgraph::impl::SimpleProducer::createOutputPad(std::make_shared<FilePadParams>());
-        pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::INIT).build(), d->m_outputPadId);
 
         return true;
     }
@@ -98,7 +97,9 @@ namespace AVQt {
         bool shouldBe = true;
         if (d->m_running.compare_exchange_strong(shouldBe, false)) {
             QThread::quit();
-            QThread::wait();
+            if (isRunning()) {
+                QThread::wait();
+            }
             d->m_sendStartIf = QFutureInterface<void>();
         }
     }
@@ -127,12 +128,14 @@ namespace AVQt {
                 continue;
             }
 
-            if (d->m_loopCount++ == 256) {
+            d->m_dataRead += data.size();
+            pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::DATA).withPayload("data", data).build(), d->m_outputPadId);
+
+            if (d->m_dataRead >= 500000 /* 5 MB */ && !d->m_sendStartIf.isFinished()) {
                 pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::START).build(), d->m_outputPadId);
                 d->m_sendStartIf.reportFinished();
                 qDebug() << "Started";
             }
-            pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::DATA).withPayload("data", data).build(), d->m_outputPadId);
         }
         pgraph::impl::SimpleProducer::produce(Message::builder().withAction(Message::Action::STOP).build(), d->m_outputPadId);
     }
