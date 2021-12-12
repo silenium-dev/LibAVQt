@@ -10,3 +10,7 @@
 	path = libpgraph
 	url = https://edugit.org/sdcieo0330/libpgraph
 	branch = main
+[submodule "cpp-static-block"]
+	path = cpp-static-block
+	url = https://github.com/eyalroz/cpp-static-block
+	branch = master

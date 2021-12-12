@@ -1,7 +1,7 @@
 ﻿#include "AVQt"
-#include "communication/Message.h"
-#include "communication/PacketPadParams.h"
-#include "input/CommandConsumer.h"
+#include "include/AVQt/communication/Message.hpp"
+#include "include/AVQt/communication/PacketPadParams.hpp"
+#include "include/AVQt/input/CommandConsumer.hpp"
 #include <pgraph/api/Link.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
 
-    #ifdef QT_DEBUG
-        av_log_set_level(AV_LOG_DEBUG);
-        av_log_set_flags(AV_LOG_SKIP_REPEATED);
-    #endif
+#ifdef QT_DEBUG
+    av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_flags(AV_LOG_SKIP_REPEATED);
+#endif
     //    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();
@@ -94,39 +94,35 @@ int main(int argc, char *argv[]) {
 
     auto registry = std::make_shared<pgraph::network::impl::SimplePadRegistry>();
 
-    auto demuxer = std::make_shared<AVQt::Demuxer>(registry);
+    auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
+    auto decoder = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto cc = std::make_shared<CommandConsumer>(registry);
-    auto fileInput = std::make_shared<AVQt::FileInput>(filepath, std::make_shared<pgraph::network::impl::RegisteringPadFactory>(registry));
 
-    //    demuxer->open();
-    if (!fileInput->open()) {
-        qWarning() << "Could not open file input";
-        return 0;
-    }
+    demuxer->open();
+    decoder->init();
+    cc->open();
 
-    cc->init();
-    demuxer->init();
-
-    //    cc->getInputPads().begin()->second->link(demuxer->getOutputPad(demuxer->getCommandOutputPadId()));
     //    cc->getInputPads().begin()->second->link(fileInput->getOutputPad(fileInput->getCommandOutputPadId()));
-    demuxer->getInputPad(demuxer->getInputPadId())->link(fileInput->getOutputPad(fileInput->getCommandOutputPadId()));
 
-    //    pgraph::network::data::APIInfo apiInfo(registry);
+    pgraph::network::data::APIInfo apiInfo(registry);
 
-    fileInput->start();
-    fileInput->waitForStarted();
+    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
-    //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString();
-
-    auto demuxerOutPad = demuxer->getOutputPads().begin().operator++()->second;
+    auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
     auto ccInPad = cc->getInputPads().begin()->second;
-    ccInPad->link(demuxerOutPad);
+    auto decoderInPad = decoder->getInputPads().begin()->second;
+//    ccInPad->link(demuxerOutPad);
+    decoderInPad->link(demuxerOutPad);
 
-    fileInput->pause(true);
+    demuxer->init();
+    demuxer->start();
+
     QThread::msleep(10);
-    fileInput->pause(false);
+    demuxer->pause(true);
     QThread::sleep(1);
-    fileInput->close();
+    demuxer->pause(false);
+    QThread::msleep(4);
+    demuxer->close();
     //    demuxer->pause(true);
     //    demuxer->close();
 
@@ -140,7 +136,7 @@ int main(int argc, char *argv[]) {
     //    AVQt::IDecoderOld *videoDecoder = nullptr;
     //    AVQt::IEncoder *videoEncoder = nullptr;
     //#ifdef Q_OS_LINUX
-    //    videoDecoder = new AVQt::DecoderVAAPI;
+    //    videoDecoder = new AVQt::Decoder;
     //#elif defined(Q_OS_WINDOWS)
     //    videoDecoder = new AVQt::DecoderD3D11VA();
     ////    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);

@@ -1,6 +1,6 @@
-#include "Demuxer.h"
-#include "output/IPacketSink.h"
-#include "private/Demuxer_p.h"
+#include "Demuxer.hpp"
+#include "output/IPacketSink.hpp"
+#include "private/Demuxer_p.hpp"
 
 
 namespace AVQt {

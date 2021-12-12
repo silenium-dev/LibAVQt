@@ -15,36 +15,36 @@
 
 #include <qglobal.h>
 
-#include "decoder/IDecoderOld.h"
-#include "encoder/IEncoder.h"
-#include "input/Demuxer.h"
-#include "input/FileInput.hpp"
-#include "input/IAudioSource.h"
-#include "input/IFrameSource.h"
-#include "input/IPacketSource.h"
-#include "output/IAudioSink.h"
-#include "output/IFrameSink.h"
-#include "output/IPacketSink.h"
-#include "output/Muxer.h"
-#include "renderers/OpenALAudioOutput.h"
-#include "renderers/OpenGLRenderer.h"
-#include "widgets/OpenGLWidgetRenderer.h"
+#include "include/AVQt/decoder/Decoder.hpp"
+#include "include/AVQt/decoder/DecoderFactory.hpp"
+#include "include/AVQt/encoder/IEncoder.hpp"
+#include "include/AVQt/input/Demuxer.hpp"
+#include "include/AVQt/input/IAudioSource.hpp"
+#include "include/AVQt/input/IFrameSource.hpp"
+#include "include/AVQt/input/IPacketSource.hpp"
+#include "include/AVQt/output/IAudioSink.hpp"
+#include "include/AVQt/output/IFrameSink.hpp"
+#include "include/AVQt/output/IPacketSink.hpp"
+#include "include/AVQt/output/Muxer.hpp"
+#include "include/AVQt/renderers/OpenALAudioOutput.hpp"
+#include "include/AVQt/renderers/OpenGLRenderer.hpp"
+#include "include/AVQt/widgets/OpenGLWidgetRenderer.hpp"
 
 
 #ifdef Q_OS_LINUX
 
-#include "decoder/DecoderMMAL.h"
-#include "decoder/DecoderVAAPI.h"
-#include "encoder/EncoderVAAPI.h"
+#include "include/AVQt/decoder/DecoderMMAL.hpp"
+#include "include/AVQt/decoder/Decoder.hpp"
+#include "include/AVQt/encoder/EncoderVAAPI.hpp"
 
 #elif defined(Q_OS_WIN)
 
-#include "decoder/DecoderD3D11VA.h"
-#include "decoder/DecoderDXVA2.h"
+#include "include/AVQt/decoder/DecoderD3D11VA.hpp"
+#include "include/AVQt/decoder/DecoderDXVA2.hpp"
 
 #endif
 
-#include "decoder/AudioDecoder.h"
-#include "decoder/DecoderQSV.h"
-#include "encoder/EncoderQSV.h"
-//#include "output/FrameFileSaver.h"
+#include "include/AVQt/decoder/AudioDecoder.hpp"
+#include "include/AVQt/decoder/DecoderQSV.hpp"
+#include "include/AVQt/encoder/EncoderQSV.hpp"
+//#include "output/FrameFileSaver.hpp"

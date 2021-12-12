@@ -15,11 +15,11 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
-#include "DecoderMMAL.h"
-#include "decoder/private/DecoderMMAL_p.h"
-#include "input/IPacketSource.h"
-#include "output/IAudioSink.h"
-#include "output/IFrameSink.h"
+#include "DecoderMMAL.hpp"
+#include "decoder/private/DecoderMMAL_p.hpp"
+#include "input/IPacketSource.hpp"
+#include "output/IAudioSink.hpp"
+#include "output/IFrameSink.hpp"
 
 #include <QApplication>
 #include <QImage>

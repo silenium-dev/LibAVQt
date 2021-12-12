@@ -15,11 +15,11 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
-#include "AudioDecoder.h"
-#include "decoder/private/AudioDecoder_p.h"
+#include "AudioDecoder.hpp"
+#include "decoder/private/AudioDecoder_p.hpp"
 
-#include "input/IPacketSource.h"
-#include "output/IAudioSink.h"
+#include "input/IPacketSource.hpp"
+#include "output/IAudioSink.hpp"
 
 #include <QtCore>
 

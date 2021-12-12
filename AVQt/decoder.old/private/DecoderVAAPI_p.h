@@ -3,7 +3,7 @@
  * \internal
  */
 
-#include "decoder/DecoderVAAPI.h"
+#include "decoder/Decoder.h"
 
 extern "C" {
 #include <libavutil/frame.h>

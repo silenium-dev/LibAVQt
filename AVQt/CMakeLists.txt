@@ -47,96 +47,109 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 #    -O3)
 #endif ()
 
+include_directories(src)
+include_directories(include/AVQt)
+
 set(SOURCES
         AVQtShader.qrc
 
         AVQt
-        global.h
+        global.hpp
 
-        input/IPacketSource.h
-        input/IFrameSource.h
+        include/AVQt/input/IPacketSource.hpp
+        include/AVQt/input/IFrameSource.hpp
 
-        output/IPacketSink.h
-        output/IFrameSink.h
+        include/AVQt/output/IPacketSink.hpp
+        include/AVQt/output/IFrameSink.hpp
 
-        input/Demuxer.h
-        input/private/Demuxer_p.h
-        input/Demuxer.cpp
+        include/AVQt/input/Demuxer.hpp
+        src/input/private/Demuxer_p.hpp
+        src/input/Demuxer.cpp
 
-        decoder/IDecoderOld.h
-        encoder/IEncoder.h
+        include/AVQt/decoder/IDecoderOld.hpp
+        include/AVQt/encoder/IEncoder.hpp
 
-        decoder/DecoderQSV.h
-        decoder/private/DecoderQSV_p.h
-        decoder/DecoderQSV.cpp
+        include/AVQt/decoder/DecoderQSV.hpp
+        src/decoder/private/DecoderQSV_p.hpp
+        src/decoder/DecoderQSV.cpp
 
-        decoder/AudioDecoder.h
-        decoder/private/AudioDecoder_p.h
-        renderers/private/OpenALErrorHandler.h
-        decoder/AudioDecoder.cpp
+        include/AVQt/decoder/AudioDecoder.hpp
+        src/decoder/private/AudioDecoder_p.hpp
+        src/renderers/private/OpenALErrorHandler.hpp
+        src/decoder/AudioDecoder.cpp
 
-        encoder/EncoderQSV.h
-        encoder/private/EncoderQSV_p.h
-        encoder/EncoderQSV.cpp
+        include/AVQt/encoder/EncoderQSV.hpp
+        src/encoder/private/EncoderQSV_p.hpp
+        src/encoder/EncoderQSV.cpp
 
-        renderers/RenderClock.h
-        renderers/private/RenderClock_p.h
-        renderers/RenderClock.cpp
+        include/AVQt/renderers/RenderClock.hpp
+        src/renderers/private/RenderClock_p.hpp
+        src/renderers/RenderClock.cpp
 
-        renderers/OpenGLRenderer.h
-        renderers/private/OpenGLRenderer_p.h
-        renderers/private/OpenGLRenderer_p.cpp
-        renderers/OpenGLRenderer.cpp
+        include/AVQt/renderers/OpenGLRenderer.hpp
+        src/renderers/private/OpenGLRenderer_p.hpp
+        src/renderers/private/OpenGLRenderer_p.cpp
+        src/renderers/OpenGLRenderer.cpp
 
-        renderers/OpenALAudioOutput.h
-        renderers/private/OpenALAudioOutput_p.h
-        renderers/OpenALAudioOutput.cpp
+        include/AVQt/renderers/OpenALAudioOutput.hpp
+        src/renderers/private/OpenALAudioOutput_p.hpp
+        src/renderers/OpenALAudioOutput.cpp
 
-        widgets/OpenGLWidgetRenderer.h
-        widgets/private/OpenGLWidgetRenderer_p.h
-        widgets/OpenGLWidgetRenderer.cpp
+        include/AVQt/widgets/OpenGLWidgetRenderer.hpp
+        src/widgets/private/OpenGLWidgetRenderer_p.hpp
+        src/widgets/OpenGLWidgetRenderer.cpp
 
-        output/Muxer.h
-        output/private/Muxer_p.h
-        output/Muxer.cpp
+        include/AVQt/output/Muxer.hpp
+        src/output/private/Muxer_p.hpp
+        src/output/Muxer.cpp
 
-        #        output/FrameFileSaver.h
-        #        output/private/FrameFileSaver_p.h
+        #        output/FrameFileSaver.hpp
+        #        output/private/FrameFileSaver_p.hpp
         #        output/FrameFileSaver.cpp
-        communication/Message.cpp
-        communication/Message.h
-        communication/PacketPadParams.h
+        src/communication/Message.cpp
+        include/AVQt/communication/Message.hpp
+        include/AVQt/communication/PacketPadParams.hpp
 
-        input/CommandConsumer.cpp
-        input/CommandConsumer.h
-        communication/PacketPadParams.cpp input/FileInput.cpp input/FileInput.hpp input/IInput.hpp input/private/FileInput_p.hpp communication/FilePadParams.cpp communication/FilePadParams.hpp communication/IProcessor.hpp communication/IOutput.hpp)
+        src/input/CommandConsumer.cpp
+        include/AVQt/input/CommandConsumer.hpp
+        src/communication/PacketPadParams.cpp
+        include/AVQt/communication/IComponent.hpp
+        src/communication/FilePadParams.cpp
+        include/AVQt/communication/FilePadParams.hpp
+        include/AVQt/communication/IOutput.hpp
+
+        src/communication/VideoPadParams.cpp
+        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp)
 set(SOURCES_LINUX
-        decoder/DecoderVAAPI.h
-        decoder/private/DecoderVAAPI_p.h
-        decoder/DecoderVAAPI.cpp
+        include/AVQt/decoder/Decoder.hpp
+        src/decoder/private/Decoder_p.hpp
+        src/decoder/Decoder.cpp
 
-        decoder/DecoderMMAL.h
-        decoder/private/DecoderMMAL_p.h
-        decoder/DecoderMMAL.cpp
+        include/AVQt/decoder/DecoderMMAL.hpp
+        src/decoder/private/DecoderMMAL_p.hpp
+        src/decoder/DecoderMMAL.cpp
 
-        encoder/EncoderVAAPI.h
-        encoder/private/EncoderVAAPI_p.h
-        encoder/EncoderVAAPI.cpp
+        include/AVQt/encoder/EncoderVAAPI.hpp
+        src/encoder/private/EncoderVAAPI_p.hpp
+        src/encoder/EncoderVAAPI.cpp
 
-        renderers/private/unix/OpenGLRenderer_p.cpp
-        renderers/unix/OpenGLRenderer.cpp
+        src/renderers/private/unix/OpenGLRenderer_p.cpp
+        src/renderers/unix/OpenGLRenderer.cpp
+
+        include/AVQt/decoder/VAAPIDecoderImpl.hpp
+        src/decoder/VAAPIDecoderImpl.cpp
+        src/decoder/private/VAAPIDecoderImpl_p.hpp
         )
 set(SOURCES_WINDOWS
-        decoder/DecoderDXVA2.h
-        decoder/private/DecoderDXVA2_p.h
-        decoder/DecoderDXVA2.cpp
+        decoder/DecoderDXVA2.hpp
+        src/decoder/private/DecoderDXVA2_p.hpp
+        src/decoder/DecoderDXVA2.cpp
 
-        decoder/DecoderD3D11VA.h
-        decoder/private/DecoderD3D11VA_p.h
-        decoder/DecoderD3D11VA.cpp
+        decoder/DecoderD3D11VA.hpp
+        src/decoder/private/DecoderD3D11VA_p.hpp
+        src/decoder/DecoderD3D11VA.cpp
 
-        renderers/private/windows/OpenGLRenderer_p.cpp
-        )
+        src/renderers/private/windows/OpenGLRenderer_p.cpp)
 
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above
     if (${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763)
