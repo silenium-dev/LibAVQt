@@ -119,7 +119,8 @@ namespace AVQt {
             if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                 return EAGAIN;
             } else if (ret < 0) {
-                qWarning() << "Could not send packet to codec" << av_err2str(ret);
+                char strBuf[256];
+                qWarning() << "Could not send packet to codec" << av_make_error_string(strBuf, sizeof(strBuf), ret);
                 return AVUNERROR(ret);
             }
         }

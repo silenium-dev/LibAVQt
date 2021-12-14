@@ -254,7 +254,7 @@ namespace AVQt {
                 d->inputQueue.prepend(packet);
                 lock.unlock();
             } else if (ret != EXIT_SUCCESS) {
-                qWarning() << "Decoder error" << av_err2str(AVERROR(ret));
+                qWarning() << "Decoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
             }
             AVFrame *frame;
             while ((frame = d->impl->nextFrame())) {
