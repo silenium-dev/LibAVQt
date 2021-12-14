@@ -31,12 +31,15 @@ public:
     CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
     ~CommandConsumer() override = default;
 
-    void open();
+    void init();
 
     void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
 private:
     quint32 m_commandInputPadId;
+    std::atomic_uint64_t m_frameCount;
+    uint32_t m_id;
+    static std::atomic_uint32_t m_nextId;
 };
 
 

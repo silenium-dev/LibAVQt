@@ -39,10 +39,11 @@ namespace AVQt {
 
         bool open(AVCodecParameters *codecParams) override;
         void close() override;
-        bool decode(AVPacket *packet) override;
+        int decode(AVPacket *packet) override;
         AVFrame *nextFrame() override;
 
         [[nodiscard]] AVPixelFormat getOutputFormat() const override;
+        [[nodiscard]] bool isHWAccel() const override;
 
     protected:
         VAAPIDecoderImplPrivate *d_ptr;

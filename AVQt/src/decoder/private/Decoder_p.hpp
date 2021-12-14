@@ -5,6 +5,7 @@
 
 #include "decoder/Decoder.hpp"
 #include "decoder/IDecoderImpl.hpp"
+#include "communication/VideoPadParams.hpp"
 
 extern "C" {
 #include <libavutil/frame.h>
@@ -52,6 +53,8 @@ namespace AVQt {
 
         AVCodecParameters *pCodecParams{nullptr};
         api::IDecoderImpl *impl{nullptr};
+
+        std::shared_ptr<VideoPadParams> outputPadParams{};
 
 //        // Callback stuff
 //        QMutex cbListMutex{};

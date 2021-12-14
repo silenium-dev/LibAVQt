@@ -69,6 +69,7 @@ namespace AVQt {
 
         FrameFetcher *frameFetcher{nullptr};
 
+        QMutex codecMutex;
         std::atomic_bool initialized{false}, firstFrame{true};
 
         static bool registered;

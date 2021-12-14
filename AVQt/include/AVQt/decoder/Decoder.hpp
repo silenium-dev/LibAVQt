@@ -126,6 +126,4 @@ namespace AVQt {
 
 }// namespace AVQt
 
-Q_DECLARE_METATYPE(AVFrame *)
-
 #endif//TRANSCODE_DECODERVAAPI_H

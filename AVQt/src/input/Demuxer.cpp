@@ -42,8 +42,43 @@ namespace AVQt {
 
     bool Demuxer::open() {
         Q_D(AVQt::Demuxer);
+
+        if (!d->initialized) {
+            qWarning() << "Demuxer not initialized";
+            return false;
+        }
+        if (d->running) {
+            qWarning() << "Demuxer already running";
+            return false;
+        }
         bool shouldBe = false;
         if (d->open.compare_exchange_strong(shouldBe, true)) {
+            const auto streams = d->outputPadIds.keys();
+            for (const auto &stream : streams) {
+                AVCodecParameters *codecParams = avcodec_parameters_alloc();
+                if (codecParams == nullptr) {
+                    qFatal("Could not allocate codec parameters");
+                }
+                avcodec_parameters_copy(codecParams, d->pFormatCtx->streams[stream]->codecpar);
+                produce(Message::builder()
+                                .withAction(Message::Action::INIT)
+                                .withPayload("codecParams", QVariant::fromValue(codecParams))
+                                .build(),
+                        d->outputPadIds[stream]);
+                avcodec_parameters_free(&codecParams);
+            }
+            return true;
+        } else {
+            qWarning() << "Demuxer already open";
+            return false;
+        }
+    }
+
+    bool Demuxer::init() {
+        Q_D(AVQt::Demuxer);
+
+        bool shouldBe = false;
+        if (d->initialized.compare_exchange_strong(shouldBe, true)) {
             if (!d->inputDevice->isOpen()) {
                 if (!d->inputDevice->open(QIODevice::ReadOnly)) {
                     qWarning() << "Could not open input device";
@@ -91,44 +126,10 @@ namespace AVQt {
                 qDebug("Creating pad %ul for stream %ld", d->outputPadIds[si], si);
             }
         } else {
-            qWarning() << "Demuxer already open";
-            return false;
-        }
-
-        return true;
-    }
-
-    bool Demuxer::init() {
-        Q_D(AVQt::Demuxer);
-        if (!d->open) {
-            qWarning() << "Demuxer not open";
-            return false;
-        }
-        if (d->running) {
-            qWarning() << "Demuxer already running";
-            return false;
-        }
-        bool shouldBe = false;
-        if (d->initialized.compare_exchange_strong(shouldBe, true)) {
-            const auto streams = d->outputPadIds.keys();
-            for (const auto &stream : streams) {
-                AVCodecParameters *codecParams = avcodec_parameters_alloc();
-                if (codecParams == nullptr) {
-                    qFatal("Could not allocate codec parameters");
-                }
-                avcodec_parameters_copy(codecParams, d->pFormatCtx->streams[stream]->codecpar);
-                produce(Message::builder()
-                                .withAction(Message::Action::INIT)
-                                .withPayload("codecParams", QVariant::fromValue(codecParams))
-                                .build(),
-                        d->outputPadIds[stream]);
-                avcodec_parameters_free(&codecParams);
-            }
-            return true;
-        } else {
             qWarning() << "Demuxer already initialized";
             return false;
         }
+        return true;
     }
 
     void Demuxer::close() {
@@ -157,6 +158,11 @@ namespace AVQt {
 
     bool Demuxer::start() {
         Q_D(AVQt::Demuxer);
+
+        if (!d->initialized) {
+            qWarning() << "Demuxer not initialized";
+            return false;
+        }
 
         bool shouldBe = false;
         if (d->running.compare_exchange_strong(shouldBe, true)) {

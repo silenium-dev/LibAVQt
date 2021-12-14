@@ -21,11 +21,15 @@
 
 #include "input/CommandConsumer.hpp"
 #include "communication/PacketPadParams.hpp"
+#include "global.hpp"
+#include <QImage>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
+std::atomic_uint32_t CommandConsumer::m_nextId{0};
 
 CommandConsumer::CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry)
-    : pgraph::impl::SimpleConsumer(std::make_shared<pgraph::network::impl::RegisteringPadFactory>(std::move(padRegistry))) {
+    : pgraph::impl::SimpleConsumer(std::make_shared<pgraph::network::impl::RegisteringPadFactory>(std::move(padRegistry))),
+      m_id(m_nextId++) {
 }
 
 void CommandConsumer::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
@@ -33,8 +37,23 @@ void CommandConsumer::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> d
         auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
         qDebug() << "Incoming command" << message->getAction().name() << "with payload:";
         qDebug() << message->getPayloads();
+        if (message->getPayloads().contains("frame")) {
+            auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
+            if (m_frameCount % 50 == 0) {
+                AVFrame *swFrame = av_frame_alloc();
+                if (0 == av_hwframe_transfer_data(swFrame, frame, 0)) {
+                    QImage img(swFrame->data[0], frame->width, frame->height, swFrame->linesize[0], QImage::Format_Grayscale8);
+                    img.save(QString::number(m_id) + "frame" + QString::number(m_frameCount) + ".bmp");
+                } else {
+                    qWarning() << "Could not transfer frame data";
+                }
+                av_frame_free(&swFrame);
+            }
+            qDebug("Received frame %lu", m_frameCount++);
+        }
     }
 }
-void CommandConsumer::open() {
+
+void CommandConsumer::init() {
     m_commandInputPadId = pgraph::impl::SimpleConsumer::createInputPad(pgraph::api::PadUserData::emptyUserData());
 }

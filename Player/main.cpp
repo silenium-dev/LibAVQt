@@ -28,7 +28,11 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
     QMutexLocker lock(&mutex);
 
     static QFile logFile(LOGFILE_LOCATION);
-    static bool logFileIsOpen = logFile.open(QIODevice::Append | QIODevice::Text);
+    static bool logFileIsOpen = logFile.open(QIODevice::Append);
+    if (logFile.size() > 1024 * 1024) {
+        logFile.remove();
+        logFile.open(QIODevice::WriteOnly);
+    }
 
 #ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
@@ -97,12 +101,12 @@ int main(int argc, char *argv[]) {
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
     auto decoder = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto cc = std::make_shared<CommandConsumer>(registry);
+    auto cc2 = std::make_shared<CommandConsumer>(registry);
 
-    demuxer->open();
+    demuxer->init();
     decoder->init();
-    cc->open();
-
-    //    cc->getInputPads().begin()->second->link(fileInput->getOutputPad(fileInput->getCommandOutputPadId()));
+    cc->init();
+    cc2->init();
 
     pgraph::network::data::APIInfo apiInfo(registry);
 
@@ -110,18 +114,17 @@ int main(int argc, char *argv[]) {
 
     auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
     auto ccInPad = cc->getInputPads().begin()->second;
+    auto cc2InPad = cc2->getInputPads().begin()->second;
     auto decoderInPad = decoder->getInputPads().begin()->second;
-//    ccInPad->link(demuxerOutPad);
+    auto decoderOutPad = decoder->getOutputPads().begin()->second;
+    ccInPad->link(decoderOutPad);
+    cc2InPad->link(decoderOutPad);
     decoderInPad->link(demuxerOutPad);
 
-    demuxer->init();
+    demuxer->open();
     demuxer->start();
 
-    QThread::msleep(10);
-    demuxer->pause(true);
-    QThread::sleep(1);
-    demuxer->pause(false);
-    QThread::msleep(4);
+    QThread::msleep(1000);
     demuxer->close();
     //    demuxer->pause(true);
     //    demuxer->close();

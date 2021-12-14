@@ -22,6 +22,7 @@
 #include "include/AVQt/decoder/VAAPIDecoderImpl.hpp"
 #include "private/VAAPIDecoderImpl_p.hpp"
 
+#include <QImage>
 #include <QMetaType>
 #include <QtDebug>
 
@@ -104,21 +105,28 @@ namespace AVQt {
         d->codec = nullptr;
     }
 
-    bool VAAPIDecoderImpl::decode(AVPacket *packet) {
+    int VAAPIDecoderImpl::decode(AVPacket *packet) {
         Q_D(VAAPIDecoderImpl);
         if (!d->codecContext) {
             qWarning() << "Codec context not initialized";
-            return false;
+            return ENODEV;
         }
 
-        if (avcodec_send_packet(d->codecContext, packet) < 0) {
-            qWarning() << "Could not send packet to codec";
-            return false;
+        {
+            QMutexLocker locker(&d->codecMutex);
+            int ret = avcodec_send_packet(d->codecContext, packet);
+            locker.unlock();
+            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+                return EAGAIN;
+            } else if (ret < 0) {
+                qWarning() << "Could not send packet to codec" << av_err2str(ret);
+                return AVUNERROR(ret);
+            }
         }
 
         d->firstFrame = false;
 
-        return true;
+        return EXIT_SUCCESS;
     }
     AVFrame *VAAPIDecoderImpl::nextFrame() {
         Q_D(VAAPIDecoderImpl);
@@ -136,6 +144,10 @@ namespace AVQt {
         return AV_PIX_FMT_VAAPI;
     }
 
+    bool VAAPIDecoderImpl::isHWAccel() const {
+        return true;
+    }
+
     AVPixelFormat VAAPIDecoderImplPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
         for (int i = 0; pix_fmts[i] != AV_PIX_FMT_NONE; i++) {
             if (pix_fmts[i] == AV_PIX_FMT_VAAPI) {
@@ -150,7 +162,6 @@ namespace AVQt {
 
     void VAAPIDecoderImplPrivate::FrameFetcher::run() {
         qDebug() << "FrameFetcher started";
-        AVFrame *frame = av_frame_alloc();
         int ret;
         constexpr size_t strBufSize = 256;
         char strBuf[strBufSize];
@@ -159,9 +170,13 @@ namespace AVQt {
                 av_usleep(1000);
                 continue;
             }
-            if ((ret = avcodec_receive_frame(p->codecContext, frame)) == 0) {
+            AVFrame *frame = av_frame_alloc();
+            {
+                QMutexLocker locker(&p->codecMutex);
+                ret = avcodec_receive_frame(p->codecContext, frame);
+            }
+            if (ret == 0) {
                 m_outputQueue.enqueue(frame);
-                frame = av_frame_alloc();
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 av_usleep(1000);
             } else {

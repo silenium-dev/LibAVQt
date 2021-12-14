@@ -22,6 +22,10 @@
 #include <pgraph/impl/SimpleProducer.hpp>
 #include <pgraph/impl/SimpleConsumer.hpp>
 
+extern "C" {
+#include <libavcodec/avcodec.h>
+};
+
 #ifdef AVQT_LIBRARY_BUILD
 #define AVQT_DEPRECATED
 #else
@@ -32,5 +36,6 @@ Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
 Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
 Q_DECLARE_METATYPE(AVCodecParameters *)
 Q_DECLARE_METATYPE(AVPacket *)
+Q_DECLARE_METATYPE(AVFrame *)
 
 #endif//LIBAVQT_GLOBAL_H

@@ -20,7 +20,6 @@
 //
 
 
-
 #ifndef LIBAVQT_VIDEOPADPARAMS_HPP
 #define LIBAVQT_VIDEOPADPARAMS_HPP
 
@@ -46,7 +45,7 @@ namespace AVQt {
 
         QSize frameSize;
         AVPixelFormat pixelFormat;
-
+        bool isHWAccel = false;
     };
 }// namespace AVQt
 

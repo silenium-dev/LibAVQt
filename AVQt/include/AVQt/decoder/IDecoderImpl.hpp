@@ -36,10 +36,11 @@ namespace AVQt::api {
         virtual bool open(AVCodecParameters *codecParams) = 0;
         virtual void close() = 0;
 
-        virtual bool decode(AVPacket *packet) = 0;
+        virtual int decode(AVPacket *packet) = 0;
         virtual AVFrame *nextFrame() = 0;
 
         [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
+        [[nodiscard]] virtual bool isHWAccel() const = 0;
     };
 }
 
