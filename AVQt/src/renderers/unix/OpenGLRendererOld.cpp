@@ -1,5 +1,5 @@
-#include "renderers/OpenGLRenderer.hpp"
-#include "../private/OpenGLRenderer_p.hpp"
+#include "renderers/OpenGLRendererOld.hpp"
+#include "../private/OpenGLRendererOld_p.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -64,7 +64,7 @@ std::string eglErrorString(EGLint error) {
 }
 
 namespace AVQt {
-    void OpenGLRenderer::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration, AVBufferRef *pDeviceCtx) {
+    void OpenGLRendererOld::onFrame(IFrameSource *source, AVFrame *frame, int64_t duration, AVBufferRef *pDeviceCtx) {
         Q_D(AVQt::OpenGLRenderer);
         Q_UNUSED(source)
         Q_UNUSED(duration)
@@ -75,7 +75,7 @@ namespace AVQt {
 
         constexpr auto strBufSize = 64;
         char strBuf[strBufSize];
-        qDebug("onFrame() of OpenGLRenderer");
+        qDebug("onFrame() of OpenGLRendererOld");
         qDebug("Pixel format: %s", av_get_pix_fmt_string(strBuf, 64, static_cast<AVPixelFormat>(frame->format)));
         switch (frame->format) {
             case AV_PIX_FMT_QSV:
@@ -88,7 +88,7 @@ namespace AVQt {
                             int ret = av_hwframe_transfer_data(outFrame, input, 0);
                             if (ret != 0) {
                                 char strBuf[strBufSize];
-                                qFatal("[AVQt::OpenGLRenderer] %i: Could not transfer frame from GPU to CPU: %s", ret,
+                                qFatal("[AVQt::OpenGLRendererOld] %i: Could not transfer frame from GPU to CPU: %s", ret,
                                        av_make_error_string(strBuf, strBufSize, ret));
                             }
                             outFrame->pts = input->pts;
@@ -120,7 +120,7 @@ namespace AVQt {
         d->m_renderQueue.enqueue(queueFrame);
     }// Platform
 
-    void OpenGLRenderer::initializePlatformAPI() {
+    void OpenGLRendererOld::initializePlatformAPI() {
         Q_D(AVQt::OpenGLRenderer);
         EGLint visual_attr[] = {
                 EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -170,7 +170,7 @@ namespace AVQt {
         qDebug("EGL Version: %s", eglQueryString(d->m_EGLDisplay, EGL_VERSION));
     }// Platform
 
-    void OpenGLRenderer::initializeInterop() {
+    void OpenGLRendererOld::initializeInterop() {
         Q_D(AVQt::OpenGLRenderer);
         // Frame has 64 pixel alignment, set max height coord to cut off additional pixels
         float maxTexHeight = 1.0f;
@@ -322,7 +322,7 @@ namespace AVQt {
                     UTexActive = true;
                     break;
                 default:
-                    qFatal("[AVQt::OpenGLRenderer] Unsupported pixel format");
+                    qFatal("[AVQt::OpenGLRendererOld] Unsupported pixel format");
             }
             d->m_yTexture = new QOpenGLTexture(QOpenGLTexture::Target2D);
             d->m_yTexture->setSize(YSize.width(), YSize.height());
@@ -346,7 +346,7 @@ namespace AVQt {
         }
     }// Platform
 
-    void OpenGLRenderer::mapFrame() {
+    void OpenGLRendererOld::mapFrame() {
         Q_D(AVQt::OpenGLRenderer);
         LOOKUP_FUNCTION(PFNEGLCREATEIMAGEKHRPROC, eglCreateImageKHR)
         LOOKUP_FUNCTION(PFNEGLDESTROYIMAGEKHRPROC, eglDestroyImageKHR)
@@ -375,7 +375,7 @@ namespace AVQt {
                 if (vaExportSurfaceHandle(d->m_VADisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                                           VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime) !=
                     VA_STATUS_SUCCESS) {
-                    qFatal("[AVQt::OpenGLRenderer] Could not export VA surface handle");
+                    qFatal("[AVQt::OpenGLRendererOld] Could not export VA surface handle");
                 }
                 vaSyncSurface(d->m_VADisplay, va_surface);
 
@@ -398,7 +398,7 @@ namespace AVQt {
 
                 for (int i = 0; i < 2; ++i) {
                     if (prime.layers[i].drm_format != formats[i]) {
-                        qFatal("[AVQt::OpenGLRenderer] Invalid pixel format: %s",
+                        qFatal("[AVQt::OpenGLRendererOld] Invalid pixel format: %s",
                                av_fourcc_make_string(strBuf, prime.layers[i].drm_format));
                     }
 
@@ -430,7 +430,7 @@ namespace AVQt {
 
                     auto error = eglGetError();
                     if (!d->m_EGLImages[i] || d->m_EGLImages[i] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
-                        qFatal("[AVQt::OpenGLRenderer] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
+                        qFatal("[AVQt::OpenGLRendererOld] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
                                eglErrorString(error).c_str());
                     }
 #undef LAYER
@@ -482,7 +482,7 @@ namespace AVQt {
                 if (vaExportSurfaceHandle(d->m_VADisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                                           VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime) !=
                     VA_STATUS_SUCCESS) {
-                    qFatal("[AVQt::OpenGLRenderer] Could not export VA surface handle");
+                    qFatal("[AVQt::OpenGLRendererOld] Could not export VA surface handle");
                 }
                 vaSyncSurface(d->m_VADisplay, va_surface);
 
@@ -491,10 +491,10 @@ namespace AVQt {
                 if (prime.fourcc == VA_FOURCC_ARGB) {
                     format = DRM_FORMAT_ARGB8888;
                 } else {
-                    qFatal("[AVQt::OpenGLRenderer] Illegal VASurface format");
+                    qFatal("[AVQt::OpenGLRendererOld] Illegal VASurface format");
                 }
                 if (prime.layers[0].drm_format != format) {
-                    qFatal("[AVQt::OpenGLRenderer] Illegal DRMPRIME layer format");
+                    qFatal("[AVQt::OpenGLRendererOld] Illegal DRMPRIME layer format");
                 }
 
                 const EGLint img_attr[]{
@@ -513,7 +513,7 @@ namespace AVQt {
 
                 auto error = eglGetError();
                 if (!d->m_EGLImages[0] || d->m_EGLImages[0] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
-                    qFatal("[AVQt::OpenGLRenderer] Could not create RGB EGLImage: %s", eglErrorString(error).c_str());
+                    qFatal("[AVQt::OpenGLRendererOld] Could not create RGB EGLImage: %s", eglErrorString(error).c_str());
                 }
 
                 glActiveTexture(GL_TEXTURE0);

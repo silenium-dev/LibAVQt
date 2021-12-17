@@ -1,8 +1,8 @@
-#include "OpenGLRenderer_p.hpp"
+#include "OpenGLRendererOld_p.hpp"
 
 namespace AVQt {
     std::atomic_bool OpenGLRendererPrivate::resourcesLoaded{false};
-    OpenGLRendererPrivate::OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {
+    OpenGLRendererPrivate::OpenGLRendererPrivate(OpenGLRendererOld *q) : q_ptr(q) {
     }
 
     GLint OpenGLRendererPrivate::project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble proj[16],

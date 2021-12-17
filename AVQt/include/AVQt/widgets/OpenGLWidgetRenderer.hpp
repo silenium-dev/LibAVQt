@@ -9,7 +9,7 @@
 
 namespace AVQt {
     class OpenGLWidgetRendererPrivate;
-    class OpenGLRenderer;
+    class OpenGLRendererOld;
 
     class OpenGLWidgetRenderer : public QOpenGLWidget {
         Q_OBJECT
@@ -18,7 +18,7 @@ namespace AVQt {
     public:
         explicit OpenGLWidgetRenderer(QWidget *parent = nullptr);
         ~OpenGLWidgetRenderer() Q_DECL_OVERRIDE;
-        OpenGLRenderer *getFrameSink();
+        OpenGLRendererOld *getFrameSink();
 
         void setQuitOnClose(bool enabled);
         bool quitOnClose();

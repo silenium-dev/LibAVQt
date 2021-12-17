@@ -1,128 +1,67 @@
-#include "output/IFrameSink.hpp"
-#include <QtOpenGL>
-#include "input/IFrameSource.hpp"
+// Copyright (c) 2021.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+// and associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+// is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
+// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
-extern "C" {
-#include <libavutil/rational.h>
-}
+//
+// Created by silas on 15.12.21.
+//
 
-#ifndef LIBAVQT_OPENGLRENDERER_H
-#define LIBAVQT_OPENGLRENDERER_H
+#ifndef LIBAVQT_OPENGLRENDERER_HPP
+#define LIBAVQT_OPENGLRENDERER_HPP
 
+#include "communication/IComponent.hpp"
+#include <pgraph/impl/SimpleProcessor.hpp>
+#include <pgraph_network/api/PadRegistry.hpp>
+
+#include <QObject>
+#include <QOpenGLFunctions>
+#include <static_block.hpp>
 
 namespace AVQt {
     class OpenGLRendererPrivate;
-
-    class RenderClock;
-
-    class OpenGLRenderer : public QObject, public QOpenGLFunctions, public IFrameSink {
+    class OpenGLRenderer : public QObject, public api::IComponent, public pgraph::impl::SimpleProcessor, public QOpenGLFunctions {
         Q_OBJECT
-        Q_INTERFACES(AVQt::IFrameSink)
-        Q_DECLARE_PRIVATE(AVQt::OpenGLRenderer)
-        Q_DISABLE_COPY(OpenGLRenderer)
-
+        Q_INTERFACES(AVQt::api::IComponent)
+        Q_DECLARE_PRIVATE(OpenGLRenderer)
     public:
-        explicit OpenGLRenderer(QObject *parent = nullptr);
+        explicit OpenGLRenderer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        ~OpenGLRenderer() override = default;
 
-        OpenGLRenderer(OpenGLRenderer &&other) noexcept;
-        //
-        //        OpenGLRenderer(const OpenGLRenderer &) = delete;
-        //
-        //        void operator=(const OpenGLRenderer &) = delete;
+        bool isOpen() const override;
+        bool isRunning() const override;
+        bool isPaused() const override;
 
-        ~OpenGLRenderer() noexcept Q_DECL_OVERRIDE;
+        void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+        bool open() override;
+        void close() override;
+        bool init() override;
+        bool start() override;
+        void stop() override;
+        void pause(bool state) override;
 
-        bool isPaused() Q_DECL_OVERRIDE;
-
-        void initializeGL(QOpenGLContext *context);
-
-        void paintGL();
-
-        void paintFBO(QOpenGLFramebufferObject *fbo);
-
-        void cleanupGL();
-
-        QSize getFrameSize();
-
-        bool isUpdateRequired();
-
-    public slots:
-        /*!
-         * \brief Initialize frame sink (e.g. allocate contexts, open streams)
-         * @return Status code (0 = Success)
-         */
-        Q_INVOKABLE int init(IFrameSource *source, AVRational framerate, int64_t duration) Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Clean up frame sink (e.g. free buffers, close files)
-         * @return Status code (0 = Success)
-         */
-        Q_INVOKABLE int deinit(IFrameSource *source) Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Starts frame sink (e.g. start processing thread)
-         * @return Status code (0 = Success)
-         */
-        Q_INVOKABLE int start(IFrameSource *source) Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Stops frame sink (e.g interrupt processing thread, flush buffers)
-         * @return Status code (0 = Success)
-         */
-        Q_INVOKABLE int stop(IFrameSource *source) Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Sets paused flag, which can be retrieved with \c isPaused() Q_DECL_OVERRIDE.
-         *
-         * When Set to true, the frame sink should not process any frames, instead they should be freed immediately
-         * \param pause New paused state
-         */
-        Q_INVOKABLE void pause(IFrameSource *source, bool pause) Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Image process method, is invoked in objects thread for every frame
-         *
-         * ***Disclaimer:*** Image processing should be moved to separate thread to prevent sources and filters from blocking
-         * @param frame Source image in RGBA pixel format
-         * @param entireDuration Source stream time base, if you don't know what this means, you probably don't want to use it.
-         * @param framerate Source stream framerate
-         */
-        //        Q_INVOKABLE void onFrame(QImage frame, int64_t duration) Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Image process method, is invoked in objects thread for every frame
-         *
-         * ***Disclaimer:*** Image processing should be moved to separate thread to prevent sources and filters from blocking
-         * @param frame Source frame in any possible pixel format, processing code has to be able to handle every format
-         * @param timebase Source stream time base, if you don't know what this means, you probably don't want to use it.
-         * @param framerate Source stream framerate
-         */
-        Q_INVOKABLE void onFrame(IFrameSource *source, AVFrame *frame, int64_t frameDuration, AVBufferRef *pDeviceCtx) Q_DECL_OVERRIDE;
-
+        void init(QOpenGLContext *context);
+        void paint();
     signals:
-
-        void started() Q_DECL_OVERRIDE;
-
-        void stopped() Q_DECL_OVERRIDE;
-
-        void paused(bool pause) Q_DECL_OVERRIDE;
-
-        void frameProcessingStarted(qint64 pts, qint64 duration) override;
-
-        void frameProcessingFinished(qint64 pts, qint64 duration) override;
+        void started() override;
+        void stopped() override;
+        void paused(bool state) override;
 
     protected:
-        [[maybe_unused]] explicit OpenGLRenderer(OpenGLRendererPrivate &p);
-
         OpenGLRendererPrivate *d_ptr;
-
-        // Platform-dependent
-        void initializePlatformAPI();
-        void initializeInterop();
-        void updatePixelFormat();
-        void mapFrame();
     };
 }// namespace AVQt
 
-
-#endif//LIBAVQT_OPENGLRENDERER_H
+#endif//LIBAVQT_OPENGLRENDERER_HPP

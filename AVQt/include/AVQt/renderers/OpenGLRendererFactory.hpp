@@ -16,36 +16,39 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 15.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_OPENGLRENDERERFACTORY_HPP
+#define LIBAVQT_OPENGLRENDERERFACTORY_HPP
 
+#include "IOpenGLRendererImpl.hpp"
+
+#include <QMap>
 #include <QObject>
+#include <static_block.hpp>
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-
-namespace AVQt::api {
-    class IDecoderImpl {
+namespace AVQt {
+    class OpenGLRendererFactory {
     public:
-        virtual ~IDecoderImpl() = default;
+        static OpenGLRendererFactory &getInstance();
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
+        void registerRenderer(const QString &name, const QMetaObject &metaObject);
 
-        virtual int decode(AVPacket *packet) = 0;
-        virtual AVFrame *nextFrame() = 0;
+        void unregisterRenderer(const QString &name);
 
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual AVRational getTimeBase() const = 0;
+        [[nodiscard]] api::IOpenGLRendererImpl *create(const QString &name);
+
+        static void registerDecoder();
+
+    private:
+        OpenGLRendererFactory() = default;
+        QMap<QString, QMetaObject> m_renderers;
     };
+}// namespace AVQt
+
+static_block {
+    AVQt::OpenGLRendererFactory::registerDecoder();
 }
 
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
-
-
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_OPENGLRENDERERFACTORY_HPP

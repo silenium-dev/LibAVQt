@@ -26,7 +26,7 @@
 
 #include <QMap>
 #include <string>
-#include <static_block.hpp>
+#include "static_block.hpp"
 
 namespace AVQt {
     class DecoderFactory {

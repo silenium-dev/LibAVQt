@@ -16,6 +16,7 @@ set(CMAKE_AUTORCC on)
 set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
+include_directories("include")
 
 if (WIN32)
     add_compile_options(/EHa)
@@ -86,10 +87,10 @@ set(SOURCES
         src/renderers/private/RenderClock_p.hpp
         src/renderers/RenderClock.cpp
 
-        include/AVQt/renderers/OpenGLRenderer.hpp
-        src/renderers/private/OpenGLRenderer_p.hpp
-        src/renderers/private/OpenGLRenderer_p.cpp
-        src/renderers/OpenGLRenderer.cpp
+        include/AVQt/renderers/OpenGLRendererOld.hpp
+        src/renderers/private/OpenGLRendererOld_p.hpp
+        src/renderers/private/OpenGLRendererOld_p.cpp
+        src/renderers/OpenGLRendererOld.cpp
 
         include/AVQt/renderers/OpenALAudioOutput.hpp
         src/renderers/private/OpenALAudioOutput_p.hpp
@@ -119,7 +120,7 @@ set(SOURCES
         include/AVQt/communication/IOutput.hpp
 
         src/communication/VideoPadParams.cpp
-        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp)
+        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLRenderer.cpp include/AVQt/renderers/OpenGLRenderer.hpp src/renderers/OpenGLRendererFactory.cpp include/AVQt/renderers/OpenGLRendererFactory.hpp include/AVQt/renderers/IOpenGLRendererImpl.hpp src/renderers/private/OpenGLRenderer_p.hpp)
 set(SOURCES_LINUX
         include/AVQt/decoder/Decoder.hpp
         src/decoder/private/Decoder_p.hpp
@@ -134,12 +135,12 @@ set(SOURCES_LINUX
         src/encoder/EncoderVAAPI.cpp
 
         src/renderers/private/unix/OpenGLRenderer_p.cpp
-        src/renderers/unix/OpenGLRenderer.cpp
+        src/renderers/unix/OpenGLRendererOld.cpp
 
         include/AVQt/decoder/VAAPIDecoderImpl.hpp
         src/decoder/VAAPIDecoderImpl.cpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
-        )
+        src/renderers/VAAPIOpenGLRendererImpl.cpp src/renderers/VAAPIOpenGLRendererImpl.hpp src/renderers/private/VAAPIOpenGLRendererImpl_p.hpp)
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp

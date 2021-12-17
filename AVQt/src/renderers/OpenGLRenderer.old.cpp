@@ -1,5 +1,5 @@
 #include "OpenGLRenderer.hpp"
-#include "renderers/private/OpenGLRenderer_p.hpp"
+#include "renderers/private/OpenGLRendererOld_p.hpp"
 
 #ifdef Q_OS_LINUX
 

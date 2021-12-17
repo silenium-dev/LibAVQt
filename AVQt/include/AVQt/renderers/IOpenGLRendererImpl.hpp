@@ -16,36 +16,43 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 15.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_IOPENGLRENDERERIMPL_HPP
+#define LIBAVQT_IOPENGLRENDERERIMPL_HPP
 
 #include <QObject>
-
+#include <QOpenGLContext>
 extern "C" {
-#include <libavcodec/avcodec.h>
+#include <libavutil/frame.h>
 }
 
 namespace AVQt::api {
-    class IDecoderImpl {
+    class IOpenGLRendererImpl {
     public:
-        virtual ~IDecoderImpl() = default;
+        virtual ~IOpenGLRendererImpl() = default;
+        virtual void initializeGL(QOpenGLContext *context) = 0;
+        virtual void initializePlatformAPI() = 0;
+        virtual void initializeInterop() = 0;
+        virtual void paintGL() = 0;
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
+        virtual void update() = 0;
+        virtual void enqueue(AVFrame *frame) = 0;
+        [[nodiscard]] virtual bool isInitialized() const = 0;
 
-        virtual int decode(AVPacket *packet) = 0;
-        virtual AVFrame *nextFrame() = 0;
+        virtual void bindResources() = 0;
+        virtual void releaseResources() = 0;
+        virtual void destroyResources() = 0;
 
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual AVRational getTimeBase() const = 0;
+        virtual void pause(bool state) = 0;
+        [[nodiscard]] virtual bool isPaused() const = 0;
+    signals:
+        virtual void frameReady(int64_t pts, GLuint textureId[2]) = 0;
+        virtual void frameDropped(int64_t pts) = 0;
     };
-}
+}// namespace AVQt::api
 
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
+Q_DECLARE_INTERFACE(AVQt::api::IOpenGLRendererImpl, "AVQt.api.IOpenGLRendererImpl")
 
-
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_IOPENGLRENDERERIMPL_HPP

@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
     //    auto renderer = new AVQt::OpenGLWidgetRenderer;
     //
     //    demuxer->registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    ////    QObject::connect(&renderer, &AVQt::OpenGLRenderer::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
+    ////    QObject::connect(&renderer, &AVQt::OpenGLRendererOld::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
     //#ifdef ENABLE_QSV_ENCODE
     //    videoEncoder = new AVQt::EncoderVAAPI(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
     //    videoDecoder->registerCallback(videoEncoder);
@@ -167,17 +167,17 @@ int main(int argc, char *argv[]) {
     //    renderer->setQuitOnClose(true);
     //    renderer->showNormal();
     //
-    //    //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::paused, [&](bool paused) {
+    //    //    QObject::connect(&renderer, &AVQt::OpenGLRendererOld::paused, [&](bool paused) {
     //    //        output.pause(nullptr, paused);
     //    //    });
-    //    //    QObject::connect(&renderer, &AVQt::OpenGLRenderer::started, [&]() {
+    //    //    QObject::connect(&renderer, &AVQt::OpenGLRendererOld::started, [&]() {
     //    //        output.start(nullptr);
     //    //    });
     //
     //    demuxer->open();
     //
     //    //    output.syncToOutput(renderer->getFrameSink());
-    //    //    QObject::connect(renderer->getFrameSink(), &AVQt::OpenGLRenderer::paused, demuxer, &AVQt::Demuxer::pause);
+    //    //    QObject::connect(renderer->getFrameSink(), &AVQt::OpenGLRendererOld::paused, demuxer, &AVQt::Demuxer::pause);
     //
     //    demuxer->start();
     //

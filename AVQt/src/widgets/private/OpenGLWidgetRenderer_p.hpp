@@ -1,7 +1,7 @@
 #ifndef LIBAVQT_OPENGLWIDGETRENDERER__H
 #define LIBAVQT_OPENGLWIDGETRENDERER__H
 
-#include "renderers/OpenGLRenderer.hpp"
+#include "renderers/OpenGLRendererOld.hpp"
 #include "widgets/OpenGLWidgetRenderer.hpp"
 
 #include <QMutex>
@@ -26,7 +26,7 @@ namespace AVQt {
 
         OpenGLWidgetRenderer *q_ptr;
 
-        OpenGLRenderer *m_renderer{};
+        OpenGLRendererOld *m_renderer{};
         QOpenGLTextureBlitter *m_blitter{};
 
         std::atomic_bool m_quitOnClose{false}, m_firstFrame{true};

@@ -16,7 +16,7 @@
 #include <qglobal.h>
 
 #include "include/AVQt/decoder/Decoder.hpp"
-#include "include/AVQt/decoder/DecoderFactory.hpp"
+#include "decoder/DecoderFactory.hpp"
 #include "include/AVQt/encoder/IEncoder.hpp"
 #include "include/AVQt/input/Demuxer.hpp"
 #include "include/AVQt/input/IAudioSource.hpp"
@@ -27,7 +27,7 @@
 #include "include/AVQt/output/IPacketSink.hpp"
 #include "include/AVQt/output/Muxer.hpp"
 #include "include/AVQt/renderers/OpenALAudioOutput.hpp"
-#include "include/AVQt/renderers/OpenGLRenderer.hpp"
+#include "include/AVQt/renderers/OpenGLRendererOld.hpp"
 #include "include/AVQt/widgets/OpenGLWidgetRenderer.hpp"
 
 

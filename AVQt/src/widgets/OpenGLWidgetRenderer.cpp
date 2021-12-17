@@ -5,7 +5,7 @@
 namespace AVQt {
     OpenGLWidgetRenderer::OpenGLWidgetRenderer(QWidget *parent) : QOpenGLWidget(parent), d_ptr(new OpenGLWidgetRendererPrivate(this)) {
         Q_D(AVQt::OpenGLWidgetRenderer);
-        d->m_renderer = new OpenGLRenderer(this);
+        d->m_renderer = new OpenGLRendererOld(this);
         QSurfaceFormat format;
         format.setSwapBehavior(QSurfaceFormat::TripleBuffer);
         format.setSamples(2);
@@ -68,7 +68,7 @@ namespace AVQt {
         d->unlockRenderer();
     }
 
-    OpenGLRenderer *OpenGLWidgetRenderer::getFrameSink() {
+    OpenGLRendererOld *OpenGLWidgetRenderer::getFrameSink() {
         Q_D(AVQt::OpenGLWidgetRenderer);
         return d->m_renderer;
     }

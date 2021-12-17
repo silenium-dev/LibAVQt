@@ -16,36 +16,35 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 15.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#include "renderers/OpenGLRendererFactory.hpp"
+#include "renderers/VAAPIOpenGLRendererImpl.hpp"
 
-#include <QObject>
+namespace AVQt {
+    OpenGLRendererFactory &OpenGLRendererFactory::getInstance() {
+        static OpenGLRendererFactory instance;
+        return instance;
+    }
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+    void OpenGLRendererFactory::registerRenderer(const QString &name, const QMetaObject &metaObject) {
+        m_renderers.insert(name, metaObject);
+    }
 
-namespace AVQt::api {
-    class IDecoderImpl {
-    public:
-        virtual ~IDecoderImpl() = default;
+    void OpenGLRendererFactory::unregisterRenderer(const QString &name) {
+        m_renderers.remove(name);
+    }
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
+    api::IOpenGLRendererImpl *OpenGLRendererFactory::create(const QString &name) {
+        return qobject_cast<api::IOpenGLRendererImpl*>(m_renderers[name].newInstance());
+    }
 
-        virtual int decode(AVPacket *packet) = 0;
-        virtual AVFrame *nextFrame() = 0;
-
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual AVRational getTimeBase() const = 0;
-    };
-}
-
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
-
-
-#endif//LIBAVQT_IDECODERIMPL_HPP
+    void OpenGLRendererFactory::registerDecoder() {
+        static bool registered = false;
+        if (!registered) {
+            registered = true;
+            AVQt::OpenGLRendererFactory::getInstance().registerRenderer("VAAPIOpenGLRenderer", VAAPIOpenGLRendererImpl::staticMetaObject);
+        }
+    }
+}// namespace AVQt

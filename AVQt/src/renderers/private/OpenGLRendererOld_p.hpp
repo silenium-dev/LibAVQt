@@ -11,26 +11,25 @@
 #ifdef Q_OS_LINUX
 
 #include <va/va.h>
-#include <va/va_x11.h>
 #include <va/va_drmcommon.h>
+#include <va/va_x11.h>
 
 #elif defined(Q_OS_WINDOWS)
 
-#include <d3d9.h>
 #include <d3d11.h>
+#include <d3d9.h>
 
 #endif
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-extern "C"
-{
+extern "C" {
 #ifdef Q_OS_LINUX
 #include <libavutil/hwcontext_vaapi.h>
 #elif defined(Q_OS_WINDOWS)
-#include <libavutil/hwcontext_dxva2.h>
 #include <libavutil/hwcontext_d3d11va.h>
+#include <libavutil/hwcontext_dxva2.h>
 #endif
 #include <libavutil/hwcontext.h>
 }
@@ -44,35 +43,37 @@ extern "C"
 struct AVFrame;
 
 namespace AVQt {
-    class OpenGLRenderer;
+    class OpenGLRendererOld;
 
     /*!
      * \private
      * \internal
      */
     class OpenGLRendererPrivate : public QObject {
-    Q_OBJECT
-
-        Q_DECLARE_PUBLIC(AVQt::OpenGLRenderer)
-
-    public:
-        OpenGLRendererPrivate(const OpenGLRendererPrivate &) = delete;
-
-        void operator=(const OpenGLRendererPrivate &) = delete;
-
+        Q_OBJECT
+        Q_DECLARE_PUBLIC(AVQt::OpenGLRendererOld)
+        Q_DISABLE_COPY(OpenGLRendererPrivate)
     private:
-        explicit OpenGLRendererPrivate(OpenGLRenderer *q) : q_ptr(q) {};
+        explicit OpenGLRendererPrivate(OpenGLRendererOld *q);
 
-        [[maybe_unused]] static GLint
-        project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
-                GLdouble *winx, GLdouble *winy, GLdouble *winz);
+        void bindResources();
+        void releaseResources();
+        void destroyResources();
 
+        void updatePixelFormat();
+
+        // Utilities
         static inline void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
-
         static QTime timeFromMillis(int64_t ts);
+        static GLint project(GLdouble objx, GLdouble objy, GLdouble objz, const GLdouble model[16], const GLdouble[16], const GLint viewport[4],
+                             GLdouble *winx, GLdouble *winy, GLdouble *winz);
 
-        OpenGLRenderer *q_ptr{nullptr};
+        OpenGLRendererOld *q_ptr{nullptr};
 
+        QOpenGLContext *m_context{nullptr};
+        QSurface *m_surface{nullptr};
+
+        // Data
         QMutex m_onFrameMutex{};
         QMutex m_renderQueueMutex{};
         QQueue<QFuture<AVFrame *>> m_renderQueue{};
@@ -81,6 +82,7 @@ namespace AVQt {
         QTime m_duration{};
         QTime m_position{};
         std::atomic_bool m_updateRequired{true}, m_paused{false}, m_running{false}, m_firstFrame{true};
+        static std::atomic_bool resourcesLoaded;
         std::atomic<qint64> m_updateTimestamp{0};
         std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrame{};
 
@@ -90,7 +92,7 @@ namespace AVQt {
         AVBufferRef *m_pQSVDerivedDeviceContext{nullptr};
         AVBufferRef *m_pQSVDerivedFramesContext{nullptr};
 
-        //OpenGL stuff
+        // OpenGL stuff
         QOpenGLVertexArrayObject m_vao{};
         QOpenGLBuffer m_vbo{}, m_ibo{};
         QOpenGLShaderProgram *m_program{nullptr};
@@ -103,6 +105,8 @@ namespace AVQt {
         // VAAPI stuff
         VADisplay m_VADisplay{nullptr};
         AVVAAPIDeviceContext *m_pVAContext{nullptr};
+        EGLDisplay m_EGLDisplay{nullptr};
+        EGLImage m_EGLImages[2]{};
 #elif defined(Q_OS_WINDOWS)
         // DXVA2 stuff
         IDirect3DDeviceManager9 *m_pD3DManager{nullptr};
@@ -123,12 +127,10 @@ namespace AVQt {
         ID3D11VideoProcessorOutputView *m_pVideoProcOutputView{nullptr};
         ID3D11VideoProcessorInputView *m_pVideoProcInputView{nullptr};
 #endif
-        EGLDisplay m_EGLDisplay{nullptr};
-        EGLImage m_EGLImages[2]{};
         GLuint m_textures[2]{};
 
-        friend class OpenGLRenderer;
+        friend class OpenGLRendererOld;
     };
-}
+}// namespace AVQt
 
-#endif //LIBAVQT_OPENGLRENDERER_P_H
+#endif//LIBAVQT_OPENGLRENDERER_P_H

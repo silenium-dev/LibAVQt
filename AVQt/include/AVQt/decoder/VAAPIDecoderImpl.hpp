@@ -45,6 +45,8 @@ namespace AVQt {
         [[nodiscard]] AVPixelFormat getOutputFormat() const override;
         [[nodiscard]] bool isHWAccel() const override;
 
+        [[nodiscard]] AVRational getTimeBase() const override;
+
     protected:
         VAAPIDecoderImplPrivate *d_ptr;
     };
