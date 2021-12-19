@@ -1,3 +1,22 @@
+// Copyright (c) 2021.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+// and associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+// is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include "input/Demuxer.hpp"
 #include "communication/PacketPadParams.hpp"
 #include "global.hpp"
@@ -122,6 +141,8 @@ namespace AVQt {
                 packetPadParams->mediaType = d->pFormatCtx->streams[si]->codecpar->codec_type;
                 packetPadParams->codec = d->pFormatCtx->streams[si]->codecpar->codec_id;
                 packetPadParams->streamIdx = si;
+                packetPadParams->codecParams = avcodec_parameters_alloc();
+                avcodec_parameters_copy(packetPadParams->codecParams, d->pFormatCtx->streams[si]->codecpar);
                 d->outputPadIds.insert(si, createOutputPad(packetPadParams));
                 qDebug("Creating pad %ul for stream %ld", d->outputPadIds[si], si);
             }
@@ -166,6 +187,7 @@ namespace AVQt {
 
         bool shouldBe = false;
         if (d->running.compare_exchange_strong(shouldBe, true)) {
+            d->paused = false;
             for (const auto &pad : d->outputPadIds) {
                 produce(Message::builder().withAction(Message::Action::START).build(), pad);
             }
@@ -182,6 +204,7 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
+            d->paused = false;
             QThread::quit();
             QThread::wait();
             for (const auto &pad : d->outputPadIds) {
@@ -217,34 +240,33 @@ namespace AVQt {
 
         while (d->running) {
             if (d->paused) {
-                QThread::msleep(2);
+                msleep(2);
                 continue;
-            } else {
-                if (d->pFormatCtx->pb->error) {
-                    qDebug() << Q_FUNC_INFO << "Error occurred";
-                    break;
-                }
-                ret = av_read_frame(d->pFormatCtx, packet);
-
-                if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR_EXIT) {
-                    av_packet_unref(packet);
-                    break;
-                } else if (ret < 0) {
-                    qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
-                    break;
-                }
-
-                if (d->outputPadIds.contains(packet->stream_index)) {
-                    av_packet_rescale_ts(packet, d->pFormatCtx->streams[packet->stream_index]->time_base, {1, 1000000});
-                    auto message = Message::builder()
-                                           .withAction(Message::Action::DATA)
-                                           .withPayload("packet", QVariant::fromValue(packet))
-                                           .build();
-                    produce(message, d->outputPadIds[packet->stream_index]);
-                }
-
-                av_packet_unref(packet);
             }
+            if (d->pFormatCtx->pb->error) {
+                qDebug() << Q_FUNC_INFO << "Error occurred";
+                break;
+            }
+            ret = av_read_frame(d->pFormatCtx, packet);
+
+            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR_EXIT) {
+                av_packet_unref(packet);
+                break;
+            } else if (ret < 0) {
+                qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
+                break;
+            }
+
+            if (d->outputPadIds.contains(packet->stream_index)) {
+                av_packet_rescale_ts(packet, d->pFormatCtx->streams[packet->stream_index]->time_base, {1, 1000000});
+                auto message = Message::builder()
+                                       .withAction(Message::Action::DATA)
+                                       .withPayload("packet", QVariant::fromValue(packet))
+                                       .build();
+                produce(message, d->outputPadIds[packet->stream_index]);
+            }
+
+            av_packet_unref(packet);
         }
     }
 

@@ -9,46 +9,48 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 // Created by silas on 15.12.21.
 //
 
-#ifndef LIBAVQT_OPENGLRENDERERFACTORY_HPP
-#define LIBAVQT_OPENGLRENDERERFACTORY_HPP
+#ifndef LIBAVQT_OPENGLFRAMEMAPPERFACTORY_HPP
+#define LIBAVQT_OPENGLFRAMEMAPPERFACTORY_HPP
 
-#include "IOpenGLRendererImpl.hpp"
+#include "IOpenGLFrameMapper.hpp"
 
 #include <QMap>
 #include <QObject>
 #include <static_block.hpp>
 
 namespace AVQt {
-    class OpenGLRendererFactory {
+    class OpenGLFrameMapperFactory {
     public:
-        static OpenGLRendererFactory &getInstance();
+        static OpenGLFrameMapperFactory &getInstance();
 
         void registerRenderer(const QString &name, const QMetaObject &metaObject);
 
         void unregisterRenderer(const QString &name);
 
-        [[nodiscard]] api::IOpenGLRendererImpl *create(const QString &name);
+        [[nodiscard]] api::IOpenGLFrameMapper *create(const QString &name);
 
         static void registerDecoder();
 
     private:
-        OpenGLRendererFactory() = default;
+        OpenGLFrameMapperFactory() = default;
         QMap<QString, QMetaObject> m_renderers;
     };
 }// namespace AVQt
 
 static_block {
-    AVQt::OpenGLRendererFactory::registerDecoder();
+    AVQt::OpenGLFrameMapperFactory::registerDecoder();
 }
 
-#endif//LIBAVQT_OPENGLRENDERERFACTORY_HPP
+#endif//LIBAVQT_OPENGLFRAMEMAPPERFACTORY_HPP

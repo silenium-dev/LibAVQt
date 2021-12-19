@@ -9,11 +9,13 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 // Created by silas on 26.10.21.
@@ -37,20 +39,20 @@ void CommandConsumer::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> d
         auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
         qDebug() << "Incoming command" << message->getAction().name() << "with payload:";
         qDebug() << message->getPayloads();
-        if (message->getPayloads().contains("frame")) {
-            auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
-            if (m_frameCount % 50 == 0) {
-                AVFrame *swFrame = av_frame_alloc();
-                if (0 == av_hwframe_transfer_data(swFrame, frame, 0)) {
-                    QImage img(swFrame->data[0], frame->width, frame->height, swFrame->linesize[0], QImage::Format_Grayscale8);
-                    img.save(QString::number(m_id) + "frame" + QString::number(m_frameCount) + ".bmp");
-                } else {
-                    qWarning() << "Could not transfer frame data";
-                }
-                av_frame_free(&swFrame);
-            }
-            qDebug("Received frame %lu", m_frameCount++);
-        }
+//        if (message->getPayloads().contains("frame")) {
+//            auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
+//            if (m_frameCount % 50 == 0) {
+//                AVFrame *swFrame = av_frame_alloc();
+//                if (0 == av_hwframe_transfer_data(swFrame, frame, 0)) {
+//                    QImage img(swFrame->data[0], frame->width, frame->height, swFrame->linesize[0], QImage::Format_Grayscale8);
+//                    img.save(QString::number(m_id) + "frame" + QString::number(m_frameCount) + ".bmp");
+//                } else {
+//                    qWarning() << "Could not transfer frame data";
+//                }
+//                av_frame_free(&swFrame);
+//            }
+//            qDebug("Received frame %lu", m_frameCount++);
+//        }
     }
 }
 

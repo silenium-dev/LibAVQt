@@ -18,22 +18,31 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 23.11.21.
+// Created by silas on 15.12.21.
 //
 
-#include "communication/FilePadParams.hpp"
+#ifndef LIBAVQT_IOPENGLFRAMEMAPPER_HPP
+#define LIBAVQT_IOPENGLFRAMEMAPPER_HPP
 
-namespace AVQt {
-    const boost::uuids::uuid FilePadParams::Type = boost::uuids::string_generator()("e621cc91719179e202870609dba0438e");
+#include <QThread>
+#include <QtOpenGL>
+extern "C" {
+#include <libavutil/frame.h>
+}
 
-    boost::uuids::uuid FilePadParams::getType() const {
-        return Type;
-    }
+namespace AVQt::api {
+    class IOpenGLFrameMapper {
+    public:
+        virtual ~IOpenGLFrameMapper() = default;
+        virtual void initializeGL(QOpenGLContext *shareContext) = 0;
+        virtual void enqueueFrame(AVFrame *frame) = 0;
+        virtual void start() = 0;
+        virtual void stop() = 0;
+    signals:
+        virtual void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) = 0;
+    };
+}// namespace AVQt::api
 
-    boost::json::object FilePadParams::toJSON() const {
-        boost::json::object obj;
-        obj.emplace("type", boost::uuids::hash_value(Type));
-        obj.emplace("data", boost::json::object());
-        return obj;
-    }
-}// namespace AVQt
+Q_DECLARE_INTERFACE(AVQt::api::IOpenGLFrameMapper, "AVQt.api.IOpenGLFrameMapper")
+
+#endif//LIBAVQT_IOPENGLFRAMEMAPPER_HPP

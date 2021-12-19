@@ -1,4 +1,24 @@
-﻿#include "AVQt"
+﻿// Copyright (c) 2021.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+// and associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+// is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#include "AVQt"
+#include "FrameSaverAccelerated.hpp"
 #include "include/AVQt/communication/Message.hpp"
 #include "include/AVQt/communication/PacketPadParams.hpp"
 #include "include/AVQt/input/CommandConsumer.hpp"
@@ -34,9 +54,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-#ifndef QT_DEBUG
-    if (type > QtMsgType::QtDebugMsg)
-#endif
+//#ifndef QT_DEBUG
+//    if (type > QtMsgType::QtDebugMsg)
+//#endif
     {
         QString output;
         QTextStream os(&output);
@@ -100,11 +120,13 @@ int main(int argc, char *argv[]) {
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
     auto decoder = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
     auto cc = std::make_shared<CommandConsumer>(registry);
     auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     demuxer->init();
     decoder->init();
+    frameSaver->init();
     cc->init();
     cc2->init();
 
@@ -117,19 +139,26 @@ int main(int argc, char *argv[]) {
     auto cc2InPad = cc2->getInputPads().begin()->second;
     auto decoderInPad = decoder->getInputPads().begin()->second;
     auto decoderOutPad = decoder->getOutputPads().begin()->second;
-    ccInPad->link(decoderOutPad);
-    cc2InPad->link(decoderOutPad);
+    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
+//    ccInPad->link(demuxerOutPad);
+//    cc2InPad->link(decoderOutPad);
     decoderInPad->link(demuxerOutPad);
+    decoderOutPad->link(frameSaverInPad);
 
     demuxer->open();
     demuxer->start();
 
-    QThread::msleep(1000);
-    demuxer->close();
+    QTimer::singleShot(30000, [demuxer]{
+        QCoreApplication::quit();
+    });
+
+    QObject::connect(app, &QApplication::aboutToQuit, [demuxer]{
+        demuxer->close();
+    });
     //    demuxer->pause(true);
     //    demuxer->close();
 
-    exit(0);
+    return app->exec();
     //    AVQt::AudioDecoder decoder;
     //    AVQt::OpenALAudioOutput output;
 

@@ -9,18 +9,20 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 // Created by silas on 16.12.21.
 //
 
-#ifndef LIBAVQT_VAAPIOPENGLRENDERERIMPL_P_HPP
-#define LIBAVQT_VAAPIOPENGLRENDERERIMPL_P_HPP
+#ifndef LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP
+#define LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -41,18 +43,23 @@ extern "C" {
 #include <QtOpenGL>
 #include <libavutil/hwcontext_vaapi.h>
 namespace AVQt {
-    class VAAPIOpenGLRendererImpl;
-    class VAAPIOpenGLRendererImplPrivate {
-        Q_DECLARE_PUBLIC(VAAPIOpenGLRendererImpl)
+    class VAAPIOpenGLRenderMapper;
+    class VAAPIOpenGLRenderMapperPrivate {
+        Q_DECLARE_PUBLIC(VAAPIOpenGLRenderMapper)
     public:
-        explicit VAAPIOpenGLRendererImplPrivate(VAAPIOpenGLRendererImpl *q) : q_ptr(q) {}
+        explicit VAAPIOpenGLRenderMapperPrivate(VAAPIOpenGLRenderMapper *q) : q_ptr(q) {}
 
-        int64_t getTimestamp();
+        void bindResources();
+        void releaseResources();
+        void destroyResources();
 
-        VAAPIOpenGLRendererImpl *q_ptr;
+        VAAPIOpenGLRenderMapper *q_ptr;
 
         QMutex currentFrameMutex{};
         AVFrame *currentFrame{nullptr};
+
+        QOpenGLContext *context{nullptr};
+        QOffscreenSurface *surface{nullptr};
 
         QOpenGLShaderProgram *program{nullptr};
         QOpenGLVertexArrayObject vao{};
@@ -60,29 +67,25 @@ namespace AVQt {
         QOpenGLBuffer ibo{};
         GLuint textures[2]{};
 
+//        QWaitCondition frameAvailable{}, frameProcessed{};
         QMutex renderQueueMutex{};
         QQueue<QFuture<AVFrame *>> renderQueue{};
 
-        QElapsedTimer renderTimer{};
-        std::atomic<qint64> updateTimestamp{0};
-
-        std::atomic_bool updateRequired{true}, paused{false}, running{false}, firstFrame{true};
+        std::atomic_bool paused{false}, running{false}, firstFrame{true};
 
         VADisplay vaDisplay{};
         AVVAAPIDeviceContext *pVAContext{nullptr};
         EGLDisplay eglDisplay{EGL_NO_DISPLAY};
         EGLImage eglImages[2]{};
 
-        std::atomic_int64_t clockOffset{0};
-
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
 
-        static constexpr uint RENDERQUEUE_MAX_SIZE{8};
+        static constexpr uint RENDERQUEUE_MAX_SIZE{2};
 
         static std::atomic_bool resourcesLoaded;
     };
 }// namespace AVQt
 
 
-#endif//LIBAVQT_VAAPIOPENGLRENDERERIMPL_P_HPP
+#endif//LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP

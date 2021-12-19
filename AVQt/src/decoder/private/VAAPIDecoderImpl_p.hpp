@@ -9,11 +9,13 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 // Created by silas on 12.12.21.
@@ -30,7 +32,7 @@
 
 extern "C" {
 #include <libavcodec/avcodec.h>
-};
+}
 
 namespace AVQt {
     class VAAPIDecoderImplPrivate {
@@ -56,6 +58,7 @@ namespace AVQt {
             VAAPIDecoderImplPrivate *p;
             QQueue<AVFrame *> m_outputQueue;
             QMutex m_mutex;
+//            QWaitCondition m_frameAvailable;
             std::atomic_bool m_stop{false};
         };
 
@@ -69,10 +72,9 @@ namespace AVQt {
 
         FrameFetcher *frameFetcher{nullptr};
 
+//        QWaitCondition frameAvailable;
         QMutex codecMutex;
         std::atomic_bool initialized{false}, firstFrame{true};
-
-        static bool registered;
 
         friend class VAAPIDecoderImpl;
     };

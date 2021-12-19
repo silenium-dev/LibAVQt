@@ -18,22 +18,35 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 23.11.21.
+// Created by silas on 15.12.21.
 //
 
-#include "communication/FilePadParams.hpp"
+#include "renderers/OpenGLFrameMapperFactory.hpp"
+#include "renderers/VAAPIOpenGLRenderMapper.hpp"
 
 namespace AVQt {
-    const boost::uuids::uuid FilePadParams::Type = boost::uuids::string_generator()("e621cc91719179e202870609dba0438e");
-
-    boost::uuids::uuid FilePadParams::getType() const {
-        return Type;
+    OpenGLFrameMapperFactory &OpenGLFrameMapperFactory::getInstance() {
+        static OpenGLFrameMapperFactory instance;
+        return instance;
     }
 
-    boost::json::object FilePadParams::toJSON() const {
-        boost::json::object obj;
-        obj.emplace("type", boost::uuids::hash_value(Type));
-        obj.emplace("data", boost::json::object());
-        return obj;
+    void OpenGLFrameMapperFactory::registerRenderer(const QString &name, const QMetaObject &metaObject) {
+        m_renderers.insert(name, metaObject);
+    }
+
+    void OpenGLFrameMapperFactory::unregisterRenderer(const QString &name) {
+        m_renderers.remove(name);
+    }
+
+    api::IOpenGLFrameMapper *OpenGLFrameMapperFactory::create(const QString &name) {
+        return qobject_cast<api::IOpenGLFrameMapper *>(m_renderers[name].newInstance());
+    }
+
+    void OpenGLFrameMapperFactory::registerDecoder() {
+        static bool registered = false;
+        if (!registered) {
+            registered = true;
+            AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("VAAPIOpenGLRenderMapper", VAAPIOpenGLRenderMapper::staticMetaObject);
+        }
     }
 }// namespace AVQt

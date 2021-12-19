@@ -70,9 +70,9 @@ set(SOURCES
         include/AVQt/decoder/IDecoderOld.hpp
         include/AVQt/encoder/IEncoder.hpp
 
-        include/AVQt/decoder/DecoderQSV.hpp
-        src/decoder/private/DecoderQSV_p.hpp
-        src/decoder/DecoderQSV.cpp
+#        include/AVQt/decoder/DecoderQSV.hpp
+#        src/decoder/private/DecoderQSV_p.hpp
+#        src/decoder/DecoderQSV.cpp
 
         include/AVQt/decoder/AudioDecoder.hpp
         src/decoder/private/AudioDecoder_p.hpp
@@ -87,18 +87,18 @@ set(SOURCES
         src/renderers/private/RenderClock_p.hpp
         src/renderers/RenderClock.cpp
 
-        include/AVQt/renderers/OpenGLRendererOld.hpp
-        src/renderers/private/OpenGLRendererOld_p.hpp
-        src/renderers/private/OpenGLRendererOld_p.cpp
-        src/renderers/OpenGLRendererOld.cpp
+#        include/AVQt/renderers/OpenGLRendererOld.hpp
+#        src/renderers/private/OpenGLRendererOld_p.hpp
+#        src/renderers/private/OpenGLRendererOld_p.cpp
+#        src/renderers/OpenGLRendererOld.cpp
 
         include/AVQt/renderers/OpenALAudioOutput.hpp
         src/renderers/private/OpenALAudioOutput_p.hpp
         src/renderers/OpenALAudioOutput.cpp
 
-        include/AVQt/widgets/OpenGLWidgetRenderer.hpp
-        src/widgets/private/OpenGLWidgetRenderer_p.hpp
-        src/widgets/OpenGLWidgetRenderer.cpp
+#        include/AVQt/widgets/OpenGLWidgetRenderer.hpp
+#        src/widgets/private/OpenGLWidgetRenderer_p.hpp
+#        src/widgets/OpenGLWidgetRenderer.cpp
 
         include/AVQt/output/Muxer.hpp
         src/output/private/Muxer_p.hpp
@@ -120,27 +120,27 @@ set(SOURCES
         include/AVQt/communication/IOutput.hpp
 
         src/communication/VideoPadParams.cpp
-        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLRenderer.cpp include/AVQt/renderers/OpenGLRenderer.hpp src/renderers/OpenGLRendererFactory.cpp include/AVQt/renderers/OpenGLRendererFactory.hpp include/AVQt/renderers/IOpenGLRendererImpl.hpp src/renderers/private/OpenGLRenderer_p.hpp)
+        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLFrameMapperFactory.cpp include/AVQt/renderers/OpenGLFrameMapperFactory.hpp include/AVQt/renderers/IOpenGLFrameMapper.hpp)
 set(SOURCES_LINUX
         include/AVQt/decoder/Decoder.hpp
         src/decoder/private/Decoder_p.hpp
         src/decoder/Decoder.cpp
 
-        include/AVQt/decoder/DecoderMMAL.hpp
-        src/decoder/private/DecoderMMAL_p.hpp
-        src/decoder/DecoderMMAL.cpp
+#        include/AVQt/decoder/DecoderMMAL.hpp
+#        src/decoder/private/DecoderMMAL_p.hpp
+#        src/decoder/DecoderMMAL.cpp
 
         include/AVQt/encoder/EncoderVAAPI.hpp
         src/encoder/private/EncoderVAAPI_p.hpp
         src/encoder/EncoderVAAPI.cpp
 
-        src/renderers/private/unix/OpenGLRenderer_p.cpp
-        src/renderers/unix/OpenGLRendererOld.cpp
+#        src/renderers/private/unix/OpenGLRenderer_p.cpp
+#        src/renderers/unix/OpenGLRendererOld.cpp
 
         include/AVQt/decoder/VAAPIDecoderImpl.hpp
         src/decoder/VAAPIDecoderImpl.cpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
-        src/renderers/VAAPIOpenGLRendererImpl.cpp src/renderers/VAAPIOpenGLRendererImpl.hpp src/renderers/private/VAAPIOpenGLRendererImpl_p.hpp)
+        src/renderers/VAAPIOpenGLRenderMapper.cpp src/renderers/VAAPIOpenGLRenderMapper.hpp src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp)
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp

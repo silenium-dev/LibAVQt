@@ -9,11 +9,13 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 // Created by silas on 12.12.21.
@@ -51,24 +53,21 @@ namespace AVQt {
             d->codecContext = avcodec_alloc_context3(d->codec);
             if (!d->codecContext) {
                 qWarning() << "Could not allocate codec context";
-                d->initialized = false;
+                goto failed;
+            }
+
+            if (0 != av_hwdevice_ctx_create(&d->hwDeviceContext, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0)) {
+                qWarning() << "Could not create VAAPI device context";
                 goto failed;
             }
 
             if (avcodec_parameters_to_context(d->codecContext, d->codecParams) < 0) {
                 qWarning() << "Could not copy codec parameters to context";
-                d->initialized = false;
-                goto failed;
-            }
-
-            if (0 != av_hwdevice_ctx_create(&d->hwDeviceContext, AV_HWDEVICE_TYPE_VAAPI, nullptr, nullptr, 0)) {
-                qWarning() << "Could not create VAAPI device context";
                 goto failed;
             }
 
             d->codecContext->hw_device_ctx = av_buffer_ref(d->hwDeviceContext);
             d->codecContext->get_format = &VAAPIDecoderImplPrivate::getFormat;
-            d->codecContext->pix_fmt = AV_PIX_FMT_VAAPI;
 
             if (avcodec_open2(d->codecContext, d->codec, nullptr) < 0) {
                 qWarning() << "Could not open codec";
@@ -90,6 +89,7 @@ namespace AVQt {
 
     void VAAPIDecoderImpl::close() {
         Q_D(VAAPIDecoderImpl);
+        qDebug() << "Stopping decoder";
 
         d->frameFetcher->stop();
 
@@ -116,11 +116,11 @@ namespace AVQt {
             QMutexLocker locker(&d->codecMutex);
             int ret = avcodec_send_packet(d->codecContext, packet);
             locker.unlock();
-            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
+            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR(ENOMEM)) {
                 return EAGAIN;
             } else if (ret < 0) {
                 char strBuf[256];
-                qWarning() << "Could not send packet to codec" << av_make_error_string(strBuf, sizeof(strBuf), ret);
+                qWarning("Could not send packet to codec: %s", av_make_error_string(strBuf, sizeof(strBuf), ret));
                 return AVUNERROR(ret);
             }
         }
@@ -135,9 +135,6 @@ namespace AVQt {
             qWarning() << "Decoder not initialized";
             return nullptr;
         }
-        if (d->frameFetcher->isEmpty()) {
-            return nullptr;
-        }
         return d->frameFetcher->nextFrame();
     }
 
@@ -148,14 +145,40 @@ namespace AVQt {
     bool VAAPIDecoderImpl::isHWAccel() const {
         return true;
     }
+    AVRational VAAPIDecoderImpl::getTimeBase() const {
+        Q_D(const VAAPIDecoderImpl);
+        if (!d->codecContext) {
+            qWarning() << "Codec context not initialized";
+            return AVRational{0, 1};
+        }
+        return d->codecContext->time_base;
+    }
 
     AVPixelFormat VAAPIDecoderImplPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
-        for (int i = 0; pix_fmts[i] != AV_PIX_FMT_NONE; i++) {
-            if (pix_fmts[i] == AV_PIX_FMT_VAAPI) {
-                return AV_PIX_FMT_VAAPI;
+        Q_UNUSED(ctx)
+        auto *iFmt = pix_fmts;
+        AVPixelFormat result = AV_PIX_FMT_NONE;
+        while (*iFmt != AV_PIX_FMT_NONE) {
+            if (*iFmt == AV_PIX_FMT_VAAPI) {
+                result = *iFmt;
+                break;
             }
+            ++iFmt;
         }
-        return AV_PIX_FMT_NONE;
+
+        //        ctx->hw_frames_ctx = av_hwframe_ctx_alloc(ctx->hw_device_ctx);
+        //        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx->data);
+        //        framesContext->width = ctx->width;
+        //        framesContext->height = ctx->height;
+        //        framesContext->format = result;
+        //        framesContext->sw_format = ctx->sw_pix_fmt;
+        //        framesContext->initial_pool_size = 100;
+        //        int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
+        //        if (ret != 0) {
+        //            char strBuf[64];
+        //            qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
+        //        }
+        return result;
     }
 
     VAAPIDecoderImplPrivate::FrameFetcher::FrameFetcher(VAAPIDecoderImplPrivate *p) : p(p) {
@@ -167,22 +190,26 @@ namespace AVQt {
         constexpr size_t strBufSize = 256;
         char strBuf[strBufSize];
         while (!m_stop) {
+            QMutexLocker locker(&p->codecMutex);
             if (p->firstFrame) {
-                av_usleep(1000);
+                locker.unlock();
+                msleep(2);
                 continue;
             }
             AVFrame *frame = av_frame_alloc();
-            {
-                QMutexLocker locker(&p->codecMutex);
-                ret = avcodec_receive_frame(p->codecContext, frame);
-            }
+            ret = avcodec_receive_frame(p->codecContext, frame);
+            locker.unlock();
             if (ret == 0) {
+                QMutexLocker lock(&m_mutex);
                 m_outputQueue.enqueue(frame);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                av_usleep(1000);
+                locker.unlock();
+                av_frame_free(&frame);
+                msleep(1);
             } else {
+                av_frame_free(&frame);
                 av_strerror(ret, strBuf, strBufSize);
-                qWarning() << "Error while receiving frame: " << strBuf;
+                qWarning() << "Error while receiving frame:" << strBuf;
                 m_stop = true;
                 break;
             }
@@ -195,11 +222,21 @@ namespace AVQt {
             m_stop = true;
             QThread::quit();
             QThread::wait();
+            {
+                QMutexLocker locker(&m_mutex);
+                while (!m_outputQueue.isEmpty()) {
+                    AVFrame *frame = m_outputQueue.dequeue();
+                    av_frame_free(&frame);
+                }
+            }
         }
     }
 
     AVFrame *VAAPIDecoderImplPrivate::FrameFetcher::nextFrame() {
         QMutexLocker lock(&m_mutex);
+        if (m_outputQueue.isEmpty()) {
+            return nullptr;
+        }
         return m_outputQueue.dequeue();
     }
 

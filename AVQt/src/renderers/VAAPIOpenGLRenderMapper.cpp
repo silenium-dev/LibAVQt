@@ -9,18 +9,20 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 // Created by silas on 15.12.21.
 //
 
-#include "VAAPIOpenGLRendererImpl.hpp"
-#include "private/VAAPIOpenGLRendererImpl_p.hpp"
+#include "VAAPIOpenGLRenderMapper.hpp"
+#include "private/VAAPIOpenGLRenderMapper_p.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -89,21 +91,76 @@ static void loadResources() {
 }
 
 namespace AVQt {
-    std::atomic_bool VAAPIOpenGLRendererImplPrivate::resourcesLoaded{false};
+    std::atomic_bool VAAPIOpenGLRenderMapperPrivate::resourcesLoaded{false};
 
-    VAAPIOpenGLRendererImpl::VAAPIOpenGLRendererImpl(QObject *parent)
-        : QObject(parent),
-          d_ptr(new VAAPIOpenGLRendererImplPrivate(this)) {
-        Q_D(VAAPIOpenGLRendererImpl);
+    VAAPIOpenGLRenderMapper::VAAPIOpenGLRenderMapper(QObject *parent)
+        : QThread(parent),
+          d_ptr(new VAAPIOpenGLRenderMapperPrivate(this)) {
+        Q_D(VAAPIOpenGLRenderMapper);
 
         bool shouldBe = false;
-        if (VAAPIOpenGLRendererImplPrivate::resourcesLoaded.compare_exchange_strong(shouldBe, true)) {
+        if (VAAPIOpenGLRenderMapperPrivate::resourcesLoaded.compare_exchange_strong(shouldBe, true)) {
             loadResources();
         }
     }
 
-    void VAAPIOpenGLRendererImpl::initializeGL(QOpenGLContext *context) {
-        Q_D(VAAPIOpenGLRendererImpl);
+    VAAPIOpenGLRenderMapper::~VAAPIOpenGLRenderMapper() {
+        Q_D(VAAPIOpenGLRenderMapper);
+
+        if (d->context) {
+            d->context->makeCurrent(d->surface);
+            d->destroyResources();
+            d->context->doneCurrent();
+            delete d->context;
+            delete d->surface;
+        }
+    }
+
+    void VAAPIOpenGLRenderMapper::start() {
+        Q_D(VAAPIOpenGLRenderMapper);
+        if (isRunning()) {
+            return;
+        }
+        if (d->context->thread() != this) {
+            d->context->moveToThread(this);
+        }
+        QThread::start();
+    }
+
+    void VAAPIOpenGLRenderMapper::stop() {
+        Q_D(VAAPIOpenGLRenderMapper);
+        if (!isRunning()) {
+            return;
+        }
+        QThread::requestInterruption();
+        QThread::quit();
+        QThread::wait();
+        QMutexLocker lock(&d->renderQueueMutex);
+        while (!d->renderQueue.empty()) {
+            auto frame = d->renderQueue.dequeue().result();
+            if (frame) {
+                av_frame_free(&frame);
+            }
+        }
+    }
+
+    void VAAPIOpenGLRenderMapper::initializeGL(QOpenGLContext *context) {
+        Q_D(VAAPIOpenGLRenderMapper);
+
+        d->surface = new QOffscreenSurface();
+        d->surface->setFormat(context->format());
+        d->surface->create();
+
+        d->context = new QOpenGLContext;
+        d->context->setShareContext(context);
+        d->context->setFormat(context->format());
+        d->context->create();
+
+        auto currentContext = QOpenGLContext::currentContext();
+
+        d->context->makeCurrent(d->surface);
+
+        initializeOpenGLFunctions();
 
         initializePlatformAPI();
 
@@ -128,8 +185,8 @@ namespace AVQt {
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
 
-        d->program->bindAttributeLocation("vertex", VAAPIOpenGLRendererImplPrivate::PROGRAM_VERTEX_ATTRIBUTE);
-        d->program->bindAttributeLocation("texCoord", VAAPIOpenGLRendererImplPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
+        d->program->bindAttributeLocation("vertex", VAAPIOpenGLRenderMapperPrivate::PROGRAM_VERTEX_ATTRIBUTE);
+        d->program->bindAttributeLocation("texCoord", VAAPIOpenGLRenderMapperPrivate::PROGRAM_TEXCOORD_ATTRIBUTE);
 
         if (!d->program->link()) {
             qDebug() << "Shader linkers errors:\n"
@@ -141,10 +198,15 @@ namespace AVQt {
         d->program->setUniformValue("textureU", 1);
         d->program->setUniformValue("textureV", 2);
         d->program->release();
+
+        d->context->doneCurrent();
+        if (currentContext) {
+            currentContext->makeCurrent(currentContext->surface());
+        }
     }
 
-    void VAAPIOpenGLRendererImpl::initializePlatformAPI() {
-        Q_D(VAAPIOpenGLRendererImpl);
+    void VAAPIOpenGLRenderMapper::initializePlatformAPI() {
+        Q_D(VAAPIOpenGLRenderMapper);
         EGLint visual_attr[] = {
                 EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
                 EGL_RED_SIZE, 8,
@@ -173,8 +235,8 @@ namespace AVQt {
         qDebug("EGL Version: %s", eglQueryString(d->eglDisplay, EGL_VERSION));
     }
 
-    void VAAPIOpenGLRendererImpl::initializeInterop() {
-        Q_D(VAAPIOpenGLRendererImpl);
+    void VAAPIOpenGLRenderMapper::initializeInterop() {
+        Q_D(VAAPIOpenGLRenderMapper);
         // Frame has 64 pixel alignment, set max height coord to cut off additional pixels
         float maxTexHeight = 1.0f;
 
@@ -276,8 +338,8 @@ namespace AVQt {
         }
     }
 
-    void VAAPIOpenGLRendererImpl::mapFrame() {
-        Q_D(VAAPIOpenGLRendererImpl);
+    void VAAPIOpenGLRenderMapper::mapFrame() {
+        Q_D(VAAPIOpenGLRenderMapper);
         LOOKUP_FUNCTION(PFNEGLCREATEIMAGEKHRPROC, eglCreateImageKHR)
         LOOKUP_FUNCTION(PFNEGLDESTROYIMAGEKHRPROC, eglDestroyImageKHR)
         LOOKUP_FUNCTION(PFNGLEGLIMAGETARGETTEXTURE2DOESPROC, glEGLImageTargetTexture2DOES)
@@ -460,67 +522,48 @@ namespace AVQt {
         }
     }
 
-    void VAAPIOpenGLRendererImpl::enqueue(AVFrame *frame) {
-        Q_D(VAAPIOpenGLRendererImpl);
+    void VAAPIOpenGLRenderMapper::enqueueFrame(AVFrame *frame) {
+        Q_D(VAAPIOpenGLRenderMapper);
         if (frame->hw_frames_ctx) {
             auto *framesContext = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
             if (framesContext->format != AV_PIX_FMT_VAAPI) {
-                qFatal("[VAAPIOpenGLRendererImpl] Invalid frame format");
+                qFatal("[VAAPIOpenGLRenderMapper] Invalid frame format");
             }
             if (framesContext->sw_format != AV_PIX_FMT_NV12 && framesContext->sw_format != AV_PIX_FMT_P010 && framesContext->sw_format != AV_PIX_FMT_BGRA) {
-                qFatal("[VAAPIOpenGLRendererImpl] Invalid frame sw format");
+                qFatal("[VAAPIOpenGLRenderMapper] Invalid frame sw format");
             }
-            {
-                QMutexLocker locker(&d->renderQueueMutex);
-                while (true) {
-                    locker.relock();
-                    if (d->renderQueue.size() > VAAPIOpenGLRendererImplPrivate::RENDERQUEUE_MAX_SIZE) {
-                        locker.unlock();
-                        QThread::msleep(1);
-                        continue;
-                    } else {
-                        d->renderQueue.enqueue(QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {
-                            bool shouldBe = true;
-                            if (d->firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
-                                d->pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-                                d->vaDisplay = d->pVAContext->display;
-                            }
-                            return input;
-                        },
-                                                                 av_frame_clone(frame), av_buffer_ref(framesContext->device_ref)));
-                        break;
-                    }
+            auto queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {
+                bool shouldBe = true;
+                if (d->firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
+                    d->pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+                    d->vaDisplay = d->pVAContext->display;
                 }
+                return input;
+            },
+                                                av_frame_clone(frame), av_buffer_ref(framesContext->device_ref));
+
+            QMutexLocker locker(&d->renderQueueMutex);
+            while (d->renderQueue.size() > VAAPIOpenGLRenderMapperPrivate::RENDERQUEUE_MAX_SIZE) {
+                locker.unlock();
+                msleep(2);
+                locker.relock();
             }
+            d->renderQueue.enqueue(queueFrame);
         }
+        av_frame_free(&frame);
     }
+    void VAAPIOpenGLRenderMapper::run() {
+        Q_D(VAAPIOpenGLRenderMapper);
 
-    void VAAPIOpenGLRendererImpl::update() {
-        Q_D(VAAPIOpenGLRendererImpl);
-
-        if (isUpdateRequired()) {
-            d->updateRequired.store(true);
-            d->updateTimestamp.store(d->getTimestamp());
-        }
-        bool shouldBe = true;
-        QMutexLocker locker(&d->renderQueueMutex);
-        if (d->updateRequired.compare_exchange_strong(shouldBe, false) && d->renderQueue.size() >= 2) {
+        while (!isInterruptionRequested()) {
+            QMutexLocker locker(&d->renderQueueMutex);
+            if (d->renderQueue.isEmpty()) {
+                locker.unlock();
+                msleep(2);
+                continue;
+            }
             auto frame = d->renderQueue.dequeue().result();
             locker.unlock();
-            while (!d->renderQueue.isEmpty()) {
-                if (frame->pts <= d->updateTimestamp.load()) {
-                    if (d->renderQueue.first().result()->pts >= d->updateTimestamp.load() || d->renderQueue.size() == 1) {
-                        break;
-                    } else {
-                        qDebug("Discarding video frame at PTS: %ld < PTS: %lld", frame->pts, d->updateTimestamp.load());
-                        frameDropped(frame->pts);
-                        av_frame_free(&frame);
-                    }
-                }
-                locker.relock();
-                frame = d->renderQueue.dequeue().result();
-                locker.unlock();
-            }
 
             bool firstFrame;
 
@@ -534,9 +577,8 @@ namespace AVQt {
                 d->currentFrame = frame;
             }
 
+            d->context->makeCurrent(d->surface);
             if (firstFrame) {
-                d->renderTimer.invalidate();
-                d->renderTimer.start();
                 initializeInterop();
                 auto format = reinterpret_cast<AVHWFramesContext *>(d->currentFrame->hw_frames_ctx->data)->sw_format;
                 if (format == AV_PIX_FMT_NV12 || format == AV_PIX_FMT_P010) {
@@ -548,67 +590,41 @@ namespace AVQt {
             }
             mapFrame();
             qDebug("Mapped frame");
-            frameReady(frame->pts, d->textures);
+
+            std::shared_ptr<QOpenGLFramebufferObject> fbo = std::make_shared<QOpenGLFramebufferObject>(d->currentFrame->width, d->currentFrame->height, QOpenGLFramebufferObject::CombinedDepthStencil);
+            fbo->bind();
+            glViewport(0, 0, d->currentFrame->width, d->currentFrame->height);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            d->bindResources();
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+            d->releaseResources();
+            QOpenGLFramebufferObject::bindDefault();
+            d->context->doneCurrent();
+            emit frameReady(frame->pts, std::move(fbo));
+            qDebug("Frame ready");
         }
     }
 
-    bool VAAPIOpenGLRendererImpl::isUpdateRequired() {
-        Q_D(AVQt::VAAPIOpenGLRendererImpl);
-        if (!d->renderQueue.isEmpty()) {
-            auto timestamp = d->renderTimer.nsecsElapsed() / 1000;
-            if (timestamp >= d->renderQueue.first().result()->pts) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool VAAPIOpenGLRendererImpl::isInitialized() const {
-        Q_D(const AVQt::VAAPIOpenGLRendererImpl);
-        return !d->firstFrame;
-    }
-
-    void VAAPIOpenGLRendererImpl::pause(bool state) {
-        Q_D(VAAPIOpenGLRendererImpl);
-        d->clockOffset = d->renderTimer.nsecsElapsed() / 1000;
-        d->renderTimer.invalidate();
-    }
-
-    bool VAAPIOpenGLRendererImpl::isPaused() const {
-        Q_D(const VAAPIOpenGLRendererImpl);
-        return !d->renderTimer.isValid();
-    }
-
-    void VAAPIOpenGLRendererImpl::paintGL() {
-        glClearColor(.0f, .0f, .0f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        bindResources();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        releaseResources();
-        glFinish();
-    }
-
-    void VAAPIOpenGLRendererImpl::bindResources() {
-        Q_D(VAAPIOpenGLRendererImpl);
-        d->program->bind();
-        auto frameContext = reinterpret_cast<AVHWFramesContext *>(d->currentFrame->hw_frames_ctx->data);
+    void VAAPIOpenGLRenderMapperPrivate::bindResources() {
+        program->bind();
+        auto frameContext = reinterpret_cast<AVHWFramesContext *>(currentFrame->hw_frames_ctx->data);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, d->textures[0]);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
         if (frameContext->sw_format == AV_PIX_FMT_NV12 || frameContext->sw_format == AV_PIX_FMT_P010) {
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, d->textures[1]);
+            glBindTexture(GL_TEXTURE_2D, textures[1]);
         }
 
-        d->vao.bind();
-        d->ibo.bind();
+        vao.bind();
+        ibo.bind();
     }
 
-    void VAAPIOpenGLRendererImpl::releaseResources() {
-        Q_D(VAAPIOpenGLRendererImpl);
-        d->vao.release();
-        d->vbo.release();
-        d->program->release();
-        auto frameContext = reinterpret_cast<AVHWFramesContext *>(d->currentFrame->hw_frames_ctx->data);
+    void VAAPIOpenGLRenderMapperPrivate::releaseResources() {
+        vao.release();
+        vbo.release();
+        program->release();
+        auto frameContext = reinterpret_cast<AVHWFramesContext *>(currentFrame->hw_frames_ctx->data);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
         if (frameContext->sw_format == AV_PIX_FMT_NV12 || frameContext->sw_format == AV_PIX_FMT_P010) {
@@ -617,45 +633,40 @@ namespace AVQt {
         }
     }
 
-    void VAAPIOpenGLRendererImpl::destroyResources() {
-        Q_D(VAAPIOpenGLRendererImpl);
-        if (d->currentFrame) {
-            av_frame_free(&d->currentFrame);
+    void VAAPIOpenGLRenderMapperPrivate::destroyResources() {
+        if (currentFrame) {
+            av_frame_free(&currentFrame);
         }
 
-        if (!d->renderQueue.isEmpty()) {
-            QMutexLocker lock(&d->renderQueueMutex);
+        if (!renderQueue.isEmpty()) {
+            QMutexLocker lock(&renderQueueMutex);
 
-            for (auto &e : d->renderQueue) {
+            for (auto &e : renderQueue) {
                 e.waitForFinished();
                 av_frame_unref(e.result());
             }
 
-            d->renderQueue.clear();
+            renderQueue.clear();
         }
-        delete d->program;
-        d->program = nullptr;
+        delete program;
+        program = nullptr;
 
-        if (d->ibo.isCreated()) {
-            d->ibo.destroy();
+        if (ibo.isCreated()) {
+            ibo.destroy();
         }
-        if (d->vbo.isCreated()) {
-            d->vbo.destroy();
+        if (vbo.isCreated()) {
+            vbo.destroy();
         }
-        if (d->vao.isCreated()) {
-            d->vao.destroy();
+        if (vao.isCreated()) {
+            vao.destroy();
         }
 
-        if (d->eglImages[0]) {
-            for (auto &EGLImage : d->eglImages) {
+        if (eglImages[0]) {
+            for (auto &EGLImage : eglImages) {
                 if (EGLImage != nullptr) {
-                    eglDestroyImage(d->eglDisplay, EGLImage);
+                    eglDestroyImage(eglDisplay, EGLImage);
                 }
             }
         }
-    }
-
-    int64_t VAAPIOpenGLRendererImplPrivate::getTimestamp() {
-        return renderTimer.nsecsElapsed() / 1000 + clockOffset;
     }
 }// namespace AVQt

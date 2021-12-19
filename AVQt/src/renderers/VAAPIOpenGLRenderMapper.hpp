@@ -18,26 +18,44 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 23.11.21.
+// Created by silas on 15.12.21.
 //
 
-#ifndef LIBAVQT_FILEPADPARAMS_HPP
-#define LIBAVQT_FILEPADPARAMS_HPP
+#ifndef LIBAVQT_VAAPIOPENGLRENDERMAPPER_HPP
+#define LIBAVQT_VAAPIOPENGLRENDERMAPPER_HPP
 
-#include <boost/uuid/uuid.hpp>
-#include <pgraph/api/PadUserData.hpp>
+#include "include/AVQt/renderers/IOpenGLFrameMapper.hpp"
+
+#include <QObject>
+#include <QOpenGLContext>
 
 namespace AVQt {
-    class FilePadParams : public pgraph::api::PadUserData {
+    class VAAPIOpenGLRenderMapperPrivate;
+    class VAAPIOpenGLRenderMapper : public QThread, public api::IOpenGLFrameMapper, protected QOpenGLFunctions {
+        Q_OBJECT
+        Q_DECLARE_PRIVATE(VAAPIOpenGLRenderMapper)
+        Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
     public:
-        ~FilePadParams() override = default;
+        Q_INVOKABLE explicit VAAPIOpenGLRenderMapper(QObject *parent = nullptr);
+        ~VAAPIOpenGLRenderMapper() override;
 
-        boost::uuids::uuid getType() const override;
-        boost::json::object toJSON() const override;
+        void initializeGL(QOpenGLContext *shareContext) override;
+        void enqueueFrame(AVFrame *frame) override;
 
-        const static boost::uuids::uuid Type;
+        void start() override;
+        void stop() override;
+    signals:
+        void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;
+
+    protected:
+        void run() override;
+    private:
+        void initializePlatformAPI();
+        void initializeInterop();
+        void mapFrame();
+        VAAPIOpenGLRenderMapperPrivate *d_ptr;
     };
 }// namespace AVQt
 
 
-#endif//LIBAVQT_FILEPADPARAMS_HPP
+#endif//LIBAVQT_VAAPIOPENGLRENDERMAPPER_HPP

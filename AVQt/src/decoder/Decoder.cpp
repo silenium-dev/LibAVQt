@@ -9,11 +9,13 @@
 // The above copyright notice and this permission notice shall be included in all copies or
 // substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,INCLUDING
-// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BELIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORTOR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OROTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "decoder/Decoder.hpp"
 #include "communication/Message.hpp"
@@ -43,7 +45,6 @@ namespace AVQt {
           pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
           d_ptr(new DecoderPrivate(this)) {
         Q_D(Decoder);
-        d->padRegistry = std::move(padRegistry);
         d->impl = DecoderFactory::getInstance().create(decoderName);
         if (!d->impl) {
             qFatal("Decoder %s not found", qPrintable(decoderName));
@@ -221,6 +222,13 @@ namespace AVQt {
             produce(Message::builder().withAction(Message::Action::STOP).build(), d->outputPadId);
             QThread::quit();
             QThread::wait();
+            {
+                QMutexLocker locker(&d->inputQueueMutex);
+                while (!d->inputQueue.empty()) {
+                    auto packet = d->inputQueue.dequeue();
+                    av_packet_free(&packet);
+                }
+            }
             stopped();
             return;
         }
@@ -242,7 +250,6 @@ namespace AVQt {
         while (d->running) {
             QMutexLocker lock(&d->inputQueueMutex);
             if (d->paused || d->inputQueue.isEmpty()) {
-                lock.unlock();
                 msleep(1);
                 continue;
             }
@@ -256,6 +263,9 @@ namespace AVQt {
             } else if (ret != EXIT_SUCCESS) {
                 char strBuf[256];
                 qWarning() << "Decoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
+                av_packet_free(&packet);
+            } else {
+                av_packet_free(&packet);
             }
             AVFrame *frame;
             while ((frame = d->impl->nextFrame())) {
@@ -269,31 +279,5 @@ namespace AVQt {
     void DecoderPrivate::enqueueData(AVPacket *&packet) {
         QMutexLocker lock(&inputQueueMutex);
         inputQueue.enqueue(av_packet_clone(packet));
-    }
-
-    AVPixelFormat DecoderPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
-        auto *iFmt = pix_fmts;
-        AVPixelFormat result = AV_PIX_FMT_NONE;
-        while (*iFmt != AV_PIX_FMT_NONE) {
-            if (*iFmt == AV_PIX_FMT_VAAPI) {
-                result = *iFmt;
-                break;
-            }
-            ++iFmt;
-        }
-
-        ctx->hw_frames_ctx = av_hwframe_ctx_alloc(ctx->hw_device_ctx);
-        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx->data);
-        framesContext->width = ctx->width;
-        framesContext->height = ctx->height;
-        framesContext->format = result;
-        framesContext->sw_format = ctx->sw_pix_fmt;
-        framesContext->initial_pool_size = 100;
-        int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
-        if (ret != 0) {
-            char strBuf[64];
-            qFatal("[AVQt::Decoder] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
-        }
-        return result;
     }
 }// namespace AVQt

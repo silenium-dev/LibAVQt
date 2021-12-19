@@ -4,6 +4,7 @@ project(LibAVQt)
 include(CheckIncludeFileCXX)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_PREFIX_PATH /data/Qt/6.1.3/gcc_64)
 
 if (WIN32)
     if (NOT DEFINED ${OPENAL_INCLUDE_DIR})

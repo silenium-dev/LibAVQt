@@ -17,28 +17,42 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef LIBAVQT_GLOBAL_H
-#define LIBAVQT_GLOBAL_H
+//
+// Created by silas on 18.12.21.
+//
 
-#include <qglobal.h>
-#include <QMetaType>
-#include <pgraph/impl/SimpleProducer.hpp>
+#ifndef LIBAVQT_FRAMESAVERACCELERATED_HPP
+#define LIBAVQT_FRAMESAVERACCELERATED_HPP
+
 #include <pgraph/impl/SimpleConsumer.hpp>
+#include "renderers/OpenGLFrameMapperFactory.hpp"
+#include "renderers/IOpenGLFrameMapper.hpp"
+#include "pgraph_network/api/PadRegistry.hpp"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+#include <QtOpenGL>
 
-#ifdef AVQT_LIBRARY_BUILD
-#define AVQT_DEPRECATED
-#else
-#define AVQT_DEPRECATED Q_DECL_DEPRECATED
-#endif
+class FrameSaverAccelerated : public QObject, public pgraph::impl::SimpleConsumer, protected QOpenGLFunctions {
+    Q_OBJECT
+public:
+    explicit FrameSaverAccelerated(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
+    ~FrameSaverAccelerated() override;
 
-Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
-Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
-Q_DECLARE_METATYPE(AVCodecParameters *)
-Q_DECLARE_METATYPE(AVPacket *)
-Q_DECLARE_METATYPE(AVFrame *)
+    void init();
 
-#endif//LIBAVQT_GLOBAL_H
+    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+
+protected slots:
+    void onFrameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo);
+
+private:
+    std::unique_ptr<AVQt::api::IOpenGLFrameMapper> mapper;
+    QOffscreenSurface *surface;
+    QMutex contextMutex;
+    QOpenGLContext *context;
+    std::atomic_uint64_t frameCounter{0};
+    uint32_t outputPadId{};
+};
+Q_DECLARE_METATYPE(std::shared_ptr<QOpenGLFramebufferObject>)
+
+
+#endif//LIBAVQT_FRAMESAVERACCELERATED_HPP
