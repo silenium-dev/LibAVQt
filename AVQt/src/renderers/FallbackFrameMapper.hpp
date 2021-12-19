@@ -17,32 +17,42 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef LIBAVQT_GLOBAL_H
-#define LIBAVQT_GLOBAL_H
+//
+// Created by silas on 19.12.21.
+//
 
-#include <QMetaType>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph/impl/SimpleProducer.hpp>
-#include <qglobal.h>
+#ifndef LIBAVQT_FALLBACKFRAMEMAPPER_HPP
+#define LIBAVQT_FALLBACKFRAMEMAPPER_HPP
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-
-#ifdef AVQT_LIBRARY_BUILD
-#define AVQT_DEPRECATED
-#else
-#define AVQT_DEPRECATED Q_DECL_DEPRECATED
-#endif
+#include "renderers/IOpenGLFrameMapper.hpp"
 
 namespace AVQt {
-    void loadResources();
+    class FallbackFrameMapperPrivate;
+    class FallbackFrameMapper : public QThread, public api::IOpenGLFrameMapper, protected QOpenGLFunctions {
+        Q_OBJECT
+        Q_DECLARE_PRIVATE(FallbackFrameMapper)
+        Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
+    public:
+        Q_INVOKABLE explicit FallbackFrameMapper(QObject *parent = nullptr);
+        ~FallbackFrameMapper() override;
+
+        void initializeGL(QOpenGLContext *context) override;
+
+        void start() override;
+        void stop() override;
+
+        void enqueueFrame(AVFrame *frame) override;
+
+    signals:
+        void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;
+
+    protected:
+        void run() override;
+
+    private:
+        FallbackFrameMapperPrivate *d_ptr;
+    };
 }// namespace AVQt
 
-Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
-Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
-Q_DECLARE_METATYPE(AVCodecParameters *)
-Q_DECLARE_METATYPE(AVPacket *)
-Q_DECLARE_METATYPE(AVFrame *)
 
-#endif//LIBAVQT_GLOBAL_H
+#endif//LIBAVQT_FALLBACKFRAMEMAPPER_HPP

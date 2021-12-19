@@ -17,32 +17,22 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef LIBAVQT_GLOBAL_H
-#define LIBAVQT_GLOBAL_H
+//
+// Created by silas on 19.12.21.
+//
 
-#include <QMetaType>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph/impl/SimpleProducer.hpp>
-#include <qglobal.h>
+#include "global.hpp"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
+void load_resources_impl() {
+    Q_INIT_RESOURCE(AVQtShader);
 }
 
-#ifdef AVQT_LIBRARY_BUILD
-#define AVQT_DEPRECATED
-#else
-#define AVQT_DEPRECATED Q_DECL_DEPRECATED
-#endif
-
 namespace AVQt {
-    void loadResources();
+    void loadResources() {
+        static std::atomic_bool loaded{false};
+        bool shouldBe = false;
+        if (loaded.compare_exchange_strong(shouldBe, true)) {
+            load_resources_impl();
+        }
+    }
 }// namespace AVQt
-
-Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
-Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
-Q_DECLARE_METATYPE(AVCodecParameters *)
-Q_DECLARE_METATYPE(AVPacket *)
-Q_DECLARE_METATYPE(AVFrame *)
-
-#endif//LIBAVQT_GLOBAL_H

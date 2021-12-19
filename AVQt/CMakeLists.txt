@@ -120,7 +120,7 @@ set(SOURCES
         include/AVQt/communication/IOutput.hpp
 
         src/communication/VideoPadParams.cpp
-        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLFrameMapperFactory.cpp include/AVQt/renderers/OpenGLFrameMapperFactory.hpp include/AVQt/renderers/IOpenGLFrameMapper.hpp)
+        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLFrameMapperFactory.cpp include/AVQt/renderers/OpenGLFrameMapperFactory.hpp include/AVQt/renderers/IOpenGLFrameMapper.hpp src/renderers/FallbackFrameMapper.cpp src/renderers/FallbackFrameMapper.hpp src/renderers/private/FallbackFrameMapper_p.hpp global.cpp)
 set(SOURCES_LINUX
         include/AVQt/decoder/Decoder.hpp
         src/decoder/private/Decoder_p.hpp

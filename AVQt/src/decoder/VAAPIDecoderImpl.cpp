@@ -209,7 +209,7 @@ namespace AVQt {
             } else {
                 av_frame_free(&frame);
                 av_strerror(ret, strBuf, strBufSize);
-                qWarning() << "Error while receiving frame:" << strBuf;
+                qFatal("Error while receiving frame: %s", strBuf);
                 m_stop = true;
                 break;
             }

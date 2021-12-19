@@ -23,6 +23,7 @@
 
 #include "VAAPIOpenGLRenderMapper.hpp"
 #include "private/VAAPIOpenGLRenderMapper_p.hpp"
+#include "global.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -86,22 +87,14 @@ std::string eglErrorString(EGLint error) {
     }
 }
 
-static void loadResources() {
-    Q_INIT_RESOURCE(AVQtShader);
-}
-
 namespace AVQt {
-    std::atomic_bool VAAPIOpenGLRenderMapperPrivate::resourcesLoaded{false};
 
     VAAPIOpenGLRenderMapper::VAAPIOpenGLRenderMapper(QObject *parent)
         : QThread(parent),
           d_ptr(new VAAPIOpenGLRenderMapperPrivate(this)) {
         Q_D(VAAPIOpenGLRenderMapper);
 
-        bool shouldBe = false;
-        if (VAAPIOpenGLRenderMapperPrivate::resourcesLoaded.compare_exchange_strong(shouldBe, true)) {
-            loadResources();
-        }
+        loadResources();
     }
 
     VAAPIOpenGLRenderMapper::~VAAPIOpenGLRenderMapper() {
@@ -601,7 +594,7 @@ namespace AVQt {
             d->releaseResources();
             QOpenGLFramebufferObject::bindDefault();
             d->context->doneCurrent();
-            emit frameReady(frame->pts, std::move(fbo));
+            emit frameReady(d->currentFrame->pts, std::move(fbo));
             qDebug("Frame ready");
         }
     }

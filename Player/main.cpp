@@ -88,6 +88,8 @@ int main(int argc, char *argv[]) {
 #ifdef QT_DEBUG
     av_log_set_level(AV_LOG_DEBUG);
     av_log_set_flags(AV_LOG_SKIP_REPEATED);
+#else
+    av_log_set_level(AV_LOG_WARNING);
 #endif
     //    signal(SIGQUIT, &signalHandler);
 

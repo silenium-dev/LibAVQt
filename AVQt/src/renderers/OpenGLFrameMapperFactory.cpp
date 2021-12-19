@@ -22,6 +22,7 @@
 //
 
 #include "renderers/OpenGLFrameMapperFactory.hpp"
+#include "renderers/FallbackFrameMapper.hpp"
 #include "renderers/VAAPIOpenGLRenderMapper.hpp"
 
 namespace AVQt {
@@ -47,6 +48,7 @@ namespace AVQt {
         if (!registered) {
             registered = true;
             AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("VAAPIOpenGLRenderMapper", VAAPIOpenGLRenderMapper::staticMetaObject);
+            AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("FallbackMapper", FallbackFrameMapper::staticMetaObject);
         }
     }
 }// namespace AVQt
