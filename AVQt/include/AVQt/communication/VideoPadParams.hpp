@@ -27,6 +27,7 @@
 
 #include "pgraph/api/PadUserData.hpp"
 #include <QSize>
+#include <QObject>
 
 extern "C" {
 #include <libavutil/pixfmt.h>
@@ -35,6 +36,10 @@ extern "C" {
 namespace AVQt {
     class VideoPadParams : public pgraph::api::PadUserData {
     public:
+        explicit VideoPadParams() = default;
+        VideoPadParams(const VideoPadParams &other);
+        VideoPadParams &operator=(const VideoPadParams &other);
+
         ~VideoPadParams() override = default;
         boost::uuids::uuid getType() const override;
         boost::json::object toJSON() const override;
@@ -46,10 +51,9 @@ namespace AVQt {
         static const boost::uuids::uuid Type;
 
         QSize frameSize;
-        AVPixelFormat pixelFormat;
+        AVPixelFormat pixelFormat, swPixelFormat = AV_PIX_FMT_NONE;
         bool isHWAccel = false;
     };
 }// namespace AVQt
-
 
 #endif//LIBAVQT_VIDEOPADPARAMS_HPP

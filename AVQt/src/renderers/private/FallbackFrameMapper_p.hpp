@@ -49,6 +49,7 @@ namespace AVQt {
 
         FallbackFrameMapper *q_ptr;
 
+        QMutex renderMutex;
         QOffscreenSurface *surface{nullptr};
         QOpenGLContext *context{nullptr};
         QOpenGLTexture *texture{nullptr};
@@ -60,7 +61,7 @@ namespace AVQt {
 
         SwsContext *pSwsContext{nullptr};
 
-        std::atomic_bool paused{false}, firstFrame{true};
+        std::atomic_bool paused{false}, firstFrame{true}, running{false};
 
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};

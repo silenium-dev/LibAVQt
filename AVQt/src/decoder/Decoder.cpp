@@ -138,9 +138,10 @@ namespace AVQt {
 
             d->outputPadParams->frameSize = QSize(d->pCodecParams->width, d->pCodecParams->height);
             d->outputPadParams->pixelFormat = static_cast<AVPixelFormat>(d->impl->getOutputFormat());
+            d->outputPadParams->swPixelFormat = static_cast<AVPixelFormat>(d->pCodecParams->format);
             d->outputPadParams->isHWAccel = d->impl->isHWAccel();
 
-            produce(Message::builder().withAction(Message::Action::INIT).build(), d->outputPadId);
+            produce(Message::builder().withAction(Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(*d->outputPadParams)).build(), d->outputPadId);
 
             return true;
         } else {

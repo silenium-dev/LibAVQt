@@ -140,7 +140,7 @@ set(SOURCES_LINUX
         include/AVQt/decoder/VAAPIDecoderImpl.hpp
         src/decoder/VAAPIDecoderImpl.cpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
-        src/renderers/VAAPIOpenGLRenderMapper.cpp src/renderers/VAAPIOpenGLRenderMapper.hpp src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp)
+        src/renderers/VAAPIOpenGLRenderMapper.cpp src/renderers/VAAPIOpenGLRenderMapper.hpp src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp src/filter/VaapiYuvToRgbMapper.cpp include/AVQt/filter/VaapiYuvToRgbMapper.hpp src/filter/private/VaapiYuvToRgbMapper_p.hpp)
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp

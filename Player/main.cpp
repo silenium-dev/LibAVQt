@@ -122,12 +122,14 @@ int main(int argc, char *argv[]) {
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
     auto decoder = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
     auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
     auto cc = std::make_shared<CommandConsumer>(registry);
     auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     demuxer->init();
     decoder->init();
+    yuvrgbconverter->init();
     frameSaver->init();
     cc->init();
     cc2->init();
@@ -141,11 +143,14 @@ int main(int argc, char *argv[]) {
     auto cc2InPad = cc2->getInputPads().begin()->second;
     auto decoderInPad = decoder->getInputPads().begin()->second;
     auto decoderOutPad = decoder->getOutputPads().begin()->second;
+    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
+    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
     auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
 //    ccInPad->link(demuxerOutPad);
 //    cc2InPad->link(decoderOutPad);
     decoderInPad->link(demuxerOutPad);
-    decoderOutPad->link(frameSaverInPad);
+    decoderOutPad->link(yuvrgbconverterInPad);
+    yuvrgbconverterOutPad->link(frameSaverInPad);
 
     demuxer->open();
     demuxer->start();

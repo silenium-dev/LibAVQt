@@ -27,6 +27,12 @@
 namespace AVQt {
     const boost::uuids::uuid VideoPadParams::Type = boost::uuids::string_generator()("{1e8b93086ba59290a4ce4fec5b85bd80}");
 
+    VideoPadParams::VideoPadParams(const VideoPadParams &other) {
+        frameSize = other.frameSize;
+        pixelFormat = other.pixelFormat;
+        isHWAccel = other.isHWAccel;
+    }
+
     boost::uuids::uuid VideoPadParams::getType() const {
         return Type;
     }
@@ -37,5 +43,12 @@ namespace AVQt {
 
     boost::json::object VideoPadParams::toJSON() const {
         return PadUserData::toJSON();
+    }
+
+    VideoPadParams &VideoPadParams::operator=(const VideoPadParams &other) {
+        frameSize = other.frameSize;
+        pixelFormat = other.pixelFormat;
+        isHWAccel = other.isHWAccel;
+        return *this;
     }
 }// namespace AVQt

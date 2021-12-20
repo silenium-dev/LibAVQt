@@ -41,6 +41,8 @@ namespace AVQt {
     FallbackFrameMapper::~FallbackFrameMapper() {
         Q_D(FallbackFrameMapper);
 
+        FallbackFrameMapper::stop();
+
         d->context->makeCurrent(d->surface);
         d->destroyResources();
         d->context->doneCurrent();
@@ -175,7 +177,11 @@ namespace AVQt {
             return;
         }
 
-        QThread::start();
+        bool shouldBe = false;
+        if (d->running.compare_exchange_strong(shouldBe, true)) {
+            d->firstFrame = true;
+            QThread::start();
+        }
     }
 
     void FallbackFrameMapper::stop() {
@@ -185,15 +191,21 @@ namespace AVQt {
             return;
         }
 
-        requestInterruption();
-        quit();
-        wait();
-        {
-            QMutexLocker locker(&d->renderQueueMutex);
-            while (!d->renderQueue.isEmpty()) {
-                auto frame = d->renderQueue.dequeue();
-                av_frame_free(&frame);
+        QMutexLocker lock(&d->renderMutex);
+        bool shouldBe = true;
+        if (d->running.compare_exchange_strong(shouldBe, false)) {
+            lock.unlock();
+            QThread::quit();
+            QThread::wait();
+            {
+                QMutexLocker locker(&d->renderQueueMutex);
+                while (!d->renderQueue.isEmpty()) {
+                    auto frame = d->renderQueue.dequeue();
+                    av_frame_free(&frame);
+                }
             }
+        } else {
+            qWarning() << "Not running";
         }
     }
 
@@ -215,7 +227,7 @@ namespace AVQt {
     void FallbackFrameMapper::run() {
         Q_D(FallbackFrameMapper);
 
-        while (!isInterruptionRequested()) {
+        while (d->running) {
             if (d->renderQueue.isEmpty()) {
                 msleep(2);
                 continue;
@@ -224,6 +236,12 @@ namespace AVQt {
             auto hwFrame = d->renderQueue.dequeue();
             if (!hwFrame) {
                 continue;
+            }
+
+            QMutexLocker renderLock(&d->renderMutex);
+            if (!d->running) {
+                av_frame_free(&hwFrame);
+                break;
             }
 
             AVFrame *swFrame;
@@ -343,6 +361,7 @@ namespace AVQt {
 
             fbo->release();
             d->context->doneCurrent();
+            renderLock.unlock();
             emit frameReady(frame->pts, std::move(fbo));
             qDebug("Frame ready");
             av_frame_free(&frame);

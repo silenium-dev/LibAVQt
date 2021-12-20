@@ -40,6 +40,7 @@
 #include "include/AVQt/decoder/DecoderMMAL.hpp"
 #include "include/AVQt/decoder/Decoder.hpp"
 #include "include/AVQt/encoder/EncoderVAAPI.hpp"
+#include "include/AVQt/filter/VaapiYuvToRgbMapper.hpp"
 
 #elif defined(Q_OS_WIN)
 
