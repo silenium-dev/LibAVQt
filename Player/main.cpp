@@ -54,9 +54,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-//#ifndef QT_DEBUG
-//    if (type > QtMsgType::QtDebugMsg)
-//#endif
+#ifndef QT_DEBUG
+    if (type > QtMsgType::QtDebugMsg)
+#endif
     {
         QString output;
         QTextStream os(&output);

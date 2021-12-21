@@ -22,9 +22,9 @@
 //
 
 #include "include/AVQt/filter/VaapiYuvToRgbMapper.hpp"
-#include "global.hpp"
 #include "communication/Message.hpp"
 #include "communication/VideoPadParams.hpp"
+#include "global.hpp"
 #include "private/VaapiYuvToRgbMapper_p.hpp"
 
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
@@ -107,6 +107,12 @@ namespace AVQt {
     bool VaapiYuvToRgbMapper::open() {
         Q_D(VaapiYuvToRgbMapper);
 
+
+        if (!d->initialized) {
+            qWarning("Not initialized");
+            return false;
+        }
+
         bool shouldBe = false;
         if (d->open.compare_exchange_strong(shouldBe, true)) {
             d->pFilterGraph = avfilter_graph_alloc();
@@ -115,6 +121,7 @@ namespace AVQt {
             d->outputPadParams->swPixelFormat = AV_PIX_FMT_BGRA;
             d->outputPadParams->pixelFormat = AV_PIX_FMT_VAAPI;
             d->outputPadParams->isHWAccel = true;
+            produce(Message::builder().withAction(Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(d->outputPadParams)).build(), d->outputPadId);
             return true;
         } else {
             qWarning("Already initialized");
@@ -124,33 +131,34 @@ namespace AVQt {
     void VaapiYuvToRgbMapper::close() {
         Q_D(VaapiYuvToRgbMapper);
 
-        if (!d->initialized) {
-            qWarning("Not initialized");
-            return;
+        if (d->running) {
+            stop();
         }
+        bool shouldBe = true;
+        if (d->open.compare_exchange_strong(shouldBe, false)) {
+            auto outputHWFramesCtx = d->pOutputHWFramesCtx.load();
+            av_buffer_unref(&outputHWFramesCtx);
+            d->pOutputHWFramesCtx.store(nullptr);
+            auto inputHWFramesCtx = d->pInputHWFramesCtx.load();
+            av_buffer_unref(&inputHWFramesCtx);
+            d->pInputHWFramesCtx.store(nullptr);
+            auto hwDeviceCtx = d->pHWDeviceCtx.load();
+            av_buffer_unref(&hwDeviceCtx);
+            d->pHWDeviceCtx.store(nullptr);
 
-        stop();
+            avfilter_free(d->pBufferSrcCtx);
+            avfilter_free(d->pBufferSinkCtx);
+            avfilter_free(d->pVAAPIScaleCtx);
+            avfilter_inout_free(&d->pInputs);
+            avfilter_inout_free(&d->pOutputs);
+            avfilter_graph_free(&d->pFilterGraph);
 
-        auto outputHWFramesCtx = d->pOutputHWFramesCtx.load();
-        av_buffer_unref(&outputHWFramesCtx);
-        d->pOutputHWFramesCtx.store(nullptr);
-        auto inputHWFramesCtx = d->pInputHWFramesCtx.load();
-        av_buffer_unref(&inputHWFramesCtx);
-        d->pInputHWFramesCtx.store(nullptr);
-        auto hwDeviceCtx = d->pHWDeviceCtx.load();
-        av_buffer_unref(&hwDeviceCtx);
-        d->pHWDeviceCtx.store(nullptr);
-
-        avfilter_free(d->pBufferSrcCtx);
-        avfilter_free(d->pBufferSinkCtx);
-        avfilter_free(d->pVAAPIScaleCtx);
-        avfilter_inout_free(&d->pInputs);
-        avfilter_inout_free(&d->pOutputs);
-        avfilter_graph_free(&d->pFilterGraph);
+            produce(Message::builder().withAction(Message::Action::CLEANUP).build(), d->outputPadId);
+        }
     }
     bool VaapiYuvToRgbMapper::isOpen() const {
         Q_D(const VaapiYuvToRgbMapper);
-        return d->initialized;
+        return d->open;
     }
     bool VaapiYuvToRgbMapper::isRunning() const {
         Q_D(const VaapiYuvToRgbMapper);
@@ -183,6 +191,9 @@ namespace AVQt {
         bool shouldBe = false;
         if (d->running.compare_exchange_strong(shouldBe, true)) {
             d->paused = false;
+
+            produce(Message::builder().withAction(Message::Action::START).build(), d->outputPadId);
+
             QThread::start();
             return true;
         } else {
@@ -200,7 +211,8 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
-            d->paused = true;
+            produce(Message::builder().withAction(Message::Action::STOP).build(), d->outputPadId);
+
             QThread::wait();
             {
                 QMutexLocker lock(&d->inputQueueMutex);
@@ -209,6 +221,7 @@ namespace AVQt {
                     av_frame_free(&frame);
                 }
             }
+            d->paused = true;
         } else {
             qWarning("Not running");
         }
@@ -242,13 +255,13 @@ namespace AVQt {
             return;
         }
 
-        if (!d->running) {
-            qWarning("Not running");
+        if (!d->open) {
+            qWarning("Not open");
             return;
         }
 
-        if (d->paused) {
-            qWarning("Paused");
+        if (!d->running) {
+            qWarning("Not running");
             return;
         }
 

@@ -22,8 +22,8 @@
 //
 
 #include "VAAPIOpenGLRenderMapper.hpp"
-#include "private/VAAPIOpenGLRenderMapper_p.hpp"
 #include "global.hpp"
+#include "private/VAAPIOpenGLRenderMapper_p.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -329,6 +329,11 @@ namespace AVQt {
         } else {
             qFatal("Invalid pixel format");
         }
+        auto err = glGetError();
+
+        if (err != GL_NO_ERROR) {
+            qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
+        }
     }
 
     void VAAPIOpenGLRenderMapper::mapFrame() {
@@ -359,7 +364,7 @@ namespace AVQt {
             if (vaExportSurfaceHandle(d->vaDisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                                       VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime) !=
                 VA_STATUS_SUCCESS) {
-                qFatal("[AVQt::OpenGLRendererOld] Could not export VA surface handle");
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Could not export VA surface handle");
             }
             vaSyncSurface(d->vaDisplay, va_surface);
 
@@ -382,7 +387,7 @@ namespace AVQt {
 
             for (int i = 0; i < 2; ++i) {
                 if (prime.layers[i].drm_format != formats[i]) {
-                    qFatal("[AVQt::OpenGLRendererOld] Invalid pixel format: %s",
+                    qFatal("[AVQt::VAAPIOpenGLRenderMapper] Invalid pixel format: %s",
                            av_fourcc_make_string(strBuf, prime.layers[i].drm_format));
                 }
 
@@ -414,7 +419,7 @@ namespace AVQt {
 
                 auto error = eglGetError();
                 if (!d->eglImages[i] || d->eglImages[i] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
-                    qFatal("[AVQt::OpenGLRendererOld] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
+                    qFatal("[AVQt::VAAPIOpenGLRenderMapper] Could not create %s EGLImage: %s", (i ? "UV" : "Y"),
                            eglErrorString(error).c_str());
                 }
 #undef LAYER
@@ -447,6 +452,7 @@ namespace AVQt {
             }
         } else if (framesContext->sw_format == AV_PIX_FMT_BGRA) {
             qDebug("BGRA VAAPI frame");
+
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, d->textures[0]);
             if (d->eglImages[0]) {
@@ -463,10 +469,11 @@ namespace AVQt {
             //                        vaAcquireBufferHandle(d->vaDisplay, vaImage.buf, &vaBufferInfo);
 
             VADRMPRIMESurfaceDescriptor prime;
-            if (vaExportSurfaceHandle(d->vaDisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
-                                      VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime) !=
+            VAStatus vaErr;
+            if ((vaErr = vaExportSurfaceHandle(d->vaDisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+                                               VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime)) !=
                 VA_STATUS_SUCCESS) {
-                qFatal("[AVQt::OpenGLRendererOld] Could not export VA surface handle");
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Could not export VA surface handle: %s", vaErrorStr(vaErr));
             }
             vaSyncSurface(d->vaDisplay, va_surface);
 
@@ -475,10 +482,10 @@ namespace AVQt {
             if (prime.fourcc == VA_FOURCC_ARGB) {
                 format = DRM_FORMAT_ARGB8888;
             } else {
-                qFatal("[AVQt::OpenGLRendererOld] Illegal VASurface format");
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Illegal VASurface format");
             }
             if (prime.layers[0].drm_format != format) {
-                qFatal("[AVQt::OpenGLRendererOld] Illegal DRMPRIME layer format");
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Illegal DRMPRIME layer format");
             }
 
             const EGLint img_attr[]{
@@ -497,19 +504,20 @@ namespace AVQt {
 
             auto error = eglGetError();
             if (!d->eglImages[0] || d->eglImages[0] == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
-                qFatal("[AVQt::OpenGLRendererOld] Could not create RGB EGLImage: %s", eglErrorString(error).c_str());
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Could not create RGB EGLImage: %s", eglErrorString(error).c_str());
             }
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, d->textures[0]);
 
             glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, d->eglImages[0]);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            auto err = glGetError();
 
+            auto err = glGetError();
             if (err != GL_NO_ERROR) {
                 qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
             }
+            glBindTexture(GL_TEXTURE_2D, 0);
+            ::close(prime.objects[0].fd);
         } else {
             qFatal("Invalid pixel format");
         }
@@ -520,10 +528,10 @@ namespace AVQt {
         if (frame->hw_frames_ctx) {
             auto *framesContext = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
             if (framesContext->format != AV_PIX_FMT_VAAPI) {
-                qFatal("[VAAPIOpenGLRenderMapper] Invalid frame format");
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Invalid frame format");
             }
             if (framesContext->sw_format != AV_PIX_FMT_NV12 && framesContext->sw_format != AV_PIX_FMT_P010 && framesContext->sw_format != AV_PIX_FMT_BGRA) {
-                qFatal("[VAAPIOpenGLRenderMapper] Invalid frame sw format");
+                qFatal("[AVQt::VAAPIOpenGLRenderMapper] Invalid frame sw format");
             }
             auto queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {
                 bool shouldBe = true;
@@ -574,11 +582,13 @@ namespace AVQt {
             if (firstFrame) {
                 initializeInterop();
                 auto format = reinterpret_cast<AVHWFramesContext *>(d->currentFrame->hw_frames_ctx->data)->sw_format;
+                d->program->bind();
                 if (format == AV_PIX_FMT_NV12 || format == AV_PIX_FMT_P010) {
                     d->program->setUniformValue("inputFormat", 1);
                 } else {
                     d->program->setUniformValue("inputFormat", 0);
                 }
+                d->program->release();
                 qDebug("First frame");
             }
             mapFrame();

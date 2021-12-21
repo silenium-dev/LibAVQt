@@ -50,7 +50,7 @@ FrameSaverAccelerated::FrameSaverAccelerated(std::shared_ptr<pgraph::network::ap
     context->makeCurrent(surface);
     initializeOpenGLFunctions();
 
-    mapper = std::unique_ptr<AVQt::api::IOpenGLFrameMapper>(AVQt::OpenGLFrameMapperFactory::getInstance().create("FallbackMapper"));
+    mapper = std::unique_ptr<AVQt::api::IOpenGLFrameMapper>(AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPIOpenGLRenderMapper"));
     mapper->initializeGL(context);
 
     context->doneCurrent();
@@ -77,7 +77,7 @@ void FrameSaverAccelerated::onFrameReady(qint64 pts, const std::shared_ptr<QOpen
                 glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
                 context->doneCurrent();
             }
-            QImage(data, fbo->width(), fbo->height(), QImage::Format_RGBA8888).mirrored().save(QString("frame%1.bmp").arg(frameCounter));
+//            QImage(data, fbo->width(), fbo->height(), QImage::Format_RGBA8888).mirrored().save(QString("frame.bmp").arg(frameCounter));
             qDebug("Saved frame %lu", frameCounter.load());
             delete[] data;
             qDebug("FBO pointer owners: %ld", fbo.use_count());

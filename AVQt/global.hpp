@@ -42,6 +42,7 @@ namespace AVQt {
 
 Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
 Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
+Q_DECLARE_METATYPE(std::shared_ptr<AVQt::VideoPadParams>)
 Q_DECLARE_METATYPE(AVQt::VideoPadParams)
 Q_DECLARE_METATYPE(AVCodecParameters *)
 Q_DECLARE_METATYPE(AVPacket *)
