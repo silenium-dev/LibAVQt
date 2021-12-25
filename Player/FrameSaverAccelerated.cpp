@@ -95,9 +95,12 @@ FrameSaverAccelerated::~FrameSaverAccelerated() {
 
 void FrameSaverAccelerated::init() {
     outputPadId = pgraph::impl::SimpleConsumer::createInputPad(pgraph::api::PadUserData::emptyUserData());
+    if (outputPadId == pgraph::api::INVALID_PAD_ID) {
+        qWarning() << "Failed to create output pad";
+    }
 }
 
-void FrameSaverAccelerated::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
+void FrameSaverAccelerated::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
     if (data->getType() == AVQt::Message::Type) {
         auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
         if (message->getAction() == AVQt::Message::Action::DATA && message->getPayloads().contains("frame")) {

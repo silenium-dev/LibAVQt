@@ -143,8 +143,13 @@ namespace AVQt {
                 packetPadParams->streamIdx = si;
                 packetPadParams->codecParams = avcodec_parameters_alloc();
                 avcodec_parameters_copy(packetPadParams->codecParams, d->pFormatCtx->streams[si]->codecpar);
-                d->outputPadIds.insert(si, createOutputPad(packetPadParams));
-                qDebug("Creating pad %ul for stream %ld", d->outputPadIds[si], si);
+                auto padId = createOutputPad(packetPadParams);
+                if (padId == pgraph::api::INVALID_PAD_ID) {
+                    qWarning() << "Failed to create output pad";
+                    return false;
+                }
+                d->outputPadIds.insert(si, padId);
+                qDebug("Creating pad %ld for stream %ld", d->outputPadIds[si], si);
             }
         } else {
             qWarning() << "Demuxer already initialized";

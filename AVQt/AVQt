@@ -37,7 +37,6 @@
 
 #ifdef Q_OS_LINUX
 
-#include "include/AVQt/decoder/DecoderMMAL.hpp"
 #include "include/AVQt/decoder/Decoder.hpp"
 #include "include/AVQt/encoder/EncoderVAAPI.hpp"
 #include "include/AVQt/filter/VaapiYuvToRgbMapper.hpp"
@@ -49,7 +48,5 @@
 
 #endif
 
-#include "include/AVQt/decoder/AudioDecoder.hpp"
-#include "include/AVQt/decoder/DecoderQSV.hpp"
 #include "include/AVQt/encoder/EncoderQSV.hpp"
 //#include "output/FrameFileSaver.hpp"

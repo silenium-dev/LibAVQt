@@ -48,7 +48,7 @@ namespace AVQt {
         delete d_ptr;
     }
 
-    void VaapiYuvToRgbMapper::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
+    void VaapiYuvToRgbMapper::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
         Q_D(VaapiYuvToRgbMapper);
         if (data->getType() == Message::Type) {
             auto message = std::dynamic_pointer_cast<Message>(data);
@@ -175,6 +175,10 @@ namespace AVQt {
                 return false;
             }
             d->inputPadId = createInputPad(pgraph::api::PadUserData::emptyUserData());
+            if (d->inputPadId == pgraph::api::INVALID_PAD_ID) {
+                qWarning() << "Failed to create input pad";
+                return false;
+            }
             return true;
         }
         qWarning("Already initialized");

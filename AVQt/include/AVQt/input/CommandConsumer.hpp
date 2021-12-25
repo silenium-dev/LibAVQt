@@ -35,10 +35,10 @@ public:
 
     void init();
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+    void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
 private:
-    quint32 m_commandInputPadId;
+    int64_t m_commandInputPadId;
     std::atomic_uint64_t m_frameCount;
     uint32_t m_id;
     static std::atomic_uint32_t m_nextId;

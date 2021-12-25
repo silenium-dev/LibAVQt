@@ -56,11 +56,11 @@ namespace AVQt {
         delete d_ptr;
     }
 
-    uint32_t Decoder::getInputPadId() const {
+    int64_t Decoder::getInputPadId() const {
         Q_D(const Decoder);
         return d->inputPadId;
     }
-    uint32_t Decoder::getOutputPadId() const {
+    int64_t Decoder::getOutputPadId() const {
         Q_D(const Decoder);
         return d->outputPadId;
     }
@@ -79,7 +79,7 @@ namespace AVQt {
         return d->running;
     }
 
-    void Decoder::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
+    void Decoder::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
         Q_D(Decoder);
         if (data->getType() == Message::Type) {
             auto message = std::dynamic_pointer_cast<Message>(data);
@@ -158,9 +158,17 @@ namespace AVQt {
             auto inPadParams = std::make_shared<PacketPadParams>();
             inPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
             d->inputPadId = createInputPad(inPadParams);
+            if (d->inputPadId == pgraph::api::INVALID_PAD_ID) {
+                qWarning() << "Failed to create input pad";
+                return false;
+            }
 
             d->outputPadParams = std::make_shared<VideoPadParams>();
             d->outputPadId = pgraph::impl::SimpleProcessor::createOutputPad(d->outputPadParams);
+            if (d->outputPadId == pgraph::api::INVALID_PAD_ID) {
+                qWarning() << "Failed to create output pad";
+                return false;
+            }
         } else {
             qWarning() << "Decoder already initialized";
         }

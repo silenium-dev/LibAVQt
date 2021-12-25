@@ -14,7 +14,7 @@ set(PROJECT_NAME Player)
 
 #add_compile_definitions(ENABLE_QSV_ENCODE)
 
-add_executable(${PROJECT_NAME} main.cpp FrameSaverAccelerated.cpp FrameSaverAccelerated.hpp)
+add_executable(${PROJECT_NAME} main.cpp FrameSaverAccelerated.cpp FrameSaverAccelerated.hpp OpenGlWidgetRenderer.cpp OpenGlWidgetRenderer.hpp OpenGlWidgetRendererPrivate.hpp)
 
 set(QT_VERSION "5")
 

@@ -18,22 +18,40 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 24.11.21.
+// Created by silas on 25.12.21.
 //
 
-#ifndef LIBAVQT_IOUTPUT_HPP
-#define LIBAVQT_IOUTPUT_HPP
+#ifndef LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP
+#define LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP
 
-#include <cstdint>
+#include "renderers/IOpenGLFrameMapper.hpp"
+#include <QObject>
+#include <QtOpenGL>
+#include <pgraph/api/PadFactory.hpp>
 
-namespace AVQt {
-    class IOutput {
-    public:
-        virtual ~IOutput() = default;
+class OpenGLWidgetRenderer;
+class OpenGLWidgetRendererPrivate {
+    Q_DECLARE_PUBLIC(OpenGLWidgetRenderer)
+private:
+    explicit OpenGLWidgetRendererPrivate(OpenGLWidgetRenderer *q) : q_ptr(q) {}
 
-        [[nodiscard]] virtual int64_t getInputPadId() const = 0;
-    };
-}// namespace AVQt
+    int64_t getTimestamp();
+
+    OpenGLWidgetRenderer *q_ptr;
+
+    QOpenGLTextureBlitter *blitter{nullptr};
+    QQueue<QPair<int64_t, std::shared_ptr<QOpenGLFramebufferObject>>> renderQueue{};
+
+    AVQt::api::IOpenGLFrameMapper *mapper{nullptr};
+    int64_t inputPadId{pgraph::api::INVALID_PAD_ID};
+    QElapsedTimer renderTimer{};
+    QPair<int64_t, std::shared_ptr<QOpenGLFramebufferObject>> currentFrame{0, nullptr};
+
+    std::atomic_bool paused{false};
+    std::atomic_int64_t lastPaused{0};
+
+    friend class OpenGLWidgetRenderer;
+};
 
 
-#endif//LIBAVQT_IOUTPUT_HPP
+#endif//LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP

@@ -62,7 +62,7 @@ namespace AVQt {
         AVFormatContext *pFormatCtx{nullptr};
         AVIOContext *pIOCtx{nullptr};
 
-        QMap<int64_t, quint32> outputPadIds;
+        QMap<int64_t, int64_t> outputPadIds;
 
         friend class Demuxer;
     };

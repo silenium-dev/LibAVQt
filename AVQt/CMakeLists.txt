@@ -67,17 +67,13 @@ set(SOURCES
         src/input/private/Demuxer_p.hpp
         src/input/Demuxer.cpp
 
-        include/AVQt/decoder/IDecoderOld.hpp
         include/AVQt/encoder/IEncoder.hpp
 
 #        include/AVQt/decoder/DecoderQSV.hpp
 #        src/decoder/private/DecoderQSV_p.hpp
 #        src/decoder/DecoderQSV.cpp
 
-        include/AVQt/decoder/AudioDecoder.hpp
-        src/decoder/private/AudioDecoder_p.hpp
         src/renderers/private/OpenALErrorHandler.hpp
-        src/decoder/AudioDecoder.cpp
 
         include/AVQt/encoder/EncoderQSV.hpp
         src/encoder/private/EncoderQSV_p.hpp
@@ -147,8 +143,6 @@ set(SOURCES_WINDOWS
         src/decoder/DecoderDXVA2.cpp
 
         decoder/DecoderD3D11VA.hpp
-        src/decoder/private/DecoderD3D11VA_p.hpp
-        src/decoder/DecoderD3D11VA.cpp
 
         src/renderers/private/windows/OpenGLRenderer_p.cpp)
 

@@ -50,7 +50,7 @@ namespace AVQt {
         void stop() override;
         void pause(bool state) override;
 
-        void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
     signals:
         void started() override;

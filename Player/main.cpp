@@ -21,10 +21,9 @@
 #include "FrameSaverAccelerated.hpp"
 #include "include/AVQt/communication/Message.hpp"
 #include "include/AVQt/communication/PacketPadParams.hpp"
-#include "include/AVQt/input/CommandConsumer.hpp"
+#include "OpenGlWidgetRenderer.hpp"
 #include <pgraph/api/Link.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
-#include <pgraph_network/impl/RegisteringPadFactory.hpp>
 #include <pgraph_network/impl/SimplePadRegistry.hpp>
 
 #include <QApplication>
@@ -122,41 +121,54 @@ int main(int argc, char *argv[]) {
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
     auto decoder = std::make_shared<AVQt::Decoder>("VAAPI", registry);
-    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
-    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
-    auto cc = std::make_shared<CommandConsumer>(registry);
-    auto cc2 = std::make_shared<CommandConsumer>(registry);
+    auto renderer = std::make_shared<OpenGLWidgetRenderer>(registry);
+//    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
+//    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
+//    auto cc = std::make_shared<CommandConsumer>(registry);
+//    auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     demuxer->init();
     decoder->init();
-    yuvrgbconverter->init();
-    frameSaver->init();
-    cc->init();
-    cc2->init();
+    renderer->init();
+//    yuvrgbconverter->init();
+//    frameSaver->init();
+//    cc->init();
+//    cc2->init();
 
     pgraph::network::data::APIInfo apiInfo(registry);
 
     std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
     auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
-    auto ccInPad = cc->getInputPads().begin()->second;
-    auto cc2InPad = cc2->getInputPads().begin()->second;
     auto decoderInPad = decoder->getInputPads().begin()->second;
     auto decoderOutPad = decoder->getOutputPads().begin()->second;
-    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
-    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
-    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
+    auto rendererInPad = renderer->getInputPads().begin()->second;
+//    auto ccInPad = cc->getInputPads().begin()->second;
+//    auto cc2InPad = cc2->getInputPads().begin()->second;
+//    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
+//    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
+//    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
 //    ccInPad->link(demuxerOutPad);
 //    cc2InPad->link(decoderOutPad);
     decoderInPad->link(demuxerOutPad);
-    decoderOutPad->link(yuvrgbconverterInPad);
-    yuvrgbconverterOutPad->link(frameSaverInPad);
+    rendererInPad->link(decoderOutPad);
+//    decoderOutPad->link(yuvrgbconverterInPad);
+//    yuvrgbconverterOutPad->link(frameSaverInPad);
 
     demuxer->open();
+
+    renderer->resize(1280, 720);
+
     demuxer->start();
 
-    QTimer::singleShot(30000, [demuxer]{
-        QCoreApplication::quit();
+    QTimer::singleShot(4000, [demuxer]{
+        demuxer->pause(true);
+        QTimer::singleShot(4000, [demuxer]{
+            demuxer->pause(false);
+            QTimer::singleShot(4000, [demuxer]{
+                QApplication::quit();
+            });
+        });
     });
 
     QObject::connect(app, &QApplication::aboutToQuit, [demuxer]{
@@ -165,7 +177,7 @@ int main(int argc, char *argv[]) {
     //    demuxer->pause(true);
     //    demuxer->close();
 
-    return app->exec();
+    return QApplication::exec();
     //    AVQt::AudioDecoder decoder;
     //    AVQt::OpenALAudioOutput output;
 

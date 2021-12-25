@@ -34,7 +34,7 @@ CommandConsumer::CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegist
       m_id(m_nextId++) {
 }
 
-void CommandConsumer::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) {
+void CommandConsumer::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
     if (pad == m_commandInputPadId && data->getType() == AVQt::Message::Type) {
         auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
         qDebug() << "Incoming command" << message->getAction().name() << "with payload:";
@@ -58,4 +58,7 @@ void CommandConsumer::consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> d
 
 void CommandConsumer::init() {
     m_commandInputPadId = pgraph::impl::SimpleConsumer::createInputPad(pgraph::api::PadUserData::emptyUserData());
+    if (m_commandInputPadId == pgraph::api::INVALID_PAD_ID) {
+        qWarning() << "Failed to create input pad";
+    }
 }

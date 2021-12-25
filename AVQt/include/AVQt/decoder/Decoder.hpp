@@ -74,9 +74,9 @@ namespace AVQt {
          */
         bool isPaused() const Q_DECL_OVERRIDE;
 
-        [[nodiscard]] uint32_t getInputPadId() const;
+        [[nodiscard]] int64_t getInputPadId() const;
 
-        [[nodiscard]] uint32_t getOutputPadId() const;
+        [[nodiscard]] int64_t getOutputPadId() const;
 
     public slots:
         /*!
@@ -111,7 +111,7 @@ namespace AVQt {
          */
         Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
-        void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
+        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
 
     signals:
 

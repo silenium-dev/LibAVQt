@@ -60,6 +60,7 @@ namespace AVQt {
 
         QOpenGLContext *context{nullptr};
         QOffscreenSurface *surface{nullptr};
+        QThread *afterStopThread{nullptr};
 
         QOpenGLShaderProgram *program{nullptr};
         QOpenGLVertexArrayObject vao{};

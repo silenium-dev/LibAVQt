@@ -61,8 +61,8 @@ namespace AVQt {
 
         std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry;
 
-        uint32_t inputPadId{};
-        uint32_t outputPadId{};
+        int64_t inputPadId{pgraph::api::INVALID_PAD_ID};
+        int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
 
         QMutex inputQueueMutex{};
 //        QWaitCondition frameAvailable{}, frameProcessed{}, pausedCond{};

@@ -39,7 +39,7 @@ public:
 
     void init();
 
-    void consume(uint32_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+    void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
 protected slots:
     void onFrameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo);
@@ -50,9 +50,8 @@ private:
     QMutex contextMutex;
     QOpenGLContext *context;
     std::atomic_uint64_t frameCounter{0};
-    uint32_t outputPadId{};
+    int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
 };
-Q_DECLARE_METATYPE(std::shared_ptr<QOpenGLFramebufferObject>)
 
 
 #endif//LIBAVQT_FRAMESAVERACCELERATED_HPP

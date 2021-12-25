@@ -1,6 +1,6 @@
 [submodule "libpgraph_network"]
 	path = libpgraph_network
-	url = https://edugit.org/sdcieo0330/libpgraph_network
+	url = https://edugit.org/sdcieo0330/libpgraph_network.git/
 	branch = main
 [submodule "mfx_dispatch"]
 	path = mfx_dispatch
@@ -8,7 +8,7 @@
 	branch = master
 [submodule "libpgraph"]
 	path = libpgraph
-	url = https://edugit.org/sdcieo0330/libpgraph
+	url = https://edugit.org/sdcieo0330/libpgraph.git/
 	branch = main
 [submodule "cpp-static-block"]
 	path = cpp-static-block

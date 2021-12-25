@@ -100,6 +100,8 @@ namespace AVQt {
     VAAPIOpenGLRenderMapper::~VAAPIOpenGLRenderMapper() {
         Q_D(VAAPIOpenGLRenderMapper);
 
+        VAAPIOpenGLRenderMapper::stop();
+
         if (d->context) {
             d->context->makeCurrent(d->surface);
             d->destroyResources();
@@ -125,6 +127,7 @@ namespace AVQt {
         if (!isRunning()) {
             return;
         }
+        d->afterStopThread = QThread::currentThread();
         QThread::requestInterruption();
         QThread::quit();
         QThread::wait();
@@ -533,15 +536,17 @@ namespace AVQt {
             if (framesContext->sw_format != AV_PIX_FMT_NV12 && framesContext->sw_format != AV_PIX_FMT_P010 && framesContext->sw_format != AV_PIX_FMT_BGRA) {
                 qFatal("[AVQt::VAAPIOpenGLRenderMapper] Invalid frame sw format");
             }
-            auto queueFrame = QtConcurrent::run([d](AVFrame *input, AVBufferRef *pDeviceCtx) {
-                bool shouldBe = true;
-                if (d->firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
-                    d->pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-                    d->vaDisplay = d->pVAContext->display;
-                }
-                return input;
-            },
-                                                av_frame_clone(frame), av_buffer_ref(framesContext->device_ref));
+            auto queueFrame = QtConcurrent::run(
+                    [d](AVFrame *input, AVBufferRef *pDeviceCtx) {
+                        bool shouldBe = true;
+                        if (d->firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
+                            d->pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
+                            d->vaDisplay = d->pVAContext->display;
+                        }
+                        return input;
+                    },
+                    av_frame_clone(frame),
+                    av_buffer_ref(framesContext->device_ref));
 
             QMutexLocker locker(&d->renderQueueMutex);
             while (d->renderQueue.size() > VAAPIOpenGLRenderMapperPrivate::RENDERQUEUE_MAX_SIZE) {
@@ -607,6 +612,10 @@ namespace AVQt {
             emit frameReady(d->currentFrame->pts, std::move(fbo));
             qDebug("Frame ready");
         }
+        if (d->afterStopThread) {
+            d->context->moveToThread(d->afterStopThread);
+        }
+        qDebug("Render thread stopped");
     }
 
     void VAAPIOpenGLRenderMapperPrivate::bindResources() {

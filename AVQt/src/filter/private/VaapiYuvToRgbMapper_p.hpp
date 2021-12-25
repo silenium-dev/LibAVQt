@@ -59,8 +59,8 @@ namespace AVQt {
 
         std::atomic_bool initialized{false}, running{false}, paused{false}, open{false}, pipelineInitialized{false};
 
-        uint32_t inputPadId;
-        uint32_t outputPadId;
+        int64_t inputPadId;
+        int64_t outputPadId;
         std::shared_ptr<VideoPadParams> outputPadParams;
 
         static constexpr size_t maxInputQueueSize{6};
