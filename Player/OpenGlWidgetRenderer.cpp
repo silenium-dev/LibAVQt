@@ -143,6 +143,7 @@ void OpenGLWidgetRenderer::paintGL() {
                 d->renderTimer.start();
                 d->lastPaused = frame.first;
             }
+            qDebug("Deleting frame with PTS: %lld", static_cast<long long>(frame.first));
             d->currentFrame = frame;
         }
     }
@@ -163,9 +164,9 @@ void OpenGLWidgetRenderer::paintGL() {
     update();
 }
 
-void OpenGLWidgetRenderer::onFrameReady(qint64 pts, std::shared_ptr<QOpenGLFramebufferObject> fbo) {
+void OpenGLWidgetRenderer::onFrameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) {
     Q_D(OpenGLWidgetRenderer);
-    d->renderQueue.enqueue({pts, std::move(fbo)});
+    d->renderQueue.enqueue({pts, fbo});
 }
 
 void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {

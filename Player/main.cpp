@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
 //    yuvrgbconverter->init();
 //    frameSaver->init();
 //    cc->init();
-//    cc2->init();
+    //    cc2->init();
 
     pgraph::network::data::APIInfo apiInfo(registry);
 
@@ -143,17 +143,17 @@ int main(int argc, char *argv[]) {
     auto decoderInPad = decoder->getInputPads().begin()->second;
     auto decoderOutPad = decoder->getOutputPads().begin()->second;
     auto rendererInPad = renderer->getInputPads().begin()->second;
-//    auto ccInPad = cc->getInputPads().begin()->second;
-//    auto cc2InPad = cc2->getInputPads().begin()->second;
-//    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
-//    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
-//    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
-//    ccInPad->link(demuxerOutPad);
-//    cc2InPad->link(decoderOutPad);
+    //    auto ccInPad = cc->getInputPads().begin()->second;
+    //    auto cc2InPad = cc2->getInputPads().begin()->second;
+    //    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
+    //    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
+    //    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
+    //    ccInPad->link(demuxerOutPad);
+    //    cc2InPad->link(decoderOutPad);
     decoderInPad->link(demuxerOutPad);
     rendererInPad->link(decoderOutPad);
-//    decoderOutPad->link(yuvrgbconverterInPad);
-//    yuvrgbconverterOutPad->link(frameSaverInPad);
+    //    decoderOutPad->link(yuvrgbconverterInPad);
+    //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
     demuxer->open();
 
@@ -161,17 +161,17 @@ int main(int argc, char *argv[]) {
 
     demuxer->start();
 
-    QTimer::singleShot(4000, [demuxer]{
-        demuxer->pause(true);
-        QTimer::singleShot(4000, [demuxer]{
-            demuxer->pause(false);
-            QTimer::singleShot(4000, [demuxer]{
-                QApplication::quit();
-            });
-        });
+    //    QTimer::singleShot(4000, [demuxer]{
+    //        demuxer->pause(true);
+    //        QTimer::singleShot(4000, [demuxer]{
+    //            demuxer->pause(false);
+    QTimer::singleShot(30000, [demuxer] {
+        QApplication::quit();
     });
+    //        });
+    //    });
 
-    QObject::connect(app, &QApplication::aboutToQuit, [demuxer]{
+    QObject::connect(app, &QApplication::aboutToQuit, [demuxer] {
         demuxer->close();
     });
     //    demuxer->pause(true);

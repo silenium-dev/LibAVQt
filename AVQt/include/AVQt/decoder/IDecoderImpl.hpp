@@ -43,7 +43,6 @@ namespace AVQt::api {
 
         [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
         [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual AVRational getTimeBase() const = 0;
     };
 }
 

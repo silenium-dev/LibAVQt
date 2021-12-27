@@ -278,7 +278,7 @@ namespace AVQt {
             }
             AVFrame *frame;
             while ((frame = d->impl->nextFrame())) {
-                frame->pts = av_rescale_q(frame->pts, d->impl->getTimeBase(), av_make_q(1, 1000000));
+                qDebug("Decoder produced frame with pts %ld", frame->pts);
                 produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build(), d->outputPadId);
                 av_frame_free(&frame);
             }

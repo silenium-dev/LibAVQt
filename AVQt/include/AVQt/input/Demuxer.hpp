@@ -49,10 +49,6 @@ namespace AVQt {
 
         ~Demuxer() override = default;
 
-        /*!
-         * \brief Returns, whether the frame source is currently paused.
-         * @return Paused state
-         */
         bool isPaused() const override;
 
         bool isOpen() const override;

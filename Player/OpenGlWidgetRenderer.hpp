@@ -67,7 +67,7 @@ protected:
 
 
 private slots:
-    void onFrameReady(qint64 pts, std::shared_ptr<QOpenGLFramebufferObject> fbo);
+    void onFrameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo);
 
 private:
     OpenGLWidgetRendererPrivate *d_ptr;

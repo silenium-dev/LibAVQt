@@ -73,6 +73,7 @@ namespace AVQt {
                 qWarning() << "Could not open codec";
                 goto failed;
             }
+            d->timeBase = timeBase;
 
             d->frameFetcher = new VAAPIDecoderImplPrivate::FrameFetcher(d);
             d->frameFetcher->start();
@@ -145,14 +146,6 @@ namespace AVQt {
     bool VAAPIDecoderImpl::isHWAccel() const {
         return true;
     }
-    AVRational VAAPIDecoderImpl::getTimeBase() const {
-        Q_D(const VAAPIDecoderImpl);
-        if (!d->codecContext) {
-            qWarning() << "Codec context not initialized";
-            return AVRational{0, 1};
-        }
-        return d->codecContext->time_base;
-    }
 
     AVPixelFormat VAAPIDecoderImplPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
         Q_UNUSED(ctx)
@@ -201,6 +194,8 @@ namespace AVQt {
             locker.unlock();
             if (ret == 0) {
                 QMutexLocker lock(&m_mutex);
+                //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
+                qDebug("Enqueuing frame with PTS %ld", frame->pts);
                 m_outputQueue.enqueue(frame);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 locker.unlock();
@@ -209,7 +204,7 @@ namespace AVQt {
             } else {
                 av_frame_free(&frame);
                 av_strerror(ret, strBuf, strBufSize);
-                qFatal("Error while receiving frame: %s", strBuf);
+                qWarning("Error while receiving frame: %s", strBuf);
                 m_stop = true;
                 break;
             }
