@@ -73,7 +73,6 @@ namespace AVQt {
                 qWarning() << "Could not open codec";
                 goto failed;
             }
-            d->timeBase = timeBase;
 
             d->frameFetcher = new VAAPIDecoderImplPrivate::FrameFetcher(d);
             d->frameFetcher->start();

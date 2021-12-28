@@ -3,10 +3,24 @@
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
     <libraryRoots>
+      <file path="$PROJECT_DIR$/cpp-static-block" />
       <file path="$PROJECT_DIR$/libpgraph" />
       <file path="$PROJECT_DIR$/libpgraph_network" />
       <file path="$PROJECT_DIR$/libprocessinggraph" />
       <file path="$PROJECT_DIR$/mfx_dispatch" />
     </libraryRoots>
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/cmake-build-debug-clang" />
+      <file path="$PROJECT_DIR$/cmake-build-debug-gcc" />
+      <file path="$PROJECT_DIR$/cmake-build-debug-remote-gcc" />
+      <file path="$PROJECT_DIR$/cmake-build-minsizerel-clang" />
+      <file path="$PROJECT_DIR$/cmake-build-minsizerel-gcc" />
+      <file path="$PROJECT_DIR$/cmake-build-release-clang" />
+      <file path="$PROJECT_DIR$/cmake-build-release-gcc" />
+      <file path="$PROJECT_DIR$/cmake-build-relwithdebinfo-clang" />
+      <file path="$PROJECT_DIR$/cmake-build-relwithdebinfo-gcc" />
+      <file path="$PROJECT_DIR$/docker" />
+      <file path="$PROJECT_DIR$/doxygen" />
+    </excludeRoots>
   </component>
 </project>
