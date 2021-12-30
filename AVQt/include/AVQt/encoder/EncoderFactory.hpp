@@ -18,40 +18,42 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_ENCODERFACTORY_HPP
+#define LIBAVQT_ENCODERFACTORY_HPP
 
-#include <QObject>
-#include "communication/VideoPadParams.hpp"
+#include "IEncoderImpl.hpp"
+#include "encoder/Encoder.hpp"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+#include <static_block.hpp>
 
-namespace AVQt::api {
-    class IDecoderImpl {
+#include <QMap>
+#include <QString>
+
+
+namespace AVQt {
+    class EncoderFactory {
     public:
-        virtual ~IDecoderImpl() = default;
+        static EncoderFactory &getInstance();
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
+        void registerEncoder(const QString &name, const QMetaObject &metaObject);
 
-        virtual int decode(AVPacket *packet) = 0;
-        [[nodiscard]] virtual AVFrame *nextFrame() = 0;
+        void unregisterEncoder(const QString &name);
 
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), but can be overridden for HW decoding
-            return getOutputFormat();
-        };
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
+        [[nodiscard]] api::IEncoderImpl *create(const QString &name, const EncodeParameters &params);
+
+        static void registerEncoders();
+
+    private:
+        EncoderFactory() = default;
+        QMap<QString, QMetaObject> m_encoders;
     };
-}// namespace AVQt::api
+}// namespace AVQt
 
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
+static_block {
+    AVQt::EncoderFactory::registerEncoders();
+};
 
-
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_ENCODERFACTORY_HPP

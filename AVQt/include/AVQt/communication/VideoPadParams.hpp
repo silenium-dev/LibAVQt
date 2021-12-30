@@ -26,11 +26,12 @@
 #define LIBAVQT_VIDEOPADPARAMS_HPP
 
 #include "pgraph/api/PadUserData.hpp"
-#include <QSize>
 #include <QObject>
+#include <QSize>
 
 extern "C" {
 #include <libavutil/pixfmt.h>
+#include <libavutil/buffer.h>
 }
 
 namespace AVQt {
@@ -50,9 +51,11 @@ namespace AVQt {
     public:
         static const boost::uuids::uuid Type;
 
-        QSize frameSize;
-        AVPixelFormat pixelFormat, swPixelFormat = AV_PIX_FMT_NONE;
-        bool isHWAccel = false;
+        QSize frameSize{};
+        AVPixelFormat pixelFormat{}, swPixelFormat{};
+        bool isHWAccel{false};
+        AVBufferRef *hwDeviceContext{nullptr};
+        //        AVBufferRef *hwFramesContext{nullptr};
     };
 }// namespace AVQt
 

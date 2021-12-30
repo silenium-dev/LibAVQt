@@ -21,7 +21,7 @@
 // Created by silas on 12.12.21.
 //
 
-#include "include/AVQt/decoder/VAAPIDecoderImpl.hpp"
+#include "VAAPIDecoderImpl.hpp"
 #include "private/VAAPIDecoderImpl_p.hpp"
 
 #include <QImage>
@@ -29,6 +29,7 @@
 #include <QtDebug>
 
 extern "C" {
+#include <libavutil/pixdesc.h>
 #include <libavutil/time.h>
 }
 
@@ -68,6 +69,7 @@ namespace AVQt {
 
             d->codecContext->hw_device_ctx = av_buffer_ref(d->hwDeviceContext);
             d->codecContext->get_format = &VAAPIDecoderImplPrivate::getFormat;
+            d->codecContext->opaque = this;
 
             if (avcodec_open2(d->codecContext, d->codec, nullptr) < 0) {
                 qWarning() << "Could not open codec";
@@ -91,7 +93,9 @@ namespace AVQt {
         Q_D(VAAPIDecoderImpl);
         qDebug() << "Stopping decoder";
 
-        d->frameFetcher->stop();
+        if (d->frameFetcher) {
+            d->frameFetcher->stop();
+        }
 
         if (d->codecContext) {
             if (avcodec_is_open(d->codecContext)) {
@@ -142,12 +146,45 @@ namespace AVQt {
         return AV_PIX_FMT_VAAPI;
     }
 
+    AVPixelFormat VAAPIDecoderImpl::getSwOutputFormat() const {
+        Q_D(const VAAPIDecoderImpl);
+        AVPixelFormat format;
+        if (d->codecContext->pix_fmt == AV_PIX_FMT_VAAPI) {
+            format = d->codecContext->sw_pix_fmt;
+        } else {
+            format = d->codecContext->pix_fmt;
+        }
+        switch (format) {
+            case AV_PIX_FMT_NV12:
+            case AV_PIX_FMT_YUV420P:
+                return AV_PIX_FMT_NV12;
+            case AV_PIX_FMT_P010:
+            case AV_PIX_FMT_YUV420P10:
+                return AV_PIX_FMT_P010;
+            default:
+                qWarning() << "Unsupported output format" << av_get_pix_fmt_name(format);
+                return AV_PIX_FMT_NONE;
+        }
+    }
+
     bool VAAPIDecoderImpl::isHWAccel() const {
         return true;
     }
 
+    VideoPadParams VAAPIDecoderImpl::getVideoParams() const {
+        Q_D(const VAAPIDecoderImpl);
+        VideoPadParams params;
+        params.frameSize = QSize{d->codecContext->width, d->codecContext->height};
+        params.hwDeviceContext = av_buffer_ref(d->hwDeviceContext);
+        //        params.hwFramesContext = av_buffer_ref(d->codecContext->hw_frames_ctx);
+        params.swPixelFormat = getSwOutputFormat();
+        params.pixelFormat = getOutputFormat();
+        params.isHWAccel = isHWAccel();
+        return params;
+    }
+
     AVPixelFormat VAAPIDecoderImplPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
-        Q_UNUSED(ctx)
+        auto *decoder = reinterpret_cast<VAAPIDecoderImpl *>(ctx->opaque);
         auto *iFmt = pix_fmts;
         AVPixelFormat result = AV_PIX_FMT_NONE;
         while (*iFmt != AV_PIX_FMT_NONE) {
@@ -157,23 +194,28 @@ namespace AVQt {
             }
             ++iFmt;
         }
+        if (result == AV_PIX_FMT_NONE) {
+            qWarning() << "No supported output format found";
+            return AV_PIX_FMT_NONE;
+        }
 
-        //        ctx->hw_frames_ctx = av_hwframe_ctx_alloc(ctx->hw_device_ctx);
-        //        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx->data);
-        //        framesContext->width = ctx->width;
-        //        framesContext->height = ctx->height;
-        //        framesContext->format = result;
-        //        framesContext->sw_format = ctx->sw_pix_fmt;
-        //        framesContext->initial_pool_size = 100;
-        //        int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
-        //        if (ret != 0) {
-        //            char strBuf[64];
-        //            qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
-        //        }
+        ctx->hw_frames_ctx = av_hwframe_ctx_alloc(ctx->hw_device_ctx);
+        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx->data);
+        framesContext->width = ctx->width;
+        framesContext->height = ctx->height;
+        framesContext->format = AV_PIX_FMT_VAAPI;
+        framesContext->sw_format = decoder->getSwOutputFormat();
+        framesContext->initial_pool_size = 32;
+        int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
+        if (ret != 0) {
+            char strBuf[64];
+            qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
+        }
         return result;
     }
 
     VAAPIDecoderImplPrivate::FrameFetcher::FrameFetcher(VAAPIDecoderImplPrivate *p) : p(p) {
+        setObjectName("FrameFetcher");
     }
 
     void VAAPIDecoderImplPrivate::FrameFetcher::run() {
@@ -182,22 +224,21 @@ namespace AVQt {
         constexpr size_t strBufSize = 256;
         char strBuf[strBufSize];
         while (!m_stop) {
-            QMutexLocker locker(&p->codecMutex);
+            QMutexLocker inputLock(&p->codecMutex);
             if (p->firstFrame) {
-                locker.unlock();
+                inputLock.unlock();
                 msleep(2);
                 continue;
             }
             AVFrame *frame = av_frame_alloc();
             ret = avcodec_receive_frame(p->codecContext, frame);
-            locker.unlock();
+            inputLock.unlock();
             if (ret == 0) {
-                QMutexLocker lock(&m_mutex);
+                QMutexLocker outputLock(&m_mutex);
                 //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
                 qDebug("Enqueuing frame with PTS %ld", frame->pts);
                 m_outputQueue.enqueue(frame);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                locker.unlock();
                 av_frame_free(&frame);
                 msleep(1);
             } else {
@@ -223,6 +264,8 @@ namespace AVQt {
                     av_frame_free(&frame);
                 }
             }
+        } else {
+            qWarning("FrameFetcher not running");
         }
     }
 

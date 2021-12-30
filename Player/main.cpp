@@ -119,20 +119,28 @@ int main(int argc, char *argv[]) {
 
     auto registry = std::make_shared<pgraph::network::impl::SimplePadRegistry>();
 
+    AVQt::EncodeParameters encodeParams{};
+    encodeParams.bitrate = 1000000;
+    encodeParams.codec = AVQt::Codec::HEVC;
+
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
-    auto decoder = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
     auto renderer = std::make_shared<OpenGLWidgetRenderer>(registry);
-//    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
-//    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
-//    auto cc = std::make_shared<CommandConsumer>(registry);
-//    auto cc2 = std::make_shared<CommandConsumer>(registry);
+    //    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
+    //    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
+    //    auto cc = std::make_shared<CommandConsumer>(registry);
+    //    auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     demuxer->init();
-    decoder->init();
+    decoder1->init();
+    decoder2->init();
+    encoder->init();
     renderer->init();
-//    yuvrgbconverter->init();
-//    frameSaver->init();
-//    cc->init();
+    //    yuvrgbconverter->init();
+    //    frameSaver->init();
+    //    cc->init();
     //    cc2->init();
 
     pgraph::network::data::APIInfo apiInfo(registry);
@@ -140,8 +148,12 @@ int main(int argc, char *argv[]) {
     std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
     auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
-    auto decoderInPad = decoder->getInputPads().begin()->second;
-    auto decoderOutPad = decoder->getOutputPads().begin()->second;
+    auto decoder1InPad = decoder1->getInputPads().begin()->second;
+    auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
+    auto decoder2InPad = decoder2->getInputPads().begin()->second;
+    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
+    auto encoderInPad = encoder->getInputPads().begin()->second;
+    auto encoderOutPad = encoder->getOutputPads().begin()->second;
     auto rendererInPad = renderer->getInputPads().begin()->second;
     //    auto ccInPad = cc->getInputPads().begin()->second;
     //    auto cc2InPad = cc2->getInputPads().begin()->second;
@@ -150,8 +162,10 @@ int main(int argc, char *argv[]) {
     //    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
     //    ccInPad->link(demuxerOutPad);
     //    cc2InPad->link(decoderOutPad);
-    decoderInPad->link(demuxerOutPad);
-    rendererInPad->link(decoderOutPad);
+    decoder1InPad->link(demuxerOutPad);
+    //    encoderInPad->link(decoder1OutPad);
+    //    decoder2InPad->link(demuxerOutPad);
+    rendererInPad->link(decoder1OutPad);
     //    decoderOutPad->link(yuvrgbconverterInPad);
     //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
@@ -165,7 +179,7 @@ int main(int argc, char *argv[]) {
     //        demuxer->pause(true);
     //        QTimer::singleShot(4000, [demuxer]{
     //            demuxer->pause(false);
-    QTimer::singleShot(30000, [demuxer] {
+    QTimer::singleShot(10000, [demuxer] {
         QApplication::quit();
     });
     //        });

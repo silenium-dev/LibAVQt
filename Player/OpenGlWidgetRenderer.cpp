@@ -158,6 +158,7 @@ void OpenGLWidgetRenderer::paintGL() {
         d->blitter->bind();
         QMatrix4x4 target = QOpenGLTextureBlitter::targetTransform(QRect((width() - display_width) / 2, (height() - display_height) / 2, display_width, display_height),
                                                                    QRect(0, 0, QWidget::width(), QWidget::height()));
+        qDebug() << "Drawing frame with PTS: " << d->currentFrame.first << "to" << target;
         d->blitter->blit(d->currentFrame.second->texture(), target, QOpenGLTextureBlitter::OriginBottomLeft);
         d->blitter->release();
     }

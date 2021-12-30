@@ -93,8 +93,9 @@ namespace AVQt {
         : QThread(parent),
           d_ptr(new VAAPIOpenGLRenderMapperPrivate(this)) {
         Q_D(VAAPIOpenGLRenderMapper);
-
+        QThread::setObjectName("VAAPIOpenGLRenderMapper");
         loadResources();
+        d->fboReturner = std::make_shared<VAAPIOpenGLRenderMapperPrivate::FBOReturner>(d);
     }
 
     VAAPIOpenGLRenderMapper::~VAAPIOpenGLRenderMapper() {
@@ -130,6 +131,8 @@ namespace AVQt {
         d->afterStopThread = QThread::currentThread();
         QThread::requestInterruption();
         QThread::quit();
+        d->frameProcessed.notify_all();
+        d->frameAvailable.notify_all();
         QThread::wait();
         QMutexLocker lock(&d->renderQueueMutex);
         while (!d->renderQueue.empty()) {
@@ -549,10 +552,13 @@ namespace AVQt {
                     av_buffer_ref(framesContext->device_ref));
 
             QMutexLocker locker(&d->renderQueueMutex);
-            while (d->renderQueue.size() > VAAPIOpenGLRenderMapperPrivate::RENDERQUEUE_MAX_SIZE) {
-                locker.unlock();
-                msleep(2);
-                locker.relock();
+            if (d->renderQueue.size() > 4) {
+                d->frameProcessed.wait(&d->renderQueueMutex, 200);
+                if (d->renderQueue.size() > 4) {
+                    qWarning("[AVQt::VAAPIOpenGLRenderMapper] Render queue is full, dropping frame");
+                    av_frame_free(&frame);
+                    return;
+                }
             }
             d->renderQueue.enqueue(queueFrame);
         }
@@ -564,12 +570,14 @@ namespace AVQt {
         while (!isInterruptionRequested()) {
             QMutexLocker locker(&d->renderQueueMutex);
             if (d->renderQueue.isEmpty()) {
-                locker.unlock();
-                msleep(2);
-                continue;
+                d->frameAvailable.wait(&d->renderQueueMutex, 200);
+                if (d->renderQueue.isEmpty()) {
+                    continue;
+                }
             }
             auto frame = d->renderQueue.dequeue().result();
             locker.unlock();
+            d->frameProcessed.notify_one();
 
             bool firstFrame;
 
@@ -594,12 +602,33 @@ namespace AVQt {
                     d->program->setUniformValue("inputFormat", 0);
                 }
                 d->program->release();
+                QMutexLocker fboLock(&d->framebufferQueueMutex);
+                for (int i = 0; i < VAAPIOpenGLRenderMapperPrivate::framebufferQueueSize; ++i) {
+                    d->framebufferObjects.enqueue(
+                            std::shared_ptr<QOpenGLFramebufferObject>(
+                                    new QOpenGLFramebufferObject{
+                                            d->currentFrame->width,
+                                            d->currentFrame->height,
+                                            QOpenGLFramebufferObject::CombinedDepthStencil},
+                                    *d->fboReturner));
+                }
                 qDebug("First frame");
             }
             mapFrame();
             qDebug("Mapped frame");
 
-            std::shared_ptr<QOpenGLFramebufferObject> fbo = std::make_shared<QOpenGLFramebufferObject>(d->currentFrame->width, d->currentFrame->height, QOpenGLFramebufferObject::CombinedDepthStencil);
+            QMutexLocker fboLock(&d->framebufferQueueMutex);
+            while (d->framebufferObjects.isEmpty()) {
+                fboLock.unlock();
+                msleep(2);
+                if (isInterruptionRequested()) {
+                    goto end;
+                }
+                fboLock.relock();
+            }
+            std::shared_ptr<QOpenGLFramebufferObject> fbo = d->framebufferObjects.dequeue();
+            fboLock.unlock();
+
             fbo->bind();
             glViewport(0, 0, d->currentFrame->width, d->currentFrame->height);
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -609,9 +638,11 @@ namespace AVQt {
             d->releaseResources();
             QOpenGLFramebufferObject::bindDefault();
             d->context->doneCurrent();
-            emit frameReady(d->currentFrame->pts, std::move(fbo));
+            emit frameReady(d->currentFrame->pts, fbo);
             qDebug("Frame ready");
+            msleep(2);
         }
+    end:
         if (d->afterStopThread) {
             d->context->moveToThread(d->afterStopThread);
         }
@@ -680,5 +711,17 @@ namespace AVQt {
                 }
             }
         }
+    }
+
+    VAAPIOpenGLRenderMapperPrivate::FBOReturner::FBOReturner(const VAAPIOpenGLRenderMapperPrivate::FBOReturner &other) {
+        d_ptr = other.d_ptr;
+    }
+
+    void VAAPIOpenGLRenderMapperPrivate::FBOReturner::operator()(QOpenGLFramebufferObject *fbo) {
+        if (fbo->isBound()) {
+            fbo->release();
+        }
+        QMutexLocker locker(&d_ptr->framebufferQueueMutex);
+        d_ptr->framebufferObjects.enqueue(std::shared_ptr<QOpenGLFramebufferObject>(fbo, *this));
     }
 }// namespace AVQt

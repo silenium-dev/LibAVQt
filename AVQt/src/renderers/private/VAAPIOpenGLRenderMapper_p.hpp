@@ -53,6 +53,20 @@ namespace AVQt {
         void releaseResources();
         void destroyResources();
 
+        class FBOReturner {
+        public:
+            explicit FBOReturner(VAAPIOpenGLRenderMapperPrivate *d) : d_ptr(d) {}
+
+            FBOReturner(const FBOReturner &);
+
+            void operator()(QOpenGLFramebufferObject *fbo);
+
+        private:
+            VAAPIOpenGLRenderMapperPrivate *d_ptr;
+        };
+
+        std::shared_ptr<FBOReturner> fboReturner;
+
         VAAPIOpenGLRenderMapper *q_ptr;
 
         QMutex currentFrameMutex{};
@@ -62,13 +76,17 @@ namespace AVQt {
         QOffscreenSurface *surface{nullptr};
         QThread *afterStopThread{nullptr};
 
+        QMutex framebufferQueueMutex{};
+        static constexpr int framebufferQueueSize = 4;
+        QQueue<std::shared_ptr<QOpenGLFramebufferObject>> framebufferObjects{};
+
         QOpenGLShaderProgram *program{nullptr};
         QOpenGLVertexArrayObject vao{};
         QOpenGLBuffer vbo{};
         QOpenGLBuffer ibo{};
         GLuint textures[2]{};
 
-//        QWaitCondition frameAvailable{}, frameProcessed{};
+        QWaitCondition frameAvailable{}, frameProcessed{};
         QMutex renderQueueMutex{};
         QQueue<QFuture<AVFrame *>> renderQueue{};
 
@@ -82,7 +100,7 @@ namespace AVQt {
         static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
 
-        static constexpr uint RENDERQUEUE_MAX_SIZE{2};
+        static constexpr uint RENDERQUEUE_MAX_SIZE{8};
 
         friend class VAAPIOpenGLRenderMapper;
     };

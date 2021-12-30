@@ -45,6 +45,7 @@ namespace AVQt {
           pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
           d_ptr(new DecoderPrivate(this)) {
         Q_D(Decoder);
+        setObjectName(decoderName + "Decoder");
         d->impl = DecoderFactory::getInstance().create(decoderName);
         if (!d->impl) {
             qFatal("Decoder %s not found", qPrintable(decoderName));
@@ -136,10 +137,7 @@ namespace AVQt {
         if (d->open.compare_exchange_strong(shouldBe, true)) {
             d->impl->open(d->pCodecParams);
 
-            d->outputPadParams->frameSize = QSize(d->pCodecParams->width, d->pCodecParams->height);
-            d->outputPadParams->pixelFormat = static_cast<AVPixelFormat>(d->impl->getOutputFormat());
-            d->outputPadParams->swPixelFormat = static_cast<AVPixelFormat>(d->pCodecParams->format);
-            d->outputPadParams->isHWAccel = d->impl->isHWAccel();
+            *d->outputPadParams = d->impl->getVideoParams();
 
             produce(Message::builder().withAction(Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(*d->outputPadParams)).build(), d->outputPadId);
 
@@ -169,6 +167,7 @@ namespace AVQt {
                 qWarning() << "Failed to create output pad";
                 return false;
             }
+            return true;
         } else {
             qWarning() << "Decoder already initialized";
         }
@@ -257,8 +256,17 @@ namespace AVQt {
     void Decoder::run() {
         Q_D(Decoder);
         while (d->running) {
+            AVFrame *frame;
+            msleep(2);
+            while ((frame = d->impl->nextFrame()) && d->running) {
+                msleep(1);
+                qDebug("Decoder produced frame with pts %ld", frame->pts);
+                produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build(), d->outputPadId);
+                av_frame_free(&frame);
+            }
             QMutexLocker lock(&d->inputQueueMutex);
             if (d->paused || d->inputQueue.isEmpty()) {
+                lock.unlock();
                 msleep(1);
                 continue;
             }
@@ -270,17 +278,11 @@ namespace AVQt {
                 d->inputQueue.prepend(packet);
                 lock.unlock();
             } else if (ret != EXIT_SUCCESS) {
+                av_packet_free(&packet);
                 char strBuf[256];
                 qWarning() << "Decoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
-                av_packet_free(&packet);
             } else {
                 av_packet_free(&packet);
-            }
-            AVFrame *frame;
-            while ((frame = d->impl->nextFrame())) {
-                qDebug("Decoder produced frame with pts %ld", frame->pts);
-                produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build(), d->outputPadId);
-                av_frame_free(&frame);
             }
         }
     }

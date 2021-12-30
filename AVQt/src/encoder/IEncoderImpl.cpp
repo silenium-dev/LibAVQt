@@ -18,40 +18,17 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
-
-#include <QObject>
-#include "communication/VideoPadParams.hpp"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+#include "encoder/IEncoderImpl.hpp"
 
 namespace AVQt::api {
-    class IDecoderImpl {
-    public:
-        virtual ~IDecoderImpl() = default;
+    IEncoderImpl::IEncoderImpl(const EncodeParameters &parameters)
+        : m_encodeParameters(parameters) {
+    }
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
-
-        virtual int decode(AVPacket *packet) = 0;
-        [[nodiscard]] virtual AVFrame *nextFrame() = 0;
-
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), but can be overridden for HW decoding
-            return getOutputFormat();
-        };
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
-    };
+    EncodeParameters IEncoderImpl::getEncodeParameters() const {
+        return m_encodeParameters;
+    }
 }// namespace AVQt::api
-
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
-
-
-#endif//LIBAVQT_IDECODERIMPL_HPP

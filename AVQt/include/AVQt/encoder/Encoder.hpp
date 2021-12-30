@@ -17,56 +17,49 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+//
+// Created by silas on 28.12.21.
+//
+
+#ifndef LIBAVQT_ENCODER_HPP
+#define LIBAVQT_ENCODER_HPP
+
+#include "IEncoderImpl.hpp"
 #include "communication/IComponent.hpp"
-#include "decoder/IDecoderImpl.hpp"
+#include "pgraph_network/api/PadRegistry.hpp"
 
 #include <QtCore>
-#include <QtGui>
 #include <pgraph/impl/SimpleProcessor.hpp>
-#include <pgraph_network/api/PadRegistry.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
-#include <libavdevice/avdevice.h>
-#include <libavfilter/avfilter.h>
-#include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
-#include <libavutil/hwcontext.h>
-#include <libavutil/imgutils.h>
-#include <libswresample/swresample.h>
-#include <libswscale/swscale.h>
-}
-
-
-#ifndef TRANSCODE_DECODERVAAPI_H
-#define TRANSCODE_DECODERVAAPI_H
+};
 
 namespace AVQt {
-    class DecoderPrivate;
-
-    class Decoder : public QThread, public api::IComponent, public pgraph::impl::SimpleProcessor {
+    class EncoderPrivate;
+    class Encoder : public QThread, public api::IComponent, public pgraph::impl::SimpleProcessor {
         Q_OBJECT
-        Q_DECLARE_PRIVATE(AVQt::Decoder)
         Q_INTERFACES(AVQt::api::IComponent)
-
+        Q_DECLARE_PRIVATE(AVQt::Encoder)
     public:
-        explicit Decoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        static AVCodecID codecId(Codec codec);
 
+        Encoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
         /*!
          * \private
          */
-        Decoder(const Decoder &) = delete;
-
+        ~Encoder() Q_DECL_OVERRIDE;
         /*!
          * \private
          */
-        void operator=(const Decoder &) = delete;
+        Encoder(const Encoder &) = delete;
+        /*!
+         * \private
+         */
+        void operator=(const Encoder &) = delete;
+
         bool isOpen() const override;
         bool isRunning() const override;
-        /*!
-         * \private
-         */
-        ~Decoder() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns paused state of decoder
@@ -75,40 +68,17 @@ namespace AVQt {
         bool isPaused() const Q_DECL_OVERRIDE;
 
         [[nodiscard]] int64_t getInputPadId() const;
-
         [[nodiscard]] int64_t getOutputPadId() const;
 
     public slots:
-        /*!
-         * \brief Initialize decoder. Creates input context, output pad.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
-         */
-        Q_INVOKABLE bool open() Q_DECL_OVERRIDE;
-
         Q_INVOKABLE bool init() Q_DECL_OVERRIDE;
 
-        /*!
-         * \brief Clean up decoder. Closes input device, destroys input contexts.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
-         */
+        Q_INVOKABLE bool open() Q_DECL_OVERRIDE;
         Q_INVOKABLE void close() Q_DECL_OVERRIDE;
 
-        /*!
-         * \brief Starts decoder. Sets running flag and starts decoding thread.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
-         */
         Q_INVOKABLE bool start() Q_DECL_OVERRIDE;
-
-        /*!
-         * \brief Stops decoder. Resets running flag and interrupts decoding thread.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
-         */
         Q_INVOKABLE void stop() Q_DECL_OVERRIDE;
 
-        /*!
-         * \brief Sets paused flag. When set to true, decoder thread will suspend after processing current frame
-         * @param pause New paused flag state
-         */
         Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
 
         void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
@@ -132,17 +102,12 @@ namespace AVQt {
         void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected:
-        /*!
-         * \private
-         */
         void run() Q_DECL_OVERRIDE;
 
-        /*!
-         * \private
-         */
-        DecoderPrivate *d_ptr;
+    private:
+        QScopedPointer<EncoderPrivate> d_ptr;
     };
-
 }// namespace AVQt
 
-#endif//TRANSCODE_DECODERVAAPI_H
+
+#endif//LIBAVQT_ENCODER_HPP

@@ -17,39 +17,60 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef LIBAVQT_GLOBAL_H
-#define LIBAVQT_GLOBAL_H
+//
+// Created by silas on 28.12.21.
+//
 
-#include <QMetaType>
-#include <QOpenGLFramebufferObject>
-#include <pgraph/impl/SimpleConsumer.hpp>
-#include <pgraph/impl/SimpleProducer.hpp>
-#include <qglobal.h>
+#ifndef LIBAVQT_IENCODERIMPL_HPP
+#define LIBAVQT_IENCODERIMPL_HPP
+
 #include "communication/VideoPadParams.hpp"
-#include "encoder/Encoder.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-#ifdef AVQT_LIBRARY_BUILD
-#define AVQT_DEPRECATED
-#else
-#define AVQT_DEPRECATED Q_DECL_DEPRECATED
-#endif
+#include <QObject>
+#include <QVector>
 
 namespace AVQt {
-    void loadResources();
+    enum class Codec {
+        H264,
+        HEVC,
+        VP8,
+        VP9,
+        MPEG2
+    };
+    struct EncodeParameters {
+        int32_t bitrate;
+        int32_t max_bitrate;
+        int32_t min_bitrate;
+
+        Codec codec;
+    };
+    namespace api {
+        class IEncoderImpl {
+        public:
+            explicit IEncoderImpl(const EncodeParameters &parameters);
+            virtual ~IEncoderImpl() = default;
+
+            virtual bool open(const VideoPadParams &params) = 0;
+            virtual void close() = 0;
+
+            virtual int encode(AVFrame *frame) = 0;
+            [[nodiscard]] virtual AVPacket *nextPacket() = 0;
+
+            [[nodiscard]] virtual QVector<AVPixelFormat> getInputFormats() const = 0;
+            [[nodiscard]] virtual EncodeParameters getEncodeParameters() const;
+            [[nodiscard]] virtual bool isHWAccel() const = 0;
+
+        private:
+            EncodeParameters m_encodeParameters;
+        };
+    }// namespace api
 }// namespace AVQt
 
-Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
-Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
-Q_DECLARE_METATYPE(std::shared_ptr<AVQt::VideoPadParams>)
-Q_DECLARE_METATYPE(std::shared_ptr<QOpenGLFramebufferObject>)
-Q_DECLARE_METATYPE(AVQt::VideoPadParams)
-Q_DECLARE_METATYPE(AVQt::EncodeParameters)
-Q_DECLARE_METATYPE(AVCodecParameters *)
-Q_DECLARE_METATYPE(AVPacket *)
-Q_DECLARE_METATYPE(AVFrame *)
+Q_DECLARE_INTERFACE(AVQt::api::IEncoderImpl, "AVQt.IEncoderImpl")
 
-#endif//LIBAVQT_GLOBAL_H
+
+#endif//LIBAVQT_IENCODERIMPL_HPP

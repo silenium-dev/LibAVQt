@@ -20,8 +20,10 @@
 #include <qglobal.h>
 
 #include "include/AVQt/decoder/Decoder.hpp"
-#include "decoder/DecoderFactory.hpp"
+#include "include/AVQt/decoder/DecoderFactory.hpp"
 #include "include/AVQt/encoder/IEncoder.hpp"
+#include "include/AVQt/encoder/EncoderFactory.hpp"
+#include "include/AVQt/encoder/Encoder.hpp"
 #include "include/AVQt/input/Demuxer.hpp"
 #include "include/AVQt/input/IAudioSource.hpp"
 #include "include/AVQt/input/IFrameSource.hpp"

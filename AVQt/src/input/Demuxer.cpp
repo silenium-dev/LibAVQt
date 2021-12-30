@@ -241,7 +241,7 @@ namespace AVQt {
         constexpr size_t strBufSize = 1024;
         char strBuf[strBufSize];
 
-        AVPacket *packet = av_packet_alloc();
+        AVPacket *packet;
 
         while (d->running) {
             if (d->paused) {
@@ -252,10 +252,11 @@ namespace AVQt {
                 qDebug() << Q_FUNC_INFO << "Error occurred";
                 break;
             }
+            packet = av_packet_alloc();
             ret = av_read_frame(d->pFormatCtx, packet);
 
             if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR_EXIT) {
-                av_packet_unref(packet);
+                av_packet_free(&packet);
                 break;
             } else if (ret < 0) {
                 qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
@@ -271,7 +272,7 @@ namespace AVQt {
                 produce(message, d->outputPadIds[packet->stream_index]);
             }
 
-            av_packet_unref(packet);
+            av_packet_free(&packet);
         }
     }
 

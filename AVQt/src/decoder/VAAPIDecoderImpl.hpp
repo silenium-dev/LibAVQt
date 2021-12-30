@@ -21,37 +21,39 @@
 // Created by silas on 12.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_VAAPIDECODERIMPL_HPP
+#define LIBAVQT_VAAPIDECODERIMPL_HPP
 
-#include <QObject>
+#include "include/AVQt/decoder/IDecoderImpl.hpp"
+#include "static_block.hpp"
 #include "communication/VideoPadParams.hpp"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+namespace AVQt {
+    class VAAPIDecoderImplPrivate;
 
-namespace AVQt::api {
-    class IDecoderImpl {
+    class VAAPIDecoderImpl : public QObject, public AVQt::api::IDecoderImpl {
+        Q_OBJECT
+        Q_DECLARE_PRIVATE(VAAPIDecoderImpl)
+        Q_INTERFACES(AVQt::api::IDecoderImpl)
     public:
-        virtual ~IDecoderImpl() = default;
+        Q_INVOKABLE explicit VAAPIDecoderImpl();
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
+        ~VAAPIDecoderImpl() override = default;
 
-        virtual int decode(AVPacket *packet) = 0;
-        [[nodiscard]] virtual AVFrame *nextFrame() = 0;
+        bool open(AVCodecParameters *codecParams) override;
+        void close() override;
+        int decode(AVPacket *packet) override;
+        [[nodiscard]] AVFrame *nextFrame() override;
 
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), but can be overridden for HW decoding
-            return getOutputFormat();
-        };
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
+        [[nodiscard]] AVPixelFormat getOutputFormat() const override;
+        [[nodiscard]] AVPixelFormat getSwOutputFormat() const override;
+        [[nodiscard]] bool isHWAccel() const override;
+
+        [[nodiscard]] VideoPadParams getVideoParams() const override;
+
+    protected:
+        VAAPIDecoderImplPrivate *d_ptr;
     };
-}// namespace AVQt::api
+}// namespace AVQt
 
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
-
-
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_VAAPIDECODERIMPL_HPP

@@ -18,38 +18,39 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_VAAPIDECODERIMPL_HPP
-#define LIBAVQT_VAAPIDECODERIMPL_HPP
+#ifndef LIBAVQT_VAAPIENCODERIMPL_HPP
+#define LIBAVQT_VAAPIENCODERIMPL_HPP
 
-#include "IDecoderImpl.hpp"
-#include <static_block.hpp>
+#include "communication/VideoPadParams.hpp"
+#include "encoder/IEncoderImpl.hpp"
+#include "encoder/private/VAAPIEncoderImpl_p.hpp"
+#include <QObject>
+
 
 namespace AVQt {
-    class VAAPIDecoderImplPrivate;
-
-    class VAAPIDecoderImpl : public QObject, public AVQt::api::IDecoderImpl {
+    class VAAPIEncoderImplPrivate;
+    class VAAPIEncoderImpl : public QObject, public api::IEncoderImpl {
         Q_OBJECT
-        Q_DECLARE_PRIVATE(VAAPIDecoderImpl)
-        Q_INTERFACES(AVQt::api::IDecoderImpl)
+        Q_DECLARE_PRIVATE(VAAPIEncoderImpl)
+        Q_INTERFACES(AVQt::api::IEncoderImpl)
     public:
-        Q_INVOKABLE explicit VAAPIDecoderImpl();
+        Q_INVOKABLE explicit VAAPIEncoderImpl(const AVQt::EncodeParameters &parameters);
+        ~VAAPIEncoderImpl() override = default;
 
-        ~VAAPIDecoderImpl() override = default;
-
-        bool open(AVCodecParameters *codecParams) override;
+        bool open(const VideoPadParams &params) override;
         void close() override;
-        int decode(AVPacket *packet) override;
-        AVFrame *nextFrame() override;
-
-        [[nodiscard]] AVPixelFormat getOutputFormat() const override;
+        int encode(AVFrame *frame) override;
+        AVPacket *nextPacket() override;
+        [[nodiscard]] QVector<AVPixelFormat> getInputFormats() const override;
         [[nodiscard]] bool isHWAccel() const override;
 
-    protected:
-        VAAPIDecoderImplPrivate *d_ptr;
+    private:
+        VAAPIEncoderImplPrivate *d_ptr;
     };
 }// namespace AVQt
 
-#endif//LIBAVQT_VAAPIDECODERIMPL_HPP
+
+#endif//LIBAVQT_VAAPIENCODERIMPL_HPP
