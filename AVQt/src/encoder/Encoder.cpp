@@ -154,9 +154,12 @@ namespace AVQt {
             return;
         }
 
+        if (d->running) {
+            stop();
+        }
+
         bool shouldBe = true;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
-            stop();
             d->impl->close();
             pgraph::impl::SimpleProcessor::produce(Message::builder()
                                                            .withAction(Message::Action::CLEANUP)
@@ -266,7 +269,7 @@ namespace AVQt {
                         }
                         break;
                     case Message::Action::CLEANUP:
-                        stop();
+                        close();
                         break;
                     case Message::Action::START:
                         if (!start()) {

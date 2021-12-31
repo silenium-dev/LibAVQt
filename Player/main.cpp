@@ -19,9 +19,9 @@
 
 #include "AVQt"
 #include "FrameSaverAccelerated.hpp"
+#include "OpenGlWidgetRenderer.hpp"
 #include "include/AVQt/communication/Message.hpp"
 #include "include/AVQt/communication/PacketPadParams.hpp"
-#include "OpenGlWidgetRenderer.hpp"
 #include <pgraph/api/Link.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
 #include <pgraph_network/impl/SimplePadRegistry.hpp>
@@ -53,9 +53,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-#ifndef QT_DEBUG
+    //#ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
-#endif
+    //#endif
     {
         QString output;
         QTextStream os(&output);
@@ -84,12 +84,12 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
 
-#ifdef QT_DEBUG
+    //#ifdef QT_DEBUG
     av_log_set_level(AV_LOG_DEBUG);
     av_log_set_flags(AV_LOG_SKIP_REPEATED);
-#else
-    av_log_set_level(AV_LOG_WARNING);
-#endif
+    //#else
+    //    av_log_set_level(AV_LOG_WARNING);
+    //#endif
     //    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();
@@ -127,8 +127,9 @@ int main(int argc, char *argv[]) {
     auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
-    auto renderer = std::make_shared<OpenGLWidgetRenderer>(registry);
-    //    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
+    auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
+    auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
+    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
     //    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
     //    auto cc = std::make_shared<CommandConsumer>(registry);
     //    auto cc2 = std::make_shared<CommandConsumer>(registry);
@@ -137,15 +138,16 @@ int main(int argc, char *argv[]) {
     decoder1->init();
     decoder2->init();
     encoder->init();
-    renderer->init();
-    //    yuvrgbconverter->init();
+    renderer1->init();
+    renderer2->init();
+    yuvrgbconverter->init();
     //    frameSaver->init();
     //    cc->init();
     //    cc2->init();
 
-    pgraph::network::data::APIInfo apiInfo(registry);
+    //    pgraph::network::data::APIInfo apiInfo(registry);
 
-    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
+    //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
     auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
     auto decoder1InPad = decoder1->getInputPads().begin()->second;
@@ -154,24 +156,27 @@ int main(int argc, char *argv[]) {
     auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
     auto encoderInPad = encoder->getInputPads().begin()->second;
     auto encoderOutPad = encoder->getOutputPads().begin()->second;
-    auto rendererInPad = renderer->getInputPads().begin()->second;
+    auto renderer1InPad = renderer1->getInputPads().begin()->second;
+    auto renderer2InPad = renderer2->getInputPads().begin()->second;
     //    auto ccInPad = cc->getInputPads().begin()->second;
     //    auto cc2InPad = cc2->getInputPads().begin()->second;
-    //    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
-    //    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
+    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
+    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
     //    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
     //    ccInPad->link(demuxerOutPad);
     //    cc2InPad->link(decoderOutPad);
     decoder1InPad->link(demuxerOutPad);
-    //    encoderInPad->link(decoder1OutPad);
-    //    decoder2InPad->link(demuxerOutPad);
-    rendererInPad->link(decoder1OutPad);
-    //    decoderOutPad->link(yuvrgbconverterInPad);
+    encoderInPad->link(decoder1OutPad);
+    //    decoder2InPad->link(encoderOutPad);
+    //    decoder1OutPad->link(yuvrgbconverterInPad);
+    renderer1InPad->link(decoder1OutPad);
+    //    renderer2InPad->link(decoder1OutPad);
     //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
     demuxer->open();
 
-    renderer->resize(1280, 720);
+    renderer1->resize(1280, 720);
+    //    renderer2->resize(1280, 720);
 
     demuxer->start();
 
@@ -179,8 +184,9 @@ int main(int argc, char *argv[]) {
     //        demuxer->pause(true);
     //        QTimer::singleShot(4000, [demuxer]{
     //            demuxer->pause(false);
-    QTimer::singleShot(10000, [demuxer] {
-        QApplication::quit();
+    QTimer::singleShot(30000, [renderer1, renderer2] {
+        renderer1->close();
+        renderer2->close();
     });
     //        });
     //    });

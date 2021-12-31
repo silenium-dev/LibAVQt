@@ -43,10 +43,19 @@ OpenGLWidgetRenderer::OpenGLWidgetRenderer(std::shared_ptr<pgraph::network::api:
 
 OpenGLWidgetRenderer::~OpenGLWidgetRenderer() {
     Q_D(OpenGLWidgetRenderer);
-    d->mapper->stop();
-    delete d->mapper;
+    if (d->mapper) {
+        d->mapper->stop();
+        delete d->mapper;
+        d->mapper = nullptr;
+    }
+
     delete d->blitter;
-    pgraph::impl::SimpleProcessor::destroyInputPad(d->inputPadId);
+    d->blitter = nullptr;
+
+    if (d->inputPadId != pgraph::api::INVALID_PAD_ID) {
+        pgraph::impl::SimpleProcessor::destroyInputPad(d->inputPadId);
+    }
+    delete d_ptr;
 }
 
 bool OpenGLWidgetRenderer::init() {
@@ -78,8 +87,10 @@ void OpenGLWidgetRenderer::consume(int64_t pad, std::shared_ptr<pgraph::api::Dat
                 pause(message->getPayloads().value("state").toBool());
                 break;
             case AVQt::Message::Action::DATA: {
-                auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
-                d->mapper->enqueueFrame(av_frame_clone(frame));
+                if (d->mapper) {
+                    auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
+                    d->mapper->enqueueFrame(av_frame_clone(frame));
+                }
                 break;
             }
             case AVQt::Message::Action::INIT:
@@ -175,6 +186,7 @@ void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {
     if (d->mapper) {
         d->mapper->stop();
         delete d->mapper;
+        d->mapper = nullptr;
     }
     QWidget::closeEvent(event);
 }

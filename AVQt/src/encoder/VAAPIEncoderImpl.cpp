@@ -213,39 +213,41 @@ namespace AVQt {
             }
         } else {
             if (!d->hwFramesContext) {
-                if (frame->format == AV_PIX_FMT_VAAPI) {
-                    d->hwFramesContext = av_buffer_ref(frame->hw_frames_ctx);
-                    d->mappable = true;
-                } else if (frame->format != AV_PIX_FMT_VAAPI) {
-                    d->mappable = true;
-                    ret = av_hwframe_ctx_create_derived(
-                            &d->hwFramesContext,
-                            AV_PIX_FMT_VAAPI,
-                            d->hwDeviceContext,
-                            frame->hw_frames_ctx,
-                            AV_HWFRAME_MAP_READ);
+                //                if (frame->format == AV_PIX_FMT_VAAPI) {
+                //                    d->hwFramesContext = av_buffer_ref(frame->hw_frames_ctx);
+                //                    d->mappable = true;
+                //                } else if (frame->format != AV_PIX_FMT_VAAPI) {
+                d->mappable = true;
+                ret = av_hwframe_ctx_create_derived(
+                        &d->hwFramesContext,
+                        AV_PIX_FMT_VAAPI,
+                        d->hwDeviceContext,
+                        frame->hw_frames_ctx,
+                        AV_HWFRAME_MAP_READ);
+                if (ret < 0) {
+                    d->mappable = false;
+                    qWarning() << "Could not create derived VAAPI frames context: " << av_make_error_string(strBuf, sizeof(strBuf), ret);
+                    d->hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext);
+                    if (!d->hwFramesContext) {
+                        qWarning() << "Failed to create VAAPI frames context";
+                        return ENODEV;
+                    }
+                    auto framesContext = reinterpret_cast<AVHWFramesContext *>(d->hwFramesContext->data);
+                    framesContext->format = AV_PIX_FMT_VAAPI;
+                    framesContext->sw_format = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data)->sw_format;
+                    framesContext->width = d->codecContext->width;
+                    framesContext->height = d->codecContext->height;
+                    framesContext->initial_pool_size = 20;
+                    ret = av_hwframe_ctx_init(d->hwFramesContext);
                     if (ret < 0) {
-                        d->mappable = false;
-                        qWarning() << "Could not create derived VAAPI frames context: " << av_make_error_string(strBuf, sizeof(strBuf), ret);
-                        d->hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext);
-                        if (!d->hwFramesContext) {
-                            qWarning() << "Failed to create VAAPI frames context";
-                            return ENODEV;
-                        }
-                        auto framesContext = reinterpret_cast<AVHWFramesContext *>(d->hwFramesContext->data);
-                        framesContext->format = AV_PIX_FMT_VAAPI;
-                        framesContext->sw_format = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data)->sw_format;
-                        framesContext->width = d->codecContext->width;
-                        framesContext->height = d->codecContext->height;
-                        framesContext->initial_pool_size = 20;
-                        ret = av_hwframe_ctx_init(d->hwFramesContext);
-                        if (ret < 0) {
-                            av_strerror(ret, strBuf, sizeof(strBuf));
-                            qWarning() << "Failed to initialize VAAPI frames context: " << strBuf;
-                            return AVUNERROR(ret);
-                        }
+                        av_strerror(ret, strBuf, sizeof(strBuf));
+                        qWarning() << "Failed to initialize VAAPI frames context: " << strBuf;
+                        return AVUNERROR(ret);
                     }
                 }
+                //                } else {
+                //                    qFatal("Invalid frame format");
+                //                }
 
                 d->codecContext->hw_frames_ctx = av_buffer_ref(d->hwFramesContext);
                 ret = avcodec_open2(d->codecContext, d->codec, nullptr);
@@ -287,7 +289,7 @@ namespace AVQt {
                 }
                 av_frame_free(&tmp);
             } else if (d->hwFramesContext->buffer != frame->hw_frames_ctx->buffer) {
-                ret = av_hwframe_map(d->hwFrame, frame, 0);
+                ret = av_hwframe_map(d->hwFrame, frame, AV_HWFRAME_MAP_READ);
                 if (ret < 0) {
                     av_strerror(ret, strBuf, sizeof(strBuf));
                     qWarning() << "Failed to map frame: " << strBuf;
@@ -379,7 +381,8 @@ namespace AVQt {
                 return AVUNERROR(ret);
             }
         } else {
-            hwFrame->format = AV_PIX_FMT_VAAPI;
+            //            hwFrame->format = AV_PIX_FMT_VAAPI;
+            hwFrame->hw_frames_ctx = av_buffer_ref(hwFramesContext);
         }
         return EXIT_SUCCESS;
     }

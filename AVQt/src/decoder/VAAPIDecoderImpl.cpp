@@ -205,12 +205,13 @@ namespace AVQt {
         framesContext->height = ctx->height;
         framesContext->format = AV_PIX_FMT_VAAPI;
         framesContext->sw_format = decoder->getSwOutputFormat();
-        framesContext->initial_pool_size = 32;
+        framesContext->initial_pool_size = 100;
         int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
         if (ret != 0) {
             char strBuf[64];
             qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
         }
+        qDebug("[AVQt::DecoderVAAPI] Frame pool size: %d", framesContext->initial_pool_size);
         return result;
     }
 

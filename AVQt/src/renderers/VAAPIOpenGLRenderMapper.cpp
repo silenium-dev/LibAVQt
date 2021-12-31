@@ -101,9 +101,11 @@ namespace AVQt {
     VAAPIOpenGLRenderMapper::~VAAPIOpenGLRenderMapper() {
         Q_D(VAAPIOpenGLRenderMapper);
 
-        VAAPIOpenGLRenderMapper::stop();
+        if (d->running) {
+            qWarning("VAAPIOpenGLRenderMapper: Destroyed while running");
+        }
 
-        if (d->context) {
+        if (d->context && d->context->isValid()) {
             d->context->makeCurrent(d->surface);
             d->destroyResources();
             d->context->doneCurrent();
@@ -114,31 +116,31 @@ namespace AVQt {
 
     void VAAPIOpenGLRenderMapper::start() {
         Q_D(VAAPIOpenGLRenderMapper);
-        if (isRunning()) {
-            return;
+        bool shouldBe = false;
+        if (d->running.compare_exchange_strong(shouldBe, true)) {
+            d->paused = false;
+            if (d->context->thread() != this) {
+                d->context->moveToThread(this);
+            }
+            QThread::start();
         }
-        if (d->context->thread() != this) {
-            d->context->moveToThread(this);
-        }
-        QThread::start();
     }
 
     void VAAPIOpenGLRenderMapper::stop() {
         Q_D(VAAPIOpenGLRenderMapper);
-        if (!isRunning()) {
-            return;
-        }
-        d->afterStopThread = QThread::currentThread();
-        QThread::requestInterruption();
-        QThread::quit();
-        d->frameProcessed.notify_all();
-        d->frameAvailable.notify_all();
-        QThread::wait();
-        QMutexLocker lock(&d->renderQueueMutex);
-        while (!d->renderQueue.empty()) {
-            auto frame = d->renderQueue.dequeue().result();
-            if (frame) {
-                av_frame_free(&frame);
+        bool shouldBe = true;
+        if (d->running.compare_exchange_strong(shouldBe, false)) {
+            d->afterStopThread = QThread::currentThread();
+            QThread::quit();
+            d->frameProcessed.notify_all();
+            d->frameAvailable.notify_all();
+            QThread::wait();
+            QMutexLocker lock(&d->renderQueueMutex);
+            while (!d->renderQueue.empty()) {
+                auto frame = d->renderQueue.dequeue().result();
+                if (frame) {
+                    av_frame_free(&frame);
+                }
             }
         }
     }
@@ -359,13 +361,6 @@ namespace AVQt {
 
             VASurfaceID va_surface = reinterpret_cast<uintptr_t>(d->currentFrame->data[3]);
 
-            //                        VAImage vaImage;
-            //                        vaDeriveImage(d->vaDisplay, va_surface, &vaImage);
-            //                        VABufferInfo vaBufferInfo;
-            //                        memset(&vaBufferInfo, 0, sizeof(VABufferInfo));
-            //                        vaBufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-            //                        vaAcquireBufferHandle(d->vaDisplay, vaImage.buf, &vaBufferInfo);
-
             VADRMPRIMESurfaceDescriptor prime;
             if (vaExportSurfaceHandle(d->vaDisplay, va_surface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                                       VA_EXPORT_SURFACE_READ_ONLY | VA_EXPORT_SURFACE_SEPARATE_LAYERS, &prime) !=
@@ -377,7 +372,6 @@ namespace AVQt {
             uint32_t formats[2];
             char strBuf[AV_FOURCC_MAX_STRING_SIZE];
             switch (prime.fourcc) {
-                //                        switch (vaImage.format.fourcc) {
                 case VA_FOURCC_P010:
                     formats[0] = DRM_FORMAT_R16;
                     formats[1] = DRM_FORMAT_GR1616;
@@ -388,7 +382,6 @@ namespace AVQt {
                     break;
                 default:
                     qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, prime.fourcc));
-                    //                                qFatal("Unsupported pixel format: %s", av_fourcc_make_string(strBuf, vaImage.format.fourcc));
             }
 
             for (int i = 0; i < 2; ++i) {
@@ -407,17 +400,6 @@ namespace AVQt {
                         EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(prime.layers[LAYER].offset[PLANE]),
                         EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(prime.layers[LAYER].pitch[PLANE]),
                         EGL_NONE};
-
-                //                            const EGLint *img_attr = new EGLint[]{
-                //                                    EGL_WIDTH, vaImage.width,
-                //                                    EGL_HEIGHT, vaImage.height,
-                //                                    EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(formats[i]),
-                //                                    EGL_DMA_BUF_PLANE0_FD_EXT, static_cast<EGLint>(vaBufferInfo.handle),
-                //                                    EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(vaImage.offsets[i]),
-                //                                    EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(vaImage.pitches[i]),
-                //                                    EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
-                //                                    EGL_NONE
-                //                            };
                 while (eglGetError() != EGL_SUCCESS)
                     ;
                 d->eglImages[i] = eglCreateImageKHR(eglGetCurrentDisplay(), EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
@@ -442,17 +424,7 @@ namespace AVQt {
                 if (err != GL_NO_ERROR) {
                     qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
                 }
-
-                //                            void *data = new uint16_t[prime.width * prime.height];
-                //
-                //                            glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_SHORT, data);
-                //                            QImage image(reinterpret_cast<uint8_t *>(data), prime.width, prime.height, QImage::Format_Grayscale16);
-                //                            image.save("output.bmp");
-
-                //                            exit(0);
             }
-            //                        vaReleaseBufferHandle(d->vaDisplay, vaImage.buf);
-            //                        vaDestroyImage(d->vaDisplay, vaImage.image_id);
             for (int i = 0; i < (int) prime.num_objects; ++i) {
                 ::close(prime.objects[i].fd);
             }
@@ -466,13 +438,6 @@ namespace AVQt {
             }
 
             VASurfaceID va_surface = reinterpret_cast<uintptr_t>(d->currentFrame->data[3]);
-
-            //                        VAImage vaImage;
-            //                        vaDeriveImage(d->vaDisplay, va_surface, &vaImage);
-            //                        VABufferInfo vaBufferInfo;
-            //                        memset(&vaBufferInfo, 0, sizeof(VABufferInfo));
-            //                        vaBufferInfo.mem_type = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-            //                        vaAcquireBufferHandle(d->vaDisplay, vaImage.buf, &vaBufferInfo);
 
             VADRMPRIMESurfaceDescriptor prime;
             VAStatus vaErr;
@@ -552,9 +517,9 @@ namespace AVQt {
                     av_buffer_ref(framesContext->device_ref));
 
             QMutexLocker locker(&d->renderQueueMutex);
-            if (d->renderQueue.size() > 4) {
+            if (d->renderQueue.size() > 2) {
                 d->frameProcessed.wait(&d->renderQueueMutex, 200);
-                if (d->renderQueue.size() > 4) {
+                if (d->renderQueue.size() > 4 && d->running) {
                     qWarning("[AVQt::VAAPIOpenGLRenderMapper] Render queue is full, dropping frame");
                     av_frame_free(&frame);
                     return;
@@ -567,7 +532,11 @@ namespace AVQt {
     void VAAPIOpenGLRenderMapper::run() {
         Q_D(VAAPIOpenGLRenderMapper);
 
-        while (!isInterruptionRequested()) {
+        if (!d->running) {
+            return;
+        }
+
+        while (d->running) {
             QMutexLocker locker(&d->renderQueueMutex);
             if (d->renderQueue.isEmpty()) {
                 d->frameAvailable.wait(&d->renderQueueMutex, 200);
@@ -621,7 +590,7 @@ namespace AVQt {
             while (d->framebufferObjects.isEmpty()) {
                 fboLock.unlock();
                 msleep(2);
-                if (isInterruptionRequested()) {
+                if (!d->running) {
                     goto end;
                 }
                 fboLock.relock();
@@ -640,7 +609,6 @@ namespace AVQt {
             d->context->doneCurrent();
             emit frameReady(d->currentFrame->pts, fbo);
             qDebug("Frame ready");
-            msleep(2);
         }
     end:
         if (d->afterStopThread) {
