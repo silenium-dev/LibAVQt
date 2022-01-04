@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -35,6 +35,7 @@ namespace AVQt {
           pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
           d_ptr(new EncoderPrivate(this)) {
         Q_D(Encoder);
+        d->encodeParameters = encodeParameters;
         d->impl = EncoderFactory::getInstance().create(encoderName, encodeParameters);
         if (!d->impl) {
             qFatal("Encoder %s not found", qPrintable(encoderName));
@@ -110,34 +111,15 @@ namespace AVQt {
             d->outputPadParams->codec = codecId(d->encodeParameters.codec);
             d->outputPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
 
-            d->outputPadParams->codecParams = avcodec_parameters_alloc();
-            if (!d->outputPadParams->codecParams) {
-                qWarning("Encoder: Failed to allocate codec parameters");
-                return false;
-            }
-            d->outputPadParams->codecParams->codec_id = codecId(d->encodeParameters.codec);
-            d->outputPadParams->codecParams->width = d->inputParams.frameSize.width();
-            d->outputPadParams->codecParams->height = d->inputParams.frameSize.height();
-            d->outputPadParams->codecParams->format = d->inputParams.isHWAccel ? d->inputParams.swPixelFormat : d->inputParams.pixelFormat;
-            d->outputPadParams->codecParams->bit_rate = d->encodeParameters.bitrate;
-            d->outputPadParams->codecParams->codec_type = AVMEDIA_TYPE_VIDEO;
-
-            AVCodecParameters *codecParams = avcodec_parameters_alloc();
-            if (!codecParams) {
-                qWarning("Encoder: Failed to allocate codec parameters");
-                return false;
-            }
-            avcodec_parameters_copy(codecParams, d->outputPadParams->codecParams);
+            d->outputPadParams->codecParams = d->impl->getCodecParameters();
 
             pgraph::impl::SimpleProcessor::produce(Message::builder()
                                                            .withAction(Message::Action::INIT)
                                                            .withPayload("packetParams", QVariant::fromValue(*d->outputPadParams))
                                                            .withPayload("encodeParams", QVariant::fromValue(d->encodeParameters))
-                                                           .withPayload("codecParams", QVariant::fromValue(codecParams))
+                                                           .withPayload("codecParams", QVariant::fromValue(d->outputPadParams->codecParams))
                                                            .build(),
                                                    d->outputPadId);
-
-            avcodec_parameters_free(&codecParams);
 
             return true;
         } else {
@@ -165,6 +147,9 @@ namespace AVQt {
                                                            .withAction(Message::Action::CLEANUP)
                                                            .build(),
                                                    d->outputPadId);
+            if (d->outputPadParams->codecParams) {
+                avcodec_parameters_free(&d->outputPadParams->codecParams);
+            }
         } else {
             qWarning("Encoder: Not open");
         }
@@ -309,19 +294,17 @@ namespace AVQt {
                 msleep(1);
                 continue;
             }
+            qWarning("Input queue size: %d", d->inputQueue.size());
             auto frame = d->inputQueue.dequeue();
             lock.unlock();
             int ret = d->impl->encode(frame);
-            if (ret == EAGAIN) {
-                lock.relock();
-                d->inputQueue.prepend(frame);
-                lock.unlock();
-            } else if (ret != EXIT_SUCCESS) {
+
+            //            qWarning("frame context refcount: %d", av_buffer_get_ref_count(frame->hw_frames_ctx));
+
+            av_frame_free(&frame);
+            if (ret != EXIT_SUCCESS) {
                 char strBuf[256];
                 qWarning() << "Encoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
-                av_frame_free(&frame);
-            } else {
-                av_frame_free(&frame);
             }
         }
     }
@@ -350,7 +333,7 @@ namespace AVQt {
 
     void EncoderPrivate::enqueueData(AVFrame *frame) {
         QMutexLocker lock(&inputQueueMutex);
-        while (inputQueue.size() > 2) {
+        while (inputQueue.size() > 4) {
             lock.unlock();
             QThread::msleep(1);
             lock.relock();

@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -488,7 +488,9 @@ namespace AVQt {
                 qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
             }
             glBindTexture(GL_TEXTURE_2D, 0);
-            ::close(prime.objects[0].fd);
+            for (int i = 0; i < (int) prime.num_objects; ++i) {
+                ::close(prime.objects[i].fd);
+            }
         } else {
             qFatal("Invalid pixel format");
         }
@@ -517,7 +519,7 @@ namespace AVQt {
                     av_buffer_ref(framesContext->device_ref));
 
             QMutexLocker locker(&d->renderQueueMutex);
-            if (d->renderQueue.size() > 2) {
+            if (d->renderQueue.size() > 4) {
                 d->frameProcessed.wait(&d->renderQueueMutex, 200);
                 if (d->renderQueue.size() > 4 && d->running) {
                     qWarning("[AVQt::VAAPIOpenGLRenderMapper] Render queue is full, dropping frame");

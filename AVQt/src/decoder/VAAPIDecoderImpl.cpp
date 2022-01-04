@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -205,7 +205,7 @@ namespace AVQt {
         framesContext->height = ctx->height;
         framesContext->format = AV_PIX_FMT_VAAPI;
         framesContext->sw_format = decoder->getSwOutputFormat();
-        framesContext->initial_pool_size = 100;
+        framesContext->initial_pool_size = 16;
         int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
         if (ret != 0) {
             char strBuf[64];
@@ -234,14 +234,15 @@ namespace AVQt {
             AVFrame *frame = av_frame_alloc();
             ret = avcodec_receive_frame(p->codecContext, frame);
             inputLock.unlock();
+            qWarning("Output queue size: %d", m_outputQueue.size());
             if (ret == 0) {
                 QMutexLocker outputLock(&m_mutex);
                 //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
                 qDebug("Enqueuing frame with PTS %ld", frame->pts);
                 m_outputQueue.enqueue(frame);
-            } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+            } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret == AVERROR(ENOMEM)) {
                 av_frame_free(&frame);
-                msleep(1);
+                msleep(4);
             } else {
                 av_frame_free(&frame);
                 av_strerror(ret, strBuf, strBufSize);

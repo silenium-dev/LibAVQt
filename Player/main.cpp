@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021.
+﻿// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -120,12 +120,15 @@ int main(int argc, char *argv[]) {
     auto registry = std::make_shared<pgraph::network::impl::SimplePadRegistry>();
 
     AVQt::EncodeParameters encodeParams{};
-    encodeParams.bitrate = 1000000;
+    encodeParams.bitrate = 10000000;
+    encodeParams.min_bitrate = 8000000;
+    encodeParams.max_bitrate = 16000000;
     encodeParams.codec = AVQt::Codec::HEVC;
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
     auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto decoder3 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
@@ -137,6 +140,7 @@ int main(int argc, char *argv[]) {
     demuxer->init();
     decoder1->init();
     decoder2->init();
+    decoder3->init();
     encoder->init();
     renderer1->init();
     renderer2->init();
@@ -154,6 +158,8 @@ int main(int argc, char *argv[]) {
     auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
     auto decoder2InPad = decoder2->getInputPads().begin()->second;
     auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
+    auto decoder3InPad = decoder3->getInputPads().begin()->second;
+    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
     auto encoderInPad = encoder->getInputPads().begin()->second;
     auto encoderOutPad = encoder->getOutputPads().begin()->second;
     auto renderer1InPad = renderer1->getInputPads().begin()->second;
@@ -168,15 +174,16 @@ int main(int argc, char *argv[]) {
     decoder1InPad->link(demuxerOutPad);
     encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
+    //    decoder2InPad->link(demuxerOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
-    renderer1InPad->link(decoder1OutPad);
-    //    renderer2InPad->link(decoder1OutPad);
+    //    renderer1InPad->link(decoder1OutPad);
+    renderer2InPad->link(decoder1OutPad);
     //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
     demuxer->open();
 
     renderer1->resize(1280, 720);
-    //    renderer2->resize(1280, 720);
+    renderer2->resize(1280, 720);
 
     demuxer->start();
 

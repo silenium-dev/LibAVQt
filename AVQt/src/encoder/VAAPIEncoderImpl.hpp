@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -46,6 +46,7 @@ namespace AVQt {
         AVPacket *nextPacket() override;
         [[nodiscard]] QVector<AVPixelFormat> getInputFormats() const override;
         [[nodiscard]] bool isHWAccel() const override;
+        [[nodiscard]] AVCodecParameters *getCodecParameters() const override;
 
     private:
         VAAPIEncoderImplPrivate *d_ptr;

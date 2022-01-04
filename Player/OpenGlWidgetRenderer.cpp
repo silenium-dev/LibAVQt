@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -32,11 +32,14 @@
 #include <pgraph/api/PadUserData.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
+size_t OpenGLWidgetRendererPrivate::nextId{0};
+
 OpenGLWidgetRenderer::OpenGLWidgetRenderer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QWidget *parent)
     : pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
       QOpenGLWidget(parent),
       QOpenGLFunctions(),
       d_ptr(new OpenGLWidgetRendererPrivate(this)) {
+    Q_D(OpenGLWidgetRenderer);
     qRegisterMetaType<std::shared_ptr<QOpenGLFramebufferObject>>();
     setAttribute(Qt::WA_QuitOnClose);
 }
@@ -172,6 +175,11 @@ void OpenGLWidgetRenderer::paintGL() {
         qDebug() << "Drawing frame with PTS: " << d->currentFrame.first << "to" << target;
         d->blitter->blit(d->currentFrame.second->texture(), target, QOpenGLTextureBlitter::OriginBottomLeft);
         d->blitter->release();
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setFont(QFont("Roboto", 20));
+        p.setPen(Qt::white);
+        p.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, QString("Renderer %1 at %2 ms").arg(d->id).arg(d->currentFrame.first / 1000));
     }
     update();
 }

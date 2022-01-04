@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -28,6 +28,7 @@
 
 #include <QtCore>
 
+
 namespace AVQt {
     class VAAPIEncoderImpl;
     class VAAPIEncoderImplPrivate {
@@ -36,7 +37,9 @@ namespace AVQt {
         explicit VAAPIEncoderImplPrivate(VAAPIEncoderImpl *q) : q_ptr(q) {}
         VAAPIEncoderImpl *q_ptr;
 
-        int allocateHwFrame();
+        int mapFrameToHW(AVFrame *frame);
+
+        int allocateHWFrame();
 
         class PacketFetcher : public QThread {
         public:
@@ -53,7 +56,7 @@ namespace AVQt {
         private:
             VAAPIEncoderImplPrivate *p;
             QQueue<AVPacket *> m_outputQueue;
-            QMutex m_mutex;
+            QMutex m_outputQueueMutex;
             //            QWaitCondition m_frameAvailable;
             std::atomic_bool m_stop{false};
         };
@@ -66,13 +69,15 @@ namespace AVQt {
         AVBufferRef *hwDeviceContext{nullptr};
         AVBufferRef *hwFramesContext{nullptr};
         AVFrame *hwFrame{nullptr};
-        std::atomic_bool mappable{true};
+        std::atomic_bool mappable{true}, derivedContext{false};
 
         PacketFetcher *packetFetcher{nullptr};
 
         QMutex codecMutex;
         std::atomic_bool initialized{false}, firstFrame{true};
         std::atomic_uint64_t frameCounter{0};
+
+        const static QList<AVPixelFormat> supportedPixelFormats;
     };
 }// namespace AVQt
 

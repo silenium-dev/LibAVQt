@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -33,7 +33,8 @@ class OpenGLWidgetRenderer;
 class OpenGLWidgetRendererPrivate {
     Q_DECLARE_PUBLIC(OpenGLWidgetRenderer)
 private:
-    explicit OpenGLWidgetRendererPrivate(OpenGLWidgetRenderer *q) : q_ptr(q) {}
+    explicit OpenGLWidgetRendererPrivate(OpenGLWidgetRenderer *q) : q_ptr(q), id(nextId++) {
+    }
 
     int64_t getTimestamp();
 
@@ -49,6 +50,10 @@ private:
 
     std::atomic_bool paused{false};
     std::atomic_int64_t lastPaused{0};
+
+    const size_t id;
+
+    static size_t nextId;
 
     friend class OpenGLWidgetRenderer;
 };

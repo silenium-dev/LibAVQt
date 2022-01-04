@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -63,6 +63,7 @@ namespace AVQt {
             [[nodiscard]] virtual QVector<AVPixelFormat> getInputFormats() const = 0;
             [[nodiscard]] virtual EncodeParameters getEncodeParameters() const;
             [[nodiscard]] virtual bool isHWAccel() const = 0;
+            [[nodiscard]] virtual AVCodecParameters *getCodecParameters() const = 0;
 
         private:
             EncodeParameters m_encodeParameters;
