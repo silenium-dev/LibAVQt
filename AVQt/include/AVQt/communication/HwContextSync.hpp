@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022.
+// Copyright (c) 2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,45 +18,62 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 11.12.21.
+// Created by silas on 07.01.22.
 //
 
+#ifndef LIBAVQT_HWCONTEXTSYNC_HPP
+#define LIBAVQT_HWCONTEXTSYNC_HPP
 
-#ifndef LIBAVQT_VIDEOPADPARAMS_HPP
-#define LIBAVQT_VIDEOPADPARAMS_HPP
-
-#include "pgraph/api/PadUserData.hpp"
-#include <QObject>
-#include <QSize>
+#include <QtCore>
+#include <queue>
 
 extern "C" {
-#include <libavutil/pixfmt.h>
-#include <libavutil/buffer.h>
+#include <libavutil/hwcontext.h>
 }
 
+class ordered_lock {
+    std::queue<std::condition_variable *> cvar;
+    std::mutex cvar_lock;
+    bool locked;
+
+public:
+    ordered_lock() : locked(false){};
+    void lock() {
+        std::unique_lock<std::mutex> acquire(cvar_lock);
+        if (locked) {
+            std::condition_variable signal;
+            cvar.emplace(&signal);
+            signal.wait(acquire);
+        } else {
+            locked = true;
+        }
+    }
+    void unlock() {
+        std::unique_lock<std::mutex> acquire(cvar_lock);
+        if (cvar.empty()) {
+            locked = false;
+        } else {
+            cvar.front()->notify_one();
+            cvar.pop();
+        }
+    }
+};
+
 namespace AVQt {
-    class VideoPadParams : public pgraph::api::PadUserData {
+    class HWContextSync {
     public:
-        explicit VideoPadParams() = default;
-        VideoPadParams(const VideoPadParams &other);
-        VideoPadParams &operator=(const VideoPadParams &other);
+        explicit HWContextSync(AVBufferRef *framesContext);
 
-        ~VideoPadParams() override;
-        boost::uuids::uuid getType() const override;
-        boost::json::object toJSON() const override;
+        AVBufferRef *getFramesContext() const;
 
-    protected:
-        bool isEmpty() const override;
+        void lock();
+        void unlock();
 
-    public:
-        static const boost::uuids::uuid Type;
-
-        QSize frameSize{};
-        AVPixelFormat pixelFormat{}, swPixelFormat{};
-        bool isHWAccel{false};
-        AVBufferRef *hwDeviceContext{nullptr};
-        //        AVBufferRef *hwFramesContext{nullptr};
+    private:
+        AVBufferRef *framesContext;
+        ordered_lock mutex;
     };
 }// namespace AVQt
 
-#endif//LIBAVQT_VIDEOPADPARAMS_HPP
+
+#endif//LIBAVQT_HWCONTEXTSYNC_HPP

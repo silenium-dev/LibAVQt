@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,9 +24,9 @@
 #ifndef LIBAVQT_VAAPIDECODERIMPL_HPP
 #define LIBAVQT_VAAPIDECODERIMPL_HPP
 
+#include "communication/VideoPadParams.hpp"
 #include "include/AVQt/decoder/IDecoderImpl.hpp"
 #include "static_block.hpp"
-#include "communication/VideoPadParams.hpp"
 
 namespace AVQt {
     class VAAPIDecoderImplPrivate;
@@ -50,6 +50,9 @@ namespace AVQt {
         [[nodiscard]] bool isHWAccel() const override;
 
         [[nodiscard]] VideoPadParams getVideoParams() const override;
+
+    signals:
+        void frameReady(std::shared_ptr<AVFrame> frame) override;
 
     protected:
         VAAPIDecoderImplPrivate *d_ptr;

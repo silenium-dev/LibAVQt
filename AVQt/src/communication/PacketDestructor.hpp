@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022.
+// Copyright (c) 2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,42 +18,23 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 15.01.22.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_PACKETDESTRUCTOR_HPP
+#define LIBAVQT_PACKETDESTRUCTOR_HPP
 
-#include "communication/VideoPadParams.hpp"
-#include <QObject>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-namespace AVQt::api {
-    class IDecoderImpl {
+namespace AVQt::internal {
+    class PacketDestructor {
     public:
-        virtual ~IDecoderImpl() = default;
-
-        virtual bool open(AVCodecParameters *codecParams) = 0;
-        virtual void close() = 0;
-
-        virtual int decode(AVPacket *packet) = 0;
-        [[nodiscard]] virtual AVFrame *nextFrame() = 0;
-
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), but can be overridden for HW decoding
-            return getOutputFormat();
-        };
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
-    signals:
-        virtual void frameReady(std::shared_ptr<AVFrame> frame) = 0;
+        void operator()(AVPacket *packet) const;
     };
-}// namespace AVQt::api
-
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
+}// namespace AVQt::internal
 
 
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_PACKETDESTRUCTOR_HPP

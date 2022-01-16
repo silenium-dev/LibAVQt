@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022.
+// Copyright (c) 2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,41 +18,13 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 19.12.21.
+// Created by silas on 15.01.22.
 //
 
-#include "global.hpp"
+#include "PacketDestructor.hpp"
 
-void load_resources_impl() {
-    Q_INIT_RESOURCE(AVQtShader);
-}
-
-namespace AVQt {
-    void loadResources() {
-        static std::atomic_bool loaded{false};
-        bool shouldBe = false;
-        if (loaded.compare_exchange_strong(shouldBe, true)) {
-            load_resources_impl();
-        }
+namespace AVQt::internal {
+    void PacketDestructor::operator()(AVPacket *packet) const {
+        av_packet_free(&packet);
     }
-
-    void registerMetatypes() {
-        qRegisterMetaType<std::shared_ptr<AVPacket>>();
-        qRegisterMetaType<std::shared_ptr<AVFrame>>();
-    }
-
-    AVCodecID getCodecId(Codec codec) {
-        switch (codec) {
-            case Codec::H264:
-                return AV_CODEC_ID_H264;
-            case Codec::HEVC:
-                return AV_CODEC_ID_HEVC;
-            case Codec::VP8:
-                return AV_CODEC_ID_VP8;
-            case Codec::VP9:
-                return AV_CODEC_ID_VP9;
-            case Codec::MPEG2:
-                return AV_CODEC_ID_MPEG2VIDEO;
-        }
-    }
-}// namespace AVQt
+}// namespace AVQt::internal

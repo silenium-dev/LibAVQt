@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -76,14 +76,21 @@ namespace AVQt {
             for (const auto &stream : streams) {
                 AVCodecParameters *codecParams = avcodec_parameters_alloc();
                 if (codecParams == nullptr) {
-                    qFatal("Could not allocate codec parameters");
+                    qFatal("Could not allocate encoder parameters");
                 }
                 avcodec_parameters_copy(codecParams, d->pFormatCtx->streams[stream]->codecpar);
+                PacketPadParams packetPadParams{};
+                packetPadParams.codecParams = codecParams;
+                packetPadParams.streamIdx = stream;
+                packetPadParams.codec = d->pFormatCtx->streams[stream]->codecpar->codec_id;
+                packetPadParams.mediaType = d->pFormatCtx->streams[stream]->codecpar->codec_type;
                 produce(Message::builder()
                                 .withAction(Message::Action::INIT)
                                 .withPayload("codecParams", QVariant::fromValue(codecParams))
+                                .withPayload("packetParams", QVariant::fromValue(packetPadParams))
                                 .build(),
                         d->outputPadIds[stream]);
+                packetPadParams.codecParams = nullptr;
                 avcodec_parameters_free(&codecParams);
             }
             return true;
@@ -187,6 +194,11 @@ namespace AVQt {
 
         if (!d->initialized) {
             qWarning() << "Demuxer not initialized";
+            return false;
+        }
+
+        if (!d->open) {
+            qWarning() << "Demuxer not open";
             return false;
         }
 

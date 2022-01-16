@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,6 +24,7 @@
 #include "include/AVQt/encoder/IEncoder.hpp"
 #include "include/AVQt/encoder/EncoderFactory.hpp"
 #include "include/AVQt/encoder/Encoder.hpp"
+#include "include/AVQt/transcoder/Transcoder.hpp"
 #include "include/AVQt/input/Demuxer.hpp"
 #include "include/AVQt/input/IAudioSource.hpp"
 #include "include/AVQt/input/IFrameSource.hpp"

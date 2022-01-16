@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -60,7 +60,7 @@ namespace AVQt {
                 break;
             case CODEC::VP9:
                 if (qEnvironmentVariable("LIBVA_DRIVER_NAME") == "iHD") {
-                    qFatal("[AVQt::EncoderQSV] Unsupported codec: VP9");
+                    qFatal("[AVQt::EncoderQSV] Unsupported encoder: VP9");
                 } else {
                     codec_name = "vp9_qsv";
                 }
@@ -72,7 +72,7 @@ namespace AVQt {
                 codec_name = "mpeg2_qsv";
                 break;
             case CODEC::AV1:
-                qFatal("[AVQt::EncoderQSV] Unsupported codec: AV1");
+                qFatal("[AVQt::EncoderQSV] Unsupported encoder: AV1");
         }
 
         d->m_pCodec = avcodec_find_encoder_by_name(codec_name.c_str());

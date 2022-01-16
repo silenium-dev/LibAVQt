@@ -25,23 +25,53 @@
 #define LIBAVQT_VAAPIENCODERIMPL_P_HPP
 
 #include "encoder/VAAPIEncoderImpl.hpp"
+#include "communication/PacketDestructor.hpp"
 
 #include <QtCore>
+#include <queue>
 
 
 namespace AVQt {
     class VAAPIEncoderImpl;
+    namespace internal {
+        class PacketFetcher;
+    }
+
     class VAAPIEncoderImplPrivate {
         Q_DECLARE_PUBLIC(VAAPIEncoderImpl)
     private:
         explicit VAAPIEncoderImplPrivate(VAAPIEncoderImpl *q) : q_ptr(q) {}
         VAAPIEncoderImpl *q_ptr;
 
-        int mapFrameToHW(AVFrame *frame);
+        int mapFrameToHW(AVFrame **output, AVFrame *frame);
 
-        int allocateHWFrame();
+        int allocateHWFrame(AVFrame **output);
 
+        EncodeParameters encodeParameters{};
+
+        AVCodecParameters *codecParams{nullptr};
+        AVCodecContext *codecContext{nullptr};
+        AVCodec *codec{nullptr};
+
+        AVBufferRef *hwDeviceContext{nullptr};
+        AVBufferRef *hwFramesContext{nullptr};
+        AVFrame *hwFrame{nullptr};
+        std::atomic_bool mappable{true}, derivedContext{false};
+
+        internal::PacketFetcher *packetFetcher{nullptr};
+        std::shared_ptr<internal::PacketDestructor> packetDestructor{};
+
+        QMutex codecMutex;
+        std::atomic_bool initialized{false}, firstFrame{true};
+        std::atomic_uint64_t frameCounter{0};
+
+        const static QList<AVPixelFormat> supportedPixelFormats;
+
+        friend class internal::PacketFetcher;
+    };
+    namespace internal {
         class PacketFetcher : public QThread {
+            Q_OBJECT
         public:
             explicit PacketFetcher(VAAPIEncoderImplPrivate *p);
 
@@ -55,30 +85,12 @@ namespace AVQt {
 
         private:
             VAAPIEncoderImplPrivate *p;
-            QQueue<AVPacket *> m_outputQueue;
+            std::queue<AVPacket *> m_outputQueue;
             QMutex m_outputQueueMutex;
             //            QWaitCondition m_frameAvailable;
-            std::atomic_bool m_stop{false};
+            bool m_stop{false};
         };
-        EncodeParameters encodeParameters{};
-
-        AVCodecParameters *codecParams{nullptr};
-        AVCodecContext *codecContext{nullptr};
-        AVCodec *codec{nullptr};
-
-        AVBufferRef *hwDeviceContext{nullptr};
-        AVBufferRef *hwFramesContext{nullptr};
-        AVFrame *hwFrame{nullptr};
-        std::atomic_bool mappable{true}, derivedContext{false};
-
-        PacketFetcher *packetFetcher{nullptr};
-
-        QMutex codecMutex;
-        std::atomic_bool initialized{false}, firstFrame{true};
-        std::atomic_uint64_t frameCounter{0};
-
-        const static QList<AVPixelFormat> supportedPixelFormats;
-    };
+    }// namespace internal
 }// namespace AVQt
 
 

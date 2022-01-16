@@ -23,6 +23,7 @@
 
 #include "VAAPIDecoderImpl.hpp"
 #include "private/VAAPIDecoderImpl_p.hpp"
+#include "communication/HwContextSync.hpp"
 
 #include <QImage>
 #include <QMetaType>
@@ -35,6 +36,8 @@ extern "C" {
 
 namespace AVQt {
     VAAPIDecoderImpl::VAAPIDecoderImpl() : QObject(nullptr), d_ptr(new VAAPIDecoderImplPrivate(this)) {
+        Q_D(VAAPIDecoderImpl);
+        d->frameDestructor = std::make_shared<internal::FrameDestructor>();
     }
 
     bool VAAPIDecoderImpl::open(AVCodecParameters *codecParams) {
@@ -46,14 +49,14 @@ namespace AVQt {
 
             d->codec = avcodec_find_decoder(d->codecParams->codec_id);
             if (!d->codec) {
-                qWarning() << "Could not find decoder for codec id" << d->codecParams->codec_id;
+                qWarning() << "Could not find decoder for encoder id" << d->codecParams->codec_id;
                 d->initialized = false;
                 goto failed;
             }
 
             d->codecContext = avcodec_alloc_context3(d->codec);
             if (!d->codecContext) {
-                qWarning() << "Could not allocate codec context";
+                qWarning() << "Could not allocate encoder context";
                 goto failed;
             }
 
@@ -63,7 +66,7 @@ namespace AVQt {
             }
 
             if (avcodec_parameters_to_context(d->codecContext, d->codecParams) < 0) {
-                qWarning() << "Could not copy codec parameters to context";
+                qWarning() << "Could not copy encoder parameters to context";
                 goto failed;
             }
 
@@ -72,7 +75,7 @@ namespace AVQt {
             d->codecContext->opaque = this;
 
             if (avcodec_open2(d->codecContext, d->codec, nullptr) < 0) {
-                qWarning() << "Could not open codec";
+                qWarning() << "Could not open encoder";
                 goto failed;
             }
 
@@ -95,6 +98,7 @@ namespace AVQt {
 
         if (d->frameFetcher) {
             d->frameFetcher->stop();
+            d->frameFetcher->wait();
         }
 
         if (d->codecContext) {
@@ -117,14 +121,32 @@ namespace AVQt {
         }
 
         {
-            QMutexLocker locker(&d->codecMutex);
-            int ret = avcodec_send_packet(d->codecContext, packet);
-            locker.unlock();
+            //            HWContextSync *hwFramesMutex{nullptr};
+            //            if (d->encodeContext->hw_frames_ctx) {
+            //                hwFramesMutex = reinterpret_cast<HWContextSync *>(reinterpret_cast<AVHWFramesContext *>(d->encodeContext->hw_frames_ctx)->user_opaque);
+            //            }
+            int ret;
+            {
+                QMutexLocker locker(&d->codecMutex);
+                //                if (hwFramesMutex) {
+                {
+                    //                        QMutexLocker hwFramesLocker(hwFramesMutex);
+                    //                        qDebug("[AVQt::VAAPIDecoderImpl] Trying to lock hardware frames mutex: %p", hwFramesMutex);
+                    //                        hwFramesMutex->lock();
+                    //                        qDebug("[AVQt::VAAPIDecoderImpl] Using hardware frames mutex: %p", hwFramesMutex);
+                    ret = avcodec_send_packet(d->codecContext, packet);
+                    //                        hwFramesMutex->unlock();
+                }
+                //                    qDebug("[AVQt::VAAPIDecoderImpl] Unlocked frame pool mutex: %p", hwFramesMutex);
+                //                } else {
+                //                    ret = avcodec_send_packet(d->encodeContext, packet);
+                //                }
+            }
             if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR(ENOMEM)) {
                 return EAGAIN;
             } else if (ret < 0) {
                 char strBuf[256];
-                qWarning("Could not send packet to codec: %s", av_make_error_string(strBuf, sizeof(strBuf), ret));
+                qWarning("Could not send packet to encoder: %s", av_make_error_string(strBuf, sizeof(strBuf), ret));
                 return AVUNERROR(ret);
             }
         }
@@ -176,7 +198,7 @@ namespace AVQt {
         VideoPadParams params;
         params.frameSize = QSize{d->codecContext->width, d->codecContext->height};
         params.hwDeviceContext = av_buffer_ref(d->hwDeviceContext);
-        //        params.hwFramesContext = av_buffer_ref(d->codecContext->hw_frames_ctx);
+        //        params.hwFramesContext = av_buffer_ref(d->encodeContext->hw_frames_ctx);
         params.swPixelFormat = getSwOutputFormat();
         params.pixelFormat = getOutputFormat();
         params.isHWAccel = isHWAccel();
@@ -205,13 +227,21 @@ namespace AVQt {
         framesContext->height = ctx->height;
         framesContext->format = AV_PIX_FMT_VAAPI;
         framesContext->sw_format = decoder->getSwOutputFormat();
-        framesContext->initial_pool_size = 16;
+        framesContext->initial_pool_size = 12;
         int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
         if (ret != 0) {
             char strBuf[64];
-            qFatal("[AVQt::DecoderVAAPI] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
+            qFatal("[AVQt::VAAPIDecoderImpl] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
         }
-        qDebug("[AVQt::DecoderVAAPI] Frame pool size: %d", framesContext->initial_pool_size);
+        //        qDebug("[AVQt::VAAPIDecoderImpl] Frame pool size: %d", framesContext->initial_pool_size);
+        //        framesContext->user_opaque = new HWContextSync(ctx->hw_frames_ctx);
+        //        qDebug("[AVQt::VAAPIDecoderImpl] Frame pool mutex: %p", framesContext->user_opaque);
+        //        framesContext->free = [](AVHWFramesContext *hwfc) {
+        //            qDebug("[AVQt::VAAPIDecoderImpl] Frame pool free");
+        //            auto *sync = reinterpret_cast<HWContextSync *>(hwfc->user_opaque);
+        //            delete sync;
+        //            hwfc->user_opaque = nullptr;
+        //        };
         return result;
     }
 
@@ -232,14 +262,32 @@ namespace AVQt {
                 continue;
             }
             AVFrame *frame = av_frame_alloc();
-            ret = avcodec_receive_frame(p->codecContext, frame);
+            auto *hwFramesMutex = reinterpret_cast<HWContextSync *>(reinterpret_cast<AVHWFramesContext *>(p->codecContext->hw_frames_ctx->data)->user_opaque);
+            {
+                //                QMutexLocker hwFramesContextLock(hwFramesMutex);
+                //                p->encoderMutex.lock();
+                //                qDebug("[AVQt::VAAPIDecoderImpl::Fetcher] Trying to lock frame pool mutex: %p", hwFramesMutex);
+                //                hwFramesMutex->lock();
+                //                qDebug("[AVQt::VAAPIDecoderImpl::Fetcher] Using frame pool mutex: %p", hwFramesMutex);
+                ret = avcodec_receive_frame(p->codecContext, frame);
+                //                hwFramesMutex->unlock();
+                //                p->encoderMutex.unlock();
+            }
+            //            qDebug("[AVQt::VAAPIDecoderImpl::Fetcher] Unlocked frame pool mutex: %p", hwFramesMutex);
             inputLock.unlock();
             qWarning("Output queue size: %d", m_outputQueue.size());
             if (ret == 0) {
                 QMutexLocker outputLock(&m_mutex);
                 //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
                 qDebug("Enqueuing frame with PTS %ld", frame->pts);
-                m_outputQueue.enqueue(frame);
+                auto sharedFrame = std::shared_ptr<AVFrame>(av_frame_clone(frame), *p->frameDestructor);
+                av_frame_free(&frame);
+                QElapsedTimer timer;
+                timer.start();
+                p->q_func()->frameReady(sharedFrame);
+                //                qDebug("Frame ref count: %ld", sharedFrame.use_count());
+                qDebug("Frame callback runtime: %lld ms", timer.elapsed());
+                //                m_outputQueue.enqueue(frame);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret == AVERROR(ENOMEM)) {
                 av_frame_free(&frame);
                 msleep(4);

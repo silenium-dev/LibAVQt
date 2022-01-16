@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -21,8 +21,8 @@
 // Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_ENCODERPRIVATE_HPP
-#define LIBAVQT_ENCODERPRIVATE_HPP
+#ifndef LIBAVQT_TRANSCODER_P_HPP
+#define LIBAVQT_TRANSCODER_P_HPP
 
 #include "communication/PacketPadParams.hpp"
 #include "encoder/IEncoderImpl.hpp"
@@ -35,14 +35,20 @@ extern "C" {
 
 namespace AVQt {
     class Encoder;
-    class EncoderPrivate {
+    class EncoderPrivate : public QObject {
+        Q_OBJECT
         Q_DECLARE_PUBLIC(Encoder)
+    private slots:
+        void onPacketReady(AVPacket *packet);
+
     private:
-        explicit EncoderPrivate(Encoder *q) : q_ptr(q){};
+        explicit EncoderPrivate(Encoder *q) : QObject(), q_ptr(q){};
 
         void enqueueData(AVFrame *frame);
 
         Encoder *q_ptr;
+
+        QThread *prevThread{nullptr};
 
         int64_t inputPadId{pgraph::api::INVALID_PAD_ID};
         int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
@@ -65,4 +71,4 @@ namespace AVQt {
 }// namespace AVQt
 
 
-#endif//LIBAVQT_ENCODERPRIVATE_HPP
+#endif//LIBAVQT_TRANSCODER_P_HPP

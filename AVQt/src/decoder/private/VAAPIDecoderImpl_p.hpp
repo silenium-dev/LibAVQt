@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,21 +24,23 @@
 #ifndef LIBAVQT_VAAPIDECODERIMPL_P_HPP
 #define LIBAVQT_VAAPIDECODERIMPL_P_HPP
 
+#include "communication/FrameDestructor.hpp"
+
 #include <QtGlobal>
 #include <QQueue>
 #include <QThread>
 #include <QMutex>
-#include "decoder/VAAPIDecoderImpl.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
 namespace AVQt {
+    class VAAPIDecoderImpl;
     class VAAPIDecoderImplPrivate {
         Q_DECLARE_PUBLIC(VAAPIDecoderImpl)
     private:
-        explicit VAAPIDecoderImplPrivate(VAAPIDecoderImpl *q): q_ptr(q) {}
+        explicit VAAPIDecoderImplPrivate(VAAPIDecoderImpl *q) : q_ptr(q) {}
 
         static AVPixelFormat getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts);
 
@@ -71,8 +73,10 @@ namespace AVQt {
         AVBufferRef *hwDeviceContext{nullptr};
 
         FrameFetcher *frameFetcher{nullptr};
+        std::shared_ptr<internal::FrameDestructor> frameDestructor{};
 
-//        QWaitCondition frameAvailable;
+        //        QWaitCondition frameAvailable;
+        QMutex *hwFrameMutex{nullptr};
         QMutex codecMutex;
         std::atomic_bool initialized{false}, firstFrame{true};
 

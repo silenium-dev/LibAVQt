@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -21,6 +21,7 @@
 #define LIBAVQT_GLOBAL_H
 
 #include <QMetaType>
+#include <static_block.hpp>
 #include <QOpenGLFramebufferObject>
 #include <pgraph/impl/SimpleConsumer.hpp>
 #include <pgraph/impl/SimpleProducer.hpp>
@@ -40,6 +41,8 @@ extern "C" {
 
 namespace AVQt {
     void loadResources();
+    void registerMetatypes();
+    AVCodecID getCodecId(Codec codec);
 }// namespace AVQt
 
 Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
@@ -51,5 +54,11 @@ Q_DECLARE_METATYPE(AVQt::EncodeParameters)
 Q_DECLARE_METATYPE(AVCodecParameters *)
 Q_DECLARE_METATYPE(AVPacket *)
 Q_DECLARE_METATYPE(AVFrame *)
+Q_DECLARE_METATYPE(std::shared_ptr<AVFrame>)
+Q_DECLARE_METATYPE(std::shared_ptr<AVPacket>)
+
+static_block {
+    AVQt::registerMetatypes();
+}
 
 #endif//LIBAVQT_GLOBAL_H

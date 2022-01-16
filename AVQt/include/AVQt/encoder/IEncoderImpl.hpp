@@ -57,6 +57,7 @@ namespace AVQt {
             virtual bool open(const VideoPadParams &params) = 0;
             virtual void close() = 0;
 
+            [[nodiscard]] virtual AVFrame *prepareFrame(AVFrame *frame) = 0;
             virtual int encode(AVFrame *frame) = 0;
             [[nodiscard]] virtual AVPacket *nextPacket() = 0;
 
@@ -64,6 +65,8 @@ namespace AVQt {
             [[nodiscard]] virtual EncodeParameters getEncodeParameters() const;
             [[nodiscard]] virtual bool isHWAccel() const = 0;
             [[nodiscard]] virtual AVCodecParameters *getCodecParameters() const = 0;
+        signals:
+            virtual void packetReady(std::shared_ptr<AVPacket> packet) = 0;
 
         private:
             EncodeParameters m_encodeParameters;

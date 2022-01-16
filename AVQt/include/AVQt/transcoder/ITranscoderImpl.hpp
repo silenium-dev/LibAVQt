@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022.
+// Copyright (c) 2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,42 +18,38 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 13.01.22.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_ITRANSCODERIMPL_HPP
+#define LIBAVQT_ITRANSCODERIMPL_HPP
 
+#include "communication/PacketPadParams.hpp"
 #include "communication/VideoPadParams.hpp"
+
 #include <QObject>
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
-
 namespace AVQt::api {
-    class IDecoderImpl {
+    class ITranscoderImpl {
     public:
-        virtual ~IDecoderImpl() = default;
+        virtual ~ITranscoderImpl() = default;
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
+        virtual bool open(PacketPadParams const &params) = 0;
         virtual void close() = 0;
 
-        virtual int decode(AVPacket *packet) = 0;
-        [[nodiscard]] virtual AVFrame *nextFrame() = 0;
+        virtual int transcode(AVPacket *packet) = 0;
+        [[nodiscard]] virtual AVPacket *nextPacket() = 0;
 
-        [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
-        [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), but can be overridden for HW decoding
-            return getOutputFormat();
-        };
-        [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
+        [[nodiscard]] virtual PacketPadParams getPacketOutputParams() const = 0;
+        [[nodiscard]] virtual PacketPadParams getPacketOutputParamsForInputParams(PacketPadParams inputParams) const = 0;
+
+        [[nodiscard]] virtual VideoPadParams getVideoOutputParams() const = 0;
+        [[nodiscard]] virtual VideoPadParams getVideoOutputParamsForInputParams(PacketPadParams inputParams) const = 0;
     signals:
         virtual void frameReady(std::shared_ptr<AVFrame> frame) = 0;
     };
 }// namespace AVQt::api
 
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
+Q_DECLARE_INTERFACE(AVQt::api::ITranscoderImpl, "AVQt.ITranscoderImpl")
 
-
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_ITRANSCODERIMPL_HPP

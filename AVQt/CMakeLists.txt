@@ -116,7 +116,7 @@ set(SOURCES
         include/AVQt/communication/IOutput.hpp
 
         src/communication/VideoPadParams.cpp
-        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLFrameMapperFactory.cpp include/AVQt/renderers/OpenGLFrameMapperFactory.hpp include/AVQt/renderers/IOpenGLFrameMapper.hpp src/renderers/FallbackFrameMapper.cpp src/renderers/FallbackFrameMapper.hpp src/renderers/private/FallbackFrameMapper_p.hpp global.cpp src/encoder/Encoder.cpp include/AVQt/encoder/Encoder.hpp src/encoder/private/Encoder_p.hpp src/encoder/EncoderFactory.cpp include/AVQt/encoder/EncoderFactory.hpp include/AVQt/encoder/IEncoderImpl.hpp src/encoder/IEncoderImpl.cpp)
+        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLFrameMapperFactory.cpp include/AVQt/renderers/OpenGLFrameMapperFactory.hpp include/AVQt/renderers/IOpenGLFrameMapper.hpp src/renderers/FallbackFrameMapper.cpp src/renderers/FallbackFrameMapper.hpp src/renderers/private/FallbackFrameMapper_p.hpp global.cpp src/encoder/Encoder.cpp include/AVQt/encoder/Encoder.hpp src/encoder/private/Encoder_p.hpp src/encoder/EncoderFactory.cpp include/AVQt/encoder/EncoderFactory.hpp include/AVQt/encoder/IEncoderImpl.hpp src/encoder/IEncoderImpl.cpp include/AVQt/communication/HwContextSync.hpp src/communication/HWContextSync.cpp include/AVQt/transcoder/ITranscoderImpl.hpp src/transcoder/TranscoderFactory.cpp include/AVQt/transcoder/TranscoderFactory.hpp src/transcoder/Transcoder.cpp include/AVQt/transcoder/Transcoder.hpp src/transcoder/private/Transcoder_p.hpp src/communication/FrameDestructor.cpp src/communication/FrameDestructor.hpp src/communication/PacketDestructor.cpp src/communication/PacketDestructor.hpp)
 set(SOURCES_LINUX
         include/AVQt/decoder/Decoder.hpp
         src/decoder/private/Decoder_p.hpp
@@ -136,7 +136,7 @@ set(SOURCES_LINUX
         src/decoder/VAAPIDecoderImpl.hpp
         src/decoder/VAAPIDecoderImpl.cpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
-        src/renderers/VAAPIOpenGLRenderMapper.cpp src/renderers/VAAPIOpenGLRenderMapper.hpp src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp src/filter/VaapiYuvToRgbMapper.cpp include/AVQt/filter/VaapiYuvToRgbMapper.hpp src/filter/private/VaapiYuvToRgbMapper_p.hpp src/encoder/VAAPIEncoderImpl.cpp src/encoder/VAAPIEncoderImpl.hpp src/encoder/private/VAAPIEncoderImpl_p.hpp)
+        src/renderers/VAAPIOpenGLRenderMapper.cpp src/renderers/VAAPIOpenGLRenderMapper.hpp src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp src/filter/VaapiYuvToRgbMapper.cpp include/AVQt/filter/VaapiYuvToRgbMapper.hpp src/filter/private/VaapiYuvToRgbMapper_p.hpp src/encoder/VAAPIEncoderImpl.cpp src/encoder/VAAPIEncoderImpl.hpp src/encoder/private/VAAPIEncoderImpl_p.hpp src/transcoder/VaapiTranscoderImpl.cpp src/transcoder/VaapiTranscoderImpl.hpp src/transcoder/private/VaapiTranscoderImpl_p.hpp)
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp

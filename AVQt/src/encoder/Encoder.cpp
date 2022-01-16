@@ -37,9 +37,13 @@ namespace AVQt {
         Q_D(Encoder);
         d->encodeParameters = encodeParameters;
         d->impl = EncoderFactory::getInstance().create(encoderName, encodeParameters);
+        //         clang-format off
+        //        connect(reinterpret_cast<QObject *>(d->impl), SIGNAL(packetReady(AVPacket*)), d, SLOT(onPacketReady(AVPacket*)));
+        //         clang-format on
         if (!d->impl) {
             qFatal("Encoder %s not found", qPrintable(encoderName));
         }
+        d->moveToThread(this);
     }
 
     Encoder::~Encoder() {
@@ -107,6 +111,7 @@ namespace AVQt {
                 qWarning("Encoder: Failed to open");
                 return false;
             }
+            connect(dynamic_cast<QObject *>(d->impl), SIGNAL(packetReady(AVPacket *)), d, SLOT(onPacketReady(AVPacket *)), Qt::QueuedConnection);
 
             d->outputPadParams->codec = codecId(d->encodeParameters.codec);
             d->outputPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
@@ -281,31 +286,42 @@ namespace AVQt {
 
     void Encoder::run() {
         Q_D(Encoder);
+
         while (d->running) {
-            AVPacket *packet;
-            while ((packet = d->impl->nextPacket()) && d->running) {
-                qDebug("Encoder produced packet with pts %ld", packet->pts);
-                produce(Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet)).build(), d->outputPadId);
-                av_packet_free(&packet);
-            }
-            QMutexLocker lock(&d->inputQueueMutex);
-            if (d->paused || d->inputQueue.isEmpty()) {
-                lock.unlock();
-                msleep(1);
+            if (d->paused) {
+                QThread::msleep(10);
                 continue;
             }
-            qWarning("Input queue size: %d", d->inputQueue.size());
-            auto frame = d->inputQueue.dequeue();
-            lock.unlock();
-            int ret = d->impl->encode(frame);
-
-            //            qWarning("frame context refcount: %d", av_buffer_get_ref_count(frame->hw_frames_ctx));
-
-            av_frame_free(&frame);
-            if (ret != EXIT_SUCCESS) {
-                char strBuf[256];
-                qWarning() << "Encoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
+            if (d->inputQueue.isEmpty()) {
+                QThread::msleep(2);
+                continue;
             }
+            AVFrame *frame;
+            {
+                QMutexLocker locker(&d->inputQueueMutex);
+                frame = d->inputQueue.dequeue();
+            }
+            if (d->inputParams.frameSize.width() != frame->width || d->inputParams.frameSize.height() != frame->height) {
+                qWarning("Encoder: Frame size mismatch");
+                av_frame_free(&frame);
+                continue;
+            }
+            if (d->inputParams.pixelFormat != frame->format) {
+                qWarning("Encoder: Pixel format mismatch");
+                av_frame_free(&frame);
+                continue;
+            }
+            int ret = d->impl->encode(frame);
+            if (ret == EAGAIN) {
+                d->inputQueue.prepend(frame);
+                QThread::msleep(2);
+            } else if (ret != EXIT_SUCCESS) {
+                qWarning("Encoder: Failed to encode frame");
+                av_frame_free(&frame);
+                continue;
+            }
+
+            QThread::msleep(100);
         }
     }
 
@@ -332,12 +348,19 @@ namespace AVQt {
     }
 
     void EncoderPrivate::enqueueData(AVFrame *frame) {
-        QMutexLocker lock(&inputQueueMutex);
         while (inputQueue.size() > 4) {
-            lock.unlock();
-            QThread::msleep(1);
-            lock.relock();
+            QThread::msleep(2);
         }
-        inputQueue.enqueue(av_frame_clone(frame));
+        QMutexLocker lock(&inputQueueMutex);
+        auto f = impl->prepareFrame(frame);
+        if (f) {
+            inputQueue.enqueue(f);
+        }
+    }
+
+    void EncoderPrivate::onPacketReady(AVPacket *packet) {
+        Q_Q(Encoder);
+        q->produce(Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet)).build(), outputPadId);
+        av_packet_free(&packet);
     }
 }// namespace AVQt
