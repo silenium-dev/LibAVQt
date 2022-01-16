@@ -320,6 +320,7 @@ namespace AVQt {
         Q_D(const VAAPIEncoderImpl);
         AVCodecParameters *params = avcodec_parameters_alloc();
         avcodec_parameters_from_context(params, d->codecContext);
+        params->format = reinterpret_cast<AVHWFramesContext *>(d->hwFramesContext->data)->sw_format;
         return params;
     }
 

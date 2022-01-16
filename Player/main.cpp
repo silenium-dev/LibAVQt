@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
     //    auto transcoder = std::make_shared<AVQt::Transcoder>("VAAPI", encodeParams, registry);
     auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
-    //    auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
+    auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     //    auto decoder3 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     demuxer->init();
     //    transcoder->init();
     decoder1->init();
-    //    decoder2->init();
+    decoder2->init();
     //    decoder3->init();
     encoder->init();
     renderer1->init();
@@ -162,12 +162,12 @@ int main(int argc, char *argv[]) {
     //    auto transcoderInPad = transcoder->getInputPads()[transcoder->getInputPadId()];
     //    auto transcoderFrameOutPad = transcoder->getOutputPads()[transcoder->getFrameOutputPadId()];
     //    auto transcoderPacketOutPad = transcoder->getOutputPads()[transcoder->getPacketOutputPadId()];
-    //    auto decoder2InPad = decoder2->getInputPads().begin()->second;
-    //    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
+    auto decoder2InPad = decoder2->getInputPads().begin()->second;
+    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
     //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
     //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
     auto encoderInPad = encoder->getInputPads().begin()->second;
-    //        auto encoderOutPad = encoder->getOutputPads().begin()->second;
+    auto encoderOutPad = encoder->getOutputPads().begin()->second;
     auto renderer1InPad = renderer1->getInputPads().begin()->second;
     auto renderer2InPad = renderer2->getInputPads().begin()->second;
     auto ccInPad = cc->getInputPads().begin()->second;
@@ -181,10 +181,11 @@ int main(int argc, char *argv[]) {
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
     decoder1InPad->link(demuxerOutPad);
-    yuvrgbconverterInPad->link(decoder1OutPad);
-    renderer1InPad->link(yuvrgbconverterOutPad);
     encoderInPad->link(decoder1OutPad);
-    //    decoder2InPad->link(demuxerOutPad);
+    decoder2InPad->link(encoderOutPad);
+    yuvrgbconverterInPad->link(decoder2OutPad);
+    renderer2InPad->link(yuvrgbconverterOutPad);
+    //    renderer1InPad->link(yuvrgbconverterOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
     //    renderer1InPad->link(decoder1OutPad);
     //    renderer2InPad->link(decoder2OutPad);
