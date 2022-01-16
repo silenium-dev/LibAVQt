@@ -38,8 +38,6 @@ namespace AVQt {
     class EncoderPrivate : public QObject {
         Q_OBJECT
         Q_DECLARE_PUBLIC(Encoder)
-    private slots:
-        void onPacketReady(AVPacket *packet);
 
     private:
         explicit EncoderPrivate(Encoder *q) : QObject(), q_ptr(q){};
@@ -58,7 +56,7 @@ namespace AVQt {
 
         EncodeParameters encodeParameters{};
         AVCodecParameters *pCodecParams{nullptr};
-        api::IEncoderImpl *impl{nullptr};
+        std::shared_ptr<api::IEncoderImpl> impl{};
 
         VideoPadParams inputParams{};
 

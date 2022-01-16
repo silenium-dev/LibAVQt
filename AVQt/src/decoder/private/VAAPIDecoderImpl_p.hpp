@@ -71,6 +71,7 @@ namespace AVQt {
         AVCodec *codec{nullptr};
 
         AVBufferRef *hwDeviceContext{nullptr};
+        AVBufferRef *hwFramesContext{nullptr};
 
         FrameFetcher *frameFetcher{nullptr};
         std::shared_ptr<internal::FrameDestructor> frameDestructor{};

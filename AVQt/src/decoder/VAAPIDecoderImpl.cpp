@@ -22,8 +22,8 @@
 //
 
 #include "VAAPIDecoderImpl.hpp"
-#include "private/VAAPIDecoderImpl_p.hpp"
 #include "communication/HwContextSync.hpp"
+#include "private/VAAPIDecoderImpl_p.hpp"
 
 #include <QImage>
 #include <QMetaType>
@@ -63,6 +63,21 @@ namespace AVQt {
             if (0 != av_hwdevice_ctx_create(&d->hwDeviceContext, AV_HWDEVICE_TYPE_VAAPI, "/dev/dri/renderD128", nullptr, 0)) {
                 qWarning() << "Could not create VAAPI device context";
                 goto failed;
+            }
+
+            {
+                d->hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext);
+                auto framesContext = reinterpret_cast<AVHWFramesContext *>(d->hwFramesContext->data);
+                framesContext->width = codecParams->width;
+                framesContext->height = codecParams->height;
+                framesContext->format = AV_PIX_FMT_VAAPI;
+                framesContext->sw_format = getSwOutputFormat(codecParams->format);
+                framesContext->initial_pool_size = 32;
+                int ret = av_hwframe_ctx_init(d->hwFramesContext);
+                if (ret != 0) {
+                    char strBuf[64];
+                    qFatal("[AVQt::VAAPIDecoderImpl] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
+                }
             }
 
             if (avcodec_parameters_to_context(d->codecContext, d->codecParams) < 0) {
@@ -198,11 +213,29 @@ namespace AVQt {
         VideoPadParams params;
         params.frameSize = QSize{d->codecContext->width, d->codecContext->height};
         params.hwDeviceContext = av_buffer_ref(d->hwDeviceContext);
-        //        params.hwFramesContext = av_buffer_ref(d->encodeContext->hw_frames_ctx);
+        params.hwFramesContext = av_buffer_ref(d->hwFramesContext);
         params.swPixelFormat = getSwOutputFormat();
         params.pixelFormat = getOutputFormat();
         params.isHWAccel = isHWAccel();
         return params;
+    }
+
+    AVPixelFormat VAAPIDecoderImpl::getSwOutputFormat(AVPixelFormat format) {
+        switch (format) {
+            case AV_PIX_FMT_NV12:
+            case AV_PIX_FMT_YUV420P:
+                return AV_PIX_FMT_NV12;
+            case AV_PIX_FMT_P010:
+            case AV_PIX_FMT_YUV420P10:
+                return AV_PIX_FMT_P010;
+            default:
+                qWarning() << "Unsupported output format" << av_get_pix_fmt_name(format);
+                return AV_PIX_FMT_NONE;
+        }
+    }
+
+    AVPixelFormat VAAPIDecoderImpl::getSwOutputFormat(int format) {
+        return getSwOutputFormat(static_cast<AVPixelFormat>(format));
     }
 
     AVPixelFormat VAAPIDecoderImplPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
@@ -221,18 +254,7 @@ namespace AVQt {
             return AV_PIX_FMT_NONE;
         }
 
-        ctx->hw_frames_ctx = av_hwframe_ctx_alloc(ctx->hw_device_ctx);
-        auto framesContext = reinterpret_cast<AVHWFramesContext *>(ctx->hw_frames_ctx->data);
-        framesContext->width = ctx->width;
-        framesContext->height = ctx->height;
-        framesContext->format = AV_PIX_FMT_VAAPI;
-        framesContext->sw_format = decoder->getSwOutputFormat();
-        framesContext->initial_pool_size = 12;
-        int ret = av_hwframe_ctx_init(ctx->hw_frames_ctx);
-        if (ret != 0) {
-            char strBuf[64];
-            qFatal("[AVQt::VAAPIDecoderImpl] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
-        }
+        ctx->hw_frames_ctx = av_buffer_ref(decoder->d_func()->hwFramesContext);
         //        qDebug("[AVQt::VAAPIDecoderImpl] Frame pool size: %d", framesContext->initial_pool_size);
         //        framesContext->user_opaque = new HWContextSync(ctx->hw_frames_ctx);
         //        qDebug("[AVQt::VAAPIDecoderImpl] Frame pool mutex: %p", framesContext->user_opaque);
@@ -262,7 +284,7 @@ namespace AVQt {
                 continue;
             }
             AVFrame *frame = av_frame_alloc();
-            auto *hwFramesMutex = reinterpret_cast<HWContextSync *>(reinterpret_cast<AVHWFramesContext *>(p->codecContext->hw_frames_ctx->data)->user_opaque);
+            //            auto *hwFramesMutex = reinterpret_cast<HWContextSync *>(reinterpret_cast<AVHWFramesContext *>(p->codecContext->hw_frames_ctx->data)->user_opaque);
             {
                 //                QMutexLocker hwFramesContextLock(hwFramesMutex);
                 //                p->encoderMutex.lock();
@@ -275,8 +297,11 @@ namespace AVQt {
             }
             //            qDebug("[AVQt::VAAPIDecoderImpl::Fetcher] Unlocked frame pool mutex: %p", hwFramesMutex);
             inputLock.unlock();
-            qWarning("Output queue size: %d", m_outputQueue.size());
+            qDebug("Output queue size: %d", m_outputQueue.size());
             if (ret == 0) {
+                //                auto t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+                //                qWarning("Frame decoded at: %ld us since epoch", t);
+                //                frame->opaque = reinterpret_cast<void *>(t);
                 QMutexLocker outputLock(&m_mutex);
                 //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
                 qDebug("Enqueuing frame with PTS %ld", frame->pts);

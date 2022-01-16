@@ -36,14 +36,15 @@ namespace AVQt {
           d_ptr(new EncoderPrivate(this)) {
         Q_D(Encoder);
         d->encodeParameters = encodeParameters;
-        d->impl = EncoderFactory::getInstance().create(encoderName, encodeParameters);
+        d->impl.reset(EncoderFactory::getInstance().create(encoderName, encodeParameters));
         //         clang-format off
         //        connect(reinterpret_cast<QObject *>(d->impl), SIGNAL(packetReady(AVPacket*)), d, SLOT(onPacketReady(AVPacket*)));
         //         clang-format on
         if (!d->impl) {
             qFatal("Encoder %s not found", qPrintable(encoderName));
         }
-        d->moveToThread(this);
+        connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(packetReady(std::shared_ptr<AVPacket>)),
+                this, SLOT(onPacketReady(std::shared_ptr<AVPacket>)), Qt::DirectConnection);
     }
 
     Encoder::~Encoder() {
@@ -111,7 +112,6 @@ namespace AVQt {
                 qWarning("Encoder: Failed to open");
                 return false;
             }
-            connect(dynamic_cast<QObject *>(d->impl), SIGNAL(packetReady(AVPacket *)), d, SLOT(onPacketReady(AVPacket *)), Qt::QueuedConnection);
 
             d->outputPadParams->codec = codecId(d->encodeParameters.codec);
             d->outputPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
@@ -287,42 +287,43 @@ namespace AVQt {
     void Encoder::run() {
         Q_D(Encoder);
 
-        while (d->running) {
-            if (d->paused) {
-                QThread::msleep(10);
-                continue;
-            }
-            if (d->inputQueue.isEmpty()) {
-                QThread::msleep(2);
-                continue;
-            }
-            AVFrame *frame;
-            {
-                QMutexLocker locker(&d->inputQueueMutex);
-                frame = d->inputQueue.dequeue();
-            }
-            if (d->inputParams.frameSize.width() != frame->width || d->inputParams.frameSize.height() != frame->height) {
-                qWarning("Encoder: Frame size mismatch");
-                av_frame_free(&frame);
-                continue;
-            }
-            if (d->inputParams.pixelFormat != frame->format) {
-                qWarning("Encoder: Pixel format mismatch");
-                av_frame_free(&frame);
-                continue;
-            }
-            int ret = d->impl->encode(frame);
-            if (ret == EAGAIN) {
-                d->inputQueue.prepend(frame);
-                QThread::msleep(2);
-            } else if (ret != EXIT_SUCCESS) {
-                qWarning("Encoder: Failed to encode frame");
-                av_frame_free(&frame);
-                continue;
-            }
-
-            QThread::msleep(100);
-        }
+        //        while (d->running) {
+        //            if (d->paused) {
+        //                QThread::msleep(10);
+        //                continue;
+        //            }
+        //            if (d->inputQueue.isEmpty()) {
+        //                QThread::msleep(2);
+        //                continue;
+        //            }
+        //            AVFrame *frame;
+        //            {
+        //                QMutexLocker locker(&d->inputQueueMutex);
+        //                frame = d->inputQueue.dequeue();
+        //            }
+        //            if (d->inputParams.frameSize.width() != frame->width || d->inputParams.frameSize.height() != frame->height) {
+        //                qWarning("Encoder: Frame size mismatch");
+        //                av_frame_free(&frame);
+        //                continue;
+        //            }
+        //            if (d->inputParams.pixelFormat != frame->format) {
+        //                qWarning("Encoder: Pixel format mismatch");
+        //                av_frame_free(&frame);
+        //                continue;
+        //            }
+        //            int ret = d->impl->encode(frame);
+        //            if (ret == EAGAIN) {
+        //                d->inputQueue.prepend(frame);
+        //                QThread::msleep(2);
+        //            } else if (ret != EXIT_SUCCESS) {
+        //                qWarning("Encoder: Failed to encode frame");
+        //                av_frame_free(&frame);
+        //                continue;
+        //            }
+        //
+        //            QThread::msleep(100);
+        //        }
+        exec();
     }
 
     AVCodecID Encoder::codecId(Codec codec) {
@@ -347,20 +348,28 @@ namespace AVQt {
         return result;
     }
 
+    void Encoder::onPacketReady(std::shared_ptr<AVPacket> packet) {
+        Q_D(Encoder);
+        produce(Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet.get())).build(), d->outputPadId);
+    }
+
     void EncoderPrivate::enqueueData(AVFrame *frame) {
         while (inputQueue.size() > 4) {
             QThread::msleep(2);
         }
-        QMutexLocker lock(&inputQueueMutex);
-        auto f = impl->prepareFrame(frame);
-        if (f) {
-            inputQueue.enqueue(f);
+        int ret;
+        while ((ret = impl->encode(frame)) == EAGAIN) {
+            QThread::msleep(2);
         }
-    }
-
-    void EncoderPrivate::onPacketReady(AVPacket *packet) {
-        Q_Q(Encoder);
-        q->produce(Message::builder().withAction(Message::Action::DATA).withPayload("packet", QVariant::fromValue(packet)).build(), outputPadId);
-        av_packet_free(&packet);
+        if (ret != EXIT_SUCCESS) {
+            char strBuf[256];
+            qWarning("Encoder: Failed to encode frame: %s", av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret)));
+            av_frame_free(&frame);
+        }
+        //        QMutexLocker lock(&inputQueueMutex);
+        //        auto f = impl->prepareFrame(frame);
+        //        if (f) {
+        //            inputQueue.enqueue(f);
+        //        }
     }
 }// namespace AVQt

@@ -56,6 +56,9 @@ namespace AVQt {
 
     protected:
         VAAPIDecoderImplPrivate *d_ptr;
+
+        [[nodiscard]] static AVPixelFormat getSwOutputFormat(AVPixelFormat format);
+        [[nodiscard]] static AVPixelFormat getSwOutputFormat(int format);
     };
 }// namespace AVQt
 

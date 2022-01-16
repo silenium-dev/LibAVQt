@@ -54,9 +54,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-#ifndef QT_DEBUG
+    //#ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
-#endif
+    //#endif
     {
         QString output;
         QTextStream os(&output);
@@ -85,12 +85,12 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
 
-#ifdef QT_DEBUG
-    av_log_set_level(AV_LOG_DEBUG);
-    av_log_set_flags(AV_LOG_SKIP_REPEATED);
-#else
+    //#ifdef QT_DEBUG
+    //    av_log_set_level(AV_LOG_DEBUG);
+    //    av_log_set_flags(AV_LOG_SKIP_REPEATED);
+    //#else
     av_log_set_level(AV_LOG_WARNING);
-#endif
+    //#endif
     //    signal(SIGQUIT, &signalHandler);
 
     start = std::chrono::system_clock::now();
@@ -124,14 +124,14 @@ int main(int argc, char *argv[]) {
     encodeParams.bitrate = 10000000;
     encodeParams.min_bitrate = 8000000;
     encodeParams.max_bitrate = 16000000;
-    encodeParams.codec = AVQt::Codec::HEVC;
+    encodeParams.codec = AVQt::Codec::H264;
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
-    auto transcoder = std::make_shared<AVQt::Transcoder>("VAAPI", encodeParams, registry);
+    //    auto transcoder = std::make_shared<AVQt::Transcoder>("VAAPI", encodeParams, registry);
     auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     //    auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     //    auto decoder3 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
-    //    auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
+    auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
@@ -140,11 +140,11 @@ int main(int argc, char *argv[]) {
     //    auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     demuxer->init();
-    transcoder->init();
+    //    transcoder->init();
     decoder1->init();
     //    decoder2->init();
     //    decoder3->init();
-    //    encoder->init();
+    encoder->init();
     renderer1->init();
     renderer2->init();
     yuvrgbconverter->init();
@@ -159,15 +159,15 @@ int main(int argc, char *argv[]) {
     auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
     auto decoder1InPad = decoder1->getInputPads().begin()->second;
     auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
-    auto transcoderInPad = transcoder->getInputPads()[transcoder->getInputPadId()];
-    auto transcoderFrameOutPad = transcoder->getOutputPads()[transcoder->getFrameOutputPadId()];
-    auto transcoderPacketOutPad = transcoder->getOutputPads()[transcoder->getPacketOutputPadId()];
+    //    auto transcoderInPad = transcoder->getInputPads()[transcoder->getInputPadId()];
+    //    auto transcoderFrameOutPad = transcoder->getOutputPads()[transcoder->getFrameOutputPadId()];
+    //    auto transcoderPacketOutPad = transcoder->getOutputPads()[transcoder->getPacketOutputPadId()];
     //    auto decoder2InPad = decoder2->getInputPads().begin()->second;
     //    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
     //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
     //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
-    //    auto encoderInPad = encoder->getInputPads().begin()->second;
-    //    auto encoderOutPad = encoder->getOutputPads().begin()->second;
+    auto encoderInPad = encoder->getInputPads().begin()->second;
+    //        auto encoderOutPad = encoder->getOutputPads().begin()->second;
     auto renderer1InPad = renderer1->getInputPads().begin()->second;
     auto renderer2InPad = renderer2->getInputPads().begin()->second;
     auto ccInPad = cc->getInputPads().begin()->second;
@@ -180,8 +180,10 @@ int main(int argc, char *argv[]) {
     //    decoder1InPad->link(transcoderPacketOutPad);
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
-    transcoderInPad->link(demuxerOutPad);
-    renderer1InPad->link(transcoderFrameOutPad);
+    decoder1InPad->link(demuxerOutPad);
+    yuvrgbconverterInPad->link(decoder1OutPad);
+    renderer1InPad->link(yuvrgbconverterOutPad);
+    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(demuxerOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
     //    renderer1InPad->link(decoder1OutPad);

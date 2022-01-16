@@ -30,8 +30,8 @@
 #include <QSize>
 
 extern "C" {
-#include <libavutil/pixfmt.h>
 #include <libavutil/buffer.h>
+#include <libavutil/pixfmt.h>
 }
 
 namespace AVQt {
@@ -55,7 +55,7 @@ namespace AVQt {
         AVPixelFormat pixelFormat{}, swPixelFormat{};
         bool isHWAccel{false};
         AVBufferRef *hwDeviceContext{nullptr};
-        //        AVBufferRef *hwFramesContext{nullptr};
+        AVBufferRef *hwFramesContext{nullptr};
     };
 }// namespace AVQt
 

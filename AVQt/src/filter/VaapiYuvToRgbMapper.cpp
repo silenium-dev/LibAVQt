@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -410,6 +410,7 @@ namespace AVQt {
                 } else if (ret != 0) {
                     qFatal("%d: Could not get frame from filter graph: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                 }
+                d->pHWFrame->opaque = d->currentFrame->opaque;
 
                 produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(d->pHWFrame)).build(), d->outputPadId);
 

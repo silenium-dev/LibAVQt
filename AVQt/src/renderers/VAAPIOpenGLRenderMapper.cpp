@@ -609,6 +609,9 @@ namespace AVQt {
             d->releaseResources();
             QOpenGLFramebufferObject::bindDefault();
             d->context->doneCurrent();
+            //            auto tnow = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+            //            qWarning("Frame decode time: %ld", reinterpret_cast<int64_t>(d->currentFrame->opaque));
+            //            qWarning("Now: %ld us from epoch, frame pass time: %ld us", tnow, tnow - reinterpret_cast<int64_t>(d->currentFrame->opaque));
             emit frameReady(d->currentFrame->pts, fbo);
             qDebug("Frame ready");
         }

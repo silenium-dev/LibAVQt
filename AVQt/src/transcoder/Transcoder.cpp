@@ -383,14 +383,10 @@ namespace AVQt {
             int ret;
             QElapsedTimer timer;
             timer.start();
-            auto preparedFrame = d->encoderImpl->prepareFrame(frame.get());
+            //            auto preparedFrame = d->encoderImpl->prepareFrame(frame.get());
         encode:
-            ret = d->encoderImpl->encode(preparedFrame);
+            ret = d->encoderImpl->encode(frame.get());
             //            qDebug("Encode time: %lld ns", timer.nsecsElapsed());
-            if (frame == nullptr) {
-                qWarning() << "Frame is nullptr";
-                return;
-            }
             if (ret == EAGAIN) {
                 qDebug() << "Encode EAGAIN";
                 usleep(100);
@@ -401,8 +397,10 @@ namespace AVQt {
                 char strBuf[256];
                 qWarning() << "Transcoder error: " << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
             }
-            av_frame_free(&preparedFrame);
+            //            av_frame_free(&preparedFrame);
             //            });
+        } else {
+            qWarning() << "Frame is nullptr";
         }
     }
 

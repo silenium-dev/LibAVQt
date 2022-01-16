@@ -46,15 +46,16 @@ namespace AVQt {
           d_ptr(new DecoderPrivate(this)) {
         Q_D(Decoder);
         setObjectName(decoderName + "Decoder");
-        d->impl = DecoderFactory::getInstance().create(decoderName);
+        d->impl.reset(DecoderFactory::getInstance().create(decoderName));
         if (!d->impl) {
             qFatal("Decoder %s not found", qPrintable(decoderName));
         }
+        connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(frameReady(std::shared_ptr<AVFrame>)),
+                this, SLOT(onFrameReady(std::shared_ptr<AVFrame>)), Qt::DirectConnection);
     }
 
     Decoder::~Decoder() {
         Decoder::close();
-        delete d_ptr->impl;
         delete d_ptr;
     }
 
@@ -257,14 +258,6 @@ namespace AVQt {
     void Decoder::run() {
         Q_D(Decoder);
         while (d->running) {
-            AVFrame *frame;
-            msleep(2);
-            while ((frame = d->impl->nextFrame()) && d->running) {
-                msleep(1);
-                qDebug("Decoder produced frame with pts %ld", frame->pts);
-                produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build(), d->outputPadId);
-                av_frame_free(&frame);
-            }
             QMutexLocker lock(&d->inputQueueMutex);
             if (d->paused || d->inputQueue.isEmpty()) {
                 lock.unlock();
@@ -278,6 +271,7 @@ namespace AVQt {
                 lock.relock();
                 d->inputQueue.prepend(packet);
                 lock.unlock();
+                msleep(1);
             } else if (ret != EXIT_SUCCESS) {
                 av_packet_free(&packet);
                 char strBuf[256];
@@ -285,6 +279,16 @@ namespace AVQt {
             } else {
                 av_packet_free(&packet);
             }
+        }
+    }
+
+    void Decoder::onFrameReady(std::shared_ptr<AVFrame> frame) {
+        Q_D(Decoder);
+        while (d->paused && d->running) {
+            msleep(1);
+        }
+        if (d->running) {
+            produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame.get())).build(), d->outputPadId);
         }
     }
 

@@ -38,7 +38,7 @@ namespace AVQt {
         pixelFormat = other.pixelFormat;
         swPixelFormat = other.swPixelFormat;
         isHWAccel = other.isHWAccel;
-        //        hwFramesContext = av_buffer_ref(other.hwFramesContext);
+        hwFramesContext = av_buffer_ref(other.hwFramesContext);
         hwDeviceContext = av_buffer_ref(other.hwDeviceContext);
     }
 
@@ -62,7 +62,7 @@ namespace AVQt {
         pixelFormat = other.pixelFormat;
         swPixelFormat = other.swPixelFormat;
         isHWAccel = other.isHWAccel;
-        //        hwFramesContext = av_buffer_ref(other.hwFramesContext);
+        hwFramesContext = av_buffer_ref(other.hwFramesContext);
         hwDeviceContext = av_buffer_ref(other.hwDeviceContext);
         return *this;
     }
@@ -70,6 +70,9 @@ namespace AVQt {
     VideoPadParams::~VideoPadParams() {
         if (hwDeviceContext) {
             av_buffer_unref(&hwDeviceContext);
+        }
+        if (hwFramesContext) {
+            av_buffer_unref(&hwFramesContext);
         }
     }
 }// namespace AVQt
