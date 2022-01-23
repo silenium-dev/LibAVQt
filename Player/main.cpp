@@ -126,7 +126,11 @@ int main(int argc, char *argv[]) {
     encodeParams.max_bitrate = 16000000;
     encodeParams.codec = AVQt::Codec::H264;
 
-    auto demuxer = std::make_shared<AVQt::Demuxer>(inputFile, registry);
+    AVQt::Demuxer::Config demuxerConfig{};
+    demuxerConfig.inputDevice = inputFile;
+    demuxerConfig.loop = true;
+
+    auto demuxer = std::make_shared<AVQt::Demuxer>(demuxerConfig, registry);
     //    auto transcoder = std::make_shared<AVQt::Transcoder>("VAAPI", encodeParams, registry);
     auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
@@ -181,10 +185,10 @@ int main(int argc, char *argv[]) {
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
     decoder1InPad->link(demuxerOutPad);
-    encoderInPad->link(decoder1OutPad);
-    decoder2InPad->link(encoderOutPad);
-    yuvrgbconverterInPad->link(decoder2OutPad);
-    renderer2InPad->link(yuvrgbconverterOutPad);
+    //    encoderInPad->link(decoder1OutPad);
+    //    decoder2InPad->link(encoderOutPad);
+    //    yuvrgbconverterInPad->link(decoder1OutPad);
+    renderer2InPad->link(decoder1OutPad);
     //    renderer1InPad->link(yuvrgbconverterOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
     //    renderer1InPad->link(decoder1OutPad);
@@ -202,10 +206,10 @@ int main(int argc, char *argv[]) {
     //        demuxer->pause(true);
     //        QTimer::singleShot(4000, [demuxer]{
     //            demuxer->pause(false);
-    QTimer::singleShot(30000, [renderer1, renderer2] {
-        renderer1->close();
-        renderer2->close();
-    });
+    //    QTimer::singleShot(30000, [renderer1, renderer2] {
+    //        renderer1->close();
+    //        renderer2->close();
+    //    });
     //        });
     //    });
 

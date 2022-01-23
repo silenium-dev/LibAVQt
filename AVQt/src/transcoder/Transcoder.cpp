@@ -383,7 +383,7 @@ namespace AVQt {
             int ret;
             QElapsedTimer timer;
             timer.start();
-            //            auto preparedFrame = d->encoderImpl->prepareFrame(frame.get());
+            //            auto preparedFrame = d->encoderImpl->prepareFrame(frame.getFBO());
         encode:
             ret = d->encoderImpl->encode(frame.get());
             //            qDebug("Encode time: %lld ns", timer.nsecsElapsed());

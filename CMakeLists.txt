@@ -5,6 +5,7 @@ include(CheckIncludeFileCXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(QT_VERSION "5")
+link_libraries(atomic)
 
 if (WIN32)
     if (NOT DEFINED ${OPENAL_INCLUDE_DIR})

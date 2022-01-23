@@ -95,7 +95,6 @@ namespace AVQt {
         Q_D(VAAPIOpenGLRenderMapper);
         QThread::setObjectName("VAAPIOpenGLRenderMapper");
         loadResources();
-        d->fboReturner = std::make_shared<VAAPIOpenGLRenderMapperPrivate::FBOReturner>(d);
     }
 
     VAAPIOpenGLRenderMapper::~VAAPIOpenGLRenderMapper() {
@@ -134,6 +133,7 @@ namespace AVQt {
             QThread::quit();
             d->frameProcessed.notify_all();
             d->frameAvailable.notify_all();
+            d->fboPool.reset();// Delete framepool to unlock waiting thread
             QThread::wait();
             QMutexLocker lock(&d->renderQueueMutex);
             while (!d->renderQueue.empty()) {
@@ -218,7 +218,7 @@ namespace AVQt {
                 EGL_NONE};
         d->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (d->eglDisplay == EGL_NO_DISPLAY) {
-            qFatal("Could not get EGL display: %s", eglErrorString(eglGetError()).c_str());
+            qFatal("Could not getFBO EGL display: %s", eglErrorString(eglGetError()).c_str());
         }
         if (!eglInitialize(d->eglDisplay, nullptr, nullptr)) {
             qFatal("eglInitialize");
@@ -573,32 +573,19 @@ namespace AVQt {
                     d->program->setUniformValue("inputFormat", 0);
                 }
                 d->program->release();
-                QMutexLocker fboLock(&d->framebufferQueueMutex);
-                for (int i = 0; i < VAAPIOpenGLRenderMapperPrivate::framebufferQueueSize; ++i) {
-                    d->framebufferObjects.enqueue(
-                            std::shared_ptr<QOpenGLFramebufferObject>(
-                                    new QOpenGLFramebufferObject{
-                                            d->currentFrame->width,
-                                            d->currentFrame->height,
-                                            QOpenGLFramebufferObject::CombinedDepthStencil},
-                                    *d->fboReturner));
-                }
+
+                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), false, 4);
+
                 qDebug("First frame");
             }
             mapFrame();
             qDebug("Mapped frame");
 
-            QMutexLocker fboLock(&d->framebufferQueueMutex);
-            while (d->framebufferObjects.isEmpty()) {
-                fboLock.unlock();
-                msleep(2);
-                if (!d->running) {
-                    goto end;
-                }
-                fboLock.relock();
+            auto fbo = d->fboPool->getFBO();
+            if (!fbo) {
+                qWarning("[AVQt::VAAPIOpenGLRenderMapper] Failed to getFBO FBO, exiting");
+                goto end;
             }
-            std::shared_ptr<QOpenGLFramebufferObject> fbo = d->framebufferObjects.dequeue();
-            fboLock.unlock();
 
             fbo->bind();
             glViewport(0, 0, d->currentFrame->width, d->currentFrame->height);
@@ -684,17 +671,5 @@ namespace AVQt {
                 }
             }
         }
-    }
-
-    VAAPIOpenGLRenderMapperPrivate::FBOReturner::FBOReturner(const VAAPIOpenGLRenderMapperPrivate::FBOReturner &other) {
-        d_ptr = other.d_ptr;
-    }
-
-    void VAAPIOpenGLRenderMapperPrivate::FBOReturner::operator()(QOpenGLFramebufferObject *fbo) {
-        if (fbo->isBound()) {
-            fbo->release();
-        }
-        QMutexLocker locker(&d_ptr->framebufferQueueMutex);
-        d_ptr->framebufferObjects.enqueue(std::shared_ptr<QOpenGLFramebufferObject>(fbo, *this));
     }
 }// namespace AVQt

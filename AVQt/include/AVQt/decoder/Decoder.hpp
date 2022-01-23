@@ -81,7 +81,7 @@ namespace AVQt {
     public slots:
         /*!
          * \brief Initialize decoder. Creates input context, output pad.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
+         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
          */
         Q_INVOKABLE bool open() Q_DECL_OVERRIDE;
 
@@ -89,19 +89,19 @@ namespace AVQt {
 
         /*!
          * \brief Clean up decoder. Closes input device, destroys input contexts.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
+         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
          */
         Q_INVOKABLE void close() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Starts decoder. Sets running flag and starts decoding thread.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
+         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
          */
         Q_INVOKABLE bool start() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Stops decoder. Resets running flag and interrupts decoding thread.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to get an error message)
+         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
          */
         Q_INVOKABLE void stop() Q_DECL_OVERRIDE;
 

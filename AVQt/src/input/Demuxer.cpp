@@ -27,16 +27,21 @@
 #include <pgraph_network/api/PadRegistry.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+}
 
 namespace AVQt {
-    [[maybe_unused]] Demuxer::Demuxer(QIODevice *inputDevice,
+    [[maybe_unused]] Demuxer::Demuxer(const Config &config,
                                       std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry,
                                       QObject *parent)
         : QThread(parent),
           d_ptr(new DemuxerPrivate(this)),
           pgraph::impl::SimpleProducer(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)) {
         Q_D(AVQt::Demuxer);
-        d->inputDevice = inputDevice;
+        d->inputDevice = config.inputDevice;
+        d->loop = config.loop;
     }
 
     Demuxer::Demuxer(DemuxerPrivate &p)
@@ -260,16 +265,23 @@ namespace AVQt {
                 msleep(2);
                 continue;
             }
-            if (d->pFormatCtx->pb->error) {
-                qDebug() << Q_FUNC_INFO << "Error occurred";
-                break;
-            }
+            //            if (d->pFormatCtx->pb->error) {
+            //                qWarning() << Q_FUNC_INFO << "Error occurred";
+            //                break;
+            //            }
+
+            static int i = 0;
             packet = av_packet_alloc();
             ret = av_read_frame(d->pFormatCtx, packet);
+            ++i;
 
-            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR_EXIT) {
+            if (ret == AVERROR(EAGAIN)) {
                 av_packet_free(&packet);
-                break;
+                continue;
+            } else if (ret == AVERROR_EOF) {
+                av_packet_free(&packet);
+                ret = avformat_seek_file(d->pFormatCtx, -1, INT64_MIN, 0, INT64_MAX, 0);
+                continue;
             } else if (ret < 0) {
                 qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
                 break;
@@ -277,6 +289,9 @@ namespace AVQt {
 
             if (d->outputPadIds.contains(packet->stream_index)) {
                 av_packet_rescale_ts(packet, d->pFormatCtx->streams[packet->stream_index]->time_base, {1, 1000000});
+                if (packet->pts > 9500000000) {
+                    qDebug() << Q_FUNC_INFO << "Packet pts:" << packet->pts << "packet:" << i++;
+                }
                 auto message = Message::builder()
                                        .withAction(Message::Action::DATA)
                                        .withPayload("packet", QVariant::fromValue(packet))

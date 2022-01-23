@@ -294,6 +294,11 @@ namespace AVQt {
 
     void DecoderPrivate::enqueueData(AVPacket *&packet) {
         QMutexLocker lock(&inputQueueMutex);
+        while (inputQueue.size() >= 20 && running) {
+            lock.unlock();
+            QThread::msleep(2);
+            lock.relock();
+        }
         inputQueue.enqueue(av_packet_clone(packet));
     }
 }// namespace AVQt

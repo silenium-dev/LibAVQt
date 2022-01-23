@@ -518,7 +518,7 @@ namespace AVQt {
 
         ret = av_hwframe_get_buffer(hwFramesContext, *output, 0);
         if (ret < 0) {
-            qWarning() << "Could not get hw frame buffer:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
+            qWarning() << "Could not getFBO hw frame buffer:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
             av_frame_free(output);
             return AVUNERROR(ret);
         }

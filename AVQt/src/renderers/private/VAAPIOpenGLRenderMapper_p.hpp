@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,6 +24,8 @@
 #ifndef LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP
 #define LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP
 
+#include "common/FBOPool.hpp"
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
@@ -42,6 +44,8 @@ extern "C" {
 #include <QtConcurrent>
 #include <QtOpenGL>
 #include <libavutil/hwcontext_vaapi.h>
+
+
 namespace AVQt {
     class VAAPIOpenGLRenderMapper;
     class VAAPIOpenGLRenderMapperPrivate {
@@ -53,20 +57,6 @@ namespace AVQt {
         void releaseResources();
         void destroyResources();
 
-        class FBOReturner {
-        public:
-            explicit FBOReturner(VAAPIOpenGLRenderMapperPrivate *d) : d_ptr(d) {}
-
-            FBOReturner(const FBOReturner &);
-
-            void operator()(QOpenGLFramebufferObject *fbo);
-
-        private:
-            VAAPIOpenGLRenderMapperPrivate *d_ptr;
-        };
-
-        std::shared_ptr<FBOReturner> fboReturner;
-
         VAAPIOpenGLRenderMapper *q_ptr;
 
         QMutex currentFrameMutex{};
@@ -76,9 +66,7 @@ namespace AVQt {
         QOffscreenSurface *surface{nullptr};
         QThread *afterStopThread{nullptr};
 
-        QMutex framebufferQueueMutex{};
-        static constexpr int framebufferQueueSize = 4;
-        QQueue<std::shared_ptr<QOpenGLFramebufferObject>> framebufferObjects{};
+        std::unique_ptr<common::FBOPool> fboPool;
 
         QOpenGLShaderProgram *program{nullptr};
         QOpenGLVertexArrayObject vao{};

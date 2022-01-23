@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -68,20 +68,18 @@ void FrameSaverAccelerated::onFrameReady(qint64 pts, const std::shared_ptr<QOpen
     qDebug("Frame %lld ready", pts);
     if (fbo) {
         if (frameCounter % 60 == 0) {
-            uint8_t *data;
+            //            uint8_t *data;
             {
                 QMutexLocker lock(&contextMutex);
                 context->makeCurrent(surface);
-                glBindTexture(GL_TEXTURE_2D, fbo->texture());
-                data = new uint8_t[fbo->width() * fbo->height() * 4];
-                glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                fbo->toImage(true).save(QString("frame%1.bmp").arg(frameCounter));
                 context->doneCurrent();
             }
-//            QImage(data, fbo->width(), fbo->height(), QImage::Format_RGBA8888).mirrored().save(QString("frame.bmp").arg(frameCounter));
-            qDebug("Saved frame %lu", frameCounter.load());
-            delete[] data;
+            //            QImage(data, fbo->width(), fbo->height(), QImage::Format_RGBA8888).mirrored().save(QString("frame.bmp").arg(frameCounter));
+            qDebug("Saved frame %llu", frameCounter.load());
+            //            delete[] data;
             qDebug("FBO pointer owners: %ld", fbo.use_count());
-//            frameCounter = 0;
+            //            frameCounter = 0;
         }
         ++frameCounter;
     }

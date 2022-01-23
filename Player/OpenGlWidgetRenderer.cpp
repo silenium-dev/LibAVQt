@@ -46,11 +46,6 @@ OpenGLWidgetRenderer::OpenGLWidgetRenderer(std::shared_ptr<pgraph::network::api:
 
 OpenGLWidgetRenderer::~OpenGLWidgetRenderer() {
     Q_D(OpenGLWidgetRenderer);
-    if (d->mapper) {
-        d->mapper->stop();
-        delete d->mapper;
-        d->mapper = nullptr;
-    }
 
     delete d->blitter;
     d->blitter = nullptr;
@@ -132,7 +127,6 @@ void OpenGLWidgetRenderer::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
     bool updateRequired = false;
     int64_t updateTimestamp;
-    //    qDebug() << "Render queue size:" << d->renderQueue.size() << "timestamp:" << d->getTimestamp();
     if (!d->paused) {
         if (d->renderQueue.size() >= 2) {
             auto timestamp = d->getTimestamp();
@@ -144,6 +138,14 @@ void OpenGLWidgetRenderer::paintGL() {
         if (updateRequired && d->renderQueue.size() >= 2) {
             auto frame = d->renderQueue.dequeue();
             while (!d->renderQueue.isEmpty()) {
+                if (d->renderQueue.first().first < frame.first) {
+                    qDebug() << "Received frame with pts" << d->renderQueue.first().first << "before current timestamp"
+                             << frame.first << "Resetting clock";
+                    d->renderTimer.invalidate();
+                    updateTimestamp = d->renderQueue.first().first;
+                    d->lastPaused = d->renderQueue.first().first;
+                    d->currentFrame = {};
+                }
                 if (frame.first <= updateTimestamp) {
                     if (d->renderQueue.first().first >= updateTimestamp || d->renderQueue.size() == 1) {
                         break;
@@ -152,10 +154,6 @@ void OpenGLWidgetRenderer::paintGL() {
                     }
                 }
                 frame = d->renderQueue.dequeue();
-            }
-            if (!d->currentFrame.second) {
-                d->renderTimer.start();
-                d->lastPaused = frame.first;
             }
             qDebug("Deleting frame with PTS: %lld", static_cast<long long>(frame.first));
             d->currentFrame = frame;
@@ -191,6 +189,8 @@ void OpenGLWidgetRenderer::onFrameReady(qint64 pts, const std::shared_ptr<QOpenG
 
 void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {
     Q_D(OpenGLWidgetRenderer);
+    d->renderQueue.clear();
+    d->currentFrame = {};
     if (d->mapper) {
         d->mapper->stop();
         delete d->mapper;
@@ -237,6 +237,8 @@ bool OpenGLWidgetRenderer::open() {
 }
 
 void OpenGLWidgetRenderer::close() {
+    Q_D(OpenGLWidgetRenderer);
+    stop();
     QWidget::close();
 }
 
@@ -252,11 +254,20 @@ void OpenGLWidgetRenderer::stop() {
 }
 
 int64_t OpenGLWidgetRendererPrivate::getTimestamp() {
+    if (!renderTimer.isValid() && !paused) {
+        renderTimer.restart();
+    }
+    auto now = renderTimer.nsecsElapsed() / 1000;
+    static bool first = true;
+    if (now > 10000000 && !first) {
+        qDebug("Render timer reset");
+    }
+    first = false;
     if (!currentFrame.second) {
         return 0;
     } else if (paused) {
         return lastPaused;
     } else {
-        return lastPaused + renderTimer.nsecsElapsed() / 1000;
+        return lastPaused + now;
     }
 }

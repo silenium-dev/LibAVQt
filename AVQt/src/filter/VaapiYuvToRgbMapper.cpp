@@ -335,7 +335,7 @@ namespace AVQt {
                     d->pHWFrame->format = AV_PIX_FMT_VAAPI;
                     ret = av_hwframe_get_buffer(d->pOutputHWFramesCtx.load(), d->pHWFrame, 0);
                     if (ret != 0) {
-                        qFatal("%d: Could not get buffer for hw frame: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                        qFatal("%d: Could not getFBO buffer for hw frame: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                     }
 
                     for (auto i = 0; i < d->pFilterGraph->nb_filters; ++i) {
@@ -408,7 +408,7 @@ namespace AVQt {
                 if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN)) {
                     continue;
                 } else if (ret != 0) {
-                    qFatal("%d: Could not get frame from filter graph: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
+                    qFatal("%d: Could not getFBO frame from filter graph: %s", ret, av_make_error_string(strBuf, strBufSize, ret));
                 }
                 d->pHWFrame->opaque = d->currentFrame->opaque;
 
