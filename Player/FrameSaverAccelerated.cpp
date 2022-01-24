@@ -76,7 +76,7 @@ void FrameSaverAccelerated::onFrameReady(qint64 pts, const std::shared_ptr<QOpen
                 context->doneCurrent();
             }
             //            QImage(data, fbo->width(), fbo->height(), QImage::Format_RGBA8888).mirrored().save(QString("frame.bmp").arg(frameCounter));
-            qDebug("Saved frame %llu", frameCounter.load());
+            qDebug("Saved frame %lu", frameCounter.load());
             //            delete[] data;
             qDebug("FBO pointer owners: %ld", fbo.use_count());
             //            frameCounter = 0;

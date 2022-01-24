@@ -12,13 +12,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(PROJECT_NAME Player)
 
-#add_compile_definitions(ENABLE_QSV_ENCODE)
-
 add_executable(${PROJECT_NAME} main.cpp FrameSaverAccelerated.cpp FrameSaverAccelerated.hpp OpenGlWidgetRenderer.cpp OpenGlWidgetRenderer.hpp OpenGlWidgetRendererPrivate.hpp)
 
 set(QT_VERSION "5")
-
-set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
+set(REQUIRED_LIBS Core Gui DBus Concurrent Widgets OpenGL)
 if (QT_VERSION EQUAL "6")
     LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
 endif ()
@@ -27,6 +24,7 @@ list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::"
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBS_QUALIFIED})
+
 if (WIN32)
     set(DEBUG_SUFFIX)
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -56,12 +54,11 @@ if (WIN32)
     endforeach (QT_LIB)
 endif ()
 
-#target_link_libraries(Player Qt6::Core Qt6::Gui Qt6::Concurrent Qt6::Widgets Qt6::OpenGLWidgets Qt6::OpenGL avformat avfilter avutil avcodec avdevice swscale swresample AVQt)
-target_link_libraries(Player avformat avfilter avutil avcodec avdevice swscale swresample AVQtStatic pgraph pgraph_network boost_json)
-
-if (LINUX)
-    find_package(OpenAL)
-    target_link_libraries(Player openal GL EGL GLU va)
-elseif (WIN32)
-    target_link_libraries(Player OpenAL32 opengl32 dxguid d3d9)
-endif ()
+target_link_libraries(Player AVQtStatic)
+#
+#if (LINUX)
+#    find_package(OpenAL)
+#    target_link_libraries(Player openal GL EGL GLU va)
+#elseif (WIN32)
+#    target_link_libraries(Player OpenAL32 opengl32 dxguid d3d9)
+#endif ()

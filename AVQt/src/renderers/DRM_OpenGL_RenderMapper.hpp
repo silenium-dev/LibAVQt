@@ -31,24 +31,30 @@
 namespace AVQt {
     class DRM_OpenGL_RenderMapperPrivate;
 
-    class DRM_OpenGL_RenderMapper : public QObject, public api::IOpenGLFrameMapper {
+    class DRM_OpenGL_RenderMapper : public QThread, public api::IOpenGLFrameMapper, public QOpenGLFunctions {
         Q_OBJECT
         Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
         Q_DECLARE_PRIVATE(DRM_OpenGL_RenderMapper)
     public:
         explicit DRM_OpenGL_RenderMapper(QObject *parent = nullptr);
         ~DRM_OpenGL_RenderMapper() override;
-        //
-        //        void initializeGL(QOpenGLContext *shareContext) override;
-        //
-        //        void start() override;
-        //        void stop() override;
-        //
-        //        void enqueueFrame(AVFrame *frame) override;
-        //    signals:
-        //        void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;
 
+        void initializeGL(QOpenGLContext *shareContext) override;
+
+        void start() override;
+        void stop() override;
+
+        void enqueueFrame(AVFrame *frame) override;
+    signals:
+        void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;
+
+    protected:
+        void run() override;
     private:
+        void initializePlatformAPI();
+        void initializeInterop();
+        void mapFrame();
+
         QScopedPointer<DRM_OpenGL_RenderMapperPrivate> d_ptr;
     };
 }// namespace AVQt

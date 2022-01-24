@@ -44,49 +44,6 @@ extern "C" {
 #include <QtOpenGL>
 
 
-#define LOOKUP_FUNCTION(type, func)               \
-    auto(func) = (type) eglGetProcAddress(#func); \
-    if (!(func)) {                                \
-        qFatal("eglGetProcAddress(" #func ")");   \
-    }
-
-std::string eglErrorString(EGLint error) {
-    switch (error) {
-        case EGL_SUCCESS:
-            return "No error";
-        case EGL_NOT_INITIALIZED:
-            return "EGL not initialized or failed to initialize";
-        case EGL_BAD_ACCESS:
-            return "Resource inaccessible";
-        case EGL_BAD_ALLOC:
-            return "Cannot allocate resources";
-        case EGL_BAD_ATTRIBUTE:
-            return "Unrecognized attribute or attribute value";
-        case EGL_BAD_CONTEXT:
-            return "Invalid EGL context";
-        case EGL_BAD_CONFIG:
-            return "Invalid EGL frame buffer configuration";
-        case EGL_BAD_CURRENT_SURFACE:
-            return "Current surface is no longer valid";
-        case EGL_BAD_DISPLAY:
-            return "Invalid EGL display";
-        case EGL_BAD_SURFACE:
-            return "Invalid surface";
-        case EGL_BAD_MATCH:
-            return "Inconsistent arguments";
-        case EGL_BAD_PARAMETER:
-            return "Invalid argument";
-        case EGL_BAD_NATIVE_PIXMAP:
-            return "Invalid native pixmap";
-        case EGL_BAD_NATIVE_WINDOW:
-            return "Invalid native window";
-        case EGL_CONTEXT_LOST:
-            return "Context lost";
-        default:
-            return "Unknown error " + std::to_string(int(error));
-    }
-}
-
 namespace AVQt {
 
     VAAPIOpenGLRenderMapper::VAAPIOpenGLRenderMapper(QObject *parent)
@@ -260,7 +217,7 @@ namespace AVQt {
                 0, 0, maxTexHeight, maxTexHeight,
                 0, 1, 1, 0};
 
-        std::vector<float> vertexBufferData(5 * 4);// 8 entries per vertex * 4 vertices
+        std::vector<float> vertexBufferData(5 * 4);// 5 entries per vertex * 4 vertices
 
         float *buf = vertexBufferData.data();
 
@@ -300,7 +257,7 @@ namespace AVQt {
         d->program->enableAttributeArray(0);
         d->program->setAttributeBuffer(0, GL_FLOAT, 0, 3, stride);
 
-        // layout location 1 - vec2 with texture coordinates
+        // layout location 1 - vec2 with textures coordinates
         d->program->enableAttributeArray(1);
         int texCoordsOffset = 3 * sizeof(float);
         d->program->setAttributeBuffer(1, GL_FLOAT, texCoordsOffset, 2, stride);
@@ -340,7 +297,7 @@ namespace AVQt {
         auto err = glGetError();
 
         if (err != GL_NO_ERROR) {
-            qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
+            qFatal("Could not map EGL image to OGL textures: %#0.4x, %s", err, gluErrorString(err));
         }
     }
 
@@ -422,7 +379,7 @@ namespace AVQt {
                 auto err = glGetError();
 
                 if (err != GL_NO_ERROR) {
-                    qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
+                    qFatal("Could not map EGL image to OGL textures: %#0.4x, %s", err, gluErrorString(err));
                 }
             }
             for (int i = 0; i < (int) prime.num_objects; ++i) {
@@ -485,7 +442,7 @@ namespace AVQt {
 
             auto err = glGetError();
             if (err != GL_NO_ERROR) {
-                qFatal("Could not map EGL image to OGL texture: %#0.4x, %s", err, gluErrorString(err));
+                qFatal("Could not map EGL image to OGL textures: %#0.4x, %s", err, gluErrorString(err));
             }
             glBindTexture(GL_TEXTURE_2D, 0);
             for (int i = 0; i < (int) prime.num_objects; ++i) {
@@ -524,10 +481,14 @@ namespace AVQt {
                 if (d->renderQueue.size() > 4 && d->running) {
                     qWarning("[AVQt::VAAPIOpenGLRenderMapper] Render queue is full, dropping frame");
                     av_frame_free(&frame);
+                    queueFrame.waitForFinished();
+                    auto f = queueFrame.result();
+                    av_frame_free(&f);
                     return;
                 }
             }
             d->renderQueue.enqueue(queueFrame);
+            d->frameAvailable.wakeOne();
         }
         av_frame_free(&frame);
     }
@@ -542,6 +503,9 @@ namespace AVQt {
             QMutexLocker locker(&d->renderQueueMutex);
             if (d->renderQueue.isEmpty()) {
                 d->frameAvailable.wait(&d->renderQueueMutex, 200);
+                if (!d->running) {
+                    return;
+                }
                 if (d->renderQueue.isEmpty()) {
                     continue;
                 }

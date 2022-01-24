@@ -3,6 +3,8 @@ project(LibAVQt)
 
 include(CheckIncludeFileCXX)
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/LibScreenCapture/cmake" CACHE INTERNAL "CMAKE_MODULE_PATH")
+
 set(CMAKE_CXX_STANDARD 20)
 set(QT_VERSION "5")
 link_libraries(atomic)
@@ -35,9 +37,11 @@ endif ()
 
 include_directories("libpgraph_network/libpgraph/include")
 include_directories("libpgraph_network/include")
+include_directories("LibScreenCapture/include")
 include_directories("cpp-static-block")
 #add_subdirectory(libpgraph_network/libpgraph)
 add_subdirectory("libpgraph_network")
+add_subdirectory("LibScreenCapture")
 if (TARGET pgraph_obj)
     include_directories("libpgraph_network/libpgraph/include")
 else ()

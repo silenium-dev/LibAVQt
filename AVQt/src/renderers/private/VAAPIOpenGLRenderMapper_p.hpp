@@ -89,8 +89,6 @@ namespace AVQt {
         static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
 
         static constexpr uint RENDERQUEUE_MAX_SIZE{8};
-
-        friend class VAAPIOpenGLRenderMapper;
     };
 }// namespace AVQt
 

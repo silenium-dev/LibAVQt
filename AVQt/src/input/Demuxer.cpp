@@ -280,8 +280,16 @@ namespace AVQt {
                 continue;
             } else if (ret == AVERROR_EOF) {
                 av_packet_free(&packet);
-                ret = avformat_seek_file(d->pFormatCtx, -1, INT64_MIN, 0, INT64_MAX, 0);
-                continue;
+                if (d->loop) {
+                    ret = avformat_seek_file(d->pFormatCtx, -1, INT64_MIN, 0, INT64_MAX, 0);
+                    if (ret < 0) {
+                        qWarning() << Q_FUNC_INFO << "Error while seeking";
+                        break;
+                    }
+                    continue;
+                } else {
+                    break;
+                }
             } else if (ret < 0) {
                 qDebug() << Q_FUNC_INFO << "Error reading frame:" << av_make_error_string(strBuf, strBufSize, ret);
                 break;

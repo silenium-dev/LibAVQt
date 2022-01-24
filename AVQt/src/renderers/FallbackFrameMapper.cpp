@@ -77,8 +77,8 @@ namespace AVQt {
             shaderVersionString = "#version 330 core\n";
         }
 
-        QFile vsh{":/shaders/texture.vsh"};
-        QFile fsh{":/shaders/texture.fsh"};
+        QFile vsh{":/shaders/textures.vsh"};
+        QFile fsh{":/shaders/textures.fsh"};
         vsh.open(QIODevice::ReadOnly);
         fsh.open(QIODevice::ReadOnly);
         QByteArray vertexShader = vsh.readAll().prepend(shaderVersionString);
@@ -154,7 +154,7 @@ namespace AVQt {
         d->program->enableAttributeArray(0);
         d->program->setAttributeBuffer(0, GL_FLOAT, 0, 3, stride);
 
-        // layout location 1 - vec2 with texture coordinates
+        // layout location 1 - vec2 with textures coordinates
         d->program->enableAttributeArray(1);
         int texCoordsOffset = 3 * sizeof(float);
         d->program->setAttributeBuffer(1, GL_FLOAT, texCoordsOffset, 2, stride);

@@ -23,6 +23,8 @@
 #include "include/AVQt/communication/Message.hpp"
 #include "include/AVQt/communication/PacketPadParams.hpp"
 #include "input/CommandConsumer.hpp"
+
+#include <ScreenCapture/pipewire/PipeWireCapturer.hpp>
 #include <pgraph/api/Link.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
 #include <pgraph_network/impl/SimplePadRegistry.hpp>
@@ -109,6 +111,8 @@ int main(int argc, char *argv[]) {
     } else if (QFile::exists(argv[1])) {
         filepath = argv[1];
     }
+
+    auto capturer = std::make_shared<ScreenCapture::PipeWireCapturer>(ScreenCapture::PipeWireCapturer::CaptureSourceType::kAny);
 
     auto inputFile = new QFile(filepath);
 

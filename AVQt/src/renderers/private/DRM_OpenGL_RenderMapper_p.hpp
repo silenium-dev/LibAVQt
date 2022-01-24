@@ -24,7 +24,19 @@
 #ifndef LIBAVQT_DRM_OPENGL_RENDERMAPPER_P_HPP
 #define LIBAVQT_DRM_OPENGL_RENDERMAPPER_P_HPP
 
+#include "common/FBOPool.hpp"
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
 #include <QObject>
+#include <QtOpenGL>
+
+extern "C" {
+#include <libavutil/avutil.h>
+#include <libavutil/hwcontext.h>
+#include <libavutil/hwcontext_drm.h>
+}
 
 namespace AVQt {
     class DRM_OpenGL_RenderMapper;
@@ -33,7 +45,40 @@ namespace AVQt {
     private:
         explicit DRM_OpenGL_RenderMapperPrivate(DRM_OpenGL_RenderMapper *q) : q_ptr(q) {}
 
+        void bindResources();
+        void releaseResources();
+        void destroyResources();
+
         DRM_OpenGL_RenderMapper *q_ptr;
+
+        std::shared_ptr<common::FBOPool> fboPool{};
+
+        std::unique_ptr<QOffscreenSurface> surface{};
+        std::unique_ptr<QOpenGLContext> context{};
+
+        std::unique_ptr<QOpenGLShaderProgram> program{};
+        std::unique_ptr<QOpenGLVertexArrayObject> vao{};
+        std::unique_ptr<QOpenGLBuffer> vbo{};
+        std::unique_ptr<QOpenGLBuffer> ibo{};
+
+        QMutex currentFrameMutex{};
+        std::shared_ptr<AVFrame> currentFrame{};
+
+        QMutex inputQueueMutex{};
+        QQueue<std::shared_ptr<AVFrame>> inputQueue{};
+
+        QWaitCondition frameProcessed{}, frameAvailable{};
+
+        QThread *afterStopThread{nullptr};
+
+        static constexpr uint PROGRAM_VERTEX_ATTRIBUTE{0};
+        static constexpr uint PROGRAM_TEXCOORD_ATTRIBUTE{1};
+
+        EGLDisplay eglDisplay{EGL_NO_DISPLAY};
+        EGLImageKHR eglImages[2]{EGL_NO_IMAGE_KHR, EGL_NO_IMAGE_KHR};
+        GLuint textures[2]{0, 0};
+
+        std::atomic_bool running{false}, paused{false}, firstFrame{true};
     };
 }// namespace AVQt
 

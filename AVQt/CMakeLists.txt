@@ -16,7 +16,6 @@ set(CMAKE_AUTORCC on)
 set(CMAKE_AUTOUIC on)
 
 set(CMAKE_INCLUDE_CURRENT_DIR on)
-include_directories("include")
 
 if (WIN32)
     add_compile_options(/EHa)
@@ -32,7 +31,7 @@ endif ()
 
 set(QT_VERSION "5")
 
-set(REQUIRED_LIBS Core Gui Concurrent Widgets OpenGL)
+set(REQUIRED_LIBS Core Gui DBus Concurrent Widgets OpenGL)
 if (QT_VERSION EQUAL "6")
     LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
 endif ()
@@ -48,6 +47,7 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 #    -O3)
 #endif ()
 
+include_directories("include")
 include_directories(src)
 include_directories(include/AVQt)
 
@@ -69,9 +69,9 @@ set(SOURCES
 
         include/AVQt/encoder/IEncoder.hpp
 
-#        include/AVQt/decoder/DecoderQSV.hpp
-#        src/decoder/private/DecoderQSV_p.hpp
-#        src/decoder/DecoderQSV.cpp
+        #        include/AVQt/decoder/DecoderQSV.hpp
+        #        src/decoder/private/DecoderQSV_p.hpp
+        #        src/decoder/DecoderQSV.cpp
 
         src/renderers/private/OpenALErrorHandler.hpp
 
@@ -83,18 +83,18 @@ set(SOURCES
         src/renderers/private/RenderClock_p.hpp
         src/renderers/RenderClock.cpp
 
-#        include/AVQt/renderers/OpenGLRendererOld.hpp
-#        src/renderers/private/OpenGLRendererOld_p.hpp
-#        src/renderers/private/OpenGLRendererOld_p.cpp
-#        src/renderers/OpenGLRendererOld.cpp
+        #        include/AVQt/renderers/OpenGLRendererOld.hpp
+        #        src/renderers/private/OpenGLRendererOld_p.hpp
+        #        src/renderers/private/OpenGLRendererOld_p.cpp
+        #        src/renderers/OpenGLRendererOld.cpp
 
         include/AVQt/renderers/OpenALAudioOutput.hpp
         src/renderers/private/OpenALAudioOutput_p.hpp
         src/renderers/OpenALAudioOutput.cpp
 
-#        include/AVQt/widgets/OpenGLWidgetRenderer.hpp
-#        src/widgets/private/OpenGLWidgetRenderer_p.hpp
-#        src/widgets/OpenGLWidgetRenderer.cpp
+        #        include/AVQt/widgets/OpenGLWidgetRenderer.hpp
+        #        src/widgets/private/OpenGLWidgetRenderer_p.hpp
+        #        src/widgets/OpenGLWidgetRenderer.cpp
 
         include/AVQt/output/Muxer.hpp
         src/output/private/Muxer_p.hpp
@@ -122,9 +122,9 @@ set(SOURCES_LINUX
         src/decoder/private/Decoder_p.hpp
         src/decoder/Decoder.cpp
 
-#        include/AVQt/decoder/DecoderMMAL.hpp
-#        src/decoder/private/DecoderMMAL_p.hpp
-#        src/decoder/DecoderMMAL.cpp
+        #        include/AVQt/decoder/DecoderMMAL.hpp
+        #        src/decoder/private/DecoderMMAL_p.hpp
+        #        src/decoder/DecoderMMAL.cpp
 
         include/AVQt/encoder/EncoderVAAPI.hpp
         src/encoder/private/EncoderVAAPI_p.hpp
@@ -213,20 +213,30 @@ add_library(AVQtStatic STATIC $<TARGET_OBJECTS:AVQtObject>)
 add_library(AVQt SHARED $<TARGET_OBJECTS:AVQtObject>)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
 
-target_link_libraries(AVQtObject ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
-target_link_libraries(AVQtStatic ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
-target_link_libraries(AVQt ${REQUIRED_LIBS_QUALIFIED} avformat avfilter avutil avcodec avdevice swscale swresample)
+set(LINK_LIBRARIES
+        ${REQUIRED_LIBS_QUALIFIED}
+        LibScreenCapture
 
-target_link_libraries(AVQtObject pgraph pgraph_network boost_json)
-target_link_libraries(AVQtStatic pgraph_static pgraph_network_static boost_json)
-target_link_libraries(AVQt pgraph pgraph_network boost_json)
+        pgraph
+        pgraph_network
+
+        boost_json
+
+        avformat
+        avfilter
+        avutil
+        avcodec
+        avdevice
+        swscale
+        swresample
+        )
 
 if (WIN32)
-    target_link_libraries(AVQtObject opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
-    target_link_libraries(AVQtStatic opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
-    target_link_libraries(AVQt opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
+    list(APPEND LINK_LIBRARIES opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
 else ()
-    target_link_libraries(AVQtObject GL openal EGL GLU va)
-    target_link_libraries(AVQtStatic GL openal EGL GLU va)
-    target_link_libraries(AVQt GL openal EGL GLU va)
+    list(APPEND LINK_LIBRARIES GL openal EGL GLU va)
 endif ()
+
+target_link_libraries(AVQtObject PUBLIC ${LINK_LIBRARIES})
+target_link_libraries(AVQtStatic PUBLIC ${LINK_LIBRARIES})
+target_link_libraries(AVQt PUBLIC ${LINK_LIBRARIES})

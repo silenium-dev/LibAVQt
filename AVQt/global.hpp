@@ -39,6 +39,18 @@ extern "C" {
 #define AVQT_DEPRECATED Q_DECL_DEPRECATED
 #endif
 
+#ifdef Q_OS_LINUX
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#define LOOKUP_FUNCTION(type, func)               \
+    auto(func) = (type) eglGetProcAddress(#func); \
+    if (!(func)) {                                \
+        qFatal("eglGetProcAddress(" #func ")");   \
+    }
+
+std::string eglErrorString(EGLint error);
+#endif
+
 namespace AVQt {
     void loadResources();
     void registerMetatypes();
