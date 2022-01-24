@@ -90,6 +90,8 @@ namespace AVQt {
                 return AV_CODEC_ID_VP9;
             case Codec::MPEG2:
                 return AV_CODEC_ID_MPEG2VIDEO;
+            default:
+                return AV_CODEC_ID_NONE;
         }
     }
 }// namespace AVQt

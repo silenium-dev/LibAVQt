@@ -21,7 +21,7 @@
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-git clone https://edugit.org/sdcieo0330/LibAVQt.git
+git clone --recursive https://edugit.org/sdcieo0330/LibAVQt.git LibAVQt
 
 cd LibAVQt || exit
 mkdir build && cd build || exit
