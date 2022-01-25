@@ -104,13 +104,13 @@ set(SOURCES
         include/AVQt/communication/HwContextSync.hpp
         src/communication/HWContextSync.cpp
 
-        include/AVQt/transcoder/ITranscoderImpl.hpp
-        include/AVQt/transcoder/TranscoderFactory.hpp
-        src/transcoder/TranscoderFactory.cpp
-
-        include/AVQt/transcoder/Transcoder.hpp
-        src/transcoder/private/Transcoder_p.hpp
-        src/transcoder/Transcoder.cpp
+        #        include/AVQt/transcoder/ITranscoderImpl.hpp
+        #        include/AVQt/transcoder/TranscoderFactory.hpp
+        #        src/transcoder/TranscoderFactory.cpp
+        #
+        #        include/AVQt/transcoder/Transcoder.hpp
+        #        src/transcoder/private/Transcoder_p.hpp
+        #        src/transcoder/Transcoder.cpp
 
         src/communication/FrameDestructor.hpp
         src/communication/FrameDestructor.cpp
@@ -140,9 +140,9 @@ set(SOURCES_LINUX
         src/encoder/private/VAAPIEncoderImpl_p.hpp
         src/encoder/VAAPIEncoderImpl.cpp
 
-        src/transcoder/VaapiTranscoderImpl.hpp
-        src/transcoder/private/VaapiTranscoderImpl_p.hpp
-        src/transcoder/VaapiTranscoderImpl.cpp
+        #        src/transcoder/VaapiTranscoderImpl.hpp
+        #        src/transcoder/private/VaapiTranscoderImpl_p.hpp
+        #        src/transcoder/VaapiTranscoderImpl.cpp
 
         src/renderers/DRM_OpenGL_RenderMapper.hpp
         src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
