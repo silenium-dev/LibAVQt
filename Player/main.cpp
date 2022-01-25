@@ -132,7 +132,6 @@ int main(int argc, char *argv[]) {
     demuxerConfig.loop = true;
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(demuxerConfig, registry);
-    //    auto transcoder = std::make_shared<AVQt::Transcoder>("VAAPI", encodeParams, registry);
     auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
     //    auto decoder3 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
@@ -164,9 +163,6 @@ int main(int argc, char *argv[]) {
     auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
     auto decoder1InPad = decoder1->getInputPads().begin()->second;
     auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
-    //    auto transcoderInPad = transcoder->getInputPads()[transcoder->getInputPadId()];
-    //    auto transcoderFrameOutPad = transcoder->getOutputPads()[transcoder->getFrameOutputPadId()];
-    //    auto transcoderPacketOutPad = transcoder->getOutputPads()[transcoder->getPacketOutputPadId()];
     auto decoder2InPad = decoder2->getInputPads().begin()->second;
     auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
     //    auto decoder3InPad = decoder3->getInputPads().begin()->second;

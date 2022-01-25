@@ -40,13 +40,6 @@ list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::"
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
-#add_compile_options(-fsanitize=address)
-#add_link_options(-fsanitize=address)
-
-#if (${CMAKE_BUILD_TYPE} EQUAL "Release")
-#    -O3)
-#endif ()
-
 include_directories("include")
 include_directories(src)
 include_directories(include/AVQt)
@@ -56,87 +49,105 @@ set(SOURCES
 
         AVQt
         global.hpp
-
-        include/AVQt/input/IPacketSource.hpp
-        include/AVQt/input/IFrameSource.hpp
-
-        include/AVQt/output/IPacketSink.hpp
-        include/AVQt/output/IFrameSink.hpp
+        global.cpp
 
         include/AVQt/input/Demuxer.hpp
         src/input/private/Demuxer_p.hpp
         src/input/Demuxer.cpp
 
-        include/AVQt/encoder/IEncoder.hpp
-
-        #        include/AVQt/decoder/DecoderQSV.hpp
-        #        src/decoder/private/DecoderQSV_p.hpp
-        #        src/decoder/DecoderQSV.cpp
-
-        src/renderers/private/OpenALErrorHandler.hpp
-
-        include/AVQt/encoder/EncoderQSV.hpp
-        src/encoder/private/EncoderQSV_p.hpp
-        src/encoder/EncoderQSV.cpp
-
-        include/AVQt/renderers/RenderClock.hpp
-        src/renderers/private/RenderClock_p.hpp
-        src/renderers/RenderClock.cpp
-
-        #        include/AVQt/renderers/OpenGLRendererOld.hpp
-        #        src/renderers/private/OpenGLRendererOld_p.hpp
-        #        src/renderers/private/OpenGLRendererOld_p.cpp
-        #        src/renderers/OpenGLRendererOld.cpp
-
-        include/AVQt/renderers/OpenALAudioOutput.hpp
-        src/renderers/private/OpenALAudioOutput_p.hpp
-        src/renderers/OpenALAudioOutput.cpp
-
-        #        include/AVQt/widgets/OpenGLWidgetRenderer.hpp
-        #        src/widgets/private/OpenGLWidgetRenderer_p.hpp
-        #        src/widgets/OpenGLWidgetRenderer.cpp
-
-        include/AVQt/output/Muxer.hpp
-        src/output/private/Muxer_p.hpp
-        src/output/Muxer.cpp
-
-        #        output/FrameFileSaver.hpp
-        #        output/private/FrameFileSaver_p.hpp
-        #        output/FrameFileSaver.cpp
         src/communication/Message.cpp
         include/AVQt/communication/Message.hpp
-        include/AVQt/communication/PacketPadParams.hpp
 
         src/input/CommandConsumer.cpp
         include/AVQt/input/CommandConsumer.hpp
-        src/communication/PacketPadParams.cpp
+
         include/AVQt/communication/IComponent.hpp
-        src/communication/FilePadParams.cpp
-        include/AVQt/communication/FilePadParams.hpp
         include/AVQt/communication/IOutput.hpp
 
+        include/AVQt/communication/FilePadParams.hpp
+        src/communication/FilePadParams.cpp
+
+        include/AVQt/communication/PacketPadParams.hpp
+        src/communication/PacketPadParams.cpp
+
+        include/AVQt/communication/VideoPadParams.hpp
         src/communication/VideoPadParams.cpp
-        include/AVQt/communication/VideoPadParams.hpp include/AVQt/decoder/IDecoderImpl.hpp src/decoder/DecoderFactory.cpp include/AVQt/decoder/DecoderFactory.hpp src/renderers/OpenGLFrameMapperFactory.cpp include/AVQt/renderers/OpenGLFrameMapperFactory.hpp include/AVQt/renderers/IOpenGLFrameMapper.hpp src/renderers/FallbackFrameMapper.cpp src/renderers/FallbackFrameMapper.hpp src/renderers/private/FallbackFrameMapper_p.hpp global.cpp src/encoder/Encoder.cpp include/AVQt/encoder/Encoder.hpp src/encoder/private/Encoder_p.hpp src/encoder/EncoderFactory.cpp include/AVQt/encoder/EncoderFactory.hpp include/AVQt/encoder/IEncoderImpl.hpp src/encoder/IEncoderImpl.cpp include/AVQt/communication/HwContextSync.hpp src/communication/HWContextSync.cpp include/AVQt/transcoder/ITranscoderImpl.hpp src/transcoder/TranscoderFactory.cpp include/AVQt/transcoder/TranscoderFactory.hpp src/transcoder/Transcoder.cpp include/AVQt/transcoder/Transcoder.hpp src/transcoder/private/Transcoder_p.hpp src/communication/FrameDestructor.cpp src/communication/FrameDestructor.hpp src/communication/PacketDestructor.cpp src/communication/PacketDestructor.hpp src/common/FBOPool.hpp src/common/FBOPool.cpp include/AVQt/capture/ICaptureImpl.hpp)
-set(SOURCES_LINUX
+
         include/AVQt/decoder/Decoder.hpp
         src/decoder/private/Decoder_p.hpp
         src/decoder/Decoder.cpp
 
-        #        include/AVQt/decoder/DecoderMMAL.hpp
-        #        src/decoder/private/DecoderMMAL_p.hpp
-        #        src/decoder/DecoderMMAL.cpp
+        include/AVQt/decoder/IDecoderImpl.hpp
 
-        include/AVQt/encoder/EncoderVAAPI.hpp
-        src/encoder/private/EncoderVAAPI_p.hpp
-        src/encoder/EncoderVAAPI.cpp
+        include/AVQt/decoder/DecoderFactory.hpp
+        src/decoder/DecoderFactory.cpp
 
-        #        src/renderers/private/unix/OpenGLRenderer_p.cpp
-        #        src/renderers/unix/OpenGLRendererOld.cpp
+        include/AVQt/renderers/IOpenGLFrameMapper.hpp
 
+        include/AVQt/renderers/OpenGLFrameMapperFactory.hpp
+        src/renderers/OpenGLFrameMapperFactory.cpp
+
+        src/renderers/FallbackFrameMapper.hpp
+        src/renderers/private/FallbackFrameMapper_p.hpp
+        src/renderers/FallbackFrameMapper.cpp
+
+        include/AVQt/encoder/Encoder.hpp
+        src/encoder/private/Encoder_p.hpp
+        src/encoder/Encoder.cpp
+
+        include/AVQt/encoder/IEncoderImpl.hpp
+        src/encoder/IEncoderImpl.cpp
+
+        include/AVQt/encoder/EncoderFactory.hpp
+        src/encoder/EncoderFactory.cpp
+
+        include/AVQt/communication/HwContextSync.hpp
+        src/communication/HWContextSync.cpp
+
+        include/AVQt/transcoder/ITranscoderImpl.hpp
+        include/AVQt/transcoder/TranscoderFactory.hpp
+        src/transcoder/TranscoderFactory.cpp
+
+        include/AVQt/transcoder/Transcoder.hpp
+        src/transcoder/private/Transcoder_p.hpp
+        src/transcoder/Transcoder.cpp
+
+        src/communication/FrameDestructor.hpp
+        src/communication/FrameDestructor.cpp
+
+        src/communication/PacketDestructor.hpp
+        src/communication/PacketDestructor.cpp
+
+        src/common/FBOPool.hpp
+        src/common/FBOPool.cpp
+
+        include/AVQt/capture/ICaptureImpl.hpp
+        )
+set(SOURCES_LINUX
         src/decoder/VAAPIDecoderImpl.hpp
-        src/decoder/VAAPIDecoderImpl.cpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
-        src/renderers/VAAPIOpenGLRenderMapper.cpp src/renderers/VAAPIOpenGLRenderMapper.hpp src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp src/filter/VaapiYuvToRgbMapper.cpp include/AVQt/filter/VaapiYuvToRgbMapper.hpp src/filter/private/VaapiYuvToRgbMapper_p.hpp src/encoder/VAAPIEncoderImpl.cpp src/encoder/VAAPIEncoderImpl.hpp src/encoder/private/VAAPIEncoderImpl_p.hpp src/transcoder/VaapiTranscoderImpl.cpp src/transcoder/VaapiTranscoderImpl.hpp src/transcoder/private/VaapiTranscoderImpl_p.hpp src/renderers/DRM_OpenGL_RenderMapper.cpp src/renderers/DRM_OpenGL_RenderMapper.hpp src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp)
+        src/decoder/VAAPIDecoderImpl.cpp
+
+        src/renderers/VAAPIOpenGLRenderMapper.hpp
+        src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp
+        src/renderers/VAAPIOpenGLRenderMapper.cpp
+
+        include/AVQt/filter/VaapiYuvToRgbMapper.hpp
+        src/filter/private/VaapiYuvToRgbMapper_p.hpp
+        src/filter/VaapiYuvToRgbMapper.cpp
+
+        src/encoder/VAAPIEncoderImpl.hpp
+        src/encoder/private/VAAPIEncoderImpl_p.hpp
+        src/encoder/VAAPIEncoderImpl.cpp
+
+        src/transcoder/VaapiTranscoderImpl.hpp
+        src/transcoder/private/VaapiTranscoderImpl_p.hpp
+        src/transcoder/VaapiTranscoderImpl.cpp
+
+        src/renderers/DRM_OpenGL_RenderMapper.hpp
+        src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
+        src/renderers/DRM_OpenGL_RenderMapper.cpp
+        )
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp

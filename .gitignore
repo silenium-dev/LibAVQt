@@ -3,5 +3,6 @@ build*
 /cmake-build-*/
 /.vs/
 /.idea_/
+/.idea/
 /out/
 /LibAVQt.code-workspace
