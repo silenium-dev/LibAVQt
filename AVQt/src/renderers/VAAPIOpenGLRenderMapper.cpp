@@ -74,7 +74,6 @@ namespace AVQt {
         Q_D(VAAPIOpenGLRenderMapper);
         bool shouldBe = false;
         if (d->running.compare_exchange_strong(shouldBe, true)) {
-            d->paused = false;
             if (d->context->thread() != this) {
                 d->context->moveToThread(this);
             }

@@ -314,9 +314,29 @@ namespace AVQt {
     }
 
     void DRM_OpenGL_RenderMapper::start() {
+        Q_D(DRM_OpenGL_RenderMapper);
+        bool shouldBe = false;
+        if (d->running.compare_exchange_strong(shouldBe, true)) {
+            if (d->context->thread() != this) {
+                d->context->moveToThread(this);
+            }
+            QThread::start();
+        }
     }
 
     void DRM_OpenGL_RenderMapper::stop() {
+        Q_D(DRM_OpenGL_RenderMapper);
+        bool shouldBe = true;
+        if (d->running.compare_exchange_strong(shouldBe, false)) {
+            d->afterStopThread = QThread::currentThread();
+            QThread::quit();
+            d->frameProcessed.wakeAll();
+            d->frameAvailable.wakeAll();
+            d->fboPool.reset();
+            QThread::wait();
+            QMutexLocker locker(&d->inputQueueMutex);
+            d->inputQueue.clear();
+        }
     }
 
     void DRM_OpenGL_RenderMapper::enqueueFrame(AVFrame *frame) {

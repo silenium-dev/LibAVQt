@@ -78,7 +78,7 @@ namespace AVQt {
         QMutex renderQueueMutex{};
         QQueue<QFuture<AVFrame *>> renderQueue{};
 
-        std::atomic_bool running{false}, paused{false}, firstFrame{true};
+        std::atomic_bool running{false}, firstFrame{true};
 
         VADisplay vaDisplay{};
         AVVAAPIDeviceContext *pVAContext{nullptr};
