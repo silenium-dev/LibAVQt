@@ -2,8 +2,6 @@ default:
   image:
     name: sdc0/manjaro-qt-ffmpeg:qt5
     entrypoint: ["/bin/sh", "-c"]
-  tags:
-    - arm64
 
 build:
   stage: build
