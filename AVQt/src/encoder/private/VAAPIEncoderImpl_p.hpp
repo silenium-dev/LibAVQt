@@ -24,8 +24,8 @@
 #ifndef LIBAVQT_VAAPIENCODERIMPL_P_HPP
 #define LIBAVQT_VAAPIENCODERIMPL_P_HPP
 
-#include "encoder/VAAPIEncoderImpl.hpp"
 #include "communication/PacketDestructor.hpp"
+#include "encoder/VAAPIEncoderImpl.hpp"
 
 #include <QtCore>
 #include <queue>
@@ -39,31 +39,37 @@ namespace AVQt {
 
     class VAAPIEncoderImplPrivate {
         Q_DECLARE_PUBLIC(VAAPIEncoderImpl)
+    public:
+        static void destroyAVBufferRef(AVBufferRef *buffer);
+
+        static void destroyAVCodecContext(AVCodecContext *codecContext);
+        static void destroyAVCodecParameters(AVCodecParameters *codecParameters);
+
+        static void destroyAVFrame(AVFrame *frame);
+
     private:
         explicit VAAPIEncoderImplPrivate(VAAPIEncoderImpl *q) : q_ptr(q) {}
         VAAPIEncoderImpl *q_ptr;
 
-        int mapFrameToHW(AVFrame **output, AVFrame *frame);
+        int mapFrameToHW(std::shared_ptr<AVFrame> &output, const std::shared_ptr<AVFrame> &frame);
 
-        int allocateHWFrame(AVFrame **output);
+        int allocateHWFrame(std::shared_ptr<AVFrame> &output);
 
         EncodeParameters encodeParameters{};
 
-        AVCodecParameters *codecParams{nullptr};
-        AVCodecContext *codecContext{nullptr};
+        std::shared_ptr<AVCodecParameters> codecParams{};
+        std::unique_ptr<AVCodecContext, decltype(&destroyAVCodecContext)> codecContext{nullptr, &destroyAVCodecContext};
         AVCodec *codec{nullptr};
 
-        AVBufferRef *hwDeviceContext{nullptr};
-        AVBufferRef *hwFramesContext{nullptr};
-        AVFrame *hwFrame{nullptr};
-        std::atomic_bool mappable{true}, derivedContext{false};
+        std::shared_ptr<AVBufferRef> hwDeviceContext{};
+        std::shared_ptr<AVBufferRef> hwFramesContext{};
+        std::shared_ptr<AVFrame> hwFrame{};
+        std::atomic_bool derivedContext{false};
 
-        internal::PacketFetcher *packetFetcher{nullptr};
-        std::shared_ptr<internal::PacketDestructor> packetDestructor{};
+        std::unique_ptr<internal::PacketFetcher> packetFetcher{};
 
         QMutex codecMutex;
         std::atomic_bool initialized{false}, firstFrame{true};
-        std::atomic_uint64_t frameCounter{0};
 
         const static QList<AVPixelFormat> supportedPixelFormats;
 
@@ -79,15 +85,8 @@ namespace AVQt {
 
             void stop();
 
-            AVPacket *nextPacket();
-
-            [[nodiscard]] bool isEmpty() const;
-
         private:
             VAAPIEncoderImplPrivate *p;
-            std::queue<AVPacket *> m_outputQueue;
-            QMutex m_outputQueueMutex;
-            //            QWaitCondition m_frameAvailable;
             bool m_stop{false};
         };
     }// namespace internal

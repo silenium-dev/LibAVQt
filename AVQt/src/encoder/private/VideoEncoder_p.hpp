@@ -17,65 +17,51 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-/*!
- * \private
- * \internal
- */
+//
+// Created by silas on 28.12.21.
+//
 
-#include "decoder/Decoder.hpp"
-#include "decoder/IDecoderImpl.hpp"
-#include "communication/VideoPadParams.hpp"
+#ifndef LIBAVQT_TRANSCODER_P_HPP
+#define LIBAVQT_TRANSCODER_P_HPP
+
+#include "communication/PacketPadParams.hpp"
+#include "encoder/IVideoEncoderImpl.hpp"
+#include <QtCore>
+
 
 extern "C" {
-#include <libavutil/frame.h>
-#include <libavutil/rational.h>
-}
-
-#include <pgraph_network/api/PadRegistry.hpp>
-
-
-#ifndef TRANSCODE_DECODERVAAPI_P_H
-#define TRANSCODE_DECODERVAAPI_P_H
+#include <libavcodec/avcodec.h>
+};
 
 namespace AVQt {
-    class Decoder;
-    /*!
-     * \private
-     */
-    class DecoderPrivate : public QObject {
+    class VideoEncoder;
+    class VideoEncoderPrivate : public QObject {
         Q_OBJECT
-
-        Q_DECLARE_PUBLIC(AVQt::Decoder)
-
-    public:
-        DecoderPrivate(const DecoderPrivate &) = delete;
-
-        void operator=(const DecoderPrivate &) = delete;
+        Q_DECLARE_PUBLIC(VideoEncoder)
 
     private:
-        explicit DecoderPrivate(Decoder *q) : q_ptr(q){};
+        explicit VideoEncoderPrivate(VideoEncoder *q) : QObject(), q_ptr(q){};
 
-        void enqueueData(AVPacket *&packet);
+        void enqueueData(const std::shared_ptr<AVFrame> &frame);
 
-        Decoder *q_ptr;
+        VideoEncoder *q_ptr;
 
         int64_t inputPadId{pgraph::api::INVALID_PAD_ID};
         int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
 
-        QMutex inputQueueMutex{};
-        QQueue<AVPacket *> inputQueue{};
+        EncodeParameters encodeParameters{};
+        std::shared_ptr<AVCodecParameters> codecParams{};
+        std::shared_ptr<api::IVideoEncoderImpl> impl{};
 
-        AVCodecParameters *pCodecParams{nullptr};
-        std::shared_ptr<api::IDecoderImpl> impl{nullptr};
+        communication::VideoPadParams inputParams{};
 
-        std::shared_ptr<VideoPadParams> outputPadParams{};
+        std::shared_ptr<communication::PacketPadParams> outputPadParams{};
+        std::shared_ptr<communication::PacketPadParams> inputPadParams{};
 
         // Threading stuff
         std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};
-
-        friend class Decoder;
     };
-
 }// namespace AVQt
 
-#endif//TRANSCODE_DECODERVAAPI_P_H
+
+#endif//LIBAVQT_TRANSCODER_P_HPP

@@ -23,8 +23,8 @@
 
 #include "transcoder/Transcoder.hpp"
 #include "communication/Message.hpp"
-#include "decoder/DecoderFactory.hpp"
-#include "encoder/EncoderFactory.hpp"
+#include "decoder/VideoDecoderFactory.hpp"
+#include "encoder/VideoEncoderFactory.hpp"
 #include "global.hpp"
 #include "private/Transcoder_p.hpp"
 #include <QtConcurrent>
@@ -101,7 +101,7 @@ namespace AVQt {
             d->packetOutputPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
 
             d->packetOutputPadParams->codecParams = d->encoderImpl->getCodecParameters();
-            d->videoOutputPadParams = std::make_shared<VideoPadParams>(d->decoderImpl->getVideoParams());
+            d->videoOutputPadParams = std::make_shared<communication::VideoPadParams>(d->decoderImpl->getVideoParams());
 
             produce(Message::builder()
                             .withAction(Message::Action::INIT)

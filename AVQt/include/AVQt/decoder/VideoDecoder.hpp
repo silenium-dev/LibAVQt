@@ -18,7 +18,7 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "communication/IComponent.hpp"
-#include "decoder/IDecoderImpl.hpp"
+#include "decoder/IVideoDecoderImpl.hpp"
 
 #include <QtCore>
 #include <QtGui>
@@ -42,74 +42,54 @@ extern "C" {
 #define TRANSCODE_DECODERVAAPI_H
 
 namespace AVQt {
-    class DecoderPrivate;
+    class VideoDecoderPrivate;
 
-    class Decoder : public QThread, public api::IComponent, public pgraph::impl::SimpleProcessor {
+    class VideoDecoder : public QThread, public api::IComponent, public pgraph::impl::SimpleProcessor {
         Q_OBJECT
-        Q_DECLARE_PRIVATE(AVQt::Decoder)
+        Q_DECLARE_PRIVATE(AVQt::VideoDecoder)
         Q_INTERFACES(AVQt::api::IComponent)
 
     public:
-        explicit Decoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        explicit VideoDecoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr) Q_DECL_UNUSED;
 
         /*!
          * \private
          */
-        Decoder(const Decoder &) = delete;
+        VideoDecoder(const VideoDecoder &) = delete;
 
         /*!
          * \private
          */
-        void operator=(const Decoder &) = delete;
-        bool isOpen() const override;
-        bool isRunning() const override;
+        void operator=(const VideoDecoder &) = delete;
+        bool isOpen() const override Q_DECL_UNUSED;
+        bool isRunning() const override Q_DECL_UNUSED;
         /*!
          * \private
          */
-        ~Decoder() Q_DECL_OVERRIDE;
+        ~VideoDecoder() Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
         /*!
          * \brief Returns paused state of decoder
          * @return Paused state
          */
-        bool isPaused() const Q_DECL_OVERRIDE;
+        bool isPaused() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        [[nodiscard]] int64_t getInputPadId() const;
+        [[nodiscard]] int64_t getInputPadId() const Q_DECL_UNUSED;
 
-        [[nodiscard]] int64_t getOutputPadId() const;
+        [[nodiscard]] int64_t getOutputPadId() const Q_DECL_UNUSED;
 
-    public slots:
-        /*!
-         * \brief Initialize decoder. Creates input context, output pad.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
-         */
-        Q_INVOKABLE bool open() Q_DECL_OVERRIDE;
+        bool init() Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        Q_INVOKABLE bool init() Q_DECL_OVERRIDE;
+    protected slots:
+        bool open() Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        /*!
-         * \brief Clean up decoder. Closes input device, destroys input contexts.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
-         */
-        Q_INVOKABLE void close() Q_DECL_OVERRIDE;
+        void close() Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        /*!
-         * \brief Starts decoder. Sets running flag and starts decoding thread.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
-         */
-        Q_INVOKABLE bool start() Q_DECL_OVERRIDE;
+        bool start() Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        /*!
-         * \brief Stops decoder. Resets running flag and interrupts decoding thread.
-         * @return Status code (0 = Success, LibAV error codes, use av_make_error_string() to getFBO an error message)
-         */
-        Q_INVOKABLE void stop() Q_DECL_OVERRIDE;
+        void stop() Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        /*!
-         * \brief Sets paused flag. When set to true, decoder thread will suspend after processing current frame
-         * @param pause New paused flag state
-         */
-        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
+        void pause(bool pause) Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
         void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
 
@@ -132,7 +112,7 @@ namespace AVQt {
         void paused(bool pause) Q_DECL_OVERRIDE;
 
     protected slots:
-        void onFrameReady(std::shared_ptr<AVFrame> frame);
+        void onFrameReady(const std::shared_ptr<AVFrame> &frame);
 
     protected:
         /*!
@@ -143,7 +123,7 @@ namespace AVQt {
         /*!
          * \private
          */
-        DecoderPrivate *d_ptr;
+        VideoDecoderPrivate *d_ptr;
     };
 
 }// namespace AVQt

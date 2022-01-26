@@ -54,7 +54,7 @@ namespace AVQt::api {
         }
 
         [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
+        [[nodiscard]] virtual communication::VideoPadParams getVideoParams() const = 0;
     };
 }// namespace AVQt::api
 

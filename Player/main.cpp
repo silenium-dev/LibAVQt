@@ -17,14 +17,12 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "AVQt"
 #include "FrameSaverAccelerated.hpp"
 #include "OpenGlWidgetRenderer.hpp"
-#include "include/AVQt/communication/Message.hpp"
-#include "include/AVQt/communication/PacketPadParams.hpp"
-#include "input/CommandConsumer.hpp"
 
+#include <AVQt>
 #include <pgraph/api/Link.hpp>
+#include <pgraph/api/Pad.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
 #include <pgraph_network/impl/SimplePadRegistry.hpp>
 
@@ -55,9 +53,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-    //#ifndef QT_DEBUG
+#ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
-    //#endif
+#endif
     {
         QString output;
         QTextStream os(&output);
@@ -111,14 +109,9 @@ int main(int argc, char *argv[]) {
         filepath = argv[1];
     }
 
-    auto inputFile = new QFile(filepath);
-
     //    if (inputFile->fileName().isEmpty()) {
     //        return 0;
     //    }
-
-    inputFile->open(QIODevice::ReadWrite);
-
     auto registry = std::make_shared<pgraph::network::impl::SimplePadRegistry>();
 
     AVQt::EncodeParameters encodeParams{};
@@ -128,14 +121,15 @@ int main(int argc, char *argv[]) {
     encodeParams.codec = AVQt::Codec::H264;
 
     AVQt::Demuxer::Config demuxerConfig{};
-    demuxerConfig.inputDevice = inputFile;
+    demuxerConfig.inputDevice = std::make_unique<QFile>(filepath);
+    demuxerConfig.inputDevice->open(QIODevice::ReadWrite);
     demuxerConfig.loop = true;
 
-    auto demuxer = std::make_shared<AVQt::Demuxer>(demuxerConfig, registry);
-    auto decoder1 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
-    auto decoder2 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
-    //    auto decoder3 = std::make_shared<AVQt::Decoder>("VAAPI", registry);
-    auto encoder = std::make_shared<AVQt::Encoder>("VAAPI", encodeParams, registry);
+    auto demuxer = std::make_shared<AVQt::Demuxer>(std::move(demuxerConfig), registry);
+    auto decoder1 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
+    auto decoder2 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
+    //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
+    auto encoder = std::make_shared<AVQt::VideoEncoder>("VAAPI", encodeParams, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
@@ -160,7 +154,18 @@ int main(int argc, char *argv[]) {
 
     //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
-    auto demuxerOutPad = demuxer->getOutputPads().begin()->second;
+    std::shared_ptr<pgraph::api::Pad> demuxerOutPad{};
+    auto demuxerPads = demuxer->getOutputPads();
+    for (const auto &pad : demuxerPads) {
+        if (pad.second->getUserData()->getType() == AVQt::communication::PacketPadParams::Type) {
+            const auto padParams = std::dynamic_pointer_cast<const AVQt::communication::PacketPadParams>(pad.second->getUserData());
+            if (padParams->mediaType == AVMEDIA_TYPE_VIDEO) {
+                demuxerOutPad = pad.second;
+                break;
+            }
+        }
+    }
+
     auto decoder1InPad = decoder1->getInputPads().begin()->second;
     auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
     auto decoder2InPad = decoder2->getInputPads().begin()->second;
@@ -203,10 +208,10 @@ int main(int argc, char *argv[]) {
     //        demuxer->pause(true);
     //        QTimer::singleShot(4000, [demuxer]{
     //            demuxer->pause(false);
-    //    QTimer::singleShot(30000, [renderer1, renderer2] {
-    //        renderer1->close();
-    //        renderer2->close();
-    //    });
+    QTimer::singleShot(15000, [renderer1, renderer2] {
+        renderer1->close();
+        renderer2->close();
+    });
     //        });
     //    });
 
@@ -226,7 +231,7 @@ int main(int argc, char *argv[]) {
     //    AVQt::IDecoderOld *videoDecoder = nullptr;
     //    AVQt::IEncoder *videoEncoder = nullptr;
     //#ifdef Q_OS_LINUX
-    //    videoDecoder = new AVQt::Decoder;
+    //    videoDecoder = new AVQt::VideoDecoder;
     //#elif defined(Q_OS_WINDOWS)
     //    videoDecoder = new AVQt::DecoderD3D11VA();
     ////    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);

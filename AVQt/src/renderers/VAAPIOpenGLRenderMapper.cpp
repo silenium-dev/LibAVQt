@@ -469,6 +469,7 @@ namespace AVQt {
                             d->pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
                             d->vaDisplay = d->pVAContext->display;
                         }
+                        av_buffer_unref(&pDeviceCtx);
                         return input;
                     },
                     av_frame_clone(frame),

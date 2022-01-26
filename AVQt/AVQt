@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022.
+// Copyright (c) 2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,39 +17,4 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include <qglobal.h>
-
-#include "include/AVQt/decoder/Decoder.hpp"
-#include "include/AVQt/decoder/DecoderFactory.hpp"
-#include "include/AVQt/encoder/IEncoder.hpp"
-#include "include/AVQt/encoder/EncoderFactory.hpp"
-#include "include/AVQt/encoder/Encoder.hpp"
-#include "include/AVQt/transcoder/Transcoder.hpp"
-#include "include/AVQt/input/Demuxer.hpp"
-#include "include/AVQt/input/IAudioSource.hpp"
-#include "include/AVQt/input/IFrameSource.hpp"
-#include "include/AVQt/input/IPacketSource.hpp"
-#include "include/AVQt/output/IAudioSink.hpp"
-#include "include/AVQt/output/IFrameSink.hpp"
-#include "include/AVQt/output/IPacketSink.hpp"
-#include "include/AVQt/output/Muxer.hpp"
-#include "include/AVQt/renderers/OpenALAudioOutput.hpp"
-#include "include/AVQt/renderers/OpenGLRendererOld.hpp"
-#include "include/AVQt/widgets/OpenGLWidgetRenderer.hpp"
-
-
-#ifdef Q_OS_LINUX
-
-#include "include/AVQt/decoder/Decoder.hpp"
-#include "include/AVQt/encoder/EncoderVAAPI.hpp"
-#include "include/AVQt/filter/VaapiYuvToRgbMapper.hpp"
-
-#elif defined(Q_OS_WIN)
-
-#include "include/AVQt/decoder/DecoderD3D11VA.hpp"
-#include "include/AVQt/decoder/DecoderDXVA2.hpp"
-
-#endif
-
-#include "include/AVQt/encoder/EncoderQSV.hpp"
-//#include "output/FrameFileSaver.hpp"
+#include <AVQt.h>

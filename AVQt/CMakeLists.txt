@@ -40,14 +40,10 @@ list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::"
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
-include_directories("include")
-include_directories(src)
-include_directories(include/AVQt)
-
 set(SOURCES
         AVQtShader.qrc
 
-        AVQt
+        AVQt.h
         global.hpp
         global.cpp
 
@@ -55,11 +51,11 @@ set(SOURCES
         src/input/private/Demuxer_p.hpp
         src/input/Demuxer.cpp
 
-        src/communication/Message.cpp
         include/AVQt/communication/Message.hpp
+        src/communication/Message.cpp
 
-        src/input/CommandConsumer.cpp
-        include/AVQt/input/CommandConsumer.hpp
+        include/AVQt/debug/CommandConsumer.hpp
+        src/debug/CommandConsumer.cpp
 
         include/AVQt/communication/IComponent.hpp
         include/AVQt/communication/IOutput.hpp
@@ -73,14 +69,14 @@ set(SOURCES
         include/AVQt/communication/VideoPadParams.hpp
         src/communication/VideoPadParams.cpp
 
-        include/AVQt/decoder/Decoder.hpp
-        src/decoder/private/Decoder_p.hpp
-        src/decoder/Decoder.cpp
+        include/AVQt/decoder/VideoDecoder.hpp
+        src/decoder/private/VideoDecoder_p.hpp
+        src/decoder/VideoDecoder.cpp
 
-        include/AVQt/decoder/IDecoderImpl.hpp
+        include/AVQt/decoder/IVideoDecoderImpl.hpp
 
-        include/AVQt/decoder/DecoderFactory.hpp
-        src/decoder/DecoderFactory.cpp
+        include/AVQt/decoder/VideoDecoderFactory.hpp
+        src/decoder/VideoDecoderFactory.cpp
 
         include/AVQt/renderers/IOpenGLFrameMapper.hpp
 
@@ -91,26 +87,18 @@ set(SOURCES
         src/renderers/private/FallbackFrameMapper_p.hpp
         src/renderers/FallbackFrameMapper.cpp
 
-        include/AVQt/encoder/Encoder.hpp
-        src/encoder/private/Encoder_p.hpp
-        src/encoder/Encoder.cpp
+        include/AVQt/encoder/VideoEncoder.hpp
+        src/encoder/private/VideoEncoder_p.hpp
+        src/encoder/VideoEncoder.cpp
 
-        include/AVQt/encoder/IEncoderImpl.hpp
-        src/encoder/IEncoderImpl.cpp
+        include/AVQt/encoder/IVideoEncoderImpl.hpp
+        src/encoder/IVideoEncoderImpl.cpp
 
-        include/AVQt/encoder/EncoderFactory.hpp
-        src/encoder/EncoderFactory.cpp
+        include/AVQt/encoder/VideoEncoderFactory.hpp
+        src/encoder/VideoEncoderFactory.cpp
 
         include/AVQt/communication/HwContextSync.hpp
         src/communication/HWContextSync.cpp
-
-        #        include/AVQt/transcoder/ITranscoderImpl.hpp
-        #        include/AVQt/transcoder/TranscoderFactory.hpp
-        #        src/transcoder/TranscoderFactory.cpp
-        #
-        #        include/AVQt/transcoder/Transcoder.hpp
-        #        src/transcoder/private/Transcoder_p.hpp
-        #        src/transcoder/Transcoder.cpp
 
         src/communication/FrameDestructor.hpp
         src/communication/FrameDestructor.cpp
@@ -170,6 +158,9 @@ else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
 
+target_include_directories(AVQtObject PRIVATE include/AVQt src)
+target_include_directories(AVQtObject PUBLIC include)
+
 target_compile_definitions(AVQtObject PRIVATE AVQT_LIBRARY_BUILD)
 
 if (!WIN32)
@@ -223,6 +214,9 @@ endif ()
 add_library(AVQtStatic STATIC $<TARGET_OBJECTS:AVQtObject>)
 add_library(AVQt SHARED $<TARGET_OBJECTS:AVQtObject>)
 set_target_properties(AVQtStatic PROPERTIES OUTPUT_NAME AVQt_static)
+
+target_compile_definitions(AVQtStatic PRIVATE AVQT_LIBRARY_BUILD)
+target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
 
 set(LINK_LIBRARIES
         ${REQUIRED_LIBS_QUALIFIED}

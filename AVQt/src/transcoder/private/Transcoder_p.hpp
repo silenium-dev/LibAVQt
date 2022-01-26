@@ -26,8 +26,8 @@
 
 #include "communication/PacketPadParams.hpp"
 #include "communication/VideoPadParams.hpp"
-#include "decoder/IDecoderImpl.hpp"
-#include "encoder/IEncoderImpl.hpp"
+#include "decoder/IVideoDecoderImpl.hpp"
+#include "encoder/IVideoEncoderImpl.hpp"
 #include "global.hpp"
 #include "transcoder/ITranscoderImpl.hpp"
 
@@ -53,7 +53,7 @@ namespace AVQt {
         std::atomic_bool running{false}, paused{false}, opened{false}, initialized{false};
 
         int64_t inputPadId{}, frameOutputPadId{}, packetOutputPadId{};
-        std::shared_ptr<VideoPadParams> videoOutputPadParams{};
+        std::shared_ptr<communication::VideoPadParams> videoOutputPadParams{};
         std::shared_ptr<PacketPadParams> packetOutputPadParams{};
         std::shared_ptr<PacketPadParams> inputParams{};
     };

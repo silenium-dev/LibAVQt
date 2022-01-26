@@ -53,8 +53,7 @@ namespace AVQt::common {
     }
 
     FBOPool::~FBOPool() {
-        m_instances->operator--();
-        if (m_instances->load() == 0) {
+        if (m_instances->load() == 1) {
             bool shouldBe = false;
             if (m_destroyed->compare_exchange_strong(shouldBe, true)) {
                 destroy(this);
@@ -85,7 +84,7 @@ namespace AVQt::common {
 
     std::shared_ptr<QOpenGLFramebufferObject> FBOPool::getFBO() {
         std::shared_ptr<QOpenGLFramebufferObject> fbo{};
-        std::unique_lock<std::mutex> queueLock(*m_queueMutex);
+        std::unique_lock<std::mutex> queueLock(*m_queueMutex);// TODO: Fix SEGFAULT on destruction
 
         if (m_queue->empty() && m_dynamic) {
             allocateNewFBOs(2);

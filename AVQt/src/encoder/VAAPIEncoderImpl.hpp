@@ -25,33 +25,35 @@
 #define LIBAVQT_VAAPIENCODERIMPL_HPP
 
 #include "communication/VideoPadParams.hpp"
-#include "encoder/IEncoderImpl.hpp"
+#include "encoder/IVideoEncoderImpl.hpp"
 #include <QObject>
 
 
 namespace AVQt {
     class VAAPIEncoderImplPrivate;
-    class VAAPIEncoderImpl : public QObject, public api::IEncoderImpl {
+    class VAAPIEncoderImpl : public QObject, public api::IVideoEncoderImpl {
         Q_OBJECT
         Q_DECLARE_PRIVATE(VAAPIEncoderImpl)
-        Q_INTERFACES(AVQt::api::IEncoderImpl)
+        Q_INTERFACES(AVQt::api::IVideoEncoderImpl)
     public:
         Q_INVOKABLE explicit VAAPIEncoderImpl(const AVQt::EncodeParameters &parameters);
         ~VAAPIEncoderImpl() override;
 
-        bool open(const VideoPadParams &params) override;
+        bool open(const communication::VideoPadParams &params) override;
         void close() override;
-        [[nodiscard]] AVFrame *prepareFrame(AVFrame *frame) override;
-        int encode(AVFrame *frame) override;
-        AVPacket *nextPacket() override;
-        [[nodiscard]] QVector<AVPixelFormat> getInputFormats() const override;
+
+        [[nodiscard]] std::shared_ptr<AVFrame> prepareFrame(std::shared_ptr<AVFrame> frame) override;
+        int encode(std::shared_ptr<AVFrame> frame) override;
+
         [[nodiscard]] bool isHWAccel() const override;
-        [[nodiscard]] AVCodecParameters *getCodecParameters() const override;
+
+        [[nodiscard]] QVector<AVPixelFormat> getInputFormats() const override;
+        [[nodiscard]] std::shared_ptr<AVCodecParameters> getCodecParameters() const override;
     signals:
         void packetReady(std::shared_ptr<AVPacket> packet) override;
 
     private:
-        VAAPIEncoderImplPrivate *d_ptr;
+        std::unique_ptr<VAAPIEncoderImplPrivate> d_ptr;
     };
 }// namespace AVQt
 

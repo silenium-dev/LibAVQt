@@ -26,10 +26,10 @@
 
 #include "communication/FrameDestructor.hpp"
 
-#include <QtGlobal>
+#include <QMutex>
 #include <QQueue>
 #include <QThread>
-#include <QMutex>
+#include <QtGlobal>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -39,6 +39,11 @@ namespace AVQt {
     class VAAPIDecoderImpl;
     class VAAPIDecoderImplPrivate {
         Q_DECLARE_PUBLIC(VAAPIDecoderImpl)
+    public:
+        static void destroyAVBufferRef(AVBufferRef *buffer);
+
+        static void destroyAVCodecContext(AVCodecContext *codecContext);
+
     private:
         explicit VAAPIDecoderImplPrivate(VAAPIDecoderImpl *q) : q_ptr(q) {}
 
@@ -52,38 +57,29 @@ namespace AVQt {
 
             void stop();
 
-            AVFrame *nextFrame();
-
-            [[nodiscard]] bool isEmpty() const;
-
         private:
             VAAPIDecoderImplPrivate *p;
-            QQueue<AVFrame *> m_outputQueue;
-            QMutex m_mutex;
-//            QWaitCondition m_frameAvailable;
             std::atomic_bool m_stop{false};
         };
 
         VAAPIDecoderImpl *q_ptr;
 
-        AVCodecParameters *codecParams{nullptr};
-        AVCodecContext *codecContext{nullptr};
+        std::shared_ptr<AVCodecParameters> codecParams{nullptr};
+        std::unique_ptr<AVCodecContext, decltype(&destroyAVCodecContext)> codecContext{nullptr, &destroyAVCodecContext};
         AVCodec *codec{nullptr};
 
-        AVBufferRef *hwDeviceContext{nullptr};
-        AVBufferRef *hwFramesContext{nullptr};
+        std::shared_ptr<AVBufferRef> hwDeviceContext{};
+        std::shared_ptr<AVBufferRef> hwFramesContext{};
 
-        FrameFetcher *frameFetcher{nullptr};
+        std::unique_ptr<FrameFetcher> frameFetcher{nullptr};
         std::shared_ptr<internal::FrameDestructor> frameDestructor{};
 
-        //        QWaitCondition frameAvailable;
-        QMutex *hwFrameMutex{nullptr};
         QMutex codecMutex;
         std::atomic_bool initialized{false}, firstFrame{true};
 
         friend class VAAPIDecoderImpl;
     };
-}
+}// namespace AVQt
 
 
 #endif//LIBAVQT_VAAPIDECODERIMPL_P_HPP

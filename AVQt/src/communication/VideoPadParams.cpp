@@ -22,24 +22,19 @@
 //
 
 #include "communication/VideoPadParams.hpp"
-#include "AVQt"
 #include <QtDebug>
 #include <boost/uuid/uuid_generators.hpp>
 
 extern "C" {
+#include <libavutil/hwcontext.h>
 #include <libavutil/pixdesc.h>
 }
 
-namespace AVQt {
+namespace AVQt::communication {
     const boost::uuids::uuid VideoPadParams::Type = boost::uuids::string_generator()("{1e8b93086ba59290a4ce4fec5b85bd80}");
 
     VideoPadParams::VideoPadParams(const VideoPadParams &other) : PadUserData(other) {
-        frameSize = other.frameSize;
-        pixelFormat = other.pixelFormat;
-        swPixelFormat = other.swPixelFormat;
-        isHWAccel = other.isHWAccel;
-        hwFramesContext = av_buffer_ref(other.hwFramesContext);
-        hwDeviceContext = av_buffer_ref(other.hwDeviceContext);
+        *this = other;
     }
 
     boost::uuids::uuid VideoPadParams::getType() const {
@@ -62,17 +57,8 @@ namespace AVQt {
         pixelFormat = other.pixelFormat;
         swPixelFormat = other.swPixelFormat;
         isHWAccel = other.isHWAccel;
-        hwFramesContext = av_buffer_ref(other.hwFramesContext);
-        hwDeviceContext = av_buffer_ref(other.hwDeviceContext);
+        hwFramesContext = other.hwFramesContext;
+        hwDeviceContext = other.hwDeviceContext;
         return *this;
     }
-
-    VideoPadParams::~VideoPadParams() {
-        if (hwDeviceContext) {
-            av_buffer_unref(&hwDeviceContext);
-        }
-        if (hwFramesContext) {
-            av_buffer_unref(&hwFramesContext);
-        }
-    }
-}// namespace AVQt
+}// namespace AVQt::communication

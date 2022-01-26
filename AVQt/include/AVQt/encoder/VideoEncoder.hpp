@@ -21,10 +21,10 @@
 // Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_ENCODER_HPP
-#define LIBAVQT_ENCODER_HPP
+#ifndef LIBAVQT_VIDEOENCODER_HPP
+#define LIBAVQT_VIDEOENCODER_HPP
 
-#include "IEncoderImpl.hpp"
+#include "IVideoEncoderImpl.hpp"
 #include "communication/IComponent.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"
 
@@ -36,55 +36,42 @@ extern "C" {
 };
 
 namespace AVQt {
-    class EncoderPrivate;
-    class Encoder : public QThread, public api::IComponent, public pgraph::impl::SimpleProcessor {
+    class VideoEncoderPrivate;
+    class VideoEncoder : public QThread, public api::IComponent, public pgraph::impl::SimpleProcessor {
         Q_OBJECT
         Q_INTERFACES(AVQt::api::IComponent)
-        Q_DECLARE_PRIVATE(AVQt::Encoder)
+        Q_DECLARE_PRIVATE(AVQt::VideoEncoder)
     public:
         static AVCodecID codecId(Codec codec);
 
-        Encoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        VideoEncoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr) Q_DECL_UNUSED;
         /*!
          * \private
          */
-        ~Encoder() Q_DECL_OVERRIDE;
+        ~VideoEncoder() Q_DECL_OVERRIDE;
         /*!
          * \private
          */
-        Encoder(const Encoder &) = delete;
+        VideoEncoder(const VideoEncoder &) = delete;
         /*!
          * \private
          */
-        void operator=(const Encoder &) = delete;
-
-        bool isOpen() const override;
-        bool isRunning() const override;
+        void operator=(const VideoEncoder &) = delete;
 
         /*!
          * \brief Returns paused state of decoder
          * @return Paused state
          */
-        bool isPaused() const Q_DECL_OVERRIDE;
+        bool isPaused() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isOpen() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isRunning() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        [[nodiscard]] int64_t getInputPadId() const;
-        [[nodiscard]] int64_t getOutputPadId() const;
+        [[nodiscard]] int64_t getInputPadId() const Q_DECL_UNUSED;
+        [[nodiscard]] int64_t getOutputPadId() const Q_DECL_UNUSED;
 
-    public slots:
-        Q_INVOKABLE bool init() Q_DECL_OVERRIDE;
-
-        Q_INVOKABLE bool open() Q_DECL_OVERRIDE;
-        Q_INVOKABLE void close() Q_DECL_OVERRIDE;
-
-        Q_INVOKABLE bool start() Q_DECL_OVERRIDE;
-        Q_INVOKABLE void stop() Q_DECL_OVERRIDE;
-
-        Q_INVOKABLE void pause(bool pause) Q_DECL_OVERRIDE;
-
-        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
+        bool init() Q_DECL_OVERRIDE;
 
     signals:
-
         /*!
          * \brief Emitted after start() finished
          */
@@ -101,16 +88,27 @@ namespace AVQt {
          */
         void paused(bool pause) Q_DECL_OVERRIDE;
 
+    protected slots:
+        bool open() Q_DECL_OVERRIDE;
+        void close() Q_DECL_OVERRIDE;
+
+        bool start() Q_DECL_OVERRIDE;
+        void stop() Q_DECL_OVERRIDE;
+
+        void pause(bool pause) Q_DECL_OVERRIDE;
+
+        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
+
     protected:
         void run() Q_DECL_OVERRIDE;
 
     private slots:
-        void onPacketReady(std::shared_ptr<AVPacket> packet);
+        void onPacketReady(const std::shared_ptr<AVPacket> &packet);
 
     private:
-        QScopedPointer<EncoderPrivate> d_ptr;
+        std::unique_ptr<VideoEncoderPrivate> d_ptr;
     };
 }// namespace AVQt
 
 
-#endif//LIBAVQT_ENCODER_HPP
+#endif//LIBAVQT_VIDEOENCODER_HPP

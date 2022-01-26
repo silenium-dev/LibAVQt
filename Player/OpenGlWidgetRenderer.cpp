@@ -68,33 +68,33 @@ bool OpenGLWidgetRenderer::init() {
 
 void OpenGLWidgetRenderer::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
     Q_D(OpenGLWidgetRenderer);
-    if (data->getType() == AVQt::Message::Type) {
-        auto message = std::static_pointer_cast<AVQt::Message>(data);
-        switch (static_cast<AVQt::Message::Action::Enum>(message->getAction())) {
-            case AVQt::Message::Action::START:
+    if (data->getType() == AVQt::communication::Message::Type) {
+        auto message = std::static_pointer_cast<AVQt::communication::Message>(data);
+        switch (static_cast<AVQt::communication::Message::Action::Enum>(message->getAction())) {
+            case AVQt::communication::Message::Action::START:
                 if (!start()) {
                     qWarning() << "Failed to start renderer";
                     break;
                 }
                 d->mapper->start();
                 break;
-            case AVQt::Message::Action::STOP:
+            case AVQt::communication::Message::Action::STOP:
                 stop();
                 break;
-            case AVQt::Message::Action::PAUSE:
+            case AVQt::communication::Message::Action::PAUSE:
                 pause(message->getPayloads().value("state").toBool());
                 break;
-            case AVQt::Message::Action::DATA: {
+            case AVQt::communication::Message::Action::DATA: {
                 if (d->mapper) {
-                    auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
-                    d->mapper->enqueueFrame(av_frame_clone(frame));
+                    auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
+                    d->mapper->enqueueFrame(av_frame_clone(frame.get()));
                 }
                 break;
             }
-            case AVQt::Message::Action::INIT:
+            case AVQt::communication::Message::Action::INIT:
                 open();
                 break;
-            case AVQt::Message::Action::CLEANUP:
+            case AVQt::communication::Message::Action::CLEANUP:
                 close();
                 break;
             default:

@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,44 +17,43 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "encoder/EncoderVAAPI.hpp"
+//
+// Created by silas on 28.12.21.
+//
 
-#include <QtCore>
+#ifndef LIBAVQT_VIDEOENCODERFACTORY_HPP
+#define LIBAVQT_VIDEOENCODERFACTORY_HPP
 
-#ifndef LIBAVQT_ENCODERVAAPI_P_H
-#define LIBAVQT_ENCODERVAAPI_P_H
+#include "IVideoEncoderImpl.hpp"
+#include "encoder/VideoEncoder.hpp"
+
+#include <static_block.hpp>
+
+#include <QMap>
+#include <QString>
+
 
 namespace AVQt {
-    class EncoderVAAPIPrivate {
+    class VideoEncoderFactory {
     public:
-        EncoderVAAPIPrivate(const EncoderVAAPIPrivate &) = delete;
+        static VideoEncoderFactory &getInstance();
 
-        void operator=(const EncoderVAAPIPrivate &) = delete;
+        void registerEncoder(const QString &name, const QMetaObject &metaObject);
+
+        void unregisterEncoder(const QString &name);
+
+        [[nodiscard]] std::shared_ptr<api::IVideoEncoderImpl> create(const QString &name, const EncodeParameters &params);
+
+        static void registerEncoders();
 
     private:
-        explicit EncoderVAAPIPrivate(EncoderVAAPI *q) : q_ptr(q) {};
-
-        EncoderVAAPI *q_ptr;
-
-        IEncoder::CODEC m_codec{IEncoder::CODEC::H264};
-        int m_bitrate{5 * 1024 * 1024};
-        qint64 m_duration{};
-
-        AVCodec *m_pCodec{nullptr};
-        AVCodecContext *m_pCodecCtx{nullptr};
-        AVBufferRef *m_pDeviceCtx{nullptr}, *m_pFramesCtx{nullptr};
-        AVFrame *m_pHWFrame{nullptr};
-
-        QMutex m_inputQueueMutex{};
-        QQueue<QPair<AVFrame *, int64_t>> m_inputQueue{};
-
-        QMutex m_cbListMutex{};
-        QList<IPacketSink *> m_cbList{};
-
-        std::atomic_bool m_running{false}, m_paused{false}, m_firstFrame{true};
-
-        friend class EncoderVAAPI;
+        VideoEncoderFactory() = default;
+        QMap<QString, QMetaObject> m_encoders;
     };
-}
+}// namespace AVQt
 
-#endif //LIBAVQT_ENCODERVAAPI_P_H
+static_block {
+    AVQt::VideoEncoderFactory::registerEncoders();
+};
+
+#endif//LIBAVQT_VIDEOENCODERFACTORY_HPP

@@ -21,8 +21,8 @@
 // Created by silas on 12.12.21.
 //
 
-#ifndef LIBAVQT_IDECODERIMPL_HPP
-#define LIBAVQT_IDECODERIMPL_HPP
+#ifndef LIBAVQT_IVIDEODECODERIMPL_HPP
+#define LIBAVQT_IVIDEODECODERIMPL_HPP
 
 #include "communication/VideoPadParams.hpp"
 #include <QObject>
@@ -32,28 +32,27 @@ extern "C" {
 }
 
 namespace AVQt::api {
-    class IDecoderImpl {
+    class IVideoDecoderImpl {
     public:
-        virtual ~IDecoderImpl() = default;
+        virtual ~IVideoDecoderImpl() = default;
 
-        virtual bool open(AVCodecParameters *codecParams) = 0;
+        virtual bool open(std::shared_ptr<AVCodecParameters> codecParams) = 0;
         virtual void close() = 0;
 
-        virtual int decode(AVPacket *packet) = 0;
-        [[nodiscard]] virtual AVFrame *nextFrame() = 0;
+        virtual int decode(std::shared_ptr<AVPacket> packet) = 0;
 
         [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
         [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), but can be overridden for HW decoding
             return getOutputFormat();
         };
         [[nodiscard]] virtual bool isHWAccel() const = 0;
-        [[nodiscard]] virtual VideoPadParams getVideoParams() const = 0;
+        [[nodiscard]] virtual communication::VideoPadParams getVideoParams() const = 0;
     signals:
         virtual void frameReady(std::shared_ptr<AVFrame> frame) = 0;
     };
 }// namespace AVQt::api
 
-Q_DECLARE_INTERFACE(AVQt::api::IDecoderImpl, "AVQt.api.IDecoderImpl")
+Q_DECLARE_INTERFACE(AVQt::api::IVideoDecoderImpl, "AVQt.api.IVideoDecoderImpl")
 
 
-#endif//LIBAVQT_IDECODERIMPL_HPP
+#endif//LIBAVQT_IVIDEODECODERIMPL_HPP

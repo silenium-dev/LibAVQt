@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -25,10 +25,10 @@
 #define LIBAVQT_VAAPIYUVTORGBMAPPER_HPP
 
 #include "communication/IComponent.hpp"
-#include <QtCore>
 #include "pgraph/api/Data.hpp"
 #include "pgraph/impl/SimpleProcessor.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"
+#include <QtCore>
 
 namespace AVQt {
     class VaapiYuvToRgbMapperPrivate;
@@ -36,32 +36,33 @@ namespace AVQt {
         Q_OBJECT
         Q_DECLARE_PRIVATE(VaapiYuvToRgbMapper)
     public:
-        Q_INVOKABLE VaapiYuvToRgbMapper(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
-        ~VaapiYuvToRgbMapper() override;
+        Q_INVOKABLE explicit VaapiYuvToRgbMapper(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr) Q_DECL_UNUSED;
+        ~VaapiYuvToRgbMapper() Q_DECL_OVERRIDE;
 
-        bool isOpen() const override;
-        bool isRunning() const override;
-        bool isPaused() const override;
+        bool isOpen() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isRunning() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isPaused() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        bool open() override;
-        void close() override;
-        bool init() override;
-        bool start() override;
-        void stop() override;
-        void pause(bool state) override;
+        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
 
-        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+        bool init() Q_DECL_OVERRIDE;
 
     signals:
-        void started() override;
-        void stopped() override;
-        void paused(bool state) override;
+        void started() Q_DECL_OVERRIDE;
+        void stopped() Q_DECL_OVERRIDE;
+        void paused(bool state) Q_DECL_OVERRIDE;
 
     protected:
-        void run() override;
+        bool open() Q_DECL_OVERRIDE;
+        void close() Q_DECL_OVERRIDE;
+        bool start() Q_DECL_OVERRIDE;
+        void stop() Q_DECL_OVERRIDE;
+        void pause(bool state) Q_DECL_OVERRIDE;
+
+        void run() Q_DECL_OVERRIDE;
 
     private:
-        VaapiYuvToRgbMapperPrivate *d_ptr;
+        std::unique_ptr<VaapiYuvToRgbMapperPrivate> d_ptr;
     };
 }// namespace AVQt
 

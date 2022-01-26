@@ -34,14 +34,14 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
-namespace AVQt {
+namespace AVQt::communication {
     class VideoPadParams : public pgraph::api::PadUserData {
     public:
         explicit VideoPadParams() = default;
         VideoPadParams(const VideoPadParams &other);
         VideoPadParams &operator=(const VideoPadParams &other);
 
-        ~VideoPadParams() override;
+        ~VideoPadParams() override = default;
         boost::uuids::uuid getType() const override;
         boost::json::object toJSON() const override;
 
@@ -54,9 +54,13 @@ namespace AVQt {
         QSize frameSize{};
         AVPixelFormat pixelFormat{}, swPixelFormat{};
         bool isHWAccel{false};
-        AVBufferRef *hwDeviceContext{nullptr};
-        AVBufferRef *hwFramesContext{nullptr};
+        std::shared_ptr<AVBufferRef> hwDeviceContext{nullptr};
+        std::shared_ptr<AVBufferRef> hwFramesContext{nullptr};
     };
-}// namespace AVQt
+}// namespace AVQt::communication
+
+Q_DECLARE_METATYPE(AVQt::communication::VideoPadParams)
+Q_DECLARE_METATYPE(std::shared_ptr<AVQt::communication::VideoPadParams>)
+Q_DECLARE_METATYPE(std::shared_ptr<const AVQt::communication::VideoPadParams>)
 
 #endif//LIBAVQT_VIDEOPADPARAMS_HPP

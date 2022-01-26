@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(PROJECT_NAME Player)
 
+include_directories(../AVQt/include)
+
 add_executable(${PROJECT_NAME} main.cpp FrameSaverAccelerated.cpp FrameSaverAccelerated.hpp OpenGlWidgetRenderer.cpp OpenGlWidgetRenderer.hpp OpenGlWidgetRendererPrivate.hpp)
 
 set(QT_VERSION "5")
@@ -23,6 +25,7 @@ set(REQUIRED_LIBS_QUALIFIED)
 list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
+
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBS_QUALIFIED})
 
 if (WIN32)

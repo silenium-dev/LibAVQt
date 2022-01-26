@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,8 +24,8 @@
 #ifndef LIBAVQT_VAAPIYUVTORGBMAPPER_P_HPP
 #define LIBAVQT_VAAPIYUVTORGBMAPPER_P_HPP
 
-#include <QtCore>
 #include "communication/VideoPadParams.hpp"
+#include <QtCore>
 
 extern "C" {
 #include <libavfilter/avfilter.h>
@@ -35,33 +35,38 @@ namespace AVQt {
     class VaapiYuvToRgbMapper;
     class VaapiYuvToRgbMapperPrivate {
         Q_DECLARE_PUBLIC(VaapiYuvToRgbMapper)
+    public:
+        static void destroyAVBufferRef(AVBufferRef *ref);
+        static void destroyAVFilterContext(AVFilterContext *filterContext);
+        static void destroyAVFilterGraph(AVFilterGraph *filterGraph);
+        static void destroyAVFilterInOut(AVFilterInOut *filterInOut);
+
     private:
         explicit VaapiYuvToRgbMapperPrivate(VaapiYuvToRgbMapper *q) : q_ptr(q) {}
         VaapiYuvToRgbMapper *q_ptr;
 
-        std::atomic<AVBufferRef *> pHWDeviceCtx{nullptr};
-        std::atomic<AVBufferRef *> pInputHWFramesCtx{nullptr}, pOutputHWFramesCtx{nullptr};
+        std::unique_ptr<AVBufferRef, decltype(&destroyAVBufferRef)> pHWDeviceCtx{nullptr, &destroyAVBufferRef};
+        std::unique_ptr<AVBufferRef, decltype(&destroyAVBufferRef)> pInputHWFramesCtx{nullptr, &destroyAVBufferRef}, pOutputHWFramesCtx{nullptr, &destroyAVBufferRef};
 
-        AVFrame *currentFrame{nullptr}, *pHWFrame{nullptr};
+        std::shared_ptr<AVFrame> currentFrame{};
         int64_t frameCounter{0};
-        VideoPadParams videoParams;
+        communication::VideoPadParams videoParams;
 
-        AVFilterContext *pBufferSrcCtx{nullptr};
-        AVFilterContext *pBufferSinkCtx{nullptr};
-        AVFilterContext *pVAAPIScaleCtx{nullptr};
-        AVFilterContext *pVAAPIDenoiseCtx{nullptr};
-        AVFilterGraph *pFilterGraph{nullptr};
-        AVFilterInOut *pInputs{nullptr};
-        AVFilterInOut *pOutputs{nullptr};
+        std::unique_ptr<AVFilterContext, decltype(&destroyAVFilterContext)> pBufferSrcCtx{nullptr, &destroyAVFilterContext};
+        std::unique_ptr<AVFilterContext, decltype(&destroyAVFilterContext)> pBufferSinkCtx{nullptr, &destroyAVFilterContext};
+        std::unique_ptr<AVFilterContext, decltype(&destroyAVFilterContext)> pVAAPIScaleCtx{nullptr, &destroyAVFilterContext};
+        std::unique_ptr<AVFilterContext, decltype(&destroyAVFilterContext)> pVAAPIDenoiseCtx{nullptr, &destroyAVFilterContext};
+        std::unique_ptr<AVFilterGraph, decltype(&destroyAVFilterGraph)> pFilterGraph{nullptr, &destroyAVFilterGraph};
+        std::unique_ptr<AVFilterInOut, decltype(&destroyAVFilterInOut)> pInputs{nullptr, &destroyAVFilterInOut}, pOutputs{nullptr, &destroyAVFilterInOut};
 
         QMutex inputQueueMutex;
-        QQueue<AVFrame *> inputQueue;
+        QQueue<std::shared_ptr<AVFrame>> inputQueue;
 
         std::atomic_bool initialized{false}, running{false}, paused{false}, open{false}, pipelineInitialized{false};
 
         int64_t inputPadId;
         int64_t outputPadId;
-        std::shared_ptr<VideoPadParams> outputPadParams;
+        std::shared_ptr<communication::VideoPadParams> outputPadParams;
 
         static constexpr size_t maxInputQueueSize{6};
 

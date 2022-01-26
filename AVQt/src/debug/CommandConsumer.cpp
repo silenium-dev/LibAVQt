@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -21,9 +21,11 @@
 // Created by silas on 26.10.21.
 //
 
-#include "input/CommandConsumer.hpp"
+#include "debug/CommandConsumer.hpp"
+
 #include "communication/PacketPadParams.hpp"
 #include "global.hpp"
+
 #include <QImage>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
@@ -35,24 +37,24 @@ CommandConsumer::CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegist
 }
 
 void CommandConsumer::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
-    if (pad == m_commandInputPadId && data->getType() == AVQt::Message::Type) {
-        auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
+    if (pad == m_commandInputPadId && data->getType() == AVQt::communication::Message::Type) {
+        auto message = std::dynamic_pointer_cast<AVQt::communication::Message>(data);
         qDebug() << "Incoming command" << message->getAction().name() << "with payload:";
         qDebug() << message->getPayloads();
-//        if (message->getPayloads().contains("frame")) {
-//            auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
-//            if (m_frameCount % 50 == 0) {
-//                AVFrame *swFrame = av_frame_alloc();
-//                if (0 == av_hwframe_transfer_data(swFrame, frame, 0)) {
-//                    QImage img(swFrame->data[0], frame->width, frame->height, swFrame->linesize[0], QImage::Format_Grayscale8);
-//                    img.save(QString::number(m_id) + "frame" + QString::number(m_frameCount) + ".bmp");
-//                } else {
-//                    qWarning() << "Could not transfer frame data";
-//                }
-//                av_frame_free(&swFrame);
-//            }
-//            qDebug("Received frame %lu", m_frameCount++);
-//        }
+        //        if (message->getPayloads().contains("frame")) {
+        //            auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
+        //            if (m_frameCount % 50 == 0) {
+        //                AVFrame *swFrame = av_frame_alloc();
+        //                if (0 == av_hwframe_transfer_data(swFrame, frame, 0)) {
+        //                    QImage img(swFrame->data[0], frame->width, frame->height, swFrame->linesize[0], QImage::Format_Grayscale8);
+        //                    img.save(QString::number(m_id) + "frame" + QString::number(m_frameCount) + ".bmp");
+        //                } else {
+        //                    qWarning() << "Could not transfer frame data";
+        //                }
+        //                av_frame_free(&swFrame);
+        //            }
+        //            qDebug("Received frame %lu", m_frameCount++);
+        //        }
     }
 }
 

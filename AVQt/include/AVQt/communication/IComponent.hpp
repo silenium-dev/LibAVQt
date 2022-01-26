@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -30,25 +30,27 @@ namespace AVQt::api {
     class IComponent {
     public:
         virtual ~IComponent() = default;
-        virtual bool open() = 0;
-        virtual void close() = 0;
 
-        virtual bool isOpen() const = 0;
-        virtual bool isRunning() const = 0;
+        [[nodiscard]] virtual bool isOpen() const = 0;
+        [[nodiscard]] virtual bool isRunning() const = 0;
+        [[nodiscard]] virtual bool isPaused() const = 0;
 
         virtual bool init() = 0;
+
+    protected:
+        virtual bool open() = 0;
+        virtual void close() = 0;
 
         virtual bool start() = 0;
         virtual void stop() = 0;
 
         virtual void pause(bool state) = 0;
-        virtual bool isPaused() const = 0;
     signals:
         virtual void started() = 0;
         virtual void stopped() = 0;
         virtual void paused(bool state) = 0;
     };
-}// namespace AVQt
+}// namespace AVQt::api
 
 Q_DECLARE_INTERFACE(AVQt::api::IComponent, "AVQt.api.IComponent")
 

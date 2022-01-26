@@ -21,8 +21,8 @@
 // Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_IENCODERIMPL_HPP
-#define LIBAVQT_IENCODERIMPL_HPP
+#ifndef LIBAVQT_IVIDEOENCODERIMPL_HPP
+#define LIBAVQT_IVIDEOENCODERIMPL_HPP
 
 #include "communication/VideoPadParams.hpp"
 
@@ -49,22 +49,23 @@ namespace AVQt {
         Codec codec;
     };
     namespace api {
-        class IEncoderImpl {
+        class IVideoEncoderImpl {
         public:
-            explicit IEncoderImpl(const EncodeParameters &parameters);
-            virtual ~IEncoderImpl() = default;
+            explicit IVideoEncoderImpl(const EncodeParameters &parameters);
+            virtual ~IVideoEncoderImpl() = default;
 
-            virtual bool open(const VideoPadParams &params) = 0;
+            [[nodiscard]] virtual EncodeParameters getEncodeParameters() const;
+
+            virtual bool open(const communication::VideoPadParams &params) = 0;
             virtual void close() = 0;
 
-            [[nodiscard]] virtual AVFrame *prepareFrame(AVFrame *frame) = 0;
-            virtual int encode(AVFrame *frame) = 0;
-            [[nodiscard]] virtual AVPacket *nextPacket() = 0;
+            [[nodiscard]] virtual std::shared_ptr<AVFrame> prepareFrame(std::shared_ptr<AVFrame> frame) = 0;
+            virtual int encode(std::shared_ptr<AVFrame> frame) = 0;
+
+            [[nodiscard]] virtual bool isHWAccel() const = 0;
 
             [[nodiscard]] virtual QVector<AVPixelFormat> getInputFormats() const = 0;
-            [[nodiscard]] virtual EncodeParameters getEncodeParameters() const;
-            [[nodiscard]] virtual bool isHWAccel() const = 0;
-            [[nodiscard]] virtual AVCodecParameters *getCodecParameters() const = 0;
+            [[nodiscard]] virtual std::shared_ptr<AVCodecParameters> getCodecParameters() const = 0;
         signals:
             virtual void packetReady(std::shared_ptr<AVPacket> packet) = 0;
 
@@ -74,7 +75,8 @@ namespace AVQt {
     }// namespace api
 }// namespace AVQt
 
-Q_DECLARE_INTERFACE(AVQt::api::IEncoderImpl, "AVQt.IEncoderImpl")
+Q_DECLARE_INTERFACE(AVQt::api::IVideoEncoderImpl, "AVQt.IVideoEncoderImpl")
 
+Q_DECLARE_METATYPE(AVQt::EncodeParameters)
 
-#endif//LIBAVQT_IENCODERIMPL_HPP
+#endif//LIBAVQT_IVIDEOENCODERIMPL_HPP

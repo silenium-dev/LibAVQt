@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -22,7 +22,7 @@
 #include <boost/uuid/string_generator.hpp>
 #include <utility>
 
-namespace AVQt {
+namespace AVQt::communication {
     const boost::uuids::uuid Message::Type = boost::uuids::string_generator()("{1db2f16c89f3de68086c5124c5272bab}");
 
     Message::Message(Message::Action type, QVariantMap payload) : m_type(type), m_payload(std::move(payload)) {
@@ -110,15 +110,15 @@ namespace AVQt {
         return *this;
     }
 
-    bool operator==(const AVQt::Message::Action &lhs, const AVQt::Message::Action &rhs) {
+    bool operator==(const Message::Action &lhs, const Message::Action &rhs) {
         return lhs.m_action == rhs.m_action;
     }
 
-    bool operator==(const AVQt::Message::Action &lhs, const AVQt::Message::Action::Enum &rhs) {
+    bool operator==(const Message::Action &lhs, const Message::Action::Enum &rhs) {
         return lhs.m_action == rhs;
     }
 
-    bool operator==(const AVQt::Message::Action::Enum &lhs, const AVQt::Message::Action &rhs) {
+    bool operator==(const Message::Action::Enum &lhs, const Message::Action &rhs) {
         return lhs == rhs.m_action;
     }
 

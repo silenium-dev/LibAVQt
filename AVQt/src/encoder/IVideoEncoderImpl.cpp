@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -21,39 +21,14 @@
 // Created by silas on 28.12.21.
 //
 
-#ifndef LIBAVQT_ENCODERFACTORY_HPP
-#define LIBAVQT_ENCODERFACTORY_HPP
+#include "encoder/IVideoEncoderImpl.hpp"
 
-#include "IEncoderImpl.hpp"
-#include "encoder/Encoder.hpp"
+namespace AVQt::api {
+    IVideoEncoderImpl::IVideoEncoderImpl(const EncodeParameters &parameters)
+        : m_encodeParameters(parameters) {
+    }
 
-#include <static_block.hpp>
-
-#include <QMap>
-#include <QString>
-
-
-namespace AVQt {
-    class EncoderFactory {
-    public:
-        static EncoderFactory &getInstance();
-
-        void registerEncoder(const QString &name, const QMetaObject &metaObject);
-
-        void unregisterEncoder(const QString &name);
-
-        [[nodiscard]] api::IEncoderImpl *create(const QString &name, const EncodeParameters &params);
-
-        static void registerEncoders();
-
-    private:
-        EncoderFactory() = default;
-        QMap<QString, QMetaObject> m_encoders;
-    };
-}// namespace AVQt
-
-static_block {
-    AVQt::EncoderFactory::registerEncoders();
-};
-
-#endif//LIBAVQT_ENCODERFACTORY_HPP
+    EncodeParameters IVideoEncoderImpl::getEncodeParameters() const {
+        return m_encodeParameters;
+    }
+}// namespace AVQt::api

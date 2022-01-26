@@ -17,8 +17,8 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "input/Demuxer.hpp"
 #include "communication/Message.hpp"
+#include "input/Demuxer.hpp"
 
 #include <QtCore>
 
@@ -40,6 +40,10 @@ namespace AVQt {
 
         void operator=(const DemuxerPrivate &) = delete;
 
+        static void destroyAVIOContext(AVIOContext *context);
+
+        static void destroyAVFormatContext(AVFormatContext *context);
+
     private:
         explicit DemuxerPrivate(Demuxer *q) : q_ptr(q){};
 
@@ -47,20 +51,18 @@ namespace AVQt {
 
         static int64_t seekIO(void *opaque, int64_t pos, int whence);
 
-        Demuxer *q_ptr;
+        Demuxer *q_ptr{nullptr};
 
-        QIODevice *inputDevice{nullptr};
+        std::unique_ptr<QIODevice> inputDevice{};
 
-        QMutex mutex;
-//        QWaitCondition pausedCond;
         std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};
 
         QList<int64_t> videoStreams{}, audioStreams{}, subtitleStreams{};
 
-        static constexpr size_t BUFFER_SIZE{32 * 1024}; // 32KB
+        static constexpr size_t BUFFER_SIZE{32 * 1024};// 32KB
         uint8_t *pBuffer{nullptr};
-        AVFormatContext *pFormatCtx{nullptr};
-        AVIOContext *pIOCtx{nullptr};
+        std::unique_ptr<AVFormatContext, decltype(&destroyAVFormatContext)> pFormatCtx{nullptr, &destroyAVFormatContext};
+        std::unique_ptr<AVIOContext, decltype(&destroyAVIOContext)> pIOCtx{nullptr, &destroyAVIOContext};
         bool loop{false};
 
         QMap<int64_t, int64_t> outputPadIds;

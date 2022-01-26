@@ -22,10 +22,12 @@
 //
 
 #include "FrameSaverAccelerated.hpp"
-#include "communication/Message.hpp"
 #include "global.hpp"
-#include "pgraph_network/api/PadRegistry.hpp"
-#include "pgraph_network/impl/RegisteringPadFactory.hpp"
+
+#include <pgraph_network/api/PadRegistry.hpp>
+#include <pgraph_network/impl/RegisteringPadFactory.hpp>
+
+#include <AVQt/communication/Message.hpp>
 #include <pgraph/api/Data.hpp>
 #include <pgraph/api/PadUserData.hpp>
 
@@ -99,17 +101,17 @@ void FrameSaverAccelerated::init() {
 }
 
 void FrameSaverAccelerated::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
-    if (data->getType() == AVQt::Message::Type) {
-        auto message = std::dynamic_pointer_cast<AVQt::Message>(data);
-        if (message->getAction() == AVQt::Message::Action::DATA && message->getPayloads().contains("frame")) {
-            auto frame = message->getPayloads().value("frame").value<AVFrame *>();
+    if (data->getType() == AVQt::communication::Message::Type) {
+        auto message = std::dynamic_pointer_cast<AVQt::communication::Message>(data);
+        if (message->getAction() == AVQt::communication::Message::Action::DATA && message->getPayloads().contains("frame")) {
+            auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
             if (frame) {
                 qDebug("Consuming frame");
-                mapper->enqueueFrame(av_frame_clone(frame));
+                mapper->enqueueFrame(av_frame_clone(frame.get()));
             }
-        } else if (message->getAction() == AVQt::Message::Action::START) {
+        } else if (message->getAction() == AVQt::communication::Message::Action::START) {
             mapper->start();
-        } else if (message->getAction() == AVQt::Message::Action::STOP) {
+        } else if (message->getAction() == AVQt::communication::Message::Action::STOP) {
             mapper->stop();
         }
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,39 +18,31 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 12.12.21.
+// Created by silas on 26.10.21.
 //
 
-#ifndef LIBAVQT_DECODERFACTORY_HPP
-#define LIBAVQT_DECODERFACTORY_HPP
+#ifndef LIBAVQT_COMMANDCONSUMER_H
+#define LIBAVQT_COMMANDCONSUMER_H
 
-#include "decoder/IDecoderImpl.hpp"
+#include "communication/Message.hpp"
+#include "pgraph/impl/SimpleConsumer.hpp"
+#include "pgraph_network/api/PadRegistry.hpp"
 
-#include <QMap>
-#include <string>
-#include "static_block.hpp"
+class CommandConsumer : public pgraph::impl::SimpleConsumer {
+public:
+    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
+    ~CommandConsumer() override = default;
 
-namespace AVQt {
-    class DecoderFactory {
-    public:
-        static DecoderFactory &getInstance();
+    void init();
 
-        void registerDecoder(const QString &name, const QMetaObject& metaObject);
+    void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
-        void unregisterDecoder(const QString &name);
+private:
+    int64_t m_commandInputPadId;
+    std::atomic_uint64_t m_frameCount;
+    uint32_t m_id;
+    static std::atomic_uint32_t m_nextId;
+};
 
-        [[nodiscard]] api::IDecoderImpl *create(const QString &name);
 
-        static void registerDecoder();
-
-    private:
-        DecoderFactory() = default;
-        QMap<QString, QMetaObject> m_decoders;
-    };
-}// namespace AVQt
-
-static_block {
-    AVQt::DecoderFactory::registerDecoder();
-}
-
-#endif//LIBAVQT_DECODERFACTORY_HPP
+#endif//LIBAVQT_COMMANDCONSUMER_H

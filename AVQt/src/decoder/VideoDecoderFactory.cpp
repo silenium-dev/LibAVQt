@@ -1,4 +1,4 @@
-// Copyright (c) 2021.
+// Copyright (c) 2021-2022.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 // and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,47 +18,51 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
-// Created by silas on 28.12.21.
+// Created by silas on 12.12.21.
 //
 
-#include "encoder/EncoderFactory.hpp"
-#include "encoder/VAAPIEncoderImpl.hpp"
+#include "include/AVQt/decoder/VideoDecoderFactory.hpp"
+#include "decoder/VAAPIDecoderImpl.hpp"
 
-#include <QtDebug>
+#include <QDebug>
 
 namespace AVQt {
-    EncoderFactory &EncoderFactory::getInstance() {
-        static EncoderFactory instance;
+    VideoDecoderFactory &VideoDecoderFactory::getInstance() {
+        static VideoDecoderFactory instance;
         return instance;
     }
 
-    void EncoderFactory::registerEncoder(const QString &name, const QMetaObject &metaObject) {
-        if (m_encoders.contains(name)) {
-            qWarning() << "EncoderFactory: Encoder with name" << name << "already registered";
+    void VideoDecoderFactory::registerDecoder(const QString &name, const QMetaObject &metaObject) {
+        if (m_decoders.contains(name)) {
+            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << name << "already registered";
+            return;
         }
-        m_encoders.insert(name, metaObject);
+        m_decoders.insert(name, metaObject);
     }
 
-    void EncoderFactory::unregisterEncoder(const QString &name) {
-        if (!m_encoders.contains(name)) {
-            qWarning() << "EncoderFactory: Encoder with name" << name << "not registered";
+    void VideoDecoderFactory::unregisterDecoder(const QString &name) {
+        if (!m_decoders.contains(name)) {
+            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << name << "not registered";
+            return;
         }
-        m_encoders.remove(name);
+        m_decoders.remove(name);
     }
 
-    api::IEncoderImpl *EncoderFactory::create(const QString &name, const EncodeParameters &params) {
-        if (!m_encoders.contains(name)) {
-            qWarning() << "EncoderFactory: Encoder with name" << name << "not registered";
+    std::shared_ptr<api::IVideoDecoderImpl> VideoDecoderFactory::create(const QString &name) {
+        if (!m_decoders.contains(name)) {
+            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << name << "not registered";
             return nullptr;
         }
-        return qobject_cast<api::IEncoderImpl *>(m_encoders[name].newInstance(Q_ARG(AVQt::EncodeParameters, params)));
+        return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(m_decoders[name].newInstance())};
     }
 
-    void EncoderFactory::registerEncoders() {
+    void VideoDecoderFactory::registerDecoders() {
         static std::atomic_bool registered{false};
         bool shouldBe = false;
         if (registered.compare_exchange_strong(shouldBe, true)) {
-            getInstance().registerEncoder("VAAPI", VAAPIEncoderImpl::staticMetaObject);
+#ifdef Q_OS_LINUX
+            getInstance().registerDecoder("VAAPI", VAAPIDecoderImpl::staticMetaObject);
+#endif
         }
     }
 }// namespace AVQt

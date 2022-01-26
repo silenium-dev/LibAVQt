@@ -17,102 +17,95 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "decoder/Decoder.hpp"
+#include "decoder/VideoDecoder.hpp"
 #include "communication/Message.hpp"
 #include "communication/PacketPadParams.hpp"
 #include "communication/VideoPadParams.hpp"
-#include "decoder/DecoderFactory.hpp"
-#include "decoder/private/Decoder_p.hpp"
+#include "decoder/VideoDecoderFactory.hpp"
+#include "decoder/private/VideoDecoder_p.hpp"
 #include "global.hpp"
 
 #include <pgraph/api/Data.hpp>
-#include <pgraph/api/PadUserData.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
 #include <QApplication>
-//#include <QtConcurrent>
-
-//#ifndef DOXYGEN_SHOULD_SKIP_THIS
-//#define NOW() std::chrono::high_resolution_clock::now()
-//#define TIME_US(t1, t2) std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count()
-//#endif
 
 
 namespace AVQt {
-    Decoder::Decoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+    VideoDecoder::VideoDecoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
         : QThread(parent),
           pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
-          d_ptr(new DecoderPrivate(this)) {
-        Q_D(Decoder);
-        setObjectName(decoderName + "Decoder");
-        d->impl.reset(DecoderFactory::getInstance().create(decoderName));
+          d_ptr(new VideoDecoderPrivate(this)) {
+        Q_D(VideoDecoder);
+        setObjectName(decoderName + "VideoDecoder");
+        d->impl = std::move(VideoDecoderFactory::getInstance().create(decoderName));
         if (!d->impl) {
-            qFatal("Decoder %s not found", qPrintable(decoderName));
+            qFatal("VideoDecoder %s not found", qPrintable(decoderName));
         }
         connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(frameReady(std::shared_ptr<AVFrame>)),
                 this, SLOT(onFrameReady(std::shared_ptr<AVFrame>)), Qt::DirectConnection);
     }
 
-    Decoder::~Decoder() {
-        Decoder::close();
+    VideoDecoder::~VideoDecoder() {
+        VideoDecoder::close();
         delete d_ptr;
     }
 
-    int64_t Decoder::getInputPadId() const {
-        Q_D(const Decoder);
+    int64_t VideoDecoder::getInputPadId() const {
+        Q_D(const VideoDecoder);
         return d->inputPadId;
     }
-    int64_t Decoder::getOutputPadId() const {
-        Q_D(const Decoder);
+    int64_t VideoDecoder::getOutputPadId() const {
+        Q_D(const VideoDecoder);
         return d->outputPadId;
     }
 
-    bool Decoder::isPaused() const {
-        Q_D(const Decoder);
+    bool VideoDecoder::isPaused() const {
+        Q_D(const VideoDecoder);
         return d->paused;
     }
 
-    bool Decoder::isOpen() const {
-        Q_D(const Decoder);
+    bool VideoDecoder::isOpen() const {
+        Q_D(const VideoDecoder);
         return d->open;
     }
-    bool Decoder::isRunning() const {
-        Q_D(const Decoder);
+
+    bool VideoDecoder::isRunning() const {
+        Q_D(const VideoDecoder);
         return d->running;
     }
 
-    void Decoder::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
-        Q_D(Decoder);
-        if (data->getType() == Message::Type) {
-            auto message = std::dynamic_pointer_cast<Message>(data);
-            switch (static_cast<Message::Action::Enum>(message->getAction())) {
-                case Message::Action::INIT: {
-                    auto params = message->getPayload("codecParams").value<AVCodecParameters *>();
-                    d->pCodecParams = avcodec_parameters_alloc();
-                    avcodec_parameters_copy(d->pCodecParams, params);
+    void VideoDecoder::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) {
+        Q_D(VideoDecoder);
+        if (data->getType() == communication::Message::Type) {
+            auto message = std::dynamic_pointer_cast<communication::Message>(data);
+            switch (static_cast<communication::Message::Action::Enum>(message->getAction())) {
+                case communication::Message::Action::INIT: {
+                    auto packetParams = message->getPayload("packetParams").value<std::shared_ptr<const communication::PacketPadParams>>();
+                    d->codecParams = packetParams->codecParams;
                     if (!open()) {
                         qWarning() << "Failed to open decoder";
                         return;
                     }
                     break;
                 }
-                case Message::Action::CLEANUP:
+                case communication::Message::Action::CLEANUP:
                     close();
                     break;
-                case Message::Action::START:
+                case communication::Message::Action::START:
                     if (!start()) {
                         qWarning() << "Failed to start decoder";
                     }
                     break;
-                case Message::Action::STOP:
+                case communication::Message::Action::STOP:
                     stop();
                     break;
-                case Message::Action::PAUSE:
+                case communication::Message::Action::PAUSE:
                     pause(message->getPayload("state").toBool());
                     break;
-                case Message::Action::DATA: {
-                    auto *packet = message->getPayload("packet").value<AVPacket *>();
+                case communication::Message::Action::DATA: {
+                    auto packet = message->getPayload("packet").value<std::shared_ptr<AVPacket>>();
                     d->enqueueData(packet);
                     break;
                 }
@@ -122,40 +115,12 @@ namespace AVQt {
         }
     }
 
-    bool Decoder::open() {
-        Q_D(Decoder);
-
-        if (!d->initialized) {
-            qWarning() << "Decoder not initialized";
-            return false;
-        }
-
-        if (d->pCodecParams == nullptr) {
-            qWarning() << "Codec parameters not set";
-            return false;
-        }
-
-        bool shouldBe = false;
-        if (d->open.compare_exchange_strong(shouldBe, true)) {
-            d->impl->open(d->pCodecParams);
-
-            *d->outputPadParams = d->impl->getVideoParams();
-
-            produce(Message::builder().withAction(Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(*d->outputPadParams)).build(), d->outputPadId);
-
-            return true;
-        } else {
-            qWarning() << "Decoder already open";
-            return false;
-        }
-    }
-
-    bool Decoder::init() {
-        Q_D(Decoder);
+    bool VideoDecoder::init() {
+        Q_D(VideoDecoder);
 
         bool shouldBe = false;
         if (d->initialized.compare_exchange_strong(shouldBe, true)) {
-            auto inPadParams = std::make_shared<PacketPadParams>();
+            auto inPadParams = std::make_shared<communication::PacketPadParams>();
             inPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
             d->inputPadId = createInputPad(inPadParams);
             if (d->inputPadId == pgraph::api::INVALID_PAD_ID) {
@@ -163,7 +128,7 @@ namespace AVQt {
                 return false;
             }
 
-            d->outputPadParams = std::make_shared<VideoPadParams>();
+            d->outputPadParams = std::make_shared<communication::VideoPadParams>();
             d->outputPadId = pgraph::impl::SimpleProcessor::createOutputPad(d->outputPadParams);
             if (d->outputPadId == pgraph::api::INVALID_PAD_ID) {
                 qWarning() << "Failed to create output pad";
@@ -171,14 +136,42 @@ namespace AVQt {
             }
             return true;
         } else {
-            qWarning() << "Decoder already initialized";
+            qWarning() << "VideoDecoder already initialized";
         }
 
         return false;
     }
 
-    void Decoder::close() {
-        Q_D(Decoder);
+    bool VideoDecoder::open() {
+        Q_D(VideoDecoder);
+
+        if (!d->initialized) {
+            qWarning() << "VideoDecoder not initialized";
+            return false;
+        }
+
+        if (d->codecParams == nullptr) {
+            qWarning() << "Codec parameters not set";
+            return false;
+        }
+
+        bool shouldBe = false;
+        if (d->open.compare_exchange_strong(shouldBe, true)) {
+            d->impl->open(d->codecParams);
+
+            *d->outputPadParams = d->impl->getVideoParams();
+
+            produce(communication::Message::builder().withAction(communication::Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(*d->outputPadParams)).build(), d->outputPadId);
+
+            return true;
+        } else {
+            qWarning() << "VideoDecoder already open";
+            return false;
+        }
+    }
+
+    void VideoDecoder::close() {
+        Q_D(VideoDecoder);
 
         if (d->running) {
             stop();
@@ -187,76 +180,71 @@ namespace AVQt {
         bool shouldBe = true;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
             d->impl->close();
-            if (d->pCodecParams != nullptr) {
-                avcodec_parameters_free(&d->pCodecParams);
-            }
+            d->codecParams.reset();
             d->running = false;
             d->paused = false;
             d->open = false;
-            produce(Message::builder().withAction(Message::Action::CLEANUP).build(), d->outputPadId);
+            produce(communication::Message::builder().withAction(communication::Message::Action::CLEANUP).build(), d->outputPadId);
         } else {
-            qWarning() << "Decoder not open";
+            qWarning() << "VideoDecoder not open";
         }
     }
 
-    bool Decoder::start() {
-        Q_D(Decoder);
+    bool VideoDecoder::start() {
+        Q_D(VideoDecoder);
 
         if (!d->open) {
-            qWarning() << "Decoder not open";
+            qWarning() << "VideoDecoder not open";
             return false;
         }
 
         bool shouldBe = false;
         if (d->running.compare_exchange_strong(shouldBe, true)) {
             d->paused = false;
-            produce(Message::builder().withAction(Message::Action::START).build(), d->outputPadId);
+            produce(communication::Message::builder().withAction(communication::Message::Action::START).build(), d->outputPadId);
             QThread::start();
             started();
             return true;
         }
-        qWarning() << "Decoder already running";
+        qWarning() << "VideoDecoder already running";
         return false;
     }
 
-    void Decoder::stop() {
-        Q_D(Decoder);
+    void VideoDecoder::stop() {
+        Q_D(VideoDecoder);
         if (!d->running) {
-            qWarning() << "Decoder not running";
+            qWarning() << "VideoDecoder not running";
             return;
         }
 
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
             d->paused = false;
-            produce(Message::builder().withAction(Message::Action::STOP).build(), d->outputPadId);
+            produce(communication::Message::builder().withAction(communication::Message::Action::STOP).build(), d->outputPadId);
             QThread::quit();
             QThread::wait();
             {
                 QMutexLocker locker(&d->inputQueueMutex);
-                while (!d->inputQueue.empty()) {
-                    auto packet = d->inputQueue.dequeue();
-                    av_packet_free(&packet);
-                }
+                d->inputQueue.clear();
             }
             stopped();
             return;
         }
-        qWarning() << "Decoder not running";
+        qWarning() << "VideoDecoder not running";
     }
 
-    void Decoder::pause(bool pause) {
-        Q_D(Decoder);
+    void VideoDecoder::pause(bool pause) {
+        Q_D(VideoDecoder);
         bool shouldBe = !pause;
         if (d->paused.compare_exchange_strong(shouldBe, pause)) {
-            produce(Message::builder().withAction(Message::Action::PAUSE).withPayload("state", pause).build(), d->outputPadId);
+            produce(communication::Message::builder().withAction(communication::Message::Action::PAUSE).withPayload("state", pause).build(), d->outputPadId);
             paused(pause);
             qDebug("Changed paused state of decoder to %s", pause ? "true" : "false");
         }
     }
 
-    void Decoder::run() {
-        Q_D(Decoder);
+    void VideoDecoder::run() {
+        Q_D(VideoDecoder);
         while (d->running) {
             QMutexLocker lock(&d->inputQueueMutex);
             if (d->paused || d->inputQueue.isEmpty()) {
@@ -273,32 +261,29 @@ namespace AVQt {
                 lock.unlock();
                 msleep(1);
             } else if (ret != EXIT_SUCCESS) {
-                av_packet_free(&packet);
                 char strBuf[256];
-                qWarning() << "Decoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
-            } else {
-                av_packet_free(&packet);
+                qWarning() << "VideoDecoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
             }
         }
     }
 
-    void Decoder::onFrameReady(std::shared_ptr<AVFrame> frame) {
-        Q_D(Decoder);
+    void VideoDecoder::onFrameReady(const std::shared_ptr<AVFrame> &frame) {
+        Q_D(VideoDecoder);
         while (d->paused && d->running) {
             msleep(1);
         }
         if (d->running) {
-            produce(Message::builder().withAction(Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame.get())).build(), d->outputPadId);
+            produce(communication::Message::builder().withAction(communication::Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build(), d->outputPadId);
         }
     }
 
-    void DecoderPrivate::enqueueData(AVPacket *&packet) {
+    void VideoDecoderPrivate::enqueueData(const std::shared_ptr<AVPacket> &packet) {
         QMutexLocker lock(&inputQueueMutex);
         while (inputQueue.size() >= 20 && running) {
             lock.unlock();
             QThread::msleep(2);
             lock.relock();
         }
-        inputQueue.enqueue(av_packet_clone(packet));
+        inputQueue.enqueue(packet);
     }
 }// namespace AVQt

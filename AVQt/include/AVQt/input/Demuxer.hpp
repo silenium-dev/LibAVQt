@@ -43,10 +43,10 @@ namespace AVQt {
     public:
         struct Config {
             bool loop{false};
-            QIODevice *inputDevice{nullptr};
+            std::unique_ptr<QIODevice> inputDevice{};
         };
 
-        explicit Demuxer(const Config &inputDevice, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        explicit Demuxer(Config inputDevice, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
 
         explicit Demuxer(Demuxer &other) = delete;
 
@@ -60,10 +60,10 @@ namespace AVQt {
 
         bool isRunning() const override;
 
+        Q_INVOKABLE bool init() override;
+
     public slots:
         Q_INVOKABLE bool open() override;
-
-        Q_INVOKABLE bool init() override;
 
         Q_INVOKABLE void close() override;
 
@@ -93,8 +93,6 @@ namespace AVQt {
 
     protected:
         void run() override;
-
-        [[maybe_unused]] explicit Demuxer(DemuxerPrivate &p);
 
         DemuxerPrivate *d_ptr;
     };

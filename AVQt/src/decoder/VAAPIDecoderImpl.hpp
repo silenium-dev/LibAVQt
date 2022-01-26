@@ -25,31 +25,30 @@
 #define LIBAVQT_VAAPIDECODERIMPL_HPP
 
 #include "communication/VideoPadParams.hpp"
-#include "include/AVQt/decoder/IDecoderImpl.hpp"
+#include "include/AVQt/decoder/IVideoDecoderImpl.hpp"
 #include "static_block.hpp"
 
 namespace AVQt {
     class VAAPIDecoderImplPrivate;
 
-    class VAAPIDecoderImpl : public QObject, public AVQt::api::IDecoderImpl {
+    class VAAPIDecoderImpl : public QObject, public AVQt::api::IVideoDecoderImpl {
         Q_OBJECT
         Q_DECLARE_PRIVATE(VAAPIDecoderImpl)
-        Q_INTERFACES(AVQt::api::IDecoderImpl)
+        Q_INTERFACES(AVQt::api::IVideoDecoderImpl)
     public:
         Q_INVOKABLE explicit VAAPIDecoderImpl();
 
-        ~VAAPIDecoderImpl() override = default;
+        ~VAAPIDecoderImpl() override;
 
-        bool open(AVCodecParameters *codecParams) override;
+        bool open(std::shared_ptr<AVCodecParameters> codecParams) override;
         void close() override;
-        int decode(AVPacket *packet) override;
-        [[nodiscard]] AVFrame *nextFrame() override;
+        int decode(std::shared_ptr<AVPacket> packet) override;
 
         [[nodiscard]] AVPixelFormat getOutputFormat() const override;
         [[nodiscard]] AVPixelFormat getSwOutputFormat() const override;
         [[nodiscard]] bool isHWAccel() const override;
 
-        [[nodiscard]] VideoPadParams getVideoParams() const override;
+        [[nodiscard]] communication::VideoPadParams getVideoParams() const override;
 
     signals:
         void frameReady(std::shared_ptr<AVFrame> frame) override;
