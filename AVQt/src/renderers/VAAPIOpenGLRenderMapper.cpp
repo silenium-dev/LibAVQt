@@ -518,10 +518,13 @@ namespace AVQt {
                 }
                 d->program->release();
 
-                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), true, 4, 12);
-
                 qDebug("First frame");
             }
+
+            if (!d->fboPool) {
+                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), false, 12);
+            }
+
             mapFrame();
             qDebug("Mapped frame");
 

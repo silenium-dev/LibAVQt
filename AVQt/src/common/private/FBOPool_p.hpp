@@ -16,6 +16,7 @@ namespace AVQt::common {
         Q_DECLARE_PUBLIC(FBOPool)
     public:
         explicit FBOPoolPrivate(FBOPool *q) : q_ptr(q) {}
+        ~FBOPoolPrivate();
 
     private:
         FBOPool *q_ptr;
@@ -26,11 +27,30 @@ namespace AVQt::common {
         size_t initialSize{0};
 
         QMutex poolMutex{};
-        QQueue<std::shared_ptr<QOpenGLFramebufferObject>> fboPool_free{};
-        std::list<std::weak_ptr<QOpenGLFramebufferObject>> fboPool_used{};
-        std::list<std::unique_ptr<QOpenGLFramebufferObject>> fboPool_all{};
+        QQueue<uint64_t> fboPool_free{};
+        std::map<uint64_t, std::weak_ptr<QOpenGLFramebufferObject>> fboPool_used{};
+        std::map<uint32_t, std::unique_ptr<QOpenGLFramebufferObject>> fboPool_all{};
+
+        std::atomic_uint64_t fboPool_idCounter{0};
 
         QWaitCondition fboPool_available{};
+
+        friend class FBOReturner;
+    };
+
+    class FBOReturner {
+    public:
+        explicit FBOReturner(FBOPoolPrivate *d, uint64_t fboId) : p(d), m_fboId(fboId) {}
+        FBOReturner(const FBOReturner &) = default;
+
+        void operator()(QOpenGLFramebufferObject *fbo);
+
+    private:
+        bool m_isDestructing{false};
+        uint64_t m_fboId;
+        FBOPoolPrivate *p;
+
+        friend class FBOPoolPrivate;
     };
 }// namespace AVQt::common
 

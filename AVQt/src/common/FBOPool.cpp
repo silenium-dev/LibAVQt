@@ -40,40 +40,12 @@ namespace AVQt::common {
         allocateNewFBOs(m_pool->initialSize);
     }
 
-    FBOPool::FBOPool(const FBOPool &) = default;
-    FBOPool::FBOPool(FBOPool &&) noexcept = default;
-
-    FBOPool &FBOPool::operator=(const FBOPool &) = default;
-    FBOPool &FBOPool::operator=(FBOPool &&) noexcept = default;
-
-    void FBOPool::returnFBO(const std::shared_ptr<QOpenGLFramebufferObject> &fbo) {
-        if (!fbo || fbo == nullptr) {
-            qWarning() << "Trying to release a nullptr FBO";
-            return;
-        }
-        QMutexLocker locker(&m_pool->poolMutex);
-
-        if (std::find_if(m_pool->fboPool_all.begin(), m_pool->fboPool_all.end(),
-                         [fbo](const std::unique_ptr<QOpenGLFramebufferObject> &fbo2) {
-                             return fbo2.get() == fbo.get();
-                         }) == m_pool->fboPool_all.end()) {
-            qWarning() << "Trying to release an FBO that is not in the pool";
-            return;
-        }
-
-        std::remove_if(m_pool->fboPool_used.begin(), m_pool->fboPool_used.end(), [&](const std::weak_ptr<QOpenGLFramebufferObject> &fbo2) {
-            return !fbo2.owner_before(fbo) && !fbo.owner_before(fbo2);
-        });
-        m_pool->fboPool_free.enqueue(fbo);
-        m_pool->fboPool_available.notify_one();
-    }
-
     void FBOPool::allocateNewFBOs(size_t count) {
         for (int i = 0; i < count; ++i) {
             auto fbo = std::make_unique<QOpenGLFramebufferObject>(m_pool->fboSize, QOpenGLFramebufferObject::CombinedDepthStencil);
-            auto sharedFbo = std::shared_ptr<QOpenGLFramebufferObject>{fbo.get(), *this};
-            m_pool->fboPool_free.enqueue(std::move(sharedFbo));
-            m_pool->fboPool_all.emplace_back(std::move(fbo));
+            auto id = m_pool->fboPool_idCounter++;
+            m_pool->fboPool_free.enqueue(id);
+            m_pool->fboPool_all.emplace(id, std::move(fbo));
         }
     }
 
@@ -92,16 +64,50 @@ namespace AVQt::common {
                 }
             }
         }
-        auto fbo = m_pool->fboPool_free.dequeue();
-        m_pool->fboPool_used.emplace_back(fbo);
-        return std::move(fbo);
+        auto fboId = m_pool->fboPool_free.dequeue();
+        auto fbo = std::shared_ptr<QOpenGLFramebufferObject>{m_pool->fboPool_all.at(fboId).get(), FBOReturner(m_pool.get(), fboId)};
+        m_pool->fboPool_used.emplace(fboId, fbo);
+        return fbo;
     }
 
     std::shared_ptr<QOpenGLFramebufferObject> FBOPool::getFBO(int64_t msecTimeout) {
         return std::move(getFBO(QDeadlineTimer::current() + msecTimeout));
     }
 
-    void FBOPool::operator()(QOpenGLFramebufferObject *fbo) {
-        returnFBO(std::shared_ptr<QOpenGLFramebufferObject>{fbo, *this});
+    FBOPoolPrivate::~FBOPoolPrivate() {
+        QMutexLocker locker(&poolMutex);
+        for (auto &fbo : fboPool_used) {
+            if (auto sharedFbo = fbo.second.lock()) {
+                std::get_deleter<FBOReturner>(sharedFbo)->m_isDestructing = true;
+            }
+        }
+
+        fboPool_free.clear();
+        fboPool_used.clear();
+        fboPool_all.clear();
+
+        fboPool_available.notify_all();
+    }
+
+    void FBOReturner::operator()(QOpenGLFramebufferObject *fbo) {
+        if (!fbo) {
+            qWarning() << "Trying to release a nullptr FBO";
+            return;
+        }
+        if (!m_isDestructing) {
+            QMutexLocker locker(&p->poolMutex);
+
+            if (std::find_if(p->fboPool_all.begin(), p->fboPool_all.end(),
+                             [this](const std::pair<uint64_t, const std::unique_ptr<QOpenGLFramebufferObject> &> &fbo2) {
+                                 return fbo2.first == m_fboId;
+                             }) == p->fboPool_all.end()) {
+                qWarning() << "Trying to release an FBO that is not in the pool";
+                return;
+            }
+
+            p->fboPool_used.erase(m_fboId);
+            p->fboPool_free.enqueue(m_fboId);
+            p->fboPool_available.notify_one();
+        }
     }
 }// namespace AVQt::common

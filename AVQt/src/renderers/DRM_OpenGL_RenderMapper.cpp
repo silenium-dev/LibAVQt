@@ -332,7 +332,7 @@ namespace AVQt {
             QThread::quit();
             d->frameProcessed.wakeAll();
             d->frameAvailable.wakeAll();
-            d->fboPool.reset();
+            d->fboPool.reset();// Delete framepool to unlock waiting thread
             QThread::wait();
             QMutexLocker locker(&d->inputQueueMutex);
             d->inputQueue.clear();
@@ -402,10 +402,13 @@ namespace AVQt {
             if (firstFrame) {
                 initializeInterop();
 
-                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), false, 4);
-
                 qDebug("First frame");
             }
+
+            if (!d->fboPool) {
+                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), true, 4, 12);
+            }
+
             mapFrame();
             qDebug("Mapped frame");
 

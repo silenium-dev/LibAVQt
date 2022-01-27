@@ -25,9 +25,9 @@
 #define LIBAVQT_FBOPOOL_HPP
 
 
-#include <QtCore>
-#include <QOpenGLFramebufferObject>
 #include <QOpenGLContext>
+#include <QOpenGLFramebufferObject>
+#include <QtCore>
 #include <condition_variable>
 #include <list>
 #include <memory>
@@ -42,25 +42,19 @@ namespace AVQt::common {
     class FBOPool {
     public:
         explicit FBOPool(QSize fboSize, bool dynamic = true, size_t size = 4, size_t maxSize = 8) Q_DECL_UNUSED;
-        virtual ~FBOPool() = default;
-
-        FBOPool(const FBOPool &) Q_DECL_UNUSED;
-        FBOPool &operator=(const FBOPool &) Q_DECL_UNUSED;
-
-        FBOPool(FBOPool &&) noexcept Q_DECL_UNUSED;
-        FBOPool &operator=(FBOPool &&) noexcept Q_DECL_UNUSED;
 
         std::shared_ptr<QOpenGLFramebufferObject> getFBO(QDeadlineTimer deadline = QDeadlineTimer::Forever) Q_DECL_UNUSED;
         std::shared_ptr<QOpenGLFramebufferObject> getFBO(int64_t msecTimeout) Q_DECL_UNUSED;
-        void returnFBO(const std::shared_ptr<QOpenGLFramebufferObject> &fbo) Q_DECL_UNUSED;
-
-        void operator()(QOpenGLFramebufferObject *fbo);
 
     protected:
         void allocateNewFBOs(size_t count);
 
     private:
-        std::shared_ptr<FBOPoolPrivate> m_pool;
+        std::shared_ptr<FBOPoolPrivate> m_pool{};
+
+        Q_DISABLE_COPY_MOVE(FBOPool)
+
+        friend class FBOPoolPrivate;
     };
 }// namespace AVQt::common
 

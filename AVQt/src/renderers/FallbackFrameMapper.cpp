@@ -337,8 +337,10 @@ namespace AVQt {
                 d->texture->setMagnificationFilter(QOpenGLTexture::Linear);
                 d->texture->setWrapMode(QOpenGLTexture::ClampToEdge);
                 d->texture->allocateStorage();
+            }
 
-                d->fboPool = std::make_unique<common::FBOPool>(QSize(frame->width, frame->height), false, 4);
+            if (!d->fboPool) {
+                d->fboPool = std::make_unique<common::FBOPool>(QSize(frame->width, frame->height), true, 4, 12);
             }
 
             d->texture->bind(0);
