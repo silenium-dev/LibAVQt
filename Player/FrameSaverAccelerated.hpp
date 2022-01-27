@@ -45,7 +45,7 @@ protected slots:
     void onFrameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo);
 
 private:
-    std::unique_ptr<AVQt::api::IOpenGLFrameMapper> mapper;
+    std::shared_ptr<AVQt::api::IOpenGLFrameMapper> mapper;
     QOffscreenSurface *surface;
     QMutex contextMutex;
     QOpenGLContext *context;

@@ -339,7 +339,7 @@ namespace AVQt {
         }
     }
 
-    void DRM_OpenGL_RenderMapper::enqueueFrame(AVFrame *frame) {
+    void DRM_OpenGL_RenderMapper::enqueueFrame(const std::shared_ptr<AVFrame> &frame) {
         Q_D(DRM_OpenGL_RenderMapper);
         if (frame->format == AV_PIX_FMT_DRM_PRIME) {
             auto *frameDescriptor = reinterpret_cast<AVDRMFrameDescriptor *>(frame->data[0]);
@@ -353,9 +353,7 @@ namespace AVQt {
                 qWarning("DRM_OpenGL_RenderMapper: DRM frame with unsupported format %d", frameDescriptor->layers[0].format);
                 return;
             }
-            auto queueFrame = std::shared_ptr<AVFrame>(av_frame_clone(frame), [](AVFrame *frame) {
-                av_frame_free(&frame);
-            });
+            const auto &queueFrame = frame;
 
             QMutexLocker locker(&d->inputQueueMutex);
             if (d->inputQueue.size() > 4) {
@@ -368,7 +366,6 @@ namespace AVQt {
             d->inputQueue.enqueue(queueFrame);
             d->frameAvailable.wakeOne();
         }
-        av_frame_free(&frame);
     }
 
     void DRM_OpenGL_RenderMapper::run() {
@@ -412,7 +409,7 @@ namespace AVQt {
             mapFrame();
             qDebug("Mapped frame");
 
-            auto fbo = d->fboPool->getFBO();
+            auto fbo = d->fboPool->getFBO(1000);
             if (!fbo) {
                 qWarning("DRM_OpenGL_RenderMapper: failed to get FBO");
                 goto end;
@@ -501,5 +498,7 @@ namespace AVQt {
             eglDestroyImageKHR(eglDisplay, eglImages[1]);
             eglImages[1] = EGL_NO_IMAGE_KHR;
         }
+
+        fboPool.reset();
     }
 }// namespace AVQt

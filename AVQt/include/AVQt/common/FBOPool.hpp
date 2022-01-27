@@ -25,7 +25,9 @@
 #define LIBAVQT_FBOPOOL_HPP
 
 
+#include <QtCore>
 #include <QOpenGLFramebufferObject>
+#include <QOpenGLContext>
 #include <condition_variable>
 #include <list>
 #include <memory>
@@ -36,33 +38,29 @@
 
 
 namespace AVQt::common {
+    class FBOPoolPrivate;
     class FBOPool {
     public:
-        explicit FBOPool(QSize fboSize, bool dynamic = true, int initialSize = 4);
-        FBOPool(const FBOPool &);
+        explicit FBOPool(QSize fboSize, bool dynamic = true, size_t size = 4, size_t maxSize = 8) Q_DECL_UNUSED;
+        virtual ~FBOPool() = default;
 
-        ~FBOPool();
+        FBOPool(const FBOPool &) Q_DECL_UNUSED;
+        FBOPool &operator=(const FBOPool &) Q_DECL_UNUSED;
+
+        FBOPool(FBOPool &&) noexcept Q_DECL_UNUSED;
+        FBOPool &operator=(FBOPool &&) noexcept Q_DECL_UNUSED;
+
+        std::shared_ptr<QOpenGLFramebufferObject> getFBO(QDeadlineTimer deadline = QDeadlineTimer::Forever) Q_DECL_UNUSED;
+        std::shared_ptr<QOpenGLFramebufferObject> getFBO(int64_t msecTimeout) Q_DECL_UNUSED;
+        void returnFBO(const std::shared_ptr<QOpenGLFramebufferObject> &fbo) Q_DECL_UNUSED;
 
         void operator()(QOpenGLFramebufferObject *fbo);
 
-        void returnFBO(const std::shared_ptr<QOpenGLFramebufferObject> &fbo);
-        std::shared_ptr<QOpenGLFramebufferObject> getFBO();
+    protected:
+        void allocateNewFBOs(size_t count);
 
     private:
-        void allocateNewFBOs(int count);
-
-        static void destroy(FBOPool *pool);
-
-        std::shared_ptr<std::atomic_size_t> m_instances{};
-        std::shared_ptr<std::atomic_bool> m_destroyed{std::make_shared<std::atomic_bool>(false)};
-        bool m_dynamic;
-        QSize m_fboSize;
-        std::shared_ptr<std::mutex> m_poolMutex, m_queueMutex;
-        std::shared_ptr<std::set<std::unique_ptr<QOpenGLFramebufferObject>>> m_pool;
-        std::shared_ptr<std::queue<std::shared_ptr<QOpenGLFramebufferObject>>> m_queue;
-        std::shared_ptr<std::list<std::weak_ptr<QOpenGLFramebufferObject>>> m_usedFBOs;
-
-        std::shared_ptr<std::condition_variable> m_queueCondition;
+        std::shared_ptr<FBOPoolPrivate> m_pool;
     };
 }// namespace AVQt::common
 

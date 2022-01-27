@@ -35,7 +35,7 @@ namespace AVQt::api {
     public:
         virtual ~IOpenGLFrameMapper() = default;
         virtual void initializeGL(QOpenGLContext *shareContext) = 0;
-        virtual void enqueueFrame(AVFrame *frame) = 0;
+        virtual void enqueueFrame(const std::shared_ptr<AVFrame> &frame) = 0;
         virtual void start() = 0;
         virtual void stop() = 0;
     signals:

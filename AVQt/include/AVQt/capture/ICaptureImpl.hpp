@@ -46,8 +46,6 @@ namespace AVQt::api {
         virtual void open(const SourceClass &sourceClass) = 0;
         virtual void close() = 0;
 
-        virtual std::unique_ptr<AVFrame> nextFrame() = 0;
-
         [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
         [[nodiscard]] virtual AVPixelFormat getSwOutputFormat() const {// Defaults to getOutputFormat(), can be overridden for HW accelerated formats
             return getOutputFormat();
@@ -55,6 +53,8 @@ namespace AVQt::api {
 
         [[nodiscard]] virtual bool isHWAccel() const = 0;
         [[nodiscard]] virtual communication::VideoPadParams getVideoParams() const = 0;
+    signals:
+        virtual void frameReady(std::shared_ptr<AVFrame> frame) = 0;
     };
 }// namespace AVQt::api
 

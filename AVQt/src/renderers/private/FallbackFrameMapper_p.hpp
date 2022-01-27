@@ -24,8 +24,9 @@
 #ifndef LIBAVQT_FALLBACKFRAMEMAPPER_P_HPP
 #define LIBAVQT_FALLBACKFRAMEMAPPER_P_HPP
 
-#include <QObject>
+#include "common/FBOPool.hpp"
 #include <QMutex>
+#include <QObject>
 #include <QQueue>
 
 #include <QOffscreenSurface>
@@ -40,8 +41,15 @@ namespace AVQt {
     class FallbackFrameMapper;
     class FallbackFrameMapperPrivate {
         Q_DECLARE_PUBLIC(FallbackFrameMapper)
+    public:
+        static void destroyOffscreenSurface(QOffscreenSurface *surface);
+
+        static void destroySwsContext(SwsContext *swsContext);
+
+        static void destroyQOpenGLTexture(QOpenGLTexture *texture);
+
     private:
-        explicit FallbackFrameMapperPrivate(FallbackFrameMapper *q): q_ptr(q) {}
+        explicit FallbackFrameMapperPrivate(FallbackFrameMapper *q) : q_ptr(q) {}
 
         void bindResources();
         void releaseResources();
@@ -49,17 +57,19 @@ namespace AVQt {
 
         FallbackFrameMapper *q_ptr;
 
-        QMutex renderMutex;
-        QOffscreenSurface *surface{nullptr};
-        QOpenGLContext *context{nullptr};
-        QOpenGLTexture *texture{nullptr};
+        std::shared_ptr<common::FBOPool> fboPool{};
 
-        QOpenGLShaderProgram *program{nullptr};
+        QMutex renderMutex{};
+        std::unique_ptr<QOffscreenSurface, decltype(&destroyOffscreenSurface)> surface{nullptr, &destroyOffscreenSurface};
+        std::unique_ptr<QOpenGLContext> context{};
+        std::unique_ptr<QOpenGLTexture, decltype(&destroyQOpenGLTexture)> texture{nullptr, &destroyQOpenGLTexture};
+
+        std::unique_ptr<QOpenGLShaderProgram> program{nullptr};
         QOpenGLVertexArrayObject vao{};
         QOpenGLBuffer vbo{};
         QOpenGLBuffer ibo{};
 
-        SwsContext *pSwsContext{nullptr};
+        std::unique_ptr<SwsContext, decltype(&destroySwsContext)> pSwsContext{nullptr, &destroySwsContext};
 
         std::atomic_bool paused{false}, firstFrame{true}, running{false};
 
@@ -69,7 +79,7 @@ namespace AVQt {
         static constexpr uint RENDERQUEUE_MAX_SIZE{2};
 
         QMutex renderQueueMutex{};
-        QQueue<AVFrame*> renderQueue{};
+        QQueue<std::shared_ptr<AVFrame>> renderQueue{};
 
         friend class FallbackFrameMapper;
     };

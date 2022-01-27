@@ -106,11 +106,11 @@ set(SOURCES
         src/communication/PacketDestructor.hpp
         src/communication/PacketDestructor.cpp
 
-        src/common/FBOPool.hpp
+        include/AVQt/common/FBOPool.hpp
+        src/common/private/FBOPool_p.hpp
         src/common/FBOPool.cpp
 
-        include/AVQt/capture/ICaptureImpl.hpp
-        )
+        include/AVQt/capture/ICaptureImpl.hpp)
 set(SOURCES_LINUX
         src/decoder/VAAPIDecoderImpl.hpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp

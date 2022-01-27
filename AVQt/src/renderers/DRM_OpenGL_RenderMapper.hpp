@@ -44,12 +44,13 @@ namespace AVQt {
         void start() override;
         void stop() override;
 
-        void enqueueFrame(AVFrame *frame) override;
+        void enqueueFrame(const std::shared_ptr<AVFrame> &frame) override;
     signals:
         void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;
 
     protected:
         void run() override;
+
     private:
         void initializePlatformAPI();
         void initializeInterop();

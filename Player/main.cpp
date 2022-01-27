@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
     auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
     //    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
-    auto cc = std::make_shared<CommandConsumer>(registry);
+    //    auto cc = std::make_shared<CommandConsumer>(registry);
     //    auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     demuxer->init();
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
     renderer2->init();
     yuvrgbconverter->init();
     //    frameSaver->init();
-    cc->init();
+    //    cc->init();
     //    cc2->init();
 
     //    pgraph::network::data::APIInfo apiInfo(registry);
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
     auto encoderOutPad = encoder->getOutputPads().begin()->second;
     auto renderer1InPad = renderer1->getInputPads().begin()->second;
     auto renderer2InPad = renderer2->getInputPads().begin()->second;
-    auto ccInPad = cc->getInputPads().begin()->second;
+    //    auto ccInPad = cc->getInputPads().begin()->second;
     //    auto cc2InPad = cc2->getInputPads().begin()->second;
     auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
     auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;

@@ -39,7 +39,7 @@ namespace AVQt {
 
         void unregisterRenderer(const QString &name);
 
-        [[nodiscard]] api::IOpenGLFrameMapper *create(const QString &name);
+        [[nodiscard]] std::shared_ptr<api::IOpenGLFrameMapper> create(const QString &name);
 
         static void registerDecoder();
 

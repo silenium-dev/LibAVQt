@@ -32,6 +32,8 @@ extern "C" {
 
 #include <GL/glu.h>
 
+#include <memory>
+
 namespace AVQt {
     FallbackFrameMapper::FallbackFrameMapper(QObject *parent)
         : QThread(parent), d_ptr(new FallbackFrameMapperPrivate(this)) {
@@ -43,29 +45,27 @@ namespace AVQt {
 
         FallbackFrameMapper::stop();
 
-        d->context->makeCurrent(d->surface);
+        d->context->makeCurrent(d->surface.get());
         d->destroyResources();
         d->context->doneCurrent();
-        delete d->context;
-        delete d->surface;
         delete d_ptr;
     }
 
     void FallbackFrameMapper::initializeGL(QOpenGLContext *context) {
         Q_D(FallbackFrameMapper);
 
-        d->surface = new QOffscreenSurface();
+        d->surface.reset(new QOffscreenSurface());
         d->surface->setFormat(context->format());
         d->surface->create();
 
-        d->context = new QOpenGLContext;
+        d->context = std::make_unique<QOpenGLContext>();
         d->context->setShareContext(context);
         d->context->setFormat(context->format());
         d->context->create();
 
         auto currentContext = QOpenGLContext::currentContext();
 
-        d->context->makeCurrent(d->surface);
+        d->context->makeCurrent(d->surface.get());
 
         initializeOpenGLFunctions();
 
@@ -86,7 +86,7 @@ namespace AVQt {
         vsh.close();
         fsh.close();
 
-        d->program = new QOpenGLShaderProgram();
+        d->program = std::make_unique<QOpenGLShaderProgram>();
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
 
@@ -199,17 +199,14 @@ namespace AVQt {
             QThread::wait();
             {
                 QMutexLocker locker(&d->renderQueueMutex);
-                while (!d->renderQueue.isEmpty()) {
-                    auto frame = d->renderQueue.dequeue();
-                    av_frame_free(&frame);
-                }
+                d->renderQueue.clear();
             }
         } else {
             qWarning() << "Not running";
         }
     }
 
-    void FallbackFrameMapper::enqueueFrame(AVFrame *frame) {
+    void FallbackFrameMapper::enqueueFrame(const std::shared_ptr<AVFrame> &frame) {
         Q_D(FallbackFrameMapper);
 
         if (!frame) {
@@ -240,40 +237,39 @@ namespace AVQt {
 
             QMutexLocker renderLock(&d->renderMutex);
             if (!d->running) {
-                av_frame_free(&hwFrame);
                 break;
             }
 
-            AVFrame *swFrame;
+            std::shared_ptr<AVFrame> swFrame{nullptr, [](AVFrame *frame) {
+                                                 if (frame) {
+                                                     av_frame_free(&frame);
+                                                 }
+                                             }};
             if (hwFrame->hw_frames_ctx) {
-                swFrame = av_frame_alloc();
+                swFrame.reset(av_frame_alloc());
                 if (!swFrame) {
                     qWarning() << "Failed to allocate frame";
                     continue;
                 }
-                if (0 != av_hwframe_transfer_data(swFrame, hwFrame, 0)) {
+                if (0 != av_hwframe_transfer_data(swFrame.get(), hwFrame.get(), 0)) {
                     qWarning() << "Failed to transfer frame data";
-                    av_frame_free(&swFrame);
-                    av_frame_free(&hwFrame);
                     continue;
                 }
                 swFrame->pts = hwFrame->pts;
                 swFrame->width = hwFrame->width;
                 swFrame->height = hwFrame->height;
-                av_frame_free(&hwFrame);
             } else {
                 swFrame = hwFrame;
             }
 
             if (!d->pSwsContext) {
-                d->pSwsContext = sws_getContext(swFrame->width, swFrame->height,
-                                                (AVPixelFormat) swFrame->format,
-                                                swFrame->width, swFrame->height,
-                                                AV_PIX_FMT_BGRA,
-                                                0, nullptr, nullptr, nullptr);
+                d->pSwsContext.reset(sws_getContext(swFrame->width, swFrame->height,
+                                                    (AVPixelFormat) swFrame->format,
+                                                    swFrame->width, swFrame->height,
+                                                    AV_PIX_FMT_BGRA,
+                                                    0, nullptr, nullptr, nullptr));
                 if (!d->pSwsContext) {
                     qWarning() << "Failed to create sws context";
-                    av_frame_free(&swFrame);
                     continue;
                 }
             }
@@ -303,39 +299,37 @@ namespace AVQt {
             //                    continue;
             //            }
 
-            AVFrame *frame = av_frame_alloc();
+            std::shared_ptr<AVFrame> frame{av_frame_alloc(), [](AVFrame *frame) {
+                                               if (frame) {
+                                                   av_frame_free(&frame);
+                                               }
+                                           }};
             if (!frame) {
                 qWarning() << "Failed to allocate frame";
-                av_frame_free(&swFrame);
                 continue;
             }
             frame->width = swFrame->width;
             frame->height = swFrame->height;
             frame->format = AV_PIX_FMT_BGRA;
             frame->pts = swFrame->pts;
-            if (av_frame_get_buffer(frame, 1) < 0) {
+            if (av_frame_get_buffer(frame.get(), 1) < 0) {
                 qWarning() << "Failed to allocate frame buffer";
-                av_frame_free(&frame);
-                av_frame_free(&swFrame);
                 continue;
             }
             int ret;
-            if ((ret = sws_scale(d->pSwsContext, swFrame->data, swFrame->linesize, 0, swFrame->height,
+            if ((ret = sws_scale(d->pSwsContext.get(), swFrame->data, swFrame->linesize, 0, swFrame->height,
                                  frame->data, frame->linesize)) < 0) {
                 char strBuf[256];
                 qWarning() << "Failed to scale frame:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
-                av_frame_free(&frame);
-                av_frame_free(&swFrame);
                 continue;
             }
-            av_frame_free(&swFrame);
 
             //            QImage(frame->data[0], frame->width, frame->height, pixelType == QOpenGLTexture::UInt8 ? QImage::Format_ARGB32 : QImage::Format_RGBA64).save(QString("%1.png").arg(frame->pts));
 
-            d->context->makeCurrent(d->surface);
+            d->context->makeCurrent(d->surface.get());
 
             if (!d->texture) {
-                d->texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                d->texture.reset(new QOpenGLTexture(QOpenGLTexture::Target2D));
                 d->texture->setFormat(textureFormat);
                 d->texture->setSize(frame->width, frame->height);
                 d->texture->setAutoMipMapGenerationEnabled(false);
@@ -343,12 +337,19 @@ namespace AVQt {
                 d->texture->setMagnificationFilter(QOpenGLTexture::Linear);
                 d->texture->setWrapMode(QOpenGLTexture::ClampToEdge);
                 d->texture->allocateStorage();
+
+                d->fboPool = std::make_unique<common::FBOPool>(QSize(frame->width, frame->height), false, 4);
             }
 
             d->texture->bind(0);
             d->texture->setData(QOpenGLTexture::BGRA, pixelType, const_cast<const uint8_t *>(frame->data[0]));
 
-            std::shared_ptr<QOpenGLFramebufferObject> fbo = std::make_shared<QOpenGLFramebufferObject>(frame->width, frame->height, QOpenGLFramebufferObject::CombinedDepthStencil);
+            auto fbo = d->fboPool->getFBO(1000);
+            if (!fbo) {
+                qWarning() << "Failed to get FBO";
+                continue;
+            }
+
             fbo->bind();
 
             glViewport(0, 0, frame->width, frame->height);
@@ -362,9 +363,8 @@ namespace AVQt {
             fbo->release();
             d->context->doneCurrent();
             renderLock.unlock();
-            emit frameReady(frame->pts, std::move(fbo));
+            emit frameReady(frame->pts, fbo);
             qDebug("Frame ready");
-            av_frame_free(&frame);
         }
     }
 
@@ -384,8 +384,7 @@ namespace AVQt {
     }
 
     void FallbackFrameMapperPrivate::destroyResources() {
-        delete program;
-        program = nullptr;
+        program.reset();
 
         if (ibo.isCreated()) {
             ibo.destroy();
@@ -397,10 +396,29 @@ namespace AVQt {
             vao.destroy();
         }
 
+        texture.reset();
+
+        fboPool.reset();
+    }
+
+    void FallbackFrameMapperPrivate::destroyOffscreenSurface(QOffscreenSurface *surface) {
+        if (surface) {
+            surface->destroy();
+            delete surface;
+        }
+    }
+
+    void FallbackFrameMapperPrivate::destroySwsContext(SwsContext *swsContext) {
+        if (swsContext) {
+            sws_freeContext(swsContext);
+            swsContext = nullptr;
+        }
+    }
+
+    void FallbackFrameMapperPrivate::destroyQOpenGLTexture(QOpenGLTexture *texture) {
         if (texture) {
             texture->destroy();
             delete texture;
-            texture = nullptr;
         }
     }
 }// namespace AVQt

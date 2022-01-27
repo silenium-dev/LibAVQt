@@ -25,6 +25,8 @@
 #define LIBAVQT_FALLBACKFRAMEMAPPER_HPP
 
 #include "renderers/IOpenGLFrameMapper.hpp"
+#include "renderers/private/FallbackFrameMapper_p.hpp"
+
 
 namespace AVQt {
     class FallbackFrameMapperPrivate;
@@ -41,7 +43,7 @@ namespace AVQt {
         void start() override;
         void stop() override;
 
-        void enqueueFrame(AVFrame *frame) override;
+        void enqueueFrame(const std::shared_ptr<AVFrame> &frame) override;
 
     signals:
         void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;

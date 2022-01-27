@@ -37,23 +37,24 @@ namespace AVQt {
         Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
     public:
         Q_INVOKABLE explicit VAAPIOpenGLRenderMapper(QObject *parent = nullptr);
-        ~VAAPIOpenGLRenderMapper() override;
+        ~VAAPIOpenGLRenderMapper() Q_DECL_OVERRIDE;
 
-        void initializeGL(QOpenGLContext *shareContext) override;
-        void enqueueFrame(AVFrame *frame) override;
+        void initializeGL(QOpenGLContext *shareContext) Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        void enqueueFrame(const std::shared_ptr<AVFrame> &frame) Q_DECL_OVERRIDE Q_DECL_UNUSED;
 
-        void start() override;
-        void stop() override;
+        void start() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        void stop() Q_DECL_OVERRIDE Q_DECL_UNUSED;
     signals:
-        void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) override;
+        void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) Q_DECL_OVERRIDE;
 
     protected:
-        void run() override;
+        void run() Q_DECL_OVERRIDE;
+
     private:
         void initializePlatformAPI();
         void initializeInterop();
         void mapFrame();
-        VAAPIOpenGLRenderMapperPrivate *d_ptr;
+        std::unique_ptr<VAAPIOpenGLRenderMapperPrivate> d_ptr;
     };
 }// namespace AVQt
 

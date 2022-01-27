@@ -87,7 +87,7 @@ void OpenGLWidgetRenderer::consume(int64_t pad, std::shared_ptr<pgraph::api::Dat
             case AVQt::communication::Message::Action::DATA: {
                 if (d->mapper) {
                     auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
-                    d->mapper->enqueueFrame(av_frame_clone(frame.get()));
+                    d->mapper->enqueueFrame(frame);
                 }
                 break;
             }
@@ -112,7 +112,7 @@ void OpenGLWidgetRenderer::initializeGL() {
 
     // clang-format off
     // Preserve normalized form of Qt SIGNAL/SLOT macro
-    connect(dynamic_cast<QObject *>(d->mapper), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),
+    connect(std::dynamic_pointer_cast<QObject>(d->mapper).get(), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),
             this, SLOT(onFrameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)));
     // clang-format on
     d->blitter = new QOpenGLTextureBlitter;
@@ -193,8 +193,7 @@ void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {
     d->currentFrame = {};
     if (d->mapper) {
         d->mapper->stop();
-        delete d->mapper;
-        d->mapper = nullptr;
+        d->mapper.reset();
     }
     QWidget::closeEvent(event);
 }

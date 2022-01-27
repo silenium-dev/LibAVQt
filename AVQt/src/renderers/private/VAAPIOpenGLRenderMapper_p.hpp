@@ -50,6 +50,9 @@ namespace AVQt {
     class VAAPIOpenGLRenderMapper;
     class VAAPIOpenGLRenderMapperPrivate {
         Q_DECLARE_PUBLIC(VAAPIOpenGLRenderMapper)
+    public:
+        static void destroyOffscreenSurface(QOffscreenSurface *surface);
+
     private:
         explicit VAAPIOpenGLRenderMapperPrivate(VAAPIOpenGLRenderMapper *q) : q_ptr(q) {}
 
@@ -60,15 +63,15 @@ namespace AVQt {
         VAAPIOpenGLRenderMapper *q_ptr;
 
         QMutex currentFrameMutex{};
-        AVFrame *currentFrame{nullptr};
+        std::shared_ptr<AVFrame> currentFrame{};
 
-        QOpenGLContext *context{nullptr};
-        QOffscreenSurface *surface{nullptr};
+        std::unique_ptr<QOpenGLContext> context{};
+        std::unique_ptr<QOffscreenSurface, decltype(&destroyOffscreenSurface)> surface{nullptr, &destroyOffscreenSurface};
         QThread *afterStopThread{nullptr};
 
-        std::unique_ptr<common::FBOPool> fboPool;
+        std::unique_ptr<common::FBOPool> fboPool{};
 
-        QOpenGLShaderProgram *program{nullptr};
+        std::unique_ptr<QOpenGLShaderProgram> program{};
         QOpenGLVertexArrayObject vao{};
         QOpenGLBuffer vbo{};
         QOpenGLBuffer ibo{};
@@ -76,12 +79,11 @@ namespace AVQt {
 
         QWaitCondition frameAvailable{}, frameProcessed{};
         QMutex renderQueueMutex{};
-        QQueue<QFuture<AVFrame *>> renderQueue{};
+        QQueue<std::shared_ptr<AVFrame>> renderQueue{};
 
         std::atomic_bool running{false}, firstFrame{true};
 
         VADisplay vaDisplay{};
-        AVVAAPIDeviceContext *pVAContext{nullptr};
         EGLDisplay eglDisplay{EGL_NO_DISPLAY};
         EGLImage eglImages[2]{};
 

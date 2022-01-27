@@ -39,8 +39,8 @@ namespace AVQt {
         m_renderers.remove(name);
     }
 
-    api::IOpenGLFrameMapper *OpenGLFrameMapperFactory::create(const QString &name) {
-        return qobject_cast<api::IOpenGLFrameMapper *>(m_renderers[name].newInstance());
+    std::shared_ptr<api::IOpenGLFrameMapper> OpenGLFrameMapperFactory::create(const QString &name) {
+        return std::shared_ptr<api::IOpenGLFrameMapper>{qobject_cast<api::IOpenGLFrameMapper *>(m_renderers[name].newInstance())};
     }
 
     void OpenGLFrameMapperFactory::registerDecoder() {

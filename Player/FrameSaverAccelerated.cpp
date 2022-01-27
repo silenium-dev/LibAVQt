@@ -52,7 +52,7 @@ FrameSaverAccelerated::FrameSaverAccelerated(std::shared_ptr<pgraph::network::ap
     context->makeCurrent(surface);
     initializeOpenGLFunctions();
 
-    mapper = std::unique_ptr<AVQt::api::IOpenGLFrameMapper>(AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPIOpenGLRenderMapper"));
+    mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPIOpenGLRenderMapper");
     mapper->initializeGL(context);
 
     context->doneCurrent();
@@ -107,7 +107,7 @@ void FrameSaverAccelerated::consume(int64_t pad, std::shared_ptr<pgraph::api::Da
             auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
             if (frame) {
                 qDebug("Consuming frame");
-                mapper->enqueueFrame(av_frame_clone(frame.get()));
+                mapper->enqueueFrame(frame);
             }
         } else if (message->getAction() == AVQt::communication::Message::Action::START) {
             mapper->start();

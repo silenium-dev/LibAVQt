@@ -51,7 +51,7 @@ namespace AVQt {
 
         DRM_OpenGL_RenderMapper *q_ptr;
 
-        std::shared_ptr<common::FBOPool> fboPool{};
+        std::unique_ptr<common::FBOPool> fboPool{};
 
         std::unique_ptr<QOffscreenSurface> surface{};
         std::unique_ptr<QOpenGLContext> context{};

@@ -62,11 +62,11 @@ namespace AVQt {
         }
 
         if (d->context && d->context->isValid()) {
-            d->context->makeCurrent(d->surface);
+            d->context->makeCurrent(d->surface.get());
             d->destroyResources();
             d->context->doneCurrent();
-            delete d->context;
-            delete d->surface;
+            d->context.reset();
+            d->surface.reset();
         }
     }
 
@@ -92,30 +92,25 @@ namespace AVQt {
             d->fboPool.reset();// Delete framepool to unlock waiting thread
             QThread::wait();
             QMutexLocker lock(&d->renderQueueMutex);
-            while (!d->renderQueue.empty()) {
-                auto frame = d->renderQueue.dequeue().result();
-                if (frame) {
-                    av_frame_free(&frame);
-                }
-            }
+            d->renderQueue.clear();
         }
     }
 
     void VAAPIOpenGLRenderMapper::initializeGL(QOpenGLContext *context) {
         Q_D(VAAPIOpenGLRenderMapper);
 
-        d->surface = new QOffscreenSurface();
+        d->surface = {new QOffscreenSurface(), &VAAPIOpenGLRenderMapperPrivate::destroyOffscreenSurface};
         d->surface->setFormat(context->format());
         d->surface->create();
 
-        d->context = new QOpenGLContext;
+        d->context = std::make_unique<QOpenGLContext>();
         d->context->setShareContext(context);
         d->context->setFormat(context->format());
         d->context->create();
 
         auto currentContext = QOpenGLContext::currentContext();
 
-        d->context->makeCurrent(d->surface);
+        d->context->makeCurrent(d->surface.get());
 
         initializeOpenGLFunctions();
 
@@ -138,7 +133,7 @@ namespace AVQt {
         vsh.close();
         fsh.close();
 
-        d->program = new QOpenGLShaderProgram();
+        d->program = std::make_unique<QOpenGLShaderProgram>();
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vertexShader);
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShader);
 
@@ -452,7 +447,7 @@ namespace AVQt {
         }
     }
 
-    void VAAPIOpenGLRenderMapper::enqueueFrame(AVFrame *frame) {
+    void VAAPIOpenGLRenderMapper::enqueueFrame(const std::shared_ptr<AVFrame> &frame) {
         Q_D(VAAPIOpenGLRenderMapper);
         if (frame->hw_frames_ctx) {
             auto *framesContext = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
@@ -462,35 +457,24 @@ namespace AVQt {
             if (framesContext->sw_format != AV_PIX_FMT_NV12 && framesContext->sw_format != AV_PIX_FMT_P010 && framesContext->sw_format != AV_PIX_FMT_BGRA) {
                 qFatal("[AVQt::VAAPIOpenGLRenderMapper] Invalid frame sw format");
             }
-            auto queueFrame = QtConcurrent::run(
-                    [d](AVFrame *input, AVBufferRef *pDeviceCtx) {
-                        bool shouldBe = true;
-                        if (d->firstFrame.compare_exchange_strong(shouldBe, false) && input->format == AV_PIX_FMT_VAAPI) {
-                            d->pVAContext = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(pDeviceCtx->data)->hwctx);
-                            d->vaDisplay = d->pVAContext->display;
-                        }
-                        av_buffer_unref(&pDeviceCtx);
-                        return input;
-                    },
-                    av_frame_clone(frame),
-                    av_buffer_ref(framesContext->device_ref));
+
+            bool shouldBe = true;
+            if (d->firstFrame.compare_exchange_strong(shouldBe, false) && frame->format == AV_PIX_FMT_VAAPI) {
+                auto vaContext = static_cast<AVVAAPIDeviceContext *>(framesContext->device_ctx->hwctx);
+                d->vaDisplay = vaContext->display;
+            }
 
             QMutexLocker locker(&d->renderQueueMutex);
             if (d->renderQueue.size() > 4) {
                 d->frameProcessed.wait(&d->renderQueueMutex, 200);
                 if (d->renderQueue.size() > 4 && d->running) {
                     qWarning("[AVQt::VAAPIOpenGLRenderMapper] Render queue is full, dropping frame");
-                    av_frame_free(&frame);
-                    queueFrame.waitForFinished();
-                    auto f = queueFrame.result();
-                    av_frame_free(&f);
                     return;
                 }
             }
-            d->renderQueue.enqueue(queueFrame);
+            d->renderQueue.enqueue(frame);
             d->frameAvailable.wakeOne();
         }
-        av_frame_free(&frame);
     }
     void VAAPIOpenGLRenderMapper::run() {
         Q_D(VAAPIOpenGLRenderMapper);
@@ -510,7 +494,7 @@ namespace AVQt {
                     continue;
                 }
             }
-            auto frame = d->renderQueue.dequeue().result();
+            auto frame = d->renderQueue.dequeue();
             locker.unlock();
             d->frameProcessed.notify_one();
 
@@ -519,14 +503,10 @@ namespace AVQt {
             {
                 QMutexLocker locker2(&d->currentFrameMutex);
                 firstFrame = !d->currentFrame;
-                if (d->currentFrame) {
-                    av_frame_free(&d->currentFrame);
-                }
-
                 d->currentFrame = frame;
             }
 
-            d->context->makeCurrent(d->surface);
+            d->context->makeCurrent(d->surface.get());
             if (firstFrame) {
                 initializeInterop();
                 auto format = reinterpret_cast<AVHWFramesContext *>(d->currentFrame->hw_frames_ctx->data)->sw_format;
@@ -538,14 +518,14 @@ namespace AVQt {
                 }
                 d->program->release();
 
-                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), false, 4);
+                d->fboPool = std::make_unique<common::FBOPool>(QSize(d->currentFrame->width, d->currentFrame->height), true, 4, 12);
 
                 qDebug("First frame");
             }
             mapFrame();
             qDebug("Mapped frame");
 
-            auto fbo = d->fboPool->getFBO();
+            auto fbo = d->fboPool->getFBO(1000);
             if (!fbo) {
                 qWarning("[AVQt::VAAPIOpenGLRenderMapper] Failed to getFBO FBO, exiting");
                 goto end;
@@ -601,22 +581,13 @@ namespace AVQt {
     }
 
     void VAAPIOpenGLRenderMapperPrivate::destroyResources() {
-        if (currentFrame) {
-            av_frame_free(&currentFrame);
-        }
+        currentFrame.reset();
 
         if (!renderQueue.isEmpty()) {
             QMutexLocker lock(&renderQueueMutex);
-
-            for (auto &e : renderQueue) {
-                e.waitForFinished();
-                av_frame_unref(e.result());
-            }
-
             renderQueue.clear();
         }
-        delete program;
-        program = nullptr;
+        program.reset();
 
         if (ibo.isCreated()) {
             ibo.destroy();
@@ -634,6 +605,15 @@ namespace AVQt {
                     eglDestroyImage(eglDisplay, EGLImage);
                 }
             }
+        }
+
+        fboPool.reset();
+    }
+
+    void VAAPIOpenGLRenderMapperPrivate::destroyOffscreenSurface(QOffscreenSurface *surface) {
+        if (surface) {
+            surface->destroy();
+            delete surface;
         }
     }
 }// namespace AVQt

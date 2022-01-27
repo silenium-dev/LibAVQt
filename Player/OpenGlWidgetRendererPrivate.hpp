@@ -43,7 +43,7 @@ private:
     QOpenGLTextureBlitter *blitter{nullptr};
     QQueue<QPair<int64_t, std::shared_ptr<QOpenGLFramebufferObject>>> renderQueue{};
 
-    AVQt::api::IOpenGLFrameMapper *mapper{nullptr};
+    std::shared_ptr<AVQt::api::IOpenGLFrameMapper> mapper{};
     int64_t inputPadId{pgraph::api::INVALID_PAD_ID};
     QElapsedTimer renderTimer{};
     QPair<int64_t, std::shared_ptr<QOpenGLFramebufferObject>> currentFrame{0, nullptr};
