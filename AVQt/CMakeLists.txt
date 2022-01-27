@@ -110,7 +110,7 @@ set(SOURCES
         src/common/private/FBOPool_p.hpp
         src/common/FBOPool.cpp
 
-        include/AVQt/capture/ICaptureImpl.hpp)
+        include/AVQt/capture/IVideoCaptureImpl.hpp include/AVQt/capture/VideoCapturer.hpp src/capture/VideoCapturer.cpp src/capture/private/DesktopCapturer_p.hpp src/capture/VideoCaptureFactory.cpp include/AVQt/capture/VideoCaptureFactory.hpp include/AVQt/common/Platform.hpp)
 set(SOURCES_LINUX
         src/decoder/VAAPIDecoderImpl.hpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
