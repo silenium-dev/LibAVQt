@@ -186,102 +186,59 @@ int main(int argc, char *argv[]) {
     //    decoder1InPad->link(transcoderPacketOutPad);
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
-    decoder1InPad->link(demuxerOutPad);
+    //    decoder1InPad->link(demuxerOutPad);
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
     //    yuvrgbconverterInPad->link(decoder1OutPad);
-    renderer2InPad->link(decoder1OutPad);
+    //    renderer2InPad->link(decoder1OutPad);
     //    renderer1InPad->link(yuvrgbconverterOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
     //    renderer1InPad->link(decoder1OutPad);
     //    renderer2InPad->link(decoder2OutPad);
     //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
-    demuxer->open();
-
-    renderer1->resize(1280, 720);
-    renderer2->resize(1280, 720);
-
-    demuxer->start();
+    //    demuxer->open();
+    //
+    //    renderer1->resize(1280, 720);
+    //    renderer2->resize(1280, 720);
+    //
+    //    demuxer->start();
 
     //    QTimer::singleShot(4000, [demuxer]{
     //        demuxer->pause(true);
     //        QTimer::singleShot(4000, [demuxer]{
     //            demuxer->pause(false);
-    QTimer::singleShot(15000, [renderer1, renderer2] {
-        renderer1->close();
-        renderer2->close();
-    });
+    //    QTimer::singleShot(15000, [renderer1, renderer2] {
+    //        renderer1->close();
+    //        renderer2->close();
+    //    });
     //        });
     //    });
 
-    QObject::connect(app, &QApplication::aboutToQuit, [demuxer] {
-        demuxer->close();
+    AVQt::api::IDesktopCaptureImpl::Config config{};
+    config.fps = 1;
+    config.sourceClass = AVQt::api::IDesktopCaptureImpl::SourceClass::Screen;
+    auto capturer = std::make_shared<AVQt::DesktopCapturer>(config, registry);
+    auto cc = std::make_shared<CommandConsumer>(registry);
+
+    capturer->init();
+    cc->init();
+
+    auto ccInPad = cc->getInputPads().begin()->second;
+    auto capturerOutPad = capturer->getOutputPads().begin()->second;
+
+    ccInPad->link(capturerOutPad);
+
+    capturer->open();
+    capturer->start();
+
+    QObject::connect(app, &QApplication::aboutToQuit, [capturer] {
+        capturer->close();
     });
-    //    demuxer->pause(true);
-    //    demuxer->close();
+
+    QTimer::singleShot(15000, [] {
+        QApplication::quit();
+    });
 
     return QApplication::exec();
-    //    AVQt::AudioDecoder decoder;
-    //    AVQt::OpenALAudioOutput output;
-
-    //    demuxer->registerCallback(&decoder, AVQt::IPacketSource::CB_AUDIO);
-    //    decoder.registerCallback(&output);
-
-    //    AVQt::IDecoderOld *videoDecoder = nullptr;
-    //    AVQt::IEncoder *videoEncoder = nullptr;
-    //#ifdef Q_OS_LINUX
-    //    videoDecoder = new AVQt::VideoDecoder;
-    //#elif defined(Q_OS_WINDOWS)
-    //    videoDecoder = new AVQt::DecoderD3D11VA();
-    ////    videoEncoder = new AVQt::EncoderQSV(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
-    //#else
-    //#error "Unsupported OS"
-    //#endif
-    //    auto renderer = new AVQt::OpenGLWidgetRenderer;
-    //
-    //    demuxer->registerCallback(videoDecoder, AVQt::IPacketSource::CB_VIDEO);
-    ////    QObject::connect(&renderer, &AVQt::OpenGLRendererOld::frameProcessingStarted, &output, &AVQt::OpenALAudioOutput::enqueueAudioForFrame);
-    //#ifdef ENABLE_QSV_ENCODE
-    //    videoEncoder = new AVQt::EncoderVAAPI(AVQt::IEncoder::CODEC::HEVC, 10 * 1000 * 1000);
-    //    videoDecoder->registerCallback(videoEncoder);
-    //#endif
-    //    //    QFile outputFile("output.mp4");
-    //    //    outputFile.open(QIODevice::ReadWrite | QIODevice::Truncate);
-    //    //    outputFile.seek(0);
-    //    //    AVQt::Muxer muxer(&outputFile, AVQt::Muxer::FORMAT::MP4);
-    //
-    //    //    videoEncoder->registerCallback(&muxer, AVQt::IPacketSource::CB_VIDEO);
-    //    videoDecoder->registerCallback(renderer->getFrameSink());
-    //
-    //    renderer->setMinimumSize(QSize(360, 240));
-    //    renderer->setAttribute(Qt::WA_QuitOnClose);
-    //    renderer->setQuitOnClose(true);
-    //    renderer->showNormal();
-    //
-    //    //    QObject::connect(&renderer, &AVQt::OpenGLRendererOld::paused, [&](bool paused) {
-    //    //        output.pause(nullptr, paused);
-    //    //    });
-    //    //    QObject::connect(&renderer, &AVQt::OpenGLRendererOld::started, [&]() {
-    //    //        output.start(nullptr);
-    //    //    });
-    //
-    //    demuxer->open();
-    //
-    //    //    output.syncToOutput(renderer->getFrameSink());
-    //    //    QObject::connect(renderer->getFrameSink(), &AVQt::OpenGLRendererOld::paused, demuxer, &AVQt::Demuxer::pause);
-    //
-    //    demuxer->start();
-    //
-    //    QObject::connect(app, &QApplication::aboutToQuit, [demuxer, videoDecoder, videoEncoder, renderer] {
-    //        demuxer->stop();
-    //        demuxer->close();
-    //        renderer->getFrameSink()->stop(videoDecoder);
-    //        //        muxer.close(videoEncoder);
-    //        delete renderer;
-    //        delete videoEncoder;
-    //        delete videoDecoder;
-    //    });
-
-    //    return QApplication::exec();
 }

@@ -13,6 +13,7 @@ namespace AVQt::common {
         MacOS,
         Android,
         iOS,
+        All,
         Unknown
     };
 }

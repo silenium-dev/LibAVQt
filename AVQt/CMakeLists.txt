@@ -110,7 +110,7 @@ set(SOURCES
         src/common/private/FBOPool_p.hpp
         src/common/FBOPool.cpp
 
-        include/AVQt/capture/IVideoCaptureImpl.hpp include/AVQt/capture/VideoCapturer.hpp src/capture/VideoCapturer.cpp src/capture/private/DesktopCapturer_p.hpp src/capture/VideoCaptureFactory.cpp include/AVQt/capture/VideoCaptureFactory.hpp include/AVQt/common/Platform.hpp)
+        include/AVQt/capture/IDesktopCaptureImpl.hpp include/AVQt/capture/DesktopCapturer.hpp src/capture/DesktopCapturer.cpp src/capture/private/DesktopCapturer_p.hpp src/capture/DesktopCaptureFactory.cpp include/AVQt/capture/DesktopCaptureFactory.hpp include/AVQt/common/Platform.hpp src/capture/DummyDesktopCaptureImpl.cpp src/capture/DummyDesktopCaptureImpl.hpp)
 set(SOURCES_LINUX
         src/decoder/VAAPIDecoderImpl.hpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp

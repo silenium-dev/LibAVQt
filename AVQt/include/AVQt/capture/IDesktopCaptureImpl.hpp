@@ -21,8 +21,8 @@
 // Created by silas on 25.01.22.
 //
 
-#ifndef LIBAVQT_IVIDEOCAPTUREIMPL_HPP
-#define LIBAVQT_IVIDEOCAPTUREIMPL_HPP
+#ifndef LIBAVQT_IDESKTOPCAPTUREIMPL_HPP
+#define LIBAVQT_IDESKTOPCAPTUREIMPL_HPP
 
 #include "communication/VideoPadParams.hpp"
 
@@ -34,7 +34,7 @@ extern "C" {
 }
 
 namespace AVQt::api {
-    class IVideoCaptureImpl {
+    class IDesktopCaptureImpl {
     public:
         enum class SourceClass {
             Screen,
@@ -45,9 +45,10 @@ namespace AVQt::api {
             SourceClass sourceClass{SourceClass::Any};
             int fps{30};
         };
-        virtual ~IVideoCaptureImpl() = default;
+        virtual ~IDesktopCaptureImpl() = default;
 
-        virtual void open(const Config &config) = 0;
+        virtual bool open(const Config &config) = 0;
+        virtual bool start() = 0;
         virtual void close() = 0;
 
         [[nodiscard]] virtual AVPixelFormat getOutputFormat() const = 0;
@@ -62,6 +63,6 @@ namespace AVQt::api {
     };
 }// namespace AVQt::api
 
-Q_DECLARE_INTERFACE(AVQt::api::IVideoCaptureImpl, "AVQt.api.IVideoCaptureImpl")
+Q_DECLARE_INTERFACE(AVQt::api::IDesktopCaptureImpl, "AVQt.api.IDesktopCaptureImpl")
 
-#endif//LIBAVQT_IVIDEOCAPTUREIMPL_HPP
+#endif//LIBAVQT_IDESKTOPCAPTUREIMPL_HPP

@@ -2,17 +2,22 @@
 // Created by silas on 27.01.22.
 //
 
-#include "capture/VideoCaptureFactory.hpp"
+#include "capture/DesktopCaptureFactory.hpp"
+#include "capture/IDesktopCaptureImpl.hpp"
+
+#include "DummyDesktopCaptureImpl.hpp"
+
+#include "global.hpp"
 
 #include <QtCore>
 
 namespace AVQt {
-    VideoCaptureFactory &VideoCaptureFactory::getInstance() {
-        static VideoCaptureFactory instance;
+    DesktopCaptureFactory &DesktopCaptureFactory::getInstance() {
+        static DesktopCaptureFactory instance;
         return instance;
     }
 
-    bool VideoCaptureFactory::registerCapture(const CaptureImplInfo &info) {
+    bool DesktopCaptureFactory::registerCapture(const CaptureImplInfo &info) {
         QMutexLocker locker(&m_mutex);
         if (m_captureImpls.contains(info.name)) {
             return false;
@@ -21,12 +26,12 @@ namespace AVQt {
         return true;
     }
 
-    bool VideoCaptureFactory::unregisterCapture(const QString &name) {
+    bool DesktopCaptureFactory::unregisterCapture(const QString &name) {
         QMutexLocker locker(&m_mutex);
         return m_captureImpls.remove(name);
     }
 
-    bool VideoCaptureFactory::isCaptureAvailable(common::Platform platform) {
+    bool DesktopCaptureFactory::isCaptureAvailable(common::Platform platform) {
         QMutexLocker locker(&m_mutex);
         return std::find_if(m_captureImpls.begin(), m_captureImpls.end(),
                             [platform](const CaptureImplInfo &info) {
@@ -34,7 +39,7 @@ namespace AVQt {
                             }) != m_captureImpls.end();
     }
 
-    std::shared_ptr<api::IVideoCaptureImpl> VideoCaptureFactory::createCapture(const QString &name) {
+    std::shared_ptr<api::IDesktopCaptureImpl> DesktopCaptureFactory::createCapture(const QString &name) {
         QMutexLocker locker(&m_mutex);
         if (m_captureImpls.isEmpty()) {
             return {};
@@ -72,6 +77,11 @@ namespace AVQt {
             }
         }
 #endif
+        for (auto &info : m_captureImpls) {
+            if (info.platform == common::Platform::All) {
+                impls.append(info);
+            }
+        }
 
         if (impls.isEmpty()) {
             return {};
@@ -93,6 +103,18 @@ namespace AVQt {
         }
 
         QObject *obj = metaObject.newInstance();
-        return std::shared_ptr<api::IVideoCaptureImpl>(qobject_cast<api::IVideoCaptureImpl *>(obj));
+        auto impl = qobject_cast<AVQt::api::IDesktopCaptureImpl *>(obj);
+        return std::shared_ptr<api::IDesktopCaptureImpl>(impl);
+    }
+
+    void DesktopCaptureFactory::registerCaptures() {
+        static std::atomic_bool registered{false};
+        bool shouldBe = false;
+        if (registered.compare_exchange_strong(shouldBe, true)) {
+            // Register capture implementations
+            getInstance().registerCapture({.metaObject = DummyDesktopCaptureImpl::staticMetaObject,
+                                           .name = "AVQt::DesktopCapture",
+                                           .platform = common::Platform::All});
+        }
     }
 }// namespace AVQt

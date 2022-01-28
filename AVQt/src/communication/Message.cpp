@@ -92,6 +92,10 @@ namespace AVQt::communication {
                 return "PAUSE";
             case DATA:
                 return "DATA";
+            case RESET:
+                return "RESET";
+            case RESIZE:
+                return "RESIZE";
             case NONE:
                 return "NONE";
             default:
@@ -125,4 +129,4 @@ namespace AVQt::communication {
     Message::Action::operator Enum() {
         return m_action;
     }
-}// namespace AVQt
+}// namespace AVQt::communication

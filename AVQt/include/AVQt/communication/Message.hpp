@@ -42,6 +42,8 @@ namespace AVQt::communication {
                 START,
                 STOP,
                 PAUSE,
+                RESIZE,
+                RESET,
                 DATA,
                 NONE
             };

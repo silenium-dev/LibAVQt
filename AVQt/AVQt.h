@@ -38,6 +38,10 @@
 #include <AVQt/renderers/IOpenGLFrameMapper.hpp>
 #include <AVQt/renderers/OpenGLFrameMapperFactory.hpp>
 
+#include <AVQt/capture/DesktopCaptureFactory.hpp>
+#include <AVQt/capture/DesktopCapturer.hpp>
+#include <AVQt/capture/IDesktopCaptureImpl.hpp>
+
 #ifdef QT_DEBUG
 #include <AVQt/debug/CommandConsumer.hpp>
 #endif
