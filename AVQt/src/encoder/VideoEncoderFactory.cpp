@@ -22,7 +22,7 @@
 //
 
 #include "AVQt/encoder/VideoEncoderFactory.hpp"
-#include "AVQt/encoder/VAAPIEncoderImpl.hpp"
+#include "VAAPIEncoderImpl.hpp"
 
 #include <QtDebug>
 

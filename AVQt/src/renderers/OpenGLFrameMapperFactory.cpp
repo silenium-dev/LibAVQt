@@ -22,8 +22,8 @@
 //
 
 #include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
-#include "AVQt/renderers/FallbackFrameMapper.hpp"
-#include "AVQt/renderers/VAAPIOpenGLRenderMapper.hpp"
+#include "FallbackFrameMapper.hpp"
+#include "VAAPIOpenGLRenderMapper.hpp"
 
 namespace AVQt {
     OpenGLFrameMapperFactory &OpenGLFrameMapperFactory::getInstance() {

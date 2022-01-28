@@ -24,8 +24,8 @@
 #ifndef LIBAVQT_VAAPIENCODERIMPL_P_HPP
 #define LIBAVQT_VAAPIENCODERIMPL_P_HPP
 
-#include "AVQt/communication/PacketDestructor.hpp"
-#include "AVQt/encoder/VAAPIEncoderImpl.hpp"
+#include "communication/PacketDestructor.hpp"
+#include "encoder/VAAPIEncoderImpl.hpp"
 
 #include <QtCore>
 #include <queue>

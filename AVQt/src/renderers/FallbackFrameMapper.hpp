@@ -25,7 +25,7 @@
 #define LIBAVQT_FALLBACKFRAMEMAPPER_HPP
 
 #include "AVQt/renderers/IOpenGLFrameMapper.hpp"
-#include "AVQt/renderers/private/FallbackFrameMapper_p.hpp"
+#include "private/FallbackFrameMapper_p.hpp"
 
 
 namespace AVQt {

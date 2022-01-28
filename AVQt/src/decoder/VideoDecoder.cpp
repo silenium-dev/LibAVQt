@@ -22,7 +22,7 @@
 #include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
 #include "AVQt/decoder/VideoDecoderFactory.hpp"
-#include "AVQt/decoder/private/VideoDecoder_p.hpp"
+#include "private/VideoDecoder_p.hpp"
 #include "global.hpp"
 
 #include <pgraph/api/Data.hpp>
