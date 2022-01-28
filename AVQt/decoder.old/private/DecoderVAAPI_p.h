@@ -22,7 +22,7 @@
  * \internal
  */
 
-#include "decoder/Decoder.h"
+#include "AVQt/decoder/Decoder.h"
 
 extern "C" {
 #include <libavutil/frame.h>

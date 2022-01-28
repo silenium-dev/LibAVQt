@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_VAAPIYUVTORGBMAPPER_HPP
 #define LIBAVQT_VAAPIYUVTORGBMAPPER_HPP
 
-#include "communication/IComponent.hpp"
+#include "AVQt/communication/IComponent.hpp"
 #include "pgraph/api/Data.hpp"
 #include "pgraph/impl/SimpleProcessor.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"

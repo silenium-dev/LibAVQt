@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP
 #define LIBAVQT_VAAPIOPENGLRENDERMAPPER_P_HPP
 
-#include "common/FBOPool.hpp"
+#include "AVQt/common/FBOPool.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

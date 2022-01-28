@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_VIDEODECODERFACTORY_HPP
 #define LIBAVQT_VIDEODECODERFACTORY_HPP
 
-#include "decoder/IVideoDecoderImpl.hpp"
+#include "AVQt/decoder/IVideoDecoderImpl.hpp"
 
 #include <QMap>
 #include <string>

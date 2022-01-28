@@ -18,7 +18,7 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "output/IPacketSink.h"
-#include "input/IAudioSource.h"
+#include "AVQt/input/IAudioSource.h"
 
 #include <QThread>
 

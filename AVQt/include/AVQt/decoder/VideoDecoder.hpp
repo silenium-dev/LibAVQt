@@ -17,8 +17,8 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "communication/IComponent.hpp"
-#include "decoder/IVideoDecoderImpl.hpp"
+#include "AVQt/communication/IComponent.hpp"
+#include "AVQt/decoder/IVideoDecoderImpl.hpp"
 
 #include <QtCore>
 #include <QtGui>

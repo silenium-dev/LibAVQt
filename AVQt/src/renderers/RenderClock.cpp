@@ -17,8 +17,8 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "renderers/RenderClock.hpp"
-#include "renderers/private/RenderClock_p.hpp"
+#include "AVQt/renderers/RenderClock.hpp"
+#include "AVQt/renderers/private/RenderClock_p.hpp"
 
 namespace AVQt {
     RenderClock::RenderClock(QObject *parent) : QObject(parent), d_ptr(new RenderClockPrivate(this)) {

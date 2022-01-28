@@ -22,7 +22,7 @@
  * \internal
  */
 
-#include "decoder/DecoderMMAL.h"
+#include "AVQt/decoder/DecoderMMAL.h"
 
 extern "C" {
 #include <libavutil/rational.h>

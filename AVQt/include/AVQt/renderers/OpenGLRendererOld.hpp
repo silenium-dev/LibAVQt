@@ -19,7 +19,7 @@
 
 #include "output/IFrameSink.hpp"
 #include <QtOpenGL>
-#include "input/IFrameSource.hpp"
+#include "AVQt/input/IFrameSource.hpp"
 
 extern "C" {
 #include <libavutil/rational.h>

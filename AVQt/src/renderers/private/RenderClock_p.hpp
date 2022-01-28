@@ -17,7 +17,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "renderers/RenderClock.hpp"
+#include "AVQt/renderers/RenderClock.hpp"
 
 #ifndef LIBAVQT_RENDERCLOCK_P_H
 #define LIBAVQT_RENDERCLOCK_P_H

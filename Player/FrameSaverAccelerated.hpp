@@ -25,8 +25,8 @@
 #define LIBAVQT_FRAMESAVERACCELERATED_HPP
 
 #include <pgraph/impl/SimpleConsumer.hpp>
-#include "renderers/OpenGLFrameMapperFactory.hpp"
-#include "renderers/IOpenGLFrameMapper.hpp"
+#include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"
 
 #include <QtOpenGL>

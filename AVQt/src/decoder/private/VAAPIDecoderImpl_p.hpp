@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_VAAPIDECODERIMPL_P_HPP
 #define LIBAVQT_VAAPIDECODERIMPL_P_HPP
 
-#include "communication/FrameDestructor.hpp"
+#include "AVQt/communication/FrameDestructor.hpp"
 
 #include <QMutex>
 #include <QQueue>

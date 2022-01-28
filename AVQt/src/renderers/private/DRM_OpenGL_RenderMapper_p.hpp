@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_DRM_OPENGL_RENDERMAPPER_P_HPP
 #define LIBAVQT_DRM_OPENGL_RENDERMAPPER_P_HPP
 
-#include "common/FBOPool.hpp"
+#include "AVQt/common/FBOPool.hpp"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>

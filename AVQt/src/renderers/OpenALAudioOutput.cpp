@@ -17,9 +17,9 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "renderers/OpenALAudioOutput.hpp"
-#include "renderers/private/OpenALAudioOutput_p.hpp"
-#include "renderers/private/OpenALErrorHandler.hpp"
+#include "AVQt/renderers/OpenALAudioOutput.hpp"
+#include "AVQt/renderers/private/OpenALAudioOutput_p.hpp"
+#include "AVQt/renderers/private/OpenALErrorHandler.hpp"
 #include "output/IFrameSink.hpp"
 
 extern "C" {

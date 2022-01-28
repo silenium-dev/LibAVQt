@@ -18,7 +18,7 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "private/EncoderQSV_p.hpp"
-#include "encoder/EncoderQSV.hpp"
+#include "AVQt/encoder/EncoderQSV.hpp"
 
 #include "output/IPacketSink.hpp"
 

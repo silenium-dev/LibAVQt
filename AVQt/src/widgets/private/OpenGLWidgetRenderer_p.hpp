@@ -20,7 +20,7 @@
 #ifndef LIBAVQT_OPENGLWIDGETRENDERER__H
 #define LIBAVQT_OPENGLWIDGETRENDERER__H
 
-#include "renderers/OpenGLRendererOld.hpp"
+#include "AVQt/renderers/OpenGLRendererOld.hpp"
 #include "widgets/OpenGLWidgetRenderer.hpp"
 
 #include <QMutex>

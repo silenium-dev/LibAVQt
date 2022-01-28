@@ -18,7 +18,7 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "OpenGLRenderer.hpp"
-#include "renderers/private/OpenGLRendererOld_p.hpp"
+#include "AVQt/renderers/private/OpenGLRendererOld_p.hpp"
 
 #ifdef Q_OS_LINUX
 

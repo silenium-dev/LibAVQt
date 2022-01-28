@@ -21,9 +21,9 @@
 // Created by silas on 15.12.21.
 //
 
-#include "renderers/OpenGLFrameMapperFactory.hpp"
-#include "renderers/FallbackFrameMapper.hpp"
-#include "renderers/VAAPIOpenGLRenderMapper.hpp"
+#include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
+#include "AVQt/renderers/FallbackFrameMapper.hpp"
+#include "AVQt/renderers/VAAPIOpenGLRenderMapper.hpp"
 
 namespace AVQt {
     OpenGLFrameMapperFactory &OpenGLFrameMapperFactory::getInstance() {

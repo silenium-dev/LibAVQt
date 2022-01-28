@@ -5,7 +5,7 @@
 #ifndef LIBAVQT_DUMMYDESKTOPCAPTUREIMPL_HPP
 #define LIBAVQT_DUMMYDESKTOPCAPTUREIMPL_HPP
 
-#include "capture/IDesktopCaptureImpl.hpp"
+#include "AVQt/capture/IDesktopCaptureImpl.hpp"
 
 #include <QObject>
 #include <QTimer>

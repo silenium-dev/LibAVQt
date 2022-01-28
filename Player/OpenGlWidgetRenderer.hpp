@@ -24,8 +24,8 @@
 #ifndef LIBAVQT_OPENGLWIDGETRENDERER_HPP
 #define LIBAVQT_OPENGLWIDGETRENDERER_HPP
 
-#include "communication/IComponent.hpp"
-#include "renderers/IOpenGLFrameMapper.hpp"
+#include "AVQt/communication/IComponent.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 #include "OpenGlWidgetRendererPrivate.hpp"
 
 #include <QtOpenGL>

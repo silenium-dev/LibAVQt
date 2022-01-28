@@ -5,7 +5,7 @@
 #ifndef LIBAVQT_DESKTOPCAPTURER_P_HPP
 #define LIBAVQT_DESKTOPCAPTURER_P_HPP
 
-#include "capture/IDesktopCaptureImpl.hpp"
+#include "AVQt/capture/IDesktopCaptureImpl.hpp"
 
 #include <QObject>
 #include <pgraph/api/Pad.hpp>

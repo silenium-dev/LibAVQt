@@ -17,7 +17,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "communication/Message.hpp"
+#include "AVQt/communication/Message.hpp"
 
 #include <boost/uuid/string_generator.hpp>
 #include <utility>

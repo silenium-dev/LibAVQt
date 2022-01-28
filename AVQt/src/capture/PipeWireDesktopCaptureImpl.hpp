@@ -6,7 +6,7 @@
 #define LIBAVQT_PIPEWIREDESKTOPCAPTUREIMPL_HPP
 
 #include "ScreenCapture/pipewire/PipeWireCapturer.hpp"
-#include "capture/IDesktopCaptureImpl.hpp"
+#include "AVQt/capture/IDesktopCaptureImpl.hpp"
 
 #include <QObject>
 

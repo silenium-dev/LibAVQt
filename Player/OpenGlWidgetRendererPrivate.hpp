@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP
 #define LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP
 
-#include "renderers/IOpenGLFrameMapper.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 #include <QObject>
 #include <QtOpenGL>
 #include <pgraph/api/PadFactory.hpp>

@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_IVIDEOENCODERIMPL_HPP
 #define LIBAVQT_IVIDEOENCODERIMPL_HPP
 
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

@@ -21,7 +21,7 @@
 // Created by silas on 23.01.22.
 //
 
-#include "common/FBOPool.hpp"
+#include "AVQt/common/FBOPool.hpp"
 #include "private/FBOPool_p.hpp"
 
 #include <QtDebug>

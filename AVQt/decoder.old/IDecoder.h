@@ -17,7 +17,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "input/IFrameSource.h"
+#include "AVQt/input/IFrameSource.h"
 #include "output/IPacketSink.h"
 
 #ifndef LIBAVQT_DECODER_H

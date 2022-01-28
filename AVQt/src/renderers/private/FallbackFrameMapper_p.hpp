@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_FALLBACKFRAMEMAPPER_P_HPP
 #define LIBAVQT_FALLBACKFRAMEMAPPER_P_HPP
 
-#include "common/FBOPool.hpp"
+#include "AVQt/common/FBOPool.hpp"
 #include <QMutex>
 #include <QObject>
 #include <QQueue>

@@ -5,8 +5,8 @@
 #ifndef LIBAVQT_DESKTOPCAPTUREFACTORY_HPP
 #define LIBAVQT_DESKTOPCAPTUREFACTORY_HPP
 
-#include "capture/IDesktopCaptureImpl.hpp"
-#include "common/Platform.hpp"
+#include "AVQt/capture/IDesktopCaptureImpl.hpp"
+#include "AVQt/common/Platform.hpp"
 
 #include <QMap>
 #include <QMutex>

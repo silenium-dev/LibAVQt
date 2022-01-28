@@ -22,8 +22,8 @@
 //
 
 #include "include/AVQt/filter/VaapiYuvToRgbMapper.hpp"
-#include "communication/Message.hpp"
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 #include "global.hpp"
 #include "private/VaapiYuvToRgbMapper_p.hpp"
 

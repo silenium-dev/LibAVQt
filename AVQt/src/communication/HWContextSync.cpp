@@ -21,7 +21,7 @@
 // Created by silas on 07.01.22.
 //
 
-#include "communication/HwContextSync.hpp"
+#include "AVQt/communication/HwContextSync.hpp"
 
 namespace AVQt {
     HWContextSync::HWContextSync(AVBufferRef *framesContext) {

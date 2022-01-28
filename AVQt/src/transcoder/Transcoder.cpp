@@ -22,9 +22,9 @@
 //
 
 #include "transcoder/Transcoder.hpp"
-#include "communication/Message.hpp"
-#include "decoder/VideoDecoderFactory.hpp"
-#include "encoder/VideoEncoderFactory.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/decoder/VideoDecoderFactory.hpp"
+#include "AVQt/encoder/VideoEncoderFactory.hpp"
 #include "global.hpp"
 #include "private/Transcoder_p.hpp"
 #include <QtConcurrent>

@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_VAAPIYUVTORGBMAPPER_P_HPP
 #define LIBAVQT_VAAPIYUVTORGBMAPPER_P_HPP
 
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 #include <QtCore>
 
 extern "C" {

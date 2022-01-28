@@ -24,8 +24,8 @@
 #ifndef LIBAVQT_TRANSCODER_P_HPP
 #define LIBAVQT_TRANSCODER_P_HPP
 
-#include "communication/PacketPadParams.hpp"
-#include "encoder/IVideoEncoderImpl.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include <QtCore>
 
 

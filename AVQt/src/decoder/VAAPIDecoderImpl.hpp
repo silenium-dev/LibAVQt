@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_VAAPIDECODERIMPL_HPP
 #define LIBAVQT_VAAPIDECODERIMPL_HPP
 
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 #include "include/AVQt/decoder/IVideoDecoderImpl.hpp"
 #include "static_block.hpp"
 

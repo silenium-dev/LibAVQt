@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_IDESKTOPCAPTUREIMPL_HPP
 #define LIBAVQT_IDESKTOPCAPTUREIMPL_HPP
 
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 
 #include <QObject>
 #include <memory>

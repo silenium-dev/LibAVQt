@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_TRANSCODER_HPP
 #define LIBAVQT_TRANSCODER_HPP
 
-#include "communication/IComponent.hpp"
+#include "AVQt/communication/IComponent.hpp"
 #include "global.hpp"
 #include <QtCore>
 #include <pgraph/impl/SimpleProcessor.hpp>

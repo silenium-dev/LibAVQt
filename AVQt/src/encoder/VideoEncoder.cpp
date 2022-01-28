@@ -21,13 +21,13 @@
 // Created by silas on 28.12.21.
 //
 
-#include "encoder/VideoEncoder.hpp"
+#include "AVQt/encoder/VideoEncoder.hpp"
 #include "private/VideoEncoder_p.hpp"
 
-#include "encoder/VideoEncoderFactory.hpp"
+#include "AVQt/encoder/VideoEncoderFactory.hpp"
 
-#include "communication/Message.hpp"
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 #include "global.hpp"
 
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>

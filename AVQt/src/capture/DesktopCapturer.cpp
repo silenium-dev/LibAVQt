@@ -2,11 +2,11 @@
 // Created by silas on 27.01.22.
 //
 
-#include "capture/DesktopCapturer.hpp"
-#include "capture/DesktopCaptureFactory.hpp"
+#include "AVQt/capture/DesktopCapturer.hpp"
+#include "AVQt/capture/DesktopCaptureFactory.hpp"
 #include "private/DesktopCapturer_p.hpp"
 
-#include "communication/Message.hpp"
+#include "AVQt/communication/Message.hpp"
 
 #include "global.hpp"
 

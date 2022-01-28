@@ -26,8 +26,8 @@
 
 #include <AVQt/input/Demuxer.hpp>
 
-#include "decoder/VideoDecoder.hpp"
-#include "encoder/VideoEncoder.hpp"
+#include "AVQt/decoder/VideoDecoder.hpp"
+#include "AVQt/encoder/VideoEncoder.hpp"
 #include <AVQt/decoder/IVideoDecoderImpl.hpp>
 #include <AVQt/decoder/VideoDecoderFactory.hpp>
 #include <AVQt/encoder/IVideoEncoderImpl.hpp>

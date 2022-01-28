@@ -17,8 +17,8 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "renderers/OpenGLRendererOld.hpp"
-#include "renderers/private/OpenGLRendererOld_p.hpp"
+#include "AVQt/renderers/OpenGLRendererOld.hpp"
+#include "AVQt/renderers/private/OpenGLRendererOld_p.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

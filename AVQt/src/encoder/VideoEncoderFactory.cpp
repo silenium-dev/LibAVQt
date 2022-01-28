@@ -21,8 +21,8 @@
 // Created by silas on 28.12.21.
 //
 
-#include "encoder/VideoEncoderFactory.hpp"
-#include "encoder/VAAPIEncoderImpl.hpp"
+#include "AVQt/encoder/VideoEncoderFactory.hpp"
+#include "AVQt/encoder/VAAPIEncoderImpl.hpp"
 
 #include <QtDebug>
 

@@ -20,7 +20,7 @@
 #ifndef LIBAVQT_DEMUXER_H
 #define LIBAVQT_DEMUXER_H
 
-#include "communication/IComponent.hpp"
+#include "AVQt/communication/IComponent.hpp"
 
 #include <QIODevice>
 #include <QThread>

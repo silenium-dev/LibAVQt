@@ -25,7 +25,7 @@
 #define LIBAVQT_VIDEOENCODER_HPP
 
 #include "IVideoEncoderImpl.hpp"
-#include "communication/IComponent.hpp"
+#include "AVQt/communication/IComponent.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"
 
 #include <QtCore>

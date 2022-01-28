@@ -21,8 +21,8 @@
  * \private
  * \internal
  */
-#include "renderers/OpenGLRendererOld.hpp"
-#include "renderers/RenderClock.hpp"
+#include "AVQt/renderers/OpenGLRendererOld.hpp"
+#include "AVQt/renderers/RenderClock.hpp"
 
 #include <QtCore>
 #include <QtOpenGL>

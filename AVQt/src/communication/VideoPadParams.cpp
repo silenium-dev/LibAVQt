@@ -21,7 +21,7 @@
 // Created by silas on 11.12.21.
 //
 
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 #include <QtDebug>
 #include <boost/uuid/uuid_generators.hpp>
 

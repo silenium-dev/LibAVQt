@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_DRM_OPENGL_RENDERMAPPER_HPP
 #define LIBAVQT_DRM_OPENGL_RENDERMAPPER_HPP
 
-#include "renderers/IOpenGLFrameMapper.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 
 #include <QtCore>
 

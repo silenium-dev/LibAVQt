@@ -21,8 +21,8 @@
 #include "DecoderDXVA2.hpp"
 #undef AVQT_INCLUDE_INTERNAL
 
-#include "decoder/private/DecoderDXVA2_p.hpp"
-#include "input/IPacketSource.hpp"
+#include "AVQt/decoder/private/DecoderDXVA2_p.hpp"
+#include "AVQt/input/IPacketSource.hpp"
 #include "output/IAudioSink.hpp"
 #include "output/IFrameSink.hpp"
 

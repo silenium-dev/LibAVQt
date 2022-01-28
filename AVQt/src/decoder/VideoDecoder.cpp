@@ -17,12 +17,12 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "decoder/VideoDecoder.hpp"
-#include "communication/Message.hpp"
-#include "communication/PacketPadParams.hpp"
-#include "communication/VideoPadParams.hpp"
-#include "decoder/VideoDecoderFactory.hpp"
-#include "decoder/private/VideoDecoder_p.hpp"
+#include "AVQt/decoder/VideoDecoder.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/decoder/VideoDecoderFactory.hpp"
+#include "AVQt/decoder/private/VideoDecoder_p.hpp"
 #include "global.hpp"
 
 #include <pgraph/api/Data.hpp>

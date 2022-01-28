@@ -21,7 +21,7 @@
 // Created by silas on 23.11.21.
 //
 
-#include "communication/PacketPadParams.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
 #include <boost/json.hpp>
 
 namespace AVQt::communication {

@@ -22,9 +22,9 @@
  * \internal
  */
 
-#include "decoder/VideoDecoder.hpp"
-#include "decoder/IVideoDecoderImpl.hpp"
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/decoder/VideoDecoder.hpp"
+#include "AVQt/decoder/IVideoDecoderImpl.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 
 extern "C" {
 #include <libavutil/frame.h>

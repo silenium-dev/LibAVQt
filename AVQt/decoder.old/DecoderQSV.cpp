@@ -18,8 +18,8 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "DecoderQSV.hpp"
-#include "decoder/private/DecoderQSV_p.hpp"
-#include "input/IPacketSource.hpp"
+#include "AVQt/decoder/private/DecoderQSV_p.hpp"
+#include "AVQt/input/IPacketSource.hpp"
 #include "output/IAudioSink.hpp"
 #include "output/IFrameSink.hpp"
 

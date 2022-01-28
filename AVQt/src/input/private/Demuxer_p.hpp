@@ -17,8 +17,8 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "communication/Message.hpp"
-#include "input/Demuxer.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/input/Demuxer.hpp"
 
 #include <QtCore>
 

@@ -22,7 +22,7 @@
  * \internal
  */
 
-#include "decoder/DecoderQSV.h"
+#include "AVQt/decoder/DecoderQSV.h"
 
 extern "C" {
 #include <libavutil/rational.h>

@@ -2,8 +2,8 @@
 // Created by silas on 27.01.22.
 //
 
-#include "capture/DesktopCaptureFactory.hpp"
-#include "capture/IDesktopCaptureImpl.hpp"
+#include "AVQt/capture/DesktopCaptureFactory.hpp"
+#include "AVQt/capture/IDesktopCaptureImpl.hpp"
 
 #include "DummyDesktopCaptureImpl.hpp"
 #include "PipeWireDesktopCaptureImpl.hpp"

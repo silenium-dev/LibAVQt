@@ -18,9 +18,9 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "AudioDecoder.hpp"
-#include "decoder/private/AudioDecoder_p.hpp"
+#include "AVQt/decoder/private/AudioDecoder_p.hpp"
 
-#include "input/IPacketSource.hpp"
+#include "AVQt/input/IPacketSource.hpp"
 #include "output/IAudioSink.hpp"
 
 #include <QtCore>

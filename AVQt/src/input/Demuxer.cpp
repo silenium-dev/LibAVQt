@@ -17,11 +17,11 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "input/Demuxer.hpp"
+#include "AVQt/input/Demuxer.hpp"
 #include "private/Demuxer_p.hpp"
 
-#include "communication/Message.hpp"
-#include "communication/PacketPadParams.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
 
 #include "global.hpp"
 

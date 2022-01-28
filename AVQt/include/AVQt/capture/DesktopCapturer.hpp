@@ -6,7 +6,7 @@
 #define LIBAVQT_DESKTOPCAPTURER_HPP
 
 #include "IDesktopCaptureImpl.hpp"
-#include "communication/IComponent.hpp"
+#include "AVQt/communication/IComponent.hpp"
 #include <QThread>
 #include <pgraph/impl/SimpleProducer.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>

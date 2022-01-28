@@ -18,8 +18,8 @@
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "DecoderD3D11VA.hpp"
-#include "decoder/private/DecoderD3D11VA_p.hpp"
-#include "input/IPacketSource.hpp"
+#include "AVQt/decoder/private/DecoderD3D11VA_p.hpp"
+#include "AVQt/input/IPacketSource.hpp"
 #include "output/IAudioSink.hpp"
 #include "output/IFrameSink.hpp"
 

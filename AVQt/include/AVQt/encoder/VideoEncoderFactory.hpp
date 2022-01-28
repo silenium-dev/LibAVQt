@@ -25,7 +25,7 @@
 #define LIBAVQT_VIDEOENCODERFACTORY_HPP
 
 #include "IVideoEncoderImpl.hpp"
-#include "encoder/VideoEncoder.hpp"
+#include "AVQt/encoder/VideoEncoder.hpp"
 
 #include <static_block.hpp>
 

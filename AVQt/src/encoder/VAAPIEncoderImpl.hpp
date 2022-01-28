@@ -24,8 +24,8 @@
 #ifndef LIBAVQT_VAAPIENCODERIMPL_HPP
 #define LIBAVQT_VAAPIENCODERIMPL_HPP
 
-#include "communication/VideoPadParams.hpp"
-#include "encoder/IVideoEncoderImpl.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include <QObject>
 
 

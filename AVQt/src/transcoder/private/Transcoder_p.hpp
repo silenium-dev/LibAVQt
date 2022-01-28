@@ -24,10 +24,10 @@
 #ifndef LIBAVQT_TRANSCODER_P_HPP
 #define LIBAVQT_TRANSCODER_P_HPP
 
-#include "communication/PacketPadParams.hpp"
-#include "communication/VideoPadParams.hpp"
-#include "decoder/IVideoDecoderImpl.hpp"
-#include "encoder/IVideoEncoderImpl.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/decoder/IVideoDecoderImpl.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include "global.hpp"
 #include "transcoder/ITranscoderImpl.hpp"
 

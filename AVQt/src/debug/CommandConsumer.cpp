@@ -21,9 +21,9 @@
 // Created by silas on 26.10.21.
 //
 
-#include "debug/CommandConsumer.hpp"
+#include "AVQt/debug/CommandConsumer.hpp"
 
-#include "communication/PacketPadParams.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
 #include "global.hpp"
 
 #include <QImage>

@@ -21,7 +21,7 @@
 // Created by silas on 23.11.21.
 //
 
-#include "communication/FilePadParams.hpp"
+#include "AVQt/communication/FilePadParams.hpp"
 
 namespace AVQt {
     const boost::uuids::uuid FilePadParams::Type = boost::uuids::string_generator()("e621cc91719179e202870609dba0438e");

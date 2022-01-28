@@ -23,10 +23,10 @@
 
 #include "OpenGlWidgetRenderer.hpp"
 #include "OpenGlWidgetRendererPrivate.hpp"
-#include "communication/Message.hpp"
+#include "AVQt/communication/Message.hpp"
 #include "global.hpp"
-#include "renderers/IOpenGLFrameMapper.hpp"
-#include "renderers/OpenGLFrameMapperFactory.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
+#include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
 #include <QtConcurrent>
 #include <pgraph/api/Data.hpp>
 #include <pgraph/api/PadUserData.hpp>

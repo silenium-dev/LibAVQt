@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_COMMANDCONSUMER_H
 #define LIBAVQT_COMMANDCONSUMER_H
 
-#include "communication/Message.hpp"
+#include "AVQt/communication/Message.hpp"
 #include "pgraph/impl/SimpleConsumer.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"
 

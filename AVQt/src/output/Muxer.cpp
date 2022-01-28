@@ -17,7 +17,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "input/IPacketSource.hpp"
+#include "AVQt/input/IPacketSource.hpp"
 #include "private/Muxer_p.hpp"
 #include "output/Muxer.hpp"
 

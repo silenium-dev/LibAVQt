@@ -20,7 +20,7 @@
 #ifndef LIBAVQT_OPENALAUDIOOUTPUT_P_H
 #define LIBAVQT_OPENALAUDIOOUTPUT_P_H
 
-#include "renderers/OpenALAudioOutput.hpp"
+#include "AVQt/renderers/OpenALAudioOutput.hpp"
 
 #include <AL/al.h>
 #include <AL/alc.h>

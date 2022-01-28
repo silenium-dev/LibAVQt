@@ -21,7 +21,7 @@
 // Created by silas on 28.12.21.
 //
 
-#include "encoder/IVideoEncoderImpl.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 
 namespace AVQt::api {
     IVideoEncoderImpl::IVideoEncoderImpl(const EncodeParameters &parameters)
