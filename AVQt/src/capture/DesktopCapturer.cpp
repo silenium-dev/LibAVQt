@@ -19,7 +19,7 @@ namespace AVQt {
           d_ptr(new DesktopCapturerPrivate(this)) {
         Q_D(DesktopCapturer);
         d->config = config;
-        d->impl = DesktopCaptureFactory::getInstance().createCapture("AVQt::DesktopCapture");
+        d->impl = DesktopCaptureFactory::getInstance().createCapture();
     }
 
     DesktopCapturer::~DesktopCapturer() {
@@ -204,6 +204,7 @@ namespace AVQt {
                                    .build(),
                            outputPadId);
                 lastFrameSize = QSize(frame->width, frame->height);
+                *outputPadUserData = impl->getVideoParams();
             }
             q->produce(communication::Message::builder().withAction(communication::Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build(), outputPadId);
         }

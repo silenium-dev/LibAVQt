@@ -6,6 +6,7 @@
 #include "capture/IDesktopCaptureImpl.hpp"
 
 #include "DummyDesktopCaptureImpl.hpp"
+#include "PipeWireDesktopCaptureImpl.hpp"
 
 #include "global.hpp"
 
@@ -113,8 +114,13 @@ namespace AVQt {
         if (registered.compare_exchange_strong(shouldBe, true)) {
             // Register capture implementations
             getInstance().registerCapture({.metaObject = DummyDesktopCaptureImpl::staticMetaObject,
-                                           .name = "AVQt::DesktopCapture",
+                                           .name = "AVQt::DummyDesktopCapture",
                                            .platform = common::Platform::All});
+#if defined(Q_OS_LINUX) and !defined(Q_OS_ANDROID)
+            getInstance().registerCapture({.metaObject = PipeWireDesktopCaptureImpl::staticMetaObject,
+                                           .name = "AVQt::PipeWireDesktopCapture",
+                                           .platform = common::Platform::Linux_Wayland});
+#endif
         }
-    }
+    }// namespace AVQt
 }// namespace AVQt

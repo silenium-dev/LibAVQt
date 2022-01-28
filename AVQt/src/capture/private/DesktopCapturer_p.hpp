@@ -32,6 +32,7 @@ namespace AVQt {
         std::shared_ptr<api::IDesktopCaptureImpl> impl{};
 
         QSize lastFrameSize{};
+
         QMetaObject::Connection frameReadyConnection{};
         QThread *afterStopThread{};
 
