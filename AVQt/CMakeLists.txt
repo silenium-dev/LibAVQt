@@ -8,7 +8,7 @@ function(list_transform_prepend var_out var_in prefix)
     set(${var_out} "${temp}" PARENT_SCOPE)
 endfunction()
 
-set(PROJECT_NAME AVQt)
+set(PROJECT_NAME include/AVQt/AVQt)
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC on)
@@ -43,7 +43,7 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 set(SOURCES
         AVQtShader.qrc
 
-        AVQt.h
+        include/AVQt/AVQt.h
         global.hpp
         global.cpp
 

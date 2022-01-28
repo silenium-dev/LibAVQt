@@ -19,29 +19,29 @@
 
 #include <qglobal.h>
 
-#include <AVQt/communication/IComponent.hpp>
-#include <AVQt/communication/Message.hpp>
-#include <AVQt/communication/PacketPadParams.hpp>
-#include <AVQt/communication/VideoPadParams.hpp>
+#include "communication/IComponent.hpp"
+#include "communication/Message.hpp"
+#include "communication/PacketPadParams.hpp"
+#include "communication/VideoPadParams.hpp"
 
-#include <AVQt/input/Demuxer.hpp>
+#include "input/Demuxer.hpp"
 
 #include "AVQt/decoder/VideoDecoder.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
-#include <AVQt/decoder/IVideoDecoderImpl.hpp>
-#include <AVQt/decoder/VideoDecoderFactory.hpp>
-#include <AVQt/encoder/IVideoEncoderImpl.hpp>
-#include <AVQt/encoder/VideoEncoderFactory.hpp>
+#include "decoder/IVideoDecoderImpl.hpp"
+#include "decoder/VideoDecoderFactory.hpp"
+#include "encoder/IVideoEncoderImpl.hpp"
+#include "encoder/VideoEncoderFactory.hpp"
 
-#include <AVQt/filter/VaapiYuvToRgbMapper.hpp>
+#include "filter/VaapiYuvToRgbMapper.hpp"
 
-#include <AVQt/renderers/IOpenGLFrameMapper.hpp>
-#include <AVQt/renderers/OpenGLFrameMapperFactory.hpp>
+#include "renderers/IOpenGLFrameMapper.hpp"
+#include "renderers/OpenGLFrameMapperFactory.hpp"
 
-#include <AVQt/capture/DesktopCaptureFactory.hpp>
-#include <AVQt/capture/DesktopCapturer.hpp>
-#include <AVQt/capture/IDesktopCaptureImpl.hpp>
+#include "capture/DesktopCaptureFactory.hpp"
+#include "capture/DesktopCapturer.hpp"
+#include "capture/IDesktopCaptureImpl.hpp"
 
 #ifdef QT_DEBUG
-#include <AVQt/debug/CommandConsumer.hpp>
+#include "debug/CommandConsumer.hpp"
 #endif

@@ -20,7 +20,7 @@
 #include "FrameSaverAccelerated.hpp"
 #include "OpenGlWidgetRenderer.hpp"
 
-#include <AVQt>
+#include <AVQt/AVQt>
 #include <pgraph/api/Link.hpp>
 #include <pgraph/api/Pad.hpp>
 #include <pgraph_network/data/ApiInfo.hpp>
