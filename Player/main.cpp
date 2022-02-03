@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
     config.fps = 1;
     config.sourceClass = AVQt::api::IDesktopCaptureImpl::SourceClass::Screen;
     auto capturer = std::make_shared<AVQt::DesktopCapturer>(config, registry);
-    auto cc = std::make_shared<CommandConsumer>(registry);
+    auto cc = std::make_shared<AVQt::CommandConsumer>(registry);
 
     capturer->init();
     cc->init();

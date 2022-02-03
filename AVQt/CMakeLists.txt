@@ -211,10 +211,10 @@ target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
 
 set(LINK_LIBRARIES
         ${REQUIRED_LIBS_QUALIFIED}
-        LibScreenCapture
+        ScreenCaptureStatic
 
-        pgraph
-        pgraph_network
+        pgraph_static
+        pgraph_network_static
 
         avformat
         avfilter
@@ -231,6 +231,42 @@ else ()
     list(APPEND LINK_LIBRARIES GL openal EGL GLU va)
 endif ()
 
-target_link_libraries(AVQtObject PUBLIC ${LINK_LIBRARIES})
+target_link_libraries(AVQtObject PRIVATE ${LINK_LIBRARIES})
 target_link_libraries(AVQtStatic PUBLIC ${LINK_LIBRARIES})
 target_link_libraries(AVQt PUBLIC ${LINK_LIBRARIES})
+
+add_library(AVQt::Static ALIAS AVQtStatic)
+add_library(AVQt::Shared ALIAS AVQt)
+
+if (UNIX)
+    include(GNUInstallDirs)
+    install(TARGETS AVQt AVQtStatic
+            EXPORT AVQtTargets
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            )
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/AVQt"
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            FILES_MATCHING PATTERN "*.hpp"
+            )
+    install(EXPORT AVQtTargets
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AVQt
+            NAMESPACE AVQt::
+            FILE AVQtTargets.cmake
+            )
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(
+            "cmake/Config.cmake.in"
+            "AVQtConfig.cmake"
+            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AVQt
+            PATH_VARS CMAKE_INSTALL_LIBDIR
+    )
+    write_basic_package_version_file(
+            ${CMAKE_CURRENT_BINARY_DIR}/AVQtConfigVersion.cmake
+            VERSION 0.1-dev
+            COMPATIBILITY ExactVersion
+    )
+    install(
+            FILES "${CMAKE_CURRENT_BINARY_DIR}/AVQtConfigVersion.cmake" ${CMAKE_CURRENT_BINARY_DIR}/AVQtConfig.cmake
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/AVQt"
+    )
+endif ()
