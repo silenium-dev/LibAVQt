@@ -22,7 +22,6 @@
 //
 
 #include "VAAPIEncoderImpl.hpp"
-#include "AVQt/communication/HwContextSync.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
 #include "private/VAAPIEncoderImpl_p.hpp"
 

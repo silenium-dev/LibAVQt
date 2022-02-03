@@ -22,7 +22,6 @@
 //
 
 #include "VAAPIDecoderImpl.hpp"
-#include "AVQt/communication/HwContextSync.hpp"
 #include "private/VAAPIDecoderImpl_p.hpp"
 
 #include <QImage>

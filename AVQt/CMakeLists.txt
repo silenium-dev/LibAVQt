@@ -56,7 +56,6 @@ set(SOURCES
         src/debug/CommandConsumer.cpp
 
         include/AVQt/communication/IComponent.hpp
-        include/AVQt/communication/IOutput.hpp
 
         include/AVQt/communication/PacketPadParams.hpp
         src/communication/PacketPadParams.cpp
@@ -91,9 +90,6 @@ set(SOURCES
 
         include/AVQt/encoder/VideoEncoderFactory.hpp
         src/encoder/VideoEncoderFactory.cpp
-
-        include/AVQt/communication/HwContextSync.hpp
-        src/communication/HWContextSync.cpp
 
         src/communication/FrameDestructor.hpp
         src/communication/FrameDestructor.cpp
