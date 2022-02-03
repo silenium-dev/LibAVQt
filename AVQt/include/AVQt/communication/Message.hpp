@@ -74,9 +74,9 @@ namespace AVQt::communication {
         QVariantMap getPayloads();
         Action getAction();
 
-        boost::uuids::uuid getType() override;
+        QUuid getType() override;
 
-        static const boost::uuids::uuid Type;
+        static const QUuid Type;
 
     private:
         Action m_type;

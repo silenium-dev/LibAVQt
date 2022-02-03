@@ -42,10 +42,10 @@ namespace AVQt::communication {
         PacketPadParams(PacketPadParams &&) noexcept;
         ~PacketPadParams() override = default;
 
-        boost::uuids::uuid getType() const override;
-        boost::json::object toJSON() const override;
+        QUuid getType() const override;
+        QJsonObject toJSON() const override;
 
-        static const boost::uuids::uuid Type;
+        static const QUuid Type;
 
     protected:
         bool isEmpty() const override;

@@ -42,14 +42,14 @@ namespace AVQt::communication {
         VideoPadParams &operator=(const VideoPadParams &other);
 
         ~VideoPadParams() override = default;
-        boost::uuids::uuid getType() const override;
-        boost::json::object toJSON() const override;
+        QUuid getType() const override;
+        QJsonObject toJSON() const override;
 
     protected:
         bool isEmpty() const override;
 
     public:
-        static const boost::uuids::uuid Type;
+        static const QUuid Type;
 
         QSize frameSize{};
         AVPixelFormat pixelFormat{}, swPixelFormat{};

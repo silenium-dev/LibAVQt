@@ -23,7 +23,7 @@
 #include <utility>
 
 namespace AVQt::communication {
-    const boost::uuids::uuid Message::Type = boost::uuids::string_generator()("{1db2f16c89f3de68086c5124c5272bab}");
+    const QUuid Message::Type = QUuid::fromString(QLatin1String{"1db2f16c89f3de68086c5124c5272bab"});
 
     Message::Message(Message::Action type, QVariantMap payload) : m_type(type), m_payload(std::move(payload)) {
     }
@@ -46,7 +46,7 @@ namespace AVQt::communication {
         return m_type;
     }
 
-    boost::uuids::uuid Message::getType() {
+    QUuid Message::getType() {
         return Type;
     }
 

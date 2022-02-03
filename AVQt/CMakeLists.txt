@@ -29,8 +29,6 @@ if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
 endif ()
 
-set(QT_VERSION "5")
-
 set(REQUIRED_LIBS Core Gui DBus Concurrent Widgets OpenGL)
 if (QT_VERSION EQUAL "6")
     LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
@@ -59,9 +57,6 @@ set(SOURCES
 
         include/AVQt/communication/IComponent.hpp
         include/AVQt/communication/IOutput.hpp
-
-        include/AVQt/communication/FilePadParams.hpp
-        src/communication/FilePadParams.cpp
 
         include/AVQt/communication/PacketPadParams.hpp
         src/communication/PacketPadParams.cpp
@@ -224,8 +219,6 @@ set(LINK_LIBRARIES
 
         pgraph
         pgraph_network
-
-        boost_json
 
         avformat
         avfilter

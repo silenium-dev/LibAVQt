@@ -25,7 +25,7 @@
 #include <boost/json.hpp>
 
 namespace AVQt::communication {
-    const boost::uuids::uuid PacketPadParams::Type = boost::uuids::string_generator()("{03de5c18bf2d1d7ac97e42cb89121a95}");
+    const QUuid PacketPadParams::Type = QUuid::fromString(QLatin1String{"03de5c18bf2d1d7ac97e42cb89121a95"});
 
     PacketPadParams::PacketPadParams(const PacketPadParams &other) : PadUserData(other) {
         *this = other;
@@ -47,7 +47,7 @@ namespace AVQt::communication {
         *this = other;
     }
 
-    boost::uuids::uuid PacketPadParams::getType() const {
+    QUuid PacketPadParams::getType() const {
         return Type;
     }
 
@@ -55,12 +55,12 @@ namespace AVQt::communication {
         return false;
     }
 
-    boost::json::object PacketPadParams::toJSON() const {
-        boost::json::object obj, data;
-        obj["type"] = boost::uuids::hash_value(Type);
+    QJsonObject PacketPadParams::toJSON() const {
+        QJsonObject obj, data;
+        obj["type"] = Type.toString();
         data["mediaType"] = mediaType;
         data["encoder"] = codec;
-        data["streamIndex"] = streamIdx;
+        data["streamIndex"] = static_cast<qint64>(streamIdx);
         obj["data"] = data;
         return obj;
     }

@@ -23,7 +23,7 @@
 
 #include "AVQt/communication/VideoPadParams.hpp"
 #include <QtDebug>
-#include <boost/uuid/uuid_generators.hpp>
+#include <QJsonArray>
 
 extern "C" {
 #include <libavutil/hwcontext.h>
@@ -31,13 +31,13 @@ extern "C" {
 }
 
 namespace AVQt::communication {
-    const boost::uuids::uuid VideoPadParams::Type = boost::uuids::string_generator()("{1e8b93086ba59290a4ce4fec5b85bd80}");
+    const QUuid VideoPadParams::Type = QUuid::fromString(QLatin1String{"1e8b93086ba59290a4ce4fec5b85bd80"});
 
     VideoPadParams::VideoPadParams(const VideoPadParams &other) : PadUserData(other) {
         *this = other;
     }
 
-    boost::uuids::uuid VideoPadParams::getType() const {
+    QUuid VideoPadParams::getType() const {
         return Type;
     }
 
@@ -45,8 +45,16 @@ namespace AVQt::communication {
         return false;
     }
 
-    boost::json::object VideoPadParams::toJSON() const {
-        return PadUserData::toJSON();
+    QJsonObject VideoPadParams::toJSON() const {
+        QJsonObject obj, data;
+        obj["type"] = Type.toString();
+        data["frameSize"] = QJsonArray{frameSize.width(), frameSize.height()};
+        data["pixelFormat"] = pixelFormat;
+        data["swPixelFormat"] = swPixelFormat;
+        data["isHWAccel"] = isHWAccel;
+        data["deviceType"] = reinterpret_cast<AVHWDeviceContext *>(hwDeviceContext->data)->type;
+        obj["data"] = data;
+        return obj;
     }
 
     VideoPadParams &VideoPadParams::operator=(const VideoPadParams &other) {
