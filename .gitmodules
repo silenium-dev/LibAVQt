@@ -6,10 +6,6 @@
 	path = mfx_dispatch
 	url = https://github.com/lu-zero/mfx_dispatch
 	branch = master
-[submodule "libpgraph"]
-	path = libpgraph
-	url = https://edugit.org/sdcieo0330/libpgraph.git/
-	branch = main
 [submodule "cpp-static-block"]
 	path = cpp-static-block
 	url = https://github.com/eyalroz/cpp-static-block
