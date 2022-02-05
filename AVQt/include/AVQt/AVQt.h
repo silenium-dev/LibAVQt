@@ -42,6 +42,4 @@
 #include "capture/DesktopCapturer.hpp"
 #include "capture/IDesktopCaptureImpl.hpp"
 
-#ifdef QT_DEBUG
 #include "debug/CommandConsumer.hpp"
-#endif

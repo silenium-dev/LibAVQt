@@ -1,8 +1,15 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
+if(UNIX AND NOT ANDROID AND NOT IOS)
 find_dependency(ScreenCapture)
+endif()
 find_dependency(PGraphNetwork)
-find_dependency(Qt@QT_VERSION@ COMPONENTS Core Gui DBus Concurrent Widgets OpenGL)
+find_dependency(Qt@QT_VERSION@ COMPONENTS Core Gui Concurrent OpenGL)
+
+find_dependency(PkgConfig REQUIRED)
+link_directories(/opt/android-libs/aarch64/lib)
+
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample zlib)
 
 include("${CMAKE_CURRENT_LIST_DIR}/AVQtTargets.cmake")

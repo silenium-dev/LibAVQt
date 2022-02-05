@@ -47,7 +47,9 @@ namespace AVQt {
         static bool registered = false;
         if (!registered) {
             registered = true;
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
             AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("VAAPIOpenGLRenderMapper", VAAPIOpenGLRenderMapper::staticMetaObject);
+#endif
             AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("FallbackMapper", FallbackFrameMapper::staticMetaObject);
         }
     }

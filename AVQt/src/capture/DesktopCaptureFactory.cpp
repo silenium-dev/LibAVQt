@@ -6,7 +6,9 @@
 #include "AVQt/capture/IDesktopCaptureImpl.hpp"
 
 #include "DummyDesktopCaptureImpl.hpp"
+#ifndef Q_OS_ANDROID
 #include "PipeWireDesktopCaptureImpl.hpp"
+#endif
 
 #include "global.hpp"
 

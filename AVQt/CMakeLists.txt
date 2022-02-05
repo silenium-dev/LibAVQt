@@ -9,7 +9,7 @@ function(list_transform_prepend var_out var_in prefix)
 endfunction()
 
 set(PROJECT_NAME include/AVQt/AVQt)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_AUTOMOC on)
 set(CMAKE_AUTORCC on)
@@ -29,14 +29,17 @@ if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
 endif ()
 
-set(REQUIRED_LIBS Core Gui DBus Concurrent Widgets OpenGL)
-if (QT_VERSION EQUAL "6")
-    LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
-endif ()
+set(REQUIRED_LIBS Core Gui Concurrent OpenGL)
+
 set(REQUIRED_LIBS_QUALIFIED)
 list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+link_directories(/opt/android-libs/aarch64/lib)
+
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample zlib)
 
 set(SOURCES
         AVQtShader.qrc
@@ -102,6 +105,8 @@ set(SOURCES
         src/common/FBOPool.cpp
 
         include/AVQt/capture/IDesktopCaptureImpl.hpp include/AVQt/capture/DesktopCapturer.hpp src/capture/DesktopCapturer.cpp src/capture/private/DesktopCapturer_p.hpp src/capture/DesktopCaptureFactory.cpp include/AVQt/capture/DesktopCaptureFactory.hpp include/AVQt/common/Platform.hpp src/capture/DummyDesktopCaptureImpl.cpp src/capture/DummyDesktopCaptureImpl.hpp)
+set(SOURCES_UNIX
+        )
 set(SOURCES_LINUX
         src/decoder/VAAPIDecoderImpl.hpp
         src/decoder/private/VAAPIDecoderImpl_p.hpp
@@ -119,14 +124,14 @@ set(SOURCES_LINUX
         src/encoder/private/VAAPIEncoderImpl_p.hpp
         src/encoder/VAAPIEncoderImpl.cpp
 
-        #        src/transcoder/VaapiTranscoderImpl.hpp
-        #        src/transcoder/private/VaapiTranscoderImpl_p.hpp
-        #        src/transcoder/VaapiTranscoderImpl.cpp
+        src/capture/PipeWireDesktopCaptureImpl.hpp
+        src/capture/private/PipeWireDesktopCaptureImpl_p.hpp
+        src/capture/PipeWireDesktopCaptureImpl.cpp
 
         src/renderers/DRM_OpenGL_RenderMapper.hpp
         src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
         src/renderers/DRM_OpenGL_RenderMapper.cpp
-        src/capture/PipeWireDesktopCaptureImpl.cpp src/capture/PipeWireDesktopCaptureImpl.hpp src/capture/private/PipeWireDesktopCaptureImpl_p.hpp)
+        )
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp
@@ -143,8 +148,10 @@ if (WIN32) # LibAVQt only supports Windows 10 1809 and above
     else ()
         message(FATAL_ERROR "LibAVQt supports only Windows 10 and up, Build 1809 and up")
     endif ()
-elseif (UNIX)
-    add_library(AVQtObject OBJECT ${SOURCES} ${SOURCES_LINUX})
+elseif (UNIX AND NOT ANDROID AND NOT IOS) # only on desktop
+    add_library(AVQtObject OBJECT ${SOURCES} ${SOURCES_LINUX} ${SOURCES_UNIX})
+elseif (ANDROID)
+    add_library(AVQtObject OBJECT ${SOURCES} ${SOURCES_UNIX})
 else ()
     message(FATAL_ERROR "LibAVQt doesn't support other platforms than Windows (10 and up, Build 1809 and up) and Linux")
 endif ()
@@ -211,24 +218,26 @@ target_compile_definitions(AVQt PRIVATE AVQT_LIBRARY_BUILD)
 
 set(LINK_LIBRARIES
         ${REQUIRED_LIBS_QUALIFIED}
-        ScreenCaptureStatic
 
-        pgraph_static
         pgraph_network_static
 
-        avformat
-        avfilter
-        avutil
-        avcodec
-        avdevice
-        swscale
-        swresample
+        PkgConfig::FFMPEG
         )
+
+if (NOT ANDROID AND NOT IOS)
+    LIST(APPEND LINK_LIBRARIES
+            ScreenCaptureStatic)
+endif ()
 
 if (WIN32)
     list(APPEND LINK_LIBRARIES opengl32 OpenAL32 windowsapp user32 kernel32 Dwmapi psapi d3d9 glu32 dxguid)
 else ()
-    list(APPEND LINK_LIBRARIES GL openal EGL GLU va)
+    list(APPEND LINK_LIBRARIES EGL)
+    if (NOT ANDROID)
+        list(APPEND LINK_LIBRARIES GL va GLU)
+    else ()
+        list(APPEND LINK_LIBRARIES GLESv2)
+    endif ()
 endif ()
 
 target_link_libraries(AVQtObject PRIVATE ${LINK_LIBRARIES})

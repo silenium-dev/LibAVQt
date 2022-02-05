@@ -30,8 +30,6 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-#include <GL/glu.h>
-
 #include <memory>
 
 namespace AVQt {

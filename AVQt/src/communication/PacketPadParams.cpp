@@ -22,7 +22,6 @@
 //
 
 #include "AVQt/communication/PacketPadParams.hpp"
-#include <boost/json.hpp>
 
 namespace AVQt::communication {
     const QUuid PacketPadParams::Type = QUuid::fromString(QLatin1String{"03de5c18bf2d1d7ac97e42cb89121a95"});

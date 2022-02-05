@@ -186,23 +186,23 @@ int main(int argc, char *argv[]) {
     //    decoder1InPad->link(transcoderPacketOutPad);
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
-    //    decoder1InPad->link(demuxerOutPad);
+    decoder1InPad->link(demuxerOutPad);
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
     //    yuvrgbconverterInPad->link(decoder1OutPad);
     //    renderer2InPad->link(decoder1OutPad);
     //    renderer1InPad->link(yuvrgbconverterOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
-    //    renderer1InPad->link(decoder1OutPad);
+    renderer1InPad->link(decoder1OutPad);
     //    renderer2InPad->link(decoder2OutPad);
     //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
-    //    demuxer->open();
-    //
-    //    renderer1->resize(1280, 720);
-    //    renderer2->resize(1280, 720);
-    //
-    //    demuxer->start();
+    demuxer->open();
+
+    renderer1->resize(1280, 720);
+    //        renderer2->resize(1280, 720);
+
+    demuxer->start();
 
     //    QTimer::singleShot(4000, [demuxer]{
     //        demuxer->pause(true);
@@ -215,30 +215,30 @@ int main(int argc, char *argv[]) {
     //        });
     //    });
 
-    AVQt::api::IDesktopCaptureImpl::Config config{};
-    config.fps = 1;
-    config.sourceClass = AVQt::api::IDesktopCaptureImpl::SourceClass::Screen;
-    auto capturer = std::make_shared<AVQt::DesktopCapturer>(config, registry);
-    auto cc = std::make_shared<AVQt::CommandConsumer>(registry);
-
-    capturer->init();
-    cc->init();
-
-    auto ccInPad = cc->getInputPads().begin()->second;
-    auto capturerOutPad = capturer->getOutputPads().begin()->second;
-
-    ccInPad->link(capturerOutPad);
-
-    capturer->open();
-    capturer->start();
-
-    QObject::connect(app, &QApplication::aboutToQuit, [capturer] {
-        capturer->close();
-    });
-
-    QTimer::singleShot(15000, [] {
-        QApplication::quit();
-    });
+    //    AVQt::api::IDesktopCaptureImpl::Config config{};
+    //    config.fps = 1;
+    //    config.sourceClass = AVQt::api::IDesktopCaptureImpl::SourceClass::Screen;
+    //    auto capturer = std::make_shared<AVQt::DesktopCapturer>(config, registry);
+    //    auto cc = std::make_shared<CommandConsumer>(registry);
+    //
+    //    capturer->init();
+    //    cc->init();
+    //
+    //    auto ccInPad = cc->getInputPads().begin()->second;
+    //    auto capturerOutPad = capturer->getOutputPads().begin()->second;
+    //
+    //    ccInPad->link(capturerOutPad);
+    //
+    //    capturer->open();
+    //    capturer->start();
+    //
+    //    QObject::connect(app, &QApplication::aboutToQuit, [capturer] {
+    //        capturer->close();
+    //    });
+    //
+    //    QTimer::singleShot(15000, [] {
+    //        QApplication::quit();
+    //    });
 
     return QApplication::exec();
 }

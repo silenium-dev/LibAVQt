@@ -60,7 +60,7 @@ namespace AVQt {
         static std::atomic_bool registered{false};
         bool shouldBe = false;
         if (registered.compare_exchange_strong(shouldBe, true)) {
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
             getInstance().registerEncoder("VAAPI", VAAPIEncoderImpl::staticMetaObject);
 #endif
         }

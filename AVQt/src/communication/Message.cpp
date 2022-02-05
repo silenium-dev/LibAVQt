@@ -19,7 +19,6 @@
 
 #include "AVQt/communication/Message.hpp"
 
-#include <boost/uuid/string_generator.hpp>
 #include <utility>
 
 namespace AVQt::communication {
