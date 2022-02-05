@@ -52,7 +52,7 @@ FrameSaverAccelerated::FrameSaverAccelerated(std::shared_ptr<pgraph::network::ap
     context->makeCurrent(surface);
     initializeOpenGLFunctions();
 
-    mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPIOpenGLRenderMapper");
+    mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPI");
     mapper->initializeGL(context);
 
     context->doneCurrent();

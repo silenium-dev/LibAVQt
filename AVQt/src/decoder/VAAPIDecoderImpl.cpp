@@ -33,6 +33,29 @@ extern "C" {
 }
 
 namespace AVQt {
+    const api::VideoDecoderInfo VAAPIDecoderImpl::info{
+            .metaObject = VAAPIDecoderImpl::staticMetaObject,
+            .name = "VAAPI",
+            .platforms = {common::Platform::Linux_X11, common::Platform::Linux_Wayland},
+            .supportedInputPixelFormats = {
+                    {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_YUV420P12, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_YUV420P14, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_YUV420P16, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_P016, AV_PIX_FMT_NONE},
+            },
+            .supportedCodecIds = {
+                    AV_CODEC_ID_H264,
+                    AV_CODEC_ID_HEVC,
+                    AV_CODEC_ID_VP8,
+                    AV_CODEC_ID_VP9,
+                    AV_CODEC_ID_MPEG2VIDEO,
+                    AV_CODEC_ID_NONE,
+            }};
+
     VAAPIDecoderImpl::VAAPIDecoderImpl() : QObject(nullptr), d_ptr(new VAAPIDecoderImplPrivate(this)) {
         Q_D(VAAPIDecoderImpl);
         d->frameDestructor = std::make_shared<internal::FrameDestructor>();
@@ -333,5 +356,9 @@ namespace AVQt {
         } else {
             qWarning("FrameFetcher not running");
         }
+    }
+
+    AVPixelFormat VAAPIDecoderImpl::VAAPIDecoderInfo::outputPixelFormatFor(AVPixelFormat inputPixelFormat) const {
+        return AV_PIX_FMT_VAAPI;
     }
 }// namespace AVQt

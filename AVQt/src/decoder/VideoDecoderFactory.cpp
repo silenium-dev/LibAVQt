@@ -25,6 +25,7 @@
 #include "VAAPIDecoderImpl.hpp"
 
 #include <QDebug>
+#include <QProcessEnvironment>
 
 namespace AVQt {
     VideoDecoderFactory &VideoDecoderFactory::getInstance() {
@@ -32,12 +33,12 @@ namespace AVQt {
         return instance;
     }
 
-    void VideoDecoderFactory::registerDecoder(const QString &name, const QMetaObject &metaObject) {
-        if (m_decoders.contains(name)) {
-            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << name << "already registered";
+    void VideoDecoderFactory::registerDecoder(const api::VideoDecoderInfo &info) {
+        if (m_decoders.contains(info.name)) {
+            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << info.name << "already registered";
             return;
         }
-        m_decoders.insert(name, metaObject);
+        m_decoders.insert(info.name, info);
     }
 
     void VideoDecoderFactory::unregisterDecoder(const QString &name) {
@@ -48,12 +49,72 @@ namespace AVQt {
         m_decoders.remove(name);
     }
 
-    std::shared_ptr<api::IVideoDecoderImpl> VideoDecoderFactory::create(const QString &name) {
-        if (!m_decoders.contains(name)) {
-            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << name << "not registered";
-            return nullptr;
+    void VideoDecoderFactory::unregisterDecoder(const api::VideoDecoderInfo &info) {
+        if (!m_decoders.contains(info.name)) {
+            qWarning() << "VideoDecoderFactory: VideoDecoder with name" << info.name << "not registered";
+            return;
         }
-        return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(m_decoders[name].newInstance())};
+        m_decoders.remove(info.name);
+    }
+
+    std::shared_ptr<api::IVideoDecoderImpl> VideoDecoderFactory::create(const QString &name) {
+        auto infos = m_decoders.values();
+        QList<api::VideoDecoderInfo> possibleDecoders;
+
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+        bool isWayland = QProcessEnvironment::systemEnvironment().value("XDG_SESSION_TYPE", "").toLower() == "wayland";
+        for (const auto &info : infos) {
+            if (info.platforms.contains(isWayland ? common::Platform::Linux_Wayland : common::Platform::Linux_X11)) {
+                possibleDecoders.append(info);
+            }
+        }
+#elif defined(Q_OS_ANDROID)
+        for (const auto &info : infos) {
+            if (info.platforms.contains(common::Platform::Android)) {
+                possibleDecoders.append(info);
+            }
+        }
+#elif defined(Q_OS_WIN)
+        for (const auto &info : infos) {
+            if (info.platforms.contains(common::Platform::Windows)) {
+                possibleDecoders.append(info);
+            }
+        }
+#elif defined(Q_OS_MACOS)
+        for (const auto &info : infos) {
+            if (info.platforms.contains(common::Platform::MacOS)) {
+                possibleDecoders.append(info);
+            }
+        }
+#elif defined(Q_OS_IOS)
+        for (const auto &info : infos) {
+            if (info.platforms.contains(common::Platform::iOS)) {
+                possibleDecoders.append(info);
+            }
+        }
+#endif
+
+        if (possibleDecoders.isEmpty()) {
+            qWarning() << "VideoDecoderFactory: No decoder found for platform";
+            return {};
+        }
+
+        std::shared_ptr<api::IVideoDecoderImpl> decoder;
+        if (!name.isEmpty() && name != "") {
+            for (const auto &info : possibleDecoders) {
+                if (info.name == name) {
+                    return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(info.metaObject.newInstance())};
+                }
+            }
+            qWarning() << "VideoDecoderFactory: No decoder found with name" << name;
+            qWarning() << "VideoDecoderFactory: Available decoders for platform:";
+            for (const auto &info : possibleDecoders) {
+                qWarning() << "VideoDecoderFactory: " << info.name;
+            }
+            return {};
+        } else {
+            return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(possibleDecoders.first().metaObject.newInstance())};
+        }
     }
 
     void VideoDecoderFactory::registerDecoders() {
@@ -61,7 +122,7 @@ namespace AVQt {
         bool shouldBe = false;
         if (registered.compare_exchange_strong(shouldBe, true)) {
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-            getInstance().registerDecoder("VAAPI", VAAPIDecoderImpl::staticMetaObject);
+            getInstance().registerDecoder(VAAPIDecoderImpl::info);
 #endif
         }
     }

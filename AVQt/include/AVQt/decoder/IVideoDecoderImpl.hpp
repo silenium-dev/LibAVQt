@@ -24,6 +24,8 @@
 #ifndef LIBAVQT_IVIDEODECODERIMPL_HPP
 #define LIBAVQT_IVIDEODECODERIMPL_HPP
 
+#include "AVQt/common/PixelFormat.hpp"
+#include "AVQt/common/Platform.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
 #include <QObject>
 
@@ -49,6 +51,20 @@ namespace AVQt::api {
         [[nodiscard]] virtual communication::VideoPadParams getVideoParams() const = 0;
     signals:
         virtual void frameReady(std::shared_ptr<AVFrame> frame) = 0;
+    };
+
+    struct VideoDecoderInfo {
+        const QMetaObject metaObject;
+        const QString name;
+        const QList<common::Platform> platforms;
+        const QList<common::PixelFormat> supportedInputPixelFormats;
+        const QList<AVCodecID> supportedCodecIds;
+        [[nodiscard]] common::PixelFormat outputPixelFormatFor(const common::PixelFormat &inputPixelFormat) const {
+            if (supportedInputPixelFormats.contains(inputPixelFormat)) {
+                return inputPixelFormat.toNativeFormat();
+            }
+            return {};// No conversion possible
+        }
     };
 }// namespace AVQt::api
 

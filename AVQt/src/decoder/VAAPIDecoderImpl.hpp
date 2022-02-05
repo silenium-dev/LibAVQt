@@ -36,6 +36,8 @@ namespace AVQt {
         Q_DECLARE_PRIVATE(VAAPIDecoderImpl)
         Q_INTERFACES(AVQt::api::IVideoDecoderImpl)
     public:
+        static const AVQt::api::VideoDecoderInfo info;
+
         Q_INVOKABLE explicit VAAPIDecoderImpl();
 
         ~VAAPIDecoderImpl() override;

@@ -26,26 +26,27 @@
 
 #include "AVQt/decoder/IVideoDecoderImpl.hpp"
 
+#include "static_block.hpp"
 #include <QMap>
 #include <string>
-#include "static_block.hpp"
 
 namespace AVQt {
     class VideoDecoderFactory {
     public:
         static VideoDecoderFactory &getInstance();
 
-        void registerDecoder(const QString &name, const QMetaObject &metaObject);
+        void registerDecoder(const api::VideoDecoderInfo &info);
 
         void unregisterDecoder(const QString &name);
+        void unregisterDecoder(const api::VideoDecoderInfo &info);
 
-        [[nodiscard]] std::shared_ptr<api::IVideoDecoderImpl> create(const QString &name);
+        [[nodiscard]] std::shared_ptr<api::IVideoDecoderImpl> create(const QString &name = "");
 
         static void registerDecoders();
 
     private:
         VideoDecoderFactory() = default;
-        QMap<QString, QMetaObject> m_decoders;
+        QMap<QString, api::VideoDecoderInfo> m_decoders;
     };
 }// namespace AVQt
 

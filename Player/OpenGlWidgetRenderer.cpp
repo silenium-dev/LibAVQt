@@ -107,7 +107,7 @@ void OpenGLWidgetRenderer::consume(int64_t pad, std::shared_ptr<pgraph::api::Dat
 void OpenGLWidgetRenderer::initializeGL() {
     Q_D(OpenGLWidgetRenderer);
     initializeOpenGLFunctions();
-    d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPIOpenGLRenderMapper");
+    d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create("VAAPI");
     d->mapper->initializeGL(context());
 
     // clang-format off
