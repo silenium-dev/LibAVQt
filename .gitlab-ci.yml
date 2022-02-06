@@ -10,12 +10,12 @@ build:
   script:
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DQT_VERSION=5 ..
     - cmake --build . -j$(nproc)
     - cd ..
     - mkdir build-release
     - cd build-release
-    - cmake -DCMAKE_BUILD_TYPE=Release ..
+    - cmake -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=5 ..
     - cmake --build . -j$(nproc)
   artifacts:
     paths:
