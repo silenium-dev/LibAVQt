@@ -25,6 +25,7 @@
 #include "VAAPIEncoderImpl.hpp"
 
 #include <QtDebug>
+#include <QtConcurrent>
 
 namespace AVQt {
     VideoEncoderFactory &VideoEncoderFactory::getInstance() {
@@ -43,12 +44,12 @@ namespace AVQt {
         return true;
     }
 
-    bool VideoEncoderFactory::unregisterEncoder(const QString &name) {
-        return m_encoders.removeIf([&](const api::VideoEncoderInfo &i) { return i.name == name; });
+    void VideoEncoderFactory::unregisterEncoder(const QString &name) {
+        QtConcurrent::blockingFilter(m_encoders, [&](const api::VideoEncoderInfo &i) { return i.name != name; });
     }
 
-    bool VideoEncoderFactory::unregisterEncoder(const api::VideoEncoderInfo &info) {
-        return m_encoders.removeIf([&](const api::VideoEncoderInfo &i) { return i.name == info.name; });
+    void VideoEncoderFactory::unregisterEncoder(const api::VideoEncoderInfo &info) {
+        QtConcurrent::blockingFilter(m_encoders, [&](const api::VideoEncoderInfo &i) { return i.name != info.name; });
     }
 
     std::shared_ptr<api::IVideoEncoderImpl> VideoEncoderFactory::create(const common::PixelFormat &inputFormat, AVCodecID codec, const EncodeParameters &encodeParams, const QStringList &priority) {

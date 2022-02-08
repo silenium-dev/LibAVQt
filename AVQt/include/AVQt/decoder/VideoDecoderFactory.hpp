@@ -37,8 +37,8 @@ namespace AVQt {
 
         bool registerDecoder(const api::VideoDecoderInfo &info);
 
-        bool unregisterDecoder(const QString &name);
-        bool unregisterDecoder(const api::VideoDecoderInfo &info);
+        void unregisterDecoder(const QString &name);
+        void unregisterDecoder(const api::VideoDecoderInfo &info);
 
         [[nodiscard]] std::shared_ptr<api::IVideoDecoderImpl> create(const common::PixelFormat &inputFormat, AVCodecID codec, const QStringList &priority = {});
 

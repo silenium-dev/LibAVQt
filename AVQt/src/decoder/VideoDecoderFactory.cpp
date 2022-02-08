@@ -26,6 +26,7 @@
 
 #include <QDebug>
 #include <QProcessEnvironment>
+#include <QtConcurrent>
 
 namespace AVQt {
     VideoDecoderFactory &VideoDecoderFactory::getInstance() {
@@ -44,12 +45,12 @@ namespace AVQt {
         return true;
     }
 
-    bool VideoDecoderFactory::unregisterDecoder(const QString &name) {
-        return m_decoders.removeIf([&](const api::VideoDecoderInfo &i) { return i.name == name; });
+    void VideoDecoderFactory::unregisterDecoder(const QString &name) {
+        QtConcurrent::blockingFilter(m_decoders, [&](const api::VideoDecoderInfo &i) { return i.name != name; });
     }
 
-    bool VideoDecoderFactory::unregisterDecoder(const api::VideoDecoderInfo &info) {
-        return m_decoders.removeIf([&](const api::VideoDecoderInfo &i) { return i.name == info.name; });
+    void VideoDecoderFactory::unregisterDecoder(const api::VideoDecoderInfo &info) {
+        QtConcurrent::blockingFilter(m_decoders, [&](const api::VideoDecoderInfo &i) { return i.name != info.name; });
     }
 
     std::shared_ptr<api::IVideoDecoderImpl> VideoDecoderFactory::create(const common::PixelFormat &inputFormat, AVCodecID codec, const QStringList &priority) {

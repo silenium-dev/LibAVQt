@@ -40,8 +40,8 @@ namespace AVQt {
 
         bool registerEncoder(const api::VideoEncoderInfo &info);
 
-        bool unregisterEncoder(const QString &name);
-        bool unregisterEncoder(const api::VideoEncoderInfo &info);
+        void unregisterEncoder(const QString &name);
+        void unregisterEncoder(const api::VideoEncoderInfo &info);
 
         [[nodiscard]] std::shared_ptr<api::IVideoEncoderImpl> create(const common::PixelFormat &inputFormat, AVCodecID codec, const EncodeParameters &encodeParams, const QStringList &priority = {});
 
