@@ -38,17 +38,18 @@ namespace AVQt {
     public:
         static VideoEncoderFactory &getInstance();
 
-        void registerEncoder(const QString &name, const QMetaObject &metaObject);
+        bool registerEncoder(const api::VideoEncoderInfo &info);
 
-        void unregisterEncoder(const QString &name);
+        bool unregisterEncoder(const QString &name);
+        bool unregisterEncoder(const api::VideoEncoderInfo &info);
 
-        [[nodiscard]] std::shared_ptr<api::IVideoEncoderImpl> create(const QString &name, const EncodeParameters &params);
+        [[nodiscard]] std::shared_ptr<api::IVideoEncoderImpl> create(const common::PixelFormat &inputFormat, AVCodecID codec, const EncodeParameters &encodeParams, const QStringList &priority = {});
 
         static void registerEncoders();
 
     private:
         VideoEncoderFactory() = default;
-        QMap<QString, QMetaObject> m_encoders;
+        QList<api::VideoEncoderInfo> m_encoders;
     };
 }// namespace AVQt
 

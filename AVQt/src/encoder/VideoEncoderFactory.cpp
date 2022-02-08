@@ -32,28 +32,75 @@ namespace AVQt {
         return instance;
     }
 
-    void VideoEncoderFactory::registerEncoder(const QString &name, const QMetaObject &metaObject) {
-        if (m_encoders.contains(name)) {
-            qWarning() << "VideoEncoderFactory: VideoEncoder with name" << name << "already registered";
-            return;
+    bool VideoEncoderFactory::registerEncoder(const api::VideoEncoderInfo &info) {
+        for (auto &encoder : m_encoders) {
+            if (encoder.name == info.name) {
+                qWarning() << "Encoder" << info.name << "already registered";
+                return false;
+            }
         }
-        m_encoders.insert(name, metaObject);
+        m_encoders.append(info);
+        return true;
     }
 
-    void VideoEncoderFactory::unregisterEncoder(const QString &name) {
-        if (!m_encoders.contains(name)) {
-            qWarning() << "VideoEncoderFactory: VideoEncoder with name" << name << "not registered";
-            return;
-        }
-        m_encoders.remove(name);
+    bool VideoEncoderFactory::unregisterEncoder(const QString &name) {
+        return m_encoders.removeIf([&](const api::VideoEncoderInfo &i) { return i.name == name; });
     }
 
-    std::shared_ptr<api::IVideoEncoderImpl> VideoEncoderFactory::create(const QString &name, const EncodeParameters &params) {
-        if (!m_encoders.contains(name)) {
-            qWarning() << "VideoEncoderFactory: VideoEncoder with name" << name << "not registered";
-            return nullptr;
+    bool VideoEncoderFactory::unregisterEncoder(const api::VideoEncoderInfo &info) {
+        return m_encoders.removeIf([&](const api::VideoEncoderInfo &i) { return i.name == info.name; });
+    }
+
+    std::shared_ptr<api::IVideoEncoderImpl> VideoEncoderFactory::create(const common::PixelFormat &inputFormat, AVCodecID codec, const EncodeParameters &encodeParams, const QStringList &priority) {
+        auto platform = common::Platform::Unknown;
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+        bool isWayland = QProcessEnvironment::systemEnvironment().value("XDG_SESSION_TYPE", "").toLower() == "wayland";
+        platform = isWayland ? common::Platform::Linux_Wayland : common::Platform::Linux_X11;
+#elif defined(Q_OS_ANDROID)
+        platform = common::Platform::Android;
+#elif defined(Q_OS_WIN)
+        platform = common::Platform::Windows;
+#elif defined(Q_OS_MACOS)
+        platform = common::Platform::MacOS;
+#elif defined(Q_OS_IOS)
+        platform = common::Platform::iOS;
+#endif
+
+        QList<api::VideoEncoderInfo> possibleEncoders;
+        for (auto &encoder : m_encoders) {
+            if (encoder.platforms.contains(platform) && encoder.supportedInputPixelFormats.contains(inputFormat) && encoder.supportedCodecIds.contains(codec)) {
+                possibleEncoders.append(encoder);
+            }
         }
-        return std::shared_ptr<api::IVideoEncoderImpl>{qobject_cast<api::IVideoEncoderImpl *>(m_encoders[name].newInstance(Q_ARG(AVQt::EncodeParameters, params)))};
+
+        if (possibleEncoders.isEmpty()) {
+            qWarning() << "VideoEncoderFactory: No encoder found for" << avcodec_get_name(codec) << "with" << inputFormat.toString();
+            return {};
+        }
+
+        if (priority.isEmpty()) {
+            return std::shared_ptr<api::IVideoEncoderImpl>(
+                    qobject_cast<api::IVideoEncoderImpl *>(
+                            possibleEncoders.first().metaObject.newInstance(Q_ARG(AVCodecID, codec),
+                                                                            Q_ARG(EncodeParameters, encodeParams))));
+        } else {
+            for (const auto &encoderName : priority) {
+                for (const auto &info : possibleEncoders) {
+                    if (info.name == encoderName) {
+                        return std::shared_ptr<api::IVideoEncoderImpl>(
+                                qobject_cast<api::IVideoEncoderImpl *>(
+                                        info.metaObject.newInstance(Q_ARG(AVCodecID, codec),
+                                                                    Q_ARG(EncodeParameters, encodeParams))));
+                    }
+                }
+            }
+            qWarning() << "VideoEncoderFactory: No encoder found for" << priority << "with" << inputFormat << "and" << avcodec_get_name(codec);
+            qDebug() << "VideoEncoderFactory: Available encoders:";
+            for (auto &encoder : possibleEncoders) {
+                qDebug() << "VideoEncoderFactory:" << encoder.name;
+            }
+            return {};
+        }
     }
 
     void VideoEncoderFactory::registerEncoders() {
@@ -61,7 +108,7 @@ namespace AVQt {
         bool shouldBe = false;
         if (registered.compare_exchange_strong(shouldBe, true)) {
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-            getInstance().registerEncoder("VAAPI", VAAPIEncoderImpl::staticMetaObject);
+            getInstance().registerEncoder(VAAPIEncoderImpl::info);
 #endif
         }
     }

@@ -22,11 +22,11 @@
 //
 
 #include "OpenGlWidgetRenderer.hpp"
-#include "OpenGlWidgetRendererPrivate.hpp"
 #include "AVQt/communication/Message.hpp"
-#include "global.hpp"
 #include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 #include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
+#include "OpenGlWidgetRendererPrivate.hpp"
+#include "global.hpp"
 #include <QtConcurrent>
 #include <pgraph/api/Data.hpp>
 #include <pgraph/api/PadUserData.hpp>
@@ -41,14 +41,22 @@ OpenGLWidgetRenderer::OpenGLWidgetRenderer(std::shared_ptr<pgraph::network::api:
       d_ptr(new OpenGLWidgetRendererPrivate(this)) {
     Q_D(OpenGLWidgetRenderer);
     qRegisterMetaType<std::shared_ptr<QOpenGLFramebufferObject>>();
-    setAttribute(Qt::WA_QuitOnClose);
+    setAttribute(Qt::WA_QuitOnClose, false);
 }
 
 OpenGLWidgetRenderer::~OpenGLWidgetRenderer() {
     Q_D(OpenGLWidgetRenderer);
 
+    if (d->mapper) {
+        d->mapper->stop();
+        d->mapper.reset();
+    }
+
+    makeCurrent();
+    d->blitter->destroy();
     delete d->blitter;
     d->blitter = nullptr;
+    doneCurrent();
 
     if (d->inputPadId != pgraph::api::INVALID_PAD_ID) {
         pgraph::impl::SimpleProcessor::destroyInputPad(d->inputPadId);
@@ -76,7 +84,6 @@ void OpenGLWidgetRenderer::consume(int64_t pad, std::shared_ptr<pgraph::api::Dat
                     qWarning() << "Failed to start renderer";
                     break;
                 }
-                d->mapper->start();
                 break;
             case AVQt::communication::Message::Action::STOP:
                 stop();
@@ -130,7 +137,7 @@ void OpenGLWidgetRenderer::paintGL() {
     if (!d->paused) {
         if (d->renderQueue.size() >= 2) {
             auto timestamp = d->getTimestamp();
-            if (timestamp >= d->renderQueue.first().first) {
+            if (timestamp >= d->renderQueue.first().first || !d->currentFrame.second) {
                 updateRequired = true;
                 updateTimestamp = timestamp;
             }
@@ -184,16 +191,17 @@ void OpenGLWidgetRenderer::paintGL() {
 
 void OpenGLWidgetRenderer::onFrameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) {
     Q_D(OpenGLWidgetRenderer);
-    d->renderQueue.enqueue({pts, fbo});
+    if (d->running) {
+        d->renderQueue.enqueue({pts, fbo});
+    }
 }
 
 void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {
     Q_D(OpenGLWidgetRenderer);
     d->renderQueue.clear();
     d->currentFrame = {};
-    if (d->mapper) {
-        d->mapper->stop();
-        d->mapper.reset();
+    if (d->running) {
+        QCoreApplication::quit();
     }
     QWidget::closeEvent(event);
 }
@@ -232,24 +240,62 @@ bool OpenGLWidgetRenderer::isPaused() const {
 }
 
 bool OpenGLWidgetRenderer::open() {
+    Q_D(OpenGLWidgetRenderer);
+    if (d->mapper) {
+        d->mapper->start();
+    }
     return true;
 }
 
 void OpenGLWidgetRenderer::close() {
     Q_D(OpenGLWidgetRenderer);
     stop();
-    QWidget::close();
+    if (d->mapper) {
+        d->mapper->stop();
+    }
 }
 
 bool OpenGLWidgetRenderer::start() {
     Q_D(OpenGLWidgetRenderer);
-    show();
-    d->mapper->start();
-    return isVisible();
+    bool shouldBe = false;
+    if (d->running.compare_exchange_strong(shouldBe, true)) {
+        d->renderQueue.clear();
+        show();
+        //        if (d->mapper) {
+        //            // Preserve normalized form of Qt SIGNAL/SLOT macro
+        //            // clang-format off
+        //            connect(std::dynamic_pointer_cast<QObject>(d->mapper).get(), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),
+        //                    this, SLOT(onFrameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)));
+        //            // clang-format on
+        //            d->mapper->start();
+        //        }
+        return isVisible();
+    } else {
+        qDebug("OpenGLWidgetRenderer::start() called while already running");
+        return false;
+    }
 }
 
 void OpenGLWidgetRenderer::stop() {
-    hide();
+    Q_D(OpenGLWidgetRenderer);
+    bool shouldBe = true;
+    if (d->running.compare_exchange_strong(shouldBe, false)) {
+        QWidget::close();
+        d->lastPaused = 0;
+        d->renderTimer.invalidate();
+
+        //        if (d->mapper) {
+        //            d->mapper->stop();
+        //            // clang-format off
+        //            // Preserve normalized form of Qt SIGNAL/SLOT macro
+        //            disconnect(std::dynamic_pointer_cast<QObject>(d->mapper).get(), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),
+        //                    this, SLOT(onFrameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)));
+        //            // clang-format on
+        //        }
+        d->renderQueue.clear();
+    } else {
+        qDebug("OpenGLWidgetRenderer::stop() called while not running");
+    }
 }
 
 int64_t OpenGLWidgetRendererPrivate::getTimestamp() {

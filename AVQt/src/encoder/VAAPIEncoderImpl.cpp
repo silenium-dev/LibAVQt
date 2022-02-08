@@ -26,6 +26,7 @@
 #include "private/VAAPIEncoderImpl_p.hpp"
 
 #include <QImage>
+#include <QtConcurrent>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -37,35 +38,59 @@ namespace AVQt {
             AV_PIX_FMT_P010,
             AV_PIX_FMT_YUV420P,
             AV_PIX_FMT_YUV420P10,
-            AV_PIX_FMT_QSV,
             AV_PIX_FMT_VAAPI};
+    const api::VideoEncoderInfo VAAPIEncoderImpl::info{
+            .metaObject = VAAPIEncoderImpl::staticMetaObject,
+            .name = "VAAPI",
+            .platforms = {
+                    common::Platform::Linux_Wayland,
+                    common::Platform::Linux_X11,
+            },
+            .supportedInputPixelFormats = {
+                    {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_NONE, AV_PIX_FMT_VAAPI},
+            },
+            .supportedCodecIds = {
+                    AV_CODEC_ID_H264,
+                    AV_CODEC_ID_HEVC,
+                    AV_CODEC_ID_VP8,
+                    AV_CODEC_ID_VP9,
+                    AV_CODEC_ID_MPEG2VIDEO,
+            },
+    };
 
-    VAAPIEncoderImpl::VAAPIEncoderImpl(const EncodeParameters &parameters)
+    VAAPIEncoderImpl::VAAPIEncoderImpl(AVCodecID codec, const EncodeParameters &parameters)
         : QObject(),
           IVideoEncoderImpl(parameters),
           d_ptr(new VAAPIEncoderImplPrivate(this)) {
         Q_D(VAAPIEncoderImpl);
 
-        QString codec;
-        switch (parameters.codec) {
-            case Codec::H264:
-                codec = "h264_vaapi";
+        QString codecName;
+        switch (codec) {
+            case AV_CODEC_ID_H264:
+                codecName = "h264_vaapi";
                 break;
-            case Codec::HEVC:
-                codec = "hevc_vaapi";
+            case AV_CODEC_ID_HEVC:
+                codecName = "hevc_vaapi";
                 break;
-            case Codec::VP8:
-                codec = "vp8_vaapi";
+            case AV_CODEC_ID_VP8:
+                codecName = "vp8_vaapi";
                 break;
-            case Codec::VP9:
-                codec = "vp9_vaapi";
+            case AV_CODEC_ID_VP9:
+                codecName = "vp9_vaapi";
                 break;
-            case Codec::MPEG2:
-                codec = "mpeg2_vaapi";
+            case AV_CODEC_ID_MPEG2VIDEO:
+                codecName = "mpeg2_vaapi";
                 break;
+            default:
+                qWarning() << "Unsupported codec" << avcodec_get_name(codec);
+                return;
         }
 
-        d->codec = avcodec_find_encoder_by_name(qPrintable(codec));
+        d->codec = avcodec_find_encoder_by_name(qPrintable(codecName));
         if (!d->codec) {
             qWarning() << "Codec not found";
             return;

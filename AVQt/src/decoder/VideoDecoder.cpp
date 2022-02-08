@@ -159,25 +159,23 @@ namespace AVQt {
 
         bool shouldBe = false;
         if (d->open.compare_exchange_strong(shouldBe, true)) {
-            if (!d->config.decoderPriority.isEmpty()) {
-                for (const auto &decoderName : d->config.decoderPriority) {
-                    d->impl = std::move(VideoDecoderFactory::getInstance().create(common::PixelFormat{static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_NONE}, decoderName));
-                    if (d->impl) {
-                        break;
-                    }
-                }
-            } else {
-                d->impl = std::move(VideoDecoderFactory::getInstance().create(common::PixelFormat{static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_NONE}));
-            }
+            d->impl = std::move(VideoDecoderFactory::getInstance().create(
+                    {static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_NONE},
+                    d->codecParams->codec_id, d->config.decoderPriority));
             if (!d->impl) {
-                qWarning("No matching VideoDecoderImpl found");
+                qWarning("No VideoDecoderImpl found");
                 return false;
             }
+
+            if (!d->impl->open(d->codecParams)) {
+                d->impl.reset();
+                qWarning() << "Failed to open VideoDecoderImpl";
+                return false;
+            }
+
             connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(frameReady(std::shared_ptr<AVFrame>)),
                     this, SLOT(onFrameReady(std::shared_ptr<AVFrame>)), Qt::DirectConnection);
             setObjectName(QString("AVQt::VideoDecoder(%1)").arg(std::dynamic_pointer_cast<QObject>(d->impl)->metaObject()->className()));
-
-            d->impl->open(d->codecParams);
 
             *d->outputPadParams = d->impl->getVideoParams();
 
@@ -203,11 +201,10 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
-            d->impl->close();
-            d->codecParams.reset();
-            d->running = false;
             d->paused = false;
-            d->open = false;
+            d->impl->close();
+            d->impl.reset();
+            d->codecParams.reset();
             produce(communication::Message::builder().withAction(communication::Message::Action::CLEANUP).build(), d->outputPadId);
         } else {
             qWarning() << "VideoDecoder not open";

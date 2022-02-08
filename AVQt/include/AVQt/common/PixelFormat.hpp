@@ -51,6 +51,7 @@ namespace AVQt::common {
         static bool unregisterGPUFormat(AVPixelFormat format);
 
         [[nodiscard]] PixelFormat toNativeFormat() const;
+        [[nodiscard]] PixelFormat toBaseFormat() const;
 
         friend QDebug operator<<(QDebug debug, const PixelFormat &pixelFormat);
         friend QDebug operator<<(QDebug debug, const PixelFormat *pixelFormat);

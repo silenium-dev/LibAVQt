@@ -49,7 +49,8 @@ namespace AVQt {
         int64_t inputPadId{pgraph::api::INVALID_PAD_ID};
         int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
 
-        EncodeParameters encodeParameters{};
+        VideoEncoder::Config config;
+
         std::shared_ptr<AVCodecParameters> codecParams{};
         std::shared_ptr<api::IVideoEncoderImpl> impl{};
 

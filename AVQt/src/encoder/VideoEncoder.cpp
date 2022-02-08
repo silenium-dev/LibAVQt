@@ -33,20 +33,20 @@
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
 namespace AVQt {
-    VideoEncoder::VideoEncoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+    VideoEncoder::VideoEncoder(const Config &config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
         : QThread(parent),
           pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
           d_ptr(new VideoEncoderPrivate(this)) {
         Q_D(VideoEncoder);
-        d->encodeParameters = encodeParameters;
+        d->config = config;
+    }
 
-        d->impl = VideoEncoderFactory::getInstance().create(encoderName, encodeParameters);
-        if (!d->impl) {
-            qFatal("VideoEncoder %s not found", qPrintable(encoderName));
-        }
-
-        connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(packetReady(std::shared_ptr<AVPacket>)),
-                this, SLOT(onPacketReady(std::shared_ptr<AVPacket>)), Qt::DirectConnection);
+    VideoEncoder::VideoEncoder(const Config &config, QObject *parent)
+        : QThread(parent),
+          pgraph::impl::SimpleProcessor(pgraph::impl::SimplePadFactory::getInstance()),
+          d_ptr(new VideoEncoderPrivate(this)) {
+        Q_D(VideoEncoder);
+        d->config = config;
     }
 
     VideoEncoder::~VideoEncoder() {
@@ -113,12 +113,26 @@ namespace AVQt {
 
         bool shouldBe = false;
         if (d->open.compare_exchange_strong(shouldBe, true)) {
+            common::PixelFormat inputFormat =
+                    d->inputParams.isHWAccel
+                            ? common::PixelFormat{d->inputParams.swPixelFormat, d->inputParams.pixelFormat}
+                            : common::PixelFormat{d->inputParams.swPixelFormat, AV_PIX_FMT_NONE};
+            d->impl = VideoEncoderFactory::getInstance().create(inputFormat, getCodecId(d->config.codec), d->config.encodeParameters, d->config.encoderPriority);
+
+            if (!d->impl) {
+                qFatal("No VideoEncoderImpl found");
+            }
+
             if (!d->impl->open(d->inputParams)) {
+                d->impl.reset();
                 qWarning("VideoEncoder: Failed to open");
                 return false;
             }
 
-            d->outputPadParams->codec = codecId(d->encodeParameters.codec);
+            connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(packetReady(std::shared_ptr<AVPacket>)),
+                    this, SLOT(onPacketReady(std::shared_ptr<AVPacket>)), Qt::DirectConnection);
+
+            d->outputPadParams->codec = getCodecId(d->config.codec);
             d->outputPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
 
             d->outputPadParams->codecParams = d->impl->getCodecParameters();
@@ -126,7 +140,7 @@ namespace AVQt {
             pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
                                                            .withAction(communication::Message::Action::INIT)
                                                            .withPayload("packetParams", QVariant::fromValue(*d->outputPadParams))
-                                                           .withPayload("encodeParams", QVariant::fromValue(d->encodeParameters))
+                                                           .withPayload("encodeParams", QVariant::fromValue(d->config.encodeParameters))
                                                            .build(),
                                                    d->outputPadId);
 
@@ -290,28 +304,6 @@ namespace AVQt {
         Q_D(VideoEncoder);
 
         exec();
-    }
-
-    AVCodecID VideoEncoder::codecId(Codec codec) {
-        AVCodecID result = AV_CODEC_ID_NONE;
-        switch (codec) {
-            case Codec::H264:
-                result = AV_CODEC_ID_H264;
-                break;
-            case Codec::HEVC:
-                result = AV_CODEC_ID_HEVC;
-                break;
-            case Codec::VP8:
-                result = AV_CODEC_ID_VP8;
-                break;
-            case Codec::VP9:
-                result = AV_CODEC_ID_VP9;
-                break;
-            case Codec::MPEG2:
-                result = AV_CODEC_ID_MPEG2VIDEO;
-                break;
-        }
-        return result;
     }
 
     void VideoEncoder::onPacketReady(const std::shared_ptr<AVPacket> &packet) {

@@ -51,7 +51,7 @@ namespace AVQt {
 
     public:
         struct Config {
-            QStringList decoderPriority;
+            QStringList decoderPriority{};
         };
 
         explicit VideoDecoder(const Config &config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);

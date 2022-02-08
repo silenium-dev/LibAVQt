@@ -54,12 +54,16 @@ namespace AVQt {
                     AV_CODEC_ID_VP9,
                     AV_CODEC_ID_MPEG2VIDEO,
                     AV_CODEC_ID_NONE,
-            }
-    };
+            }};
 
-    VAAPIDecoderImpl::VAAPIDecoderImpl() : QObject(nullptr), d_ptr(new VAAPIDecoderImplPrivate(this)) {
+    VAAPIDecoderImpl::VAAPIDecoderImpl(AVCodecID codec) : QObject(nullptr), d_ptr(new VAAPIDecoderImplPrivate(this)) {
         Q_D(VAAPIDecoderImpl);
         d->frameDestructor = std::make_shared<internal::FrameDestructor>();
+        d->codec = avcodec_find_decoder(codec);
+        if (!d->codec) {
+            qWarning() << "Failed to find decoder for codec" << avcodec_get_name(codec);
+            return;
+        }
     }
 
     VAAPIDecoderImpl::~VAAPIDecoderImpl() {
@@ -71,14 +75,13 @@ namespace AVQt {
 
     bool VAAPIDecoderImpl::open(std::shared_ptr<AVCodecParameters> codecParams) {
         Q_D(VAAPIDecoderImpl);
+
         bool shouldBe = false;
         if (d->initialized.compare_exchange_strong(shouldBe, true)) {
             d->codecParams = codecParams;
 
-            d->codec = avcodec_find_decoder(d->codecParams->codec_id);
             if (!d->codec) {
-                qWarning() << "Could not find decoder for encoder id" << d->codecParams->codec_id;
-                d->initialized = false;
+                qWarning() << "Failed to find decoder for codec";
                 goto failed;
             }
 
@@ -106,7 +109,9 @@ namespace AVQt {
                 int ret = av_hwframe_ctx_init(hwFramesContext);
                 if (ret != 0) {
                     char strBuf[64];
-                    qFatal("[AVQt::VAAPIDecoderImpl] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
+                    qWarning("[AVQt::VAAPIDecoderImpl] %d: Could not initialize HW frames context: %s", ret, av_make_error_string(strBuf, 64, ret));
+                    av_buffer_unref(&hwFramesContext);
+                    goto failed;
                 }
                 d->hwFramesContext = {hwFramesContext, &VAAPIDecoderImplPrivate::destroyAVBufferRef};
             }
@@ -164,26 +169,10 @@ namespace AVQt {
         }
 
         {
-            //            HWContextSync *hwFramesMutex{nullptr};
-            //            if (d->encodeContext->hw_frames_ctx) {
-            //                hwFramesMutex = reinterpret_cast<HWContextSync *>(reinterpret_cast<AVHWFramesContext *>(d->encodeContext->hw_frames_ctx)->user_opaque);
-            //            }
             int ret;
             {
                 QMutexLocker locker(&d->codecMutex);
-                //                if (hwFramesMutex) {
-                {
-                    //                        QMutexLocker hwFramesLocker(hwFramesMutex);
-                    //                        qDebug("[AVQt::VAAPIDecoderImpl] Trying to lock hardware frames mutex: %p", hwFramesMutex);
-                    //                        hwFramesMutex->lock();
-                    //                        qDebug("[AVQt::VAAPIDecoderImpl] Using hardware frames mutex: %p", hwFramesMutex);
-                    ret = avcodec_send_packet(d->codecContext.get(), packet.get());
-                    //                        hwFramesMutex->unlock();
-                }
-                //                    qDebug("[AVQt::VAAPIDecoderImpl] Unlocked frame pool mutex: %p", hwFramesMutex);
-                //                } else {
-                //                    ret = avcodec_send_packet(d->encodeContext, packet);
-                //                }
+                ret = avcodec_send_packet(d->codecContext.get(), packet.get());
             }
             if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR(ENOMEM)) {
                 return EAGAIN;

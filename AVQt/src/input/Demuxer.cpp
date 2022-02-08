@@ -45,6 +45,16 @@ namespace AVQt {
         d->loop = config.loop;
     }
 
+    Demuxer::~Demuxer() noexcept {
+        Q_D(AVQt::Demuxer);
+        for (const auto &pad : d->outputPadIds) {
+            pgraph::impl::SimpleProducer::destroyOutputPad(pad);
+        }
+        d->pFormatCtx.reset();
+        d->pIOCtx.reset();
+        d->inputDevice->close();
+    }
+
     bool Demuxer::isPaused() const {
         Q_D(const AVQt::Demuxer);
         return d->running.load() && d->paused.load();
@@ -161,25 +171,19 @@ namespace AVQt {
     void Demuxer::close() {
         Q_D(AVQt::Demuxer);
 
-        Demuxer::stop();
+        if (d->running) {
+            Demuxer::stop();
+        }
 
         for (const auto &pad : d->outputPadIds) {
             produce(communication::Message::builder().withAction(communication::Message::Action::CLEANUP).build(), pad);
         }
 
-        if (d->open) {
-            d->open.store(false);
-            d->running.store(false);
-            d->initialized.store(false);
-            d->inputDevice->close();
-            d->pFormatCtx.reset();
-            d->pIOCtx.reset();
+        bool shouldBe = true;
+        if (d->open.compare_exchange_strong(shouldBe, false)) {
+            // Empty, as there is nothing to clean up
         } else {
             qWarning() << "Demuxer not open";
-        }
-
-        for (const auto &pad : d->outputPadIds) {
-            destroyOutputPad(pad);
         }
     }
 
@@ -220,6 +224,10 @@ namespace AVQt {
             QThread::wait();
             for (const auto &pad : d->outputPadIds) {
                 produce(communication::Message::builder().withAction(communication::Message::Action::STOP).build(), pad);
+            }
+            int ret = avformat_seek_file(d->pFormatCtx.get(), -1, INT64_MIN, 0, INT64_MAX, 0);
+            if (ret < 0) {
+                qWarning() << Q_FUNC_INFO << "Error while seeking";
             }
             emit stopped();
         }

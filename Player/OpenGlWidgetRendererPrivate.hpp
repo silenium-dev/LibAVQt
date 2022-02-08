@@ -48,7 +48,7 @@ private:
     QElapsedTimer renderTimer{};
     QPair<int64_t, std::shared_ptr<QOpenGLFramebufferObject>> currentFrame{0, nullptr};
 
-    std::atomic_bool paused{false};
+    std::atomic_bool paused{false}, running{false};
     std::atomic_int64_t lastPaused{0};
 
     const size_t id;

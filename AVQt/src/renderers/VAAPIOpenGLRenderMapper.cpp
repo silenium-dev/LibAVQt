@@ -159,14 +159,14 @@ namespace AVQt {
 
     void VAAPIOpenGLRenderMapper::initializePlatformAPI() {
         Q_D(VAAPIOpenGLRenderMapper);
-        EGLint visual_attr[] = {
-                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-                EGL_RED_SIZE, 8,
-                EGL_GREEN_SIZE, 8,
-                EGL_BLUE_SIZE, 8,
-                EGL_ALPHA_SIZE, 8,
-                EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-                EGL_NONE};
+        //        EGLint visual_attr[] = {
+        //                EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        //                EGL_RED_SIZE, 8,
+        //                EGL_GREEN_SIZE, 8,
+        //                EGL_BLUE_SIZE, 8,
+        //                EGL_ALPHA_SIZE, 8,
+        //                EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+        //                EGL_NONE};
         d->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (d->eglDisplay == EGL_NO_DISPLAY) {
             qFatal("Could not getFBO EGL display: %s", eglErrorString(eglGetError()).c_str());
@@ -178,11 +178,11 @@ namespace AVQt {
             qFatal("eglBindAPI");
         }
 
-        EGLConfig cfg;
-        EGLint cfg_count;
-        if (!eglChooseConfig(d->eglDisplay, visual_attr, &cfg, 1, &cfg_count) || (cfg_count < 1)) {
-            qFatal("eglChooseConfig: %s", eglErrorString(eglGetError()).c_str());
-        }
+        //        EGLConfig cfg;
+        //        EGLint cfg_count;
+        //        if (!eglChooseConfig(d->eglDisplay, visual_attr, &cfg, 1, &cfg_count) || (cfg_count < 1)) {
+        //            qFatal("eglChooseConfig: %s", eglErrorString(eglGetError()).c_str());
+        //        }
 
         qDebug("EGL Version: %s", eglQueryString(d->eglDisplay, EGL_VERSION));
     }
@@ -528,6 +528,9 @@ namespace AVQt {
             mapFrame();
             qDebug("Mapped frame");
 
+            if (!d->fboPool) {
+                goto end;
+            }
             auto fbo = d->fboPool->getFBO(1000);
             if (!fbo) {
                 qWarning("[AVQt::VAAPIOpenGLRenderMapper] Failed to get FBO, exiting");

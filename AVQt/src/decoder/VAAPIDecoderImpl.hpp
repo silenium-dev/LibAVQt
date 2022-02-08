@@ -38,7 +38,7 @@ namespace AVQt {
     public:
         static const AVQt::api::VideoDecoderInfo info;
 
-        Q_INVOKABLE explicit VAAPIDecoderImpl();
+        Q_INVOKABLE explicit VAAPIDecoderImpl(AVCodecID codec);
 
         ~VAAPIDecoderImpl() override;
 

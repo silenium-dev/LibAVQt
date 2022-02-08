@@ -25,6 +25,8 @@
 #define LIBAVQT_IVIDEOENCODERIMPL_HPP
 
 #include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/common/PixelFormat.hpp"
+#include "AVQt/common/Platform.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -45,8 +47,6 @@ namespace AVQt {
         int32_t bitrate;
         int32_t max_bitrate;
         int32_t min_bitrate;
-
-        Codec codec;
     };
     namespace api {
         class IVideoEncoderImpl {
@@ -71,6 +71,14 @@ namespace AVQt {
 
         private:
             EncodeParameters m_encodeParameters;
+        };
+
+        struct VideoEncoderInfo {
+            QMetaObject metaObject;
+            QString name;
+            QList<common::Platform> platforms;
+            QList<common::PixelFormat> supportedInputPixelFormats;
+            QList<AVCodecID> supportedCodecIds;
         };
     }// namespace api
 }// namespace AVQt

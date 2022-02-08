@@ -42,9 +42,15 @@ namespace AVQt {
         Q_INTERFACES(AVQt::api::IComponent)
         Q_DECLARE_PRIVATE(AVQt::VideoEncoder)
     public:
-        static AVCodecID codecId(Codec codec);
+        struct Config {
+            QStringList encoderPriority{};
+            Codec codec{};
+            EncodeParameters encodeParameters{};
+        };
 
-        VideoEncoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        VideoEncoder(const Config &config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        VideoEncoder(const Config &config, QObject *parent = nullptr);
+
         /*!
          * \private
          */

@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
     encodeParams.bitrate = 10000000;
     encodeParams.min_bitrate = 8000000;
     encodeParams.max_bitrate = 16000000;
-    encodeParams.codec = AVQt::Codec::H264;
+    //    encodeParams.codec = AVQt::Codec::H264;
 
     AVQt::Demuxer::Config demuxerConfig{};
     demuxerConfig.inputDevice = std::make_unique<QFile>(filepath);
@@ -207,6 +207,11 @@ int main(int argc, char *argv[]) {
     //        renderer2->resize(1280, 720);
 
     demuxer->start();
+
+    QTimer::singleShot(5000, [demuxer]() {
+        demuxer->stop();
+        demuxer->start();
+    });
 
     //    QTimer::singleShot(4000, [demuxer]{
     //        demuxer->pause(true);

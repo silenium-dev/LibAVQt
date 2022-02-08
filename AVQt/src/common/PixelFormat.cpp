@@ -143,6 +143,9 @@ namespace AVQt::common {
         return {m_cpuFormat, m_gpuFormat};
     }
 
+    PixelFormat PixelFormat::toBaseFormat() const {
+        return {FullFormatPixelFormatOf(m_cpuFormat), AV_PIX_FMT_NONE};
+    }
 
     QString PixelFormat::toString() const {
         return QString("GPU: %1, CPU: %2").arg(av_get_pix_fmt_name(m_gpuFormat), av_get_pix_fmt_name(m_cpuFormat));

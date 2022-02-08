@@ -52,7 +52,7 @@ namespace AVQt {
 
         Demuxer &operator=(const Demuxer &other) = delete;
 
-        ~Demuxer() override = default;
+        ~Demuxer() noexcept override;
 
         bool isPaused() const override;
 
