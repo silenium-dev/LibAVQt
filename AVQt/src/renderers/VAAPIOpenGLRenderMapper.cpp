@@ -530,7 +530,7 @@ namespace AVQt {
 
             auto fbo = d->fboPool->getFBO(1000);
             if (!fbo) {
-                qWarning("[AVQt::VAAPIOpenGLRenderMapper] Failed to getFBO FBO, exiting");
+                qWarning("[AVQt::VAAPIOpenGLRenderMapper] Failed to get FBO, exiting");
                 goto end;
             }
 

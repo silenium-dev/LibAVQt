@@ -29,6 +29,7 @@
 #include "OpenGlWidgetRendererPrivate.hpp"
 
 #include <QtOpenGL>
+#include <QOpenGLWidget>
 #include <pgraph/impl/SimpleProcessor.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
 

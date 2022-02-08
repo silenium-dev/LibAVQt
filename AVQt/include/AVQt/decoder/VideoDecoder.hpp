@@ -50,7 +50,12 @@ namespace AVQt {
         Q_INTERFACES(AVQt::api::IComponent)
 
     public:
-        explicit VideoDecoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr) Q_DECL_UNUSED;
+        struct Config {
+            QStringList decoderPriority;
+        };
+
+        explicit VideoDecoder(const Config &config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
+        explicit VideoDecoder(const Config &config, QObject *parent = nullptr);
 
         /*!
          * \private
@@ -61,35 +66,35 @@ namespace AVQt {
          * \private
          */
         void operator=(const VideoDecoder &) = delete;
-        bool isOpen() const override Q_DECL_UNUSED;
-        bool isRunning() const override Q_DECL_UNUSED;
+        bool isOpen() const override;
+        bool isRunning() const override;
         /*!
          * \private
          */
-        ~VideoDecoder() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        ~VideoDecoder() Q_DECL_OVERRIDE;
 
         /*!
          * \brief Returns paused state of decoder
          * @return Paused state
          */
-        bool isPaused() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isPaused() const Q_DECL_OVERRIDE;
 
-        [[nodiscard]] int64_t getInputPadId() const Q_DECL_UNUSED;
+        [[nodiscard]] int64_t getInputPadId() const;
 
-        [[nodiscard]] int64_t getOutputPadId() const Q_DECL_UNUSED;
+        [[nodiscard]] int64_t getOutputPadId() const;
 
-        bool init() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool init() Q_DECL_OVERRIDE;
 
     protected slots:
-        bool open() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool open() Q_DECL_OVERRIDE;
 
-        void close() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        void close() Q_DECL_OVERRIDE;
 
-        bool start() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool start() Q_DECL_OVERRIDE;
 
-        void stop() Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        void stop() Q_DECL_OVERRIDE;
 
-        void pause(bool pause) Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        void pause(bool pause) Q_DECL_OVERRIDE;
 
         void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
 

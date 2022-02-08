@@ -54,7 +54,8 @@ namespace AVQt {
                     AV_CODEC_ID_VP9,
                     AV_CODEC_ID_MPEG2VIDEO,
                     AV_CODEC_ID_NONE,
-            }};
+            }
+    };
 
     VAAPIDecoderImpl::VAAPIDecoderImpl() : QObject(nullptr), d_ptr(new VAAPIDecoderImplPrivate(this)) {
         Q_D(VAAPIDecoderImpl);
@@ -356,9 +357,5 @@ namespace AVQt {
         } else {
             qWarning("FrameFetcher not running");
         }
-    }
-
-    AVPixelFormat VAAPIDecoderImpl::VAAPIDecoderInfo::outputPixelFormatFor(AVPixelFormat inputPixelFormat) const {
-        return AV_PIX_FMT_VAAPI;
     }
 }// namespace AVQt

@@ -40,7 +40,7 @@ namespace AVQt {
         void unregisterDecoder(const QString &name);
         void unregisterDecoder(const api::VideoDecoderInfo &info);
 
-        [[nodiscard]] std::shared_ptr<api::IVideoDecoderImpl> create(const QString &name = "");
+        [[nodiscard]] std::shared_ptr<api::IVideoDecoderImpl> create(const common::PixelFormat &inputFormat, const QString &name = "");
 
         static void registerDecoders();
 
@@ -50,8 +50,8 @@ namespace AVQt {
     };
 }// namespace AVQt
 
-static_block {
-    AVQt::VideoDecoderFactory::registerDecoders();
-}
+//static_block {
+//    AVQt::VideoDecoderFactory::registerDecoders();
+//}
 
 #endif//LIBAVQT_VIDEODECODERFACTORY_HPP

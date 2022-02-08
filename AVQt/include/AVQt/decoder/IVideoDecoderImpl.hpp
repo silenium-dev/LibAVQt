@@ -54,11 +54,11 @@ namespace AVQt::api {
     };
 
     struct VideoDecoderInfo {
-        const QMetaObject metaObject;
-        const QString name;
-        const QList<common::Platform> platforms;
-        const QList<common::PixelFormat> supportedInputPixelFormats;
-        const QList<AVCodecID> supportedCodecIds;
+        QMetaObject metaObject;
+        QString name;
+        QList<common::Platform> platforms;
+        QList<common::PixelFormat> supportedInputPixelFormats;
+        QList<AVCodecID> supportedCodecIds;
         [[nodiscard]] common::PixelFormat outputPixelFormatFor(const common::PixelFormat &inputPixelFormat) const {
             if (supportedInputPixelFormats.contains(inputPixelFormat)) {
                 return inputPixelFormat.toNativeFormat();

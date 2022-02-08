@@ -65,6 +65,8 @@ namespace AVQt {
         QMutex inputQueueMutex{};
         QQueue<std::shared_ptr<AVPacket>> inputQueue{};
 
+        VideoDecoder::Config config{};
+
         std::shared_ptr<AVCodecParameters> codecParams{};
         std::shared_ptr<api::IVideoDecoderImpl> impl{};
 

@@ -57,7 +57,7 @@ namespace AVQt {
         m_decoders.remove(info.name);
     }
 
-    std::shared_ptr<api::IVideoDecoderImpl> VideoDecoderFactory::create(const QString &name) {
+    std::shared_ptr<api::IVideoDecoderImpl> VideoDecoderFactory::create(const common::PixelFormat &inputFormat, const QString &name) {
         auto infos = m_decoders.values();
         QList<api::VideoDecoderInfo> possibleDecoders;
 
@@ -102,18 +102,28 @@ namespace AVQt {
         std::shared_ptr<api::IVideoDecoderImpl> decoder;
         if (!name.isEmpty() && name != "") {
             for (const auto &info : possibleDecoders) {
-                if (info.name == name) {
+                if (info.name == name && info.supportedInputPixelFormats.contains(inputFormat)) {
                     return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(info.metaObject.newInstance())};
                 }
             }
-            qWarning() << "VideoDecoderFactory: No decoder found with name" << name;
+            qWarning() << "VideoDecoderFactory: No decoder found with name" << name << "and input format" << inputFormat;
             qWarning() << "VideoDecoderFactory: Available decoders for platform:";
             for (const auto &info : possibleDecoders) {
                 qWarning() << "VideoDecoderFactory: " << info.name;
             }
             return {};
         } else {
-            return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(possibleDecoders.first().metaObject.newInstance())};
+            for (const auto &info : possibleDecoders) {
+                if (info.supportedInputPixelFormats.contains(inputFormat)) {
+                    return std::shared_ptr<api::IVideoDecoderImpl>{qobject_cast<api::IVideoDecoderImpl *>(info.metaObject.newInstance())};
+                }
+            }
+            qWarning() << "VideoDecoderFactory: No decoder found with input format" << inputFormat;
+            qWarning() << "VideoDecoderFactory: Available decoders for platform:";
+            for (const auto &info : possibleDecoders) {
+                qWarning() << "VideoDecoderFactory: " << info.name;
+            }
+            return {};
         }
     }
 

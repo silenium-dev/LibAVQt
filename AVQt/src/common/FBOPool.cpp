@@ -58,6 +58,9 @@ namespace AVQt::common {
             } else {
                 qDebug() << "No free FBOs available";
                 m_pool->fboPool_available.wait(&m_pool->poolMutex, deadline);
+                if (!m_pool) {
+                    return {};
+                }
                 if (m_pool->fboPool_free.isEmpty()) {
                     qDebug() << "No free FBOs available after deadline";
                     return std::move(std::shared_ptr<QOpenGLFramebufferObject>{});

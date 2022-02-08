@@ -41,10 +41,10 @@ namespace AVQt::common {
     class FBOPoolPrivate;
     class FBOPool {
     public:
-        explicit FBOPool(QSize fboSize, bool dynamic = true, size_t size = 4, size_t maxSize = 8) Q_DECL_UNUSED;
+        explicit FBOPool(QSize fboSize, bool dynamic = true, size_t size = 4, size_t maxSize = 8);
 
-        std::shared_ptr<QOpenGLFramebufferObject> getFBO(QDeadlineTimer deadline = QDeadlineTimer::Forever) Q_DECL_UNUSED;
-        std::shared_ptr<QOpenGLFramebufferObject> getFBO(int64_t msecTimeout) Q_DECL_UNUSED;
+        std::shared_ptr<QOpenGLFramebufferObject> getFBO(QDeadlineTimer deadline = QDeadlineTimer::Forever);
+        std::shared_ptr<QOpenGLFramebufferObject> getFBO(int64_t msecTimeout);
 
     protected:
         void allocateNewFBOs(size_t count);

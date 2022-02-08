@@ -12,6 +12,10 @@ AVPixelFormat OneInterleavedPlanePixelFormatOf(AVPixelFormat format) {
         case AV_PIX_FMT_P010:
         case AV_PIX_FMT_YUV420P10:
             return AV_PIX_FMT_P010;
+        case AV_PIX_FMT_YUV420P12:
+        case AV_PIX_FMT_YUV420P14:
+        case AV_PIX_FMT_YUV420P16:
+            return AV_PIX_FMT_P016;
         default:
             return AV_PIX_FMT_NONE;
     }
@@ -86,10 +90,10 @@ namespace AVQt::common {
     }
 
     PixelFormat::PixelFormat(AVPixelFormat cpuFormat, AVPixelFormat gpuFormat) {
-        if (s_gpuFormats.contains(cpuFormat)) {
+        if (cpuFormat != AV_PIX_FMT_NONE && s_gpuFormats.contains(cpuFormat)) {
             qWarning("PixelFormat: CPU format %s is a GPU format", av_get_pix_fmt_name(cpuFormat));
         }
-        if (!s_gpuFormats.contains(gpuFormat)) {
+        if (gpuFormat != AV_PIX_FMT_NONE && !s_gpuFormats.contains(gpuFormat)) {
             qWarning("PixelFormat: GPU format %s is not a registered GPU format", av_get_pix_fmt_name(gpuFormat));
         }
         m_cpuFormat = cpuFormat;
@@ -99,6 +103,10 @@ namespace AVQt::common {
     bool PixelFormat::isValid() const {
         return (m_gpuFormat == AV_PIX_FMT_NONE || s_gpuFormats.contains(m_gpuFormat)) &&
                (m_cpuFormat == AV_PIX_FMT_NONE || !s_gpuFormats.contains(m_cpuFormat));
+    }
+
+    bool PixelFormat::isGPUFormat() const {
+        return m_gpuFormat != AV_PIX_FMT_NONE && s_gpuFormats.contains(m_gpuFormat);
     }
 
     bool PixelFormat::setCPUFormat(AVPixelFormat format) {
@@ -157,5 +165,11 @@ namespace AVQt::common {
         return os;
     }
 
+    bool operator==(const PixelFormat &lhs, const PixelFormat &rhs) {
+        return lhs.m_cpuFormat == rhs.m_cpuFormat && lhs.m_gpuFormat == rhs.m_gpuFormat;
+    }
 
+    bool operator!=(const PixelFormat &lhs, const PixelFormat &rhs) {
+        return lhs.m_cpuFormat != rhs.m_cpuFormat || lhs.m_gpuFormat != rhs.m_gpuFormat;
+    }
 }// namespace AVQt::common

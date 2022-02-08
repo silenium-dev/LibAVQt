@@ -41,6 +41,7 @@ namespace AVQt::common {
         bool setCPUFormat(AVPixelFormat format);
 
         [[nodiscard]] bool isValid() const;
+        [[nodiscard]] bool isGPUFormat() const;
 
         [[nodiscard]] QString toString() const;
 
@@ -55,6 +56,9 @@ namespace AVQt::common {
         friend QDebug operator<<(QDebug debug, const PixelFormat *pixelFormat);
         friend std::ostream &operator<<(std::ostream &os, const PixelFormat &pixelFormat);
         friend std::ostream &operator<<(std::ostream &os, const PixelFormat *pixelFormat);
+
+        friend bool operator==(const PixelFormat &lhs, const PixelFormat &rhs);
+        friend bool operator!=(const PixelFormat &lhs, const PixelFormat &rhs);
 
         static void registerAllGPUFormats();
 

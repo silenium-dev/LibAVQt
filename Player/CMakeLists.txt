@@ -16,7 +16,7 @@ include_directories(../AVQt/include)
 
 add_executable(${PROJECT_NAME} main.cpp FrameSaverAccelerated.cpp FrameSaverAccelerated.hpp OpenGlWidgetRenderer.cpp OpenGlWidgetRenderer.hpp OpenGlWidgetRendererPrivate.hpp)
 
-set(REQUIRED_LIBS Core Gui DBus Concurrent Widgets OpenGL)
+set(REQUIRED_LIBS Core Gui DBus Concurrent Widgets OpenGL OpenGLWidgets)
 if (QT_VERSION EQUAL "6")
     LIST(APPEND REQUIRED_LIBS OpenGLWidgets)
 endif ()

@@ -44,7 +44,7 @@ namespace AVQt {
     public:
         static AVCodecID codecId(Codec codec);
 
-        VideoEncoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr) Q_DECL_UNUSED;
+        VideoEncoder(const QString &encoderName, const EncodeParameters &encodeParameters, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
         /*!
          * \private
          */
@@ -62,12 +62,12 @@ namespace AVQt {
          * \brief Returns paused state of decoder
          * @return Paused state
          */
-        bool isPaused() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
-        bool isOpen() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
-        bool isRunning() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isPaused() const Q_DECL_OVERRIDE;
+        bool isOpen() const Q_DECL_OVERRIDE;
+        bool isRunning() const Q_DECL_OVERRIDE;
 
-        [[nodiscard]] int64_t getInputPadId() const Q_DECL_UNUSED;
-        [[nodiscard]] int64_t getOutputPadId() const Q_DECL_UNUSED;
+        [[nodiscard]] int64_t getInputPadId() const;
+        [[nodiscard]] int64_t getOutputPadId() const;
 
         bool init() Q_DECL_OVERRIDE;
 

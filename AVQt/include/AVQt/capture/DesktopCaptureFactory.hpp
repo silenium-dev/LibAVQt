@@ -25,18 +25,18 @@ namespace AVQt {
             QString name;
             common::Platform platform;
         };
-        static DesktopCaptureFactory &getInstance() Q_DECL_UNUSED;
+        static DesktopCaptureFactory &getInstance();
 
-        bool isCaptureAvailable(common::Platform platform) Q_DECL_UNUSED;
-        bool registerCapture(const CaptureImplInfo &info) Q_DECL_UNUSED;
-        bool unregisterCapture(const QString &name) Q_DECL_UNUSED;
+        bool isCaptureAvailable(common::Platform platform);
+        bool registerCapture(const CaptureImplInfo &info);
+        bool unregisterCapture(const QString &name);
 
         /**
          * @brief Creates a new instance of a capture implementation for the current platform.
          * @param name The name of the capture implementation (optional, ignored if empty).
          * @return A new instance of the capture implementation.
          */
-        std::shared_ptr<api::IDesktopCaptureImpl> createCapture(const QString &name = "") Q_DECL_UNUSED;
+        std::shared_ptr<api::IDesktopCaptureImpl> createCapture(const QString &name = "");
 
         static void registerCaptures();
 

@@ -22,8 +22,8 @@
 #include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
 #include "AVQt/decoder/VideoDecoderFactory.hpp"
-#include "private/VideoDecoder_p.hpp"
 #include "global.hpp"
+#include "private/VideoDecoder_p.hpp"
 
 #include <pgraph/api/Data.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
@@ -33,18 +33,20 @@
 
 
 namespace AVQt {
-    VideoDecoder::VideoDecoder(const QString &decoderName, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+    VideoDecoder::VideoDecoder(const Config &config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
         : QThread(parent),
           pgraph::impl::SimpleProcessor(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
           d_ptr(new VideoDecoderPrivate(this)) {
         Q_D(VideoDecoder);
-        setObjectName(decoderName + "VideoDecoder");
-        d->impl = std::move(VideoDecoderFactory::getInstance().create(decoderName));
-        if (!d->impl) {
-            qFatal("VideoDecoder %s not found", qPrintable(decoderName));
-        }
-        connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(frameReady(std::shared_ptr<AVFrame>)),
-                this, SLOT(onFrameReady(std::shared_ptr<AVFrame>)), Qt::DirectConnection);
+        d->config = config;
+    }
+
+    VideoDecoder::VideoDecoder(const Config &config, QObject *parent)
+        : QThread(parent),
+          pgraph::impl::SimpleProcessor(pgraph::impl::SimplePadFactory::getInstance()),
+          d_ptr(new VideoDecoderPrivate(this)) {
+        Q_D(VideoDecoder);
+        d->config = config;
     }
 
     VideoDecoder::~VideoDecoder() {
@@ -157,11 +159,33 @@ namespace AVQt {
 
         bool shouldBe = false;
         if (d->open.compare_exchange_strong(shouldBe, true)) {
+            if (!d->config.decoderPriority.isEmpty()) {
+                for (const auto &decoderName : d->config.decoderPriority) {
+                    d->impl = std::move(VideoDecoderFactory::getInstance().create(common::PixelFormat{static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_NONE}, decoderName));
+                    if (d->impl) {
+                        break;
+                    }
+                }
+            } else {
+                d->impl = std::move(VideoDecoderFactory::getInstance().create(common::PixelFormat{static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_NONE}));
+            }
+            if (!d->impl) {
+                qWarning("No matching VideoDecoderImpl found");
+                return false;
+            }
+            connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(frameReady(std::shared_ptr<AVFrame>)),
+                    this, SLOT(onFrameReady(std::shared_ptr<AVFrame>)), Qt::DirectConnection);
+            setObjectName(QString("AVQt::VideoDecoder(%1)").arg(std::dynamic_pointer_cast<QObject>(d->impl)->metaObject()->className()));
+
             d->impl->open(d->codecParams);
 
             *d->outputPadParams = d->impl->getVideoParams();
 
-            produce(communication::Message::builder().withAction(communication::Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(*d->outputPadParams)).build(), d->outputPadId);
+            produce(communication::Message::builder()
+                            .withAction(communication::Message::Action::INIT)
+                            .withPayload("videoParams", QVariant::fromValue(*d->outputPadParams))
+                            .build(),
+                    d->outputPadId);
 
             return true;
         } else {

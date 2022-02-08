@@ -36,12 +36,12 @@ namespace AVQt {
         Q_OBJECT
         Q_DECLARE_PRIVATE(VaapiYuvToRgbMapper)
     public:
-        Q_INVOKABLE explicit VaapiYuvToRgbMapper(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr) Q_DECL_UNUSED;
+        Q_INVOKABLE explicit VaapiYuvToRgbMapper(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
         ~VaapiYuvToRgbMapper() Q_DECL_OVERRIDE;
 
-        bool isOpen() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
-        bool isRunning() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
-        bool isPaused() const Q_DECL_OVERRIDE Q_DECL_UNUSED;
+        bool isOpen() const Q_DECL_OVERRIDE;
+        bool isRunning() const Q_DECL_OVERRIDE;
+        bool isPaused() const Q_DECL_OVERRIDE;
 
         void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
 
