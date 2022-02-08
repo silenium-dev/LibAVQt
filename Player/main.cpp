@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     auto demuxer = std::make_shared<AVQt::Demuxer>(std::move(demuxerConfig), registry);
 
     AVQt::VideoDecoder::Config videoDecoderConfig{};
-    videoDecoderConfig.decoderPriority = {"VAAPI"};
+    videoDecoderConfig.decoderPriority << "VAAPI";
     auto decoder1 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     //    auto decoder2 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
