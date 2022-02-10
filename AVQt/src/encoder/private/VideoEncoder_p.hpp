@@ -57,7 +57,7 @@ namespace AVQt {
         communication::VideoPadParams inputParams{};
 
         std::shared_ptr<communication::PacketPadParams> outputPadParams{};
-        std::shared_ptr<communication::PacketPadParams> inputPadParams{};
+        std::shared_ptr<communication::VideoPadParams> inputPadParams{};
 
         // Threading stuff
         std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};

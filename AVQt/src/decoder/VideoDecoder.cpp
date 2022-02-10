@@ -136,6 +136,10 @@ namespace AVQt {
                 qWarning() << "Failed to create output pad";
                 return false;
             }
+
+            //            qWarning() << "Main thread: " << QApplication::instance()->thread();
+            //            qFatal("Current thread: %p", QThread::currentThread());
+            connect(this, &VideoDecoder::packetReady, d, &VideoDecoderPrivate::enqueueData, Qt::QueuedConnection);
             return true;
         } else {
             qWarning() << "VideoDecoder already initialized";
@@ -242,6 +246,8 @@ namespace AVQt {
         if (d->running.compare_exchange_strong(shouldBe, false)) {
             d->paused = false;
             produce(communication::Message::builder().withAction(communication::Message::Action::STOP).build(), d->outputPadId);
+            d->frameAvailable.wakeAll();
+            d->frameProcessed.wakeAll();
             QThread::quit();
             QThread::wait();
             {
@@ -266,12 +272,23 @@ namespace AVQt {
 
     void VideoDecoder::run() {
         Q_D(VideoDecoder);
+        //        exec();
         while (d->running) {
             QMutexLocker lock(&d->inputQueueMutex);
-            if (d->paused || d->inputQueue.isEmpty()) {
-                lock.unlock();
-                msleep(1);
-                continue;
+            if (d->paused) {
+                d->pauseWaitCondition.wait(&d->inputQueueMutex);
+                if (!d->running) {
+                    break;
+                }
+            }
+            if (d->inputQueue.isEmpty()) {
+                d->frameAvailable.wait(&d->inputQueueMutex);
+                if (!d->running) {
+                    break;
+                }
+                if (d->inputQueue.isEmpty()) {
+                    continue;
+                }
             }
             auto packet = d->inputQueue.dequeue();
             lock.unlock();
@@ -281,10 +298,12 @@ namespace AVQt {
                 d->inputQueue.prepend(packet);
                 lock.unlock();
                 msleep(1);
+                continue;
             } else if (ret != EXIT_SUCCESS) {
                 char strBuf[256];
                 qWarning() << "VideoDecoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
             }
+            d->frameProcessed.wakeOne();
         }
     }
 
@@ -300,11 +319,14 @@ namespace AVQt {
 
     void VideoDecoderPrivate::enqueueData(const std::shared_ptr<AVPacket> &packet) {
         QMutexLocker lock(&inputQueueMutex);
-        while (inputQueue.size() >= 20 && running) {
-            lock.unlock();
-            QThread::msleep(2);
-            lock.relock();
+        if (inputQueue.size() > 32) {
+            frameProcessed.wait(&inputQueueMutex);
+            if (inputQueue.size() > 32) {
+                qWarning() << "VideoDecoder input queue full, dropping packet";
+                return;
+            }
         }
         inputQueue.enqueue(packet);
+        frameAvailable.wakeOne();
     }
 }// namespace AVQt

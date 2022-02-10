@@ -66,6 +66,8 @@ namespace AVQt {
         platform = common::Platform::MacOS;
 #elif defined(Q_OS_IOS)
         platform = common::Platform::iOS;
+#else
+#error "Unsupported platform"
 #endif
         QList<api::VideoDecoderInfo> possibleDecoders;
 

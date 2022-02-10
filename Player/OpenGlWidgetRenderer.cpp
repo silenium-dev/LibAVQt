@@ -125,6 +125,10 @@ void OpenGLWidgetRenderer::initializeGL() {
     d->blitter = new QOpenGLTextureBlitter;
     d->blitter->create();
     d->mapper->start();
+    qDebug() << "Application thread:" << QCoreApplication::instance()->thread();
+    qDebug() << "Renderer thread:" << thread();
+    qDebug() << "Current thread:" << QThread::currentThread();
+    qDebug() << "OpenGL thread:" << context()->thread();
     update();
 }
 
@@ -260,7 +264,7 @@ bool OpenGLWidgetRenderer::start() {
     bool shouldBe = false;
     if (d->running.compare_exchange_strong(shouldBe, true)) {
         d->renderQueue.clear();
-        show();
+        QMetaObject::invokeMethod(this, &QWidget::show, Qt::QueuedConnection);
         //        if (d->mapper) {
         //            // Preserve normalized form of Qt SIGNAL/SLOT macro
         //            // clang-format off

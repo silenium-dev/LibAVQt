@@ -76,6 +76,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[]) {
     AVQt::VideoDecoderFactory::registerDecoders();
+    AVQt::VideoEncoderFactory::registerEncoders();
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts, false);
 #ifdef Q_OS_WINDOWS
     _set_abort_behavior(0, _WRITE_ABORT_MSG);
@@ -120,6 +121,9 @@ int main(int argc, char *argv[]) {
     encodeParams.min_bitrate = 8000000;
     encodeParams.max_bitrate = 16000000;
     //    encodeParams.codec = AVQt::Codec::H264;
+    AVQt::VideoEncoder::Config encoderConfig;
+    encoderConfig.codec = AVQt::Codec::H264;
+    encoderConfig.encodeParameters = encodeParams;
 
     AVQt::Demuxer::Config demuxerConfig{};
     demuxerConfig.inputDevice = std::make_unique<QFile>(filepath);
@@ -129,11 +133,10 @@ int main(int argc, char *argv[]) {
     auto demuxer = std::make_shared<AVQt::Demuxer>(std::move(demuxerConfig), registry);
 
     AVQt::VideoDecoder::Config videoDecoderConfig{};
-    videoDecoderConfig.decoderPriority << "VAAPI";
     auto decoder1 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
-    //    auto decoder2 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
+    auto decoder2 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
-    //    auto encoder = std::make_shared<AVQt::VideoEncoder>("VAAPI", encodeParams, registry);
+    auto encoder = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
     //    auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     //    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
@@ -144,9 +147,9 @@ int main(int argc, char *argv[]) {
     demuxer->init();
     //    transcoder->init();
     decoder1->init();
-    //    decoder2->init();
+    decoder2->init();
     //    decoder3->init();
-    //    encoder->init();
+    encoder->init();
     renderer1->init();
     //    renderer2->init();
     //    yuvrgbconverter->init();
@@ -172,12 +175,12 @@ int main(int argc, char *argv[]) {
 
     auto decoder1InPad = decoder1->getInputPads().begin()->second;
     auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
-    //    auto decoder2InPad = decoder2->getInputPads().begin()->second;
-    //    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
+    auto decoder2InPad = decoder2->getInputPads().begin()->second;
+    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
     //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
     //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
-    //    auto encoderInPad = encoder->getInputPads().begin()->second;
-    //    auto encoderOutPad = encoder->getOutputPads().begin()->second;
+    auto encoderInPad = encoder->getInputPads().begin()->second;
+    auto encoderOutPad = encoder->getOutputPads().begin()->second;
     auto renderer1InPad = renderer1->getInputPads().begin()->second;
     //    auto renderer2InPad = renderer2->getInputPads().begin()->second;
     //    auto ccInPad = cc->getInputPads().begin()->second;
@@ -208,10 +211,10 @@ int main(int argc, char *argv[]) {
 
     demuxer->start();
 
-    QTimer::singleShot(5000, [demuxer]() {
-        demuxer->stop();
-        demuxer->start();
-    });
+    //    QTimer::singleShot(5000, [demuxer]() {
+    //        demuxer->stop();
+    //        demuxer->start();
+    //    });
 
     //    QTimer::singleShot(4000, [demuxer]{
     //        demuxer->pause(true);
@@ -241,7 +244,7 @@ int main(int argc, char *argv[]) {
     //    capturer->open();
     //    capturer->start();
     //
-    QObject::connect(app, &QApplication::aboutToQuit, [demuxer] {
+    QObject::connect(app, &QApplication::aboutToQuit, [demuxer, renderer1] {
         demuxer->close();
     });
     //

@@ -38,7 +38,7 @@ namespace AVQt {
     public:
         static const api::VideoEncoderInfo info;
 
-        Q_INVOKABLE explicit VAAPIEncoderImpl(AVCodecID codec, const AVQt::EncodeParameters &parameters);
+        Q_INVOKABLE VAAPIEncoderImpl(AVCodecID codec, AVQt::EncodeParameters parameters);
         ~VAAPIEncoderImpl() override;
 
         bool open(const communication::VideoPadParams &params) override;

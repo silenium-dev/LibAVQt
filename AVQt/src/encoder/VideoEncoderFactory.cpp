@@ -65,6 +65,8 @@ namespace AVQt {
         platform = common::Platform::MacOS;
 #elif defined(Q_OS_IOS)
         platform = common::Platform::iOS;
+#else
+#error "Unsupported platform"
 #endif
 
         QList<api::VideoEncoderInfo> possibleEncoders;
@@ -80,10 +82,9 @@ namespace AVQt {
         }
 
         if (priority.isEmpty()) {
-            return std::shared_ptr<api::IVideoEncoderImpl>(
-                    qobject_cast<api::IVideoEncoderImpl *>(
-                            possibleEncoders.first().metaObject.newInstance(Q_ARG(AVCodecID, codec),
-                                                                            Q_ARG(EncodeParameters, encodeParams))));
+            auto inst = possibleEncoders.first().metaObject.newInstance(Q_ARG(AVCodecID, codec),
+                                                                        Q_ARG(AVQt::EncodeParameters, encodeParams));
+            return std::shared_ptr<api::IVideoEncoderImpl>(qobject_cast<api::IVideoEncoderImpl *>(inst));
         } else {
             for (const auto &encoderName : priority) {
                 for (const auto &info : possibleEncoders) {
@@ -91,7 +92,7 @@ namespace AVQt {
                         return std::shared_ptr<api::IVideoEncoderImpl>(
                                 qobject_cast<api::IVideoEncoderImpl *>(
                                         info.metaObject.newInstance(Q_ARG(AVCodecID, codec),
-                                                                    Q_ARG(EncodeParameters, encodeParams))));
+                                                                    Q_ARG(AVQt::EncodeParameters, encodeParams))));
                     }
                 }
             }

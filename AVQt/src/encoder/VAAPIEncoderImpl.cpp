@@ -49,6 +49,8 @@ namespace AVQt {
             .supportedInputPixelFormats = {
                     {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
                     {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
+                    {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI_VLD},
+                    {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI_VLD},
                     {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
                     {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
                     {AV_PIX_FMT_NONE, AV_PIX_FMT_VAAPI},
@@ -62,7 +64,7 @@ namespace AVQt {
             },
     };
 
-    VAAPIEncoderImpl::VAAPIEncoderImpl(AVCodecID codec, const EncodeParameters &parameters)
+    VAAPIEncoderImpl::VAAPIEncoderImpl(AVCodecID codec, EncodeParameters parameters)
         : QObject(),
           IVideoEncoderImpl(parameters),
           d_ptr(new VAAPIEncoderImplPrivate(this)) {

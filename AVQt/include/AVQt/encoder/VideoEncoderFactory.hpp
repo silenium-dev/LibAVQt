@@ -53,8 +53,8 @@ namespace AVQt {
     };
 }// namespace AVQt
 
-static_block {
-    AVQt::VideoEncoderFactory::registerEncoders();
-};
+//static_block {
+//    AVQt::VideoEncoderFactory::registerEncoders();
+//};
 
 #endif//LIBAVQT_VIDEOENCODERFACTORY_HPP

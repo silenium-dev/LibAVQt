@@ -83,9 +83,8 @@ namespace AVQt {
         Q_D(VideoEncoder);
         bool shouldBe = false;
         if (d->initialized.compare_exchange_strong(shouldBe, true)) {
-            auto inPadParams = std::make_shared<communication::VideoPadParams>();
-            inPadParams->isHWAccel = d->impl->isHWAccel();
-            d->inputPadId = createInputPad(inPadParams);
+            d->inputPadParams = std::make_shared<communication::VideoPadParams>();
+            d->inputPadId = createInputPad(d->inputPadParams);
             if (d->inputPadId == pgraph::api::INVALID_PAD_ID) {
                 qWarning("VideoEncoder: Failed to create input pad");
                 return false;
@@ -128,6 +127,7 @@ namespace AVQt {
                 qWarning("VideoEncoder: Failed to open");
                 return false;
             }
+            d->inputPadParams->isHWAccel = d->impl->isHWAccel();
 
             connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(packetReady(std::shared_ptr<AVPacket>)),
                     this, SLOT(onPacketReady(std::shared_ptr<AVPacket>)), Qt::DirectConnection);
@@ -139,7 +139,7 @@ namespace AVQt {
 
             pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
                                                            .withAction(communication::Message::Action::INIT)
-                                                           .withPayload("packetParams", QVariant::fromValue(*d->outputPadParams))
+                                                           .withPayload("packetParams", QVariant::fromValue(std::const_pointer_cast<const communication::PacketPadParams>(d->outputPadParams)))
                                                            .withPayload("encodeParams", QVariant::fromValue(d->config.encodeParameters))
                                                            .build(),
                                                    d->outputPadId);

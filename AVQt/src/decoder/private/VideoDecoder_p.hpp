@@ -52,10 +52,11 @@ namespace AVQt {
 
         void operator=(const VideoDecoderPrivate &) = delete;
 
+    protected slots:
+        void enqueueData(const std::shared_ptr<AVPacket> &packet);
+
     private:
         explicit VideoDecoderPrivate(VideoDecoder *q) : q_ptr(q){};
-
-        void enqueueData(const std::shared_ptr<AVPacket> &packet);
 
         VideoDecoder *q_ptr;
 
@@ -63,6 +64,7 @@ namespace AVQt {
         int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
 
         QMutex inputQueueMutex{};
+        QWaitCondition frameProcessed{}, frameAvailable{};
         QQueue<std::shared_ptr<AVPacket>> inputQueue{};
 
         VideoDecoder::Config config{};
@@ -73,6 +75,7 @@ namespace AVQt {
         std::shared_ptr<communication::VideoPadParams> outputPadParams{};
 
         // Threading stuff
+        QWaitCondition pauseWaitCondition{};
         std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};
 
         friend class VideoDecoder;
