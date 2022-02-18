@@ -20,15 +20,15 @@
 #ifndef LIBAVQT_GLOBAL_H
 #define LIBAVQT_GLOBAL_H
 
+#include "AVQt/communication/PacketPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/encoder/VideoEncoder.hpp"
 #include <QMetaType>
-#include <static_block.hpp>
 #include <QOpenGLFramebufferObject>
 #include <pgraph/impl/SimpleConsumer.hpp>
 #include <pgraph/impl/SimpleProducer.hpp>
 #include <qglobal.h>
-#include "AVQt/communication/VideoPadParams.hpp"
-#include "AVQt/communication/PacketPadParams.hpp"
-#include "AVQt/encoder/VideoEncoder.hpp"
+#include <static_block.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>

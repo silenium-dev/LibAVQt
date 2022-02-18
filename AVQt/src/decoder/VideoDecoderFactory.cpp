@@ -22,7 +22,6 @@
 //
 
 #include "include/AVQt/decoder/VideoDecoderFactory.hpp"
-#include "VAAPIDecoderImpl.hpp"
 
 #include <QDebug>
 #include <QProcessEnvironment>
@@ -98,16 +97,6 @@ namespace AVQt {
                 qDebug() << "VideoDecoderFactory: " << info.name;
             }
             return {};
-        }
-    }
-
-    void VideoDecoderFactory::registerDecoders() {
-        static std::atomic_bool registered{false};
-        bool shouldBe = false;
-        if (registered.compare_exchange_strong(shouldBe, true)) {
-#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-            getInstance().registerDecoder(VAAPIDecoderImpl::info);
-#endif
         }
     }
 }// namespace AVQt

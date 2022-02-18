@@ -48,8 +48,8 @@ namespace AVQt {
     };
 }// namespace AVQt
 
-static_block {
-    AVQt::DesktopCaptureFactory::registerCaptures();
-};
+//static_block {
+//    AVQt::DesktopCaptureFactory::registerCaptures();
+//};
 
 #endif//LIBAVQT_DESKTOPCAPTUREFACTORY_HPP

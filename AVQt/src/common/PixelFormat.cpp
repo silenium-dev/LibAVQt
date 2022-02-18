@@ -42,26 +42,30 @@ AVPixelFormat FullFormatPixelFormatOf(AVPixelFormat format) {
 }
 
 namespace AVQt::common {
-    QMutex PixelFormat::s_gpuFormatsMutex{};
-    QMap<AVPixelFormat, PixelFormat::GPUPixelFormat> PixelFormat::s_gpuFormats{};
+    class PixelFormat::GPUPixelFormatRegistry {
+    public:
+        static GPUPixelFormatRegistry &getInstance();
+        QMutex s_gpuFormatsMutex{};
+        QMap<AVPixelFormat, GPUPixelFormat> s_gpuFormats{};
+    };
 
     bool PixelFormat::registerGPUFormat(GPUPixelFormat format) {
-        QMutexLocker locker(&s_gpuFormatsMutex);
-        if (s_gpuFormats.contains(format.format)) {
+        QMutexLocker locker(&GPUPixelFormatRegistry::getInstance().s_gpuFormatsMutex);
+        if (GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(format.format)) {
             return false;
         }
-        s_gpuFormats.insert(format.format, format);
+        GPUPixelFormatRegistry::getInstance().s_gpuFormats.insert(format.format, format);
         return true;
     }
 
     bool PixelFormat::unregisterGPUFormat(GPUPixelFormat format) {
-        QMutexLocker locker(&s_gpuFormatsMutex);
-        return s_gpuFormats.remove(format.format);
+        QMutexLocker locker(&GPUPixelFormatRegistry::getInstance().s_gpuFormatsMutex);
+        return GPUPixelFormatRegistry::getInstance().s_gpuFormats.remove(format.format);
     }
 
     bool PixelFormat::unregisterGPUFormat(AVPixelFormat format) {
-        QMutexLocker locker(&s_gpuFormatsMutex);
-        return s_gpuFormats.remove(format);
+        QMutexLocker locker(&GPUPixelFormatRegistry::getInstance().s_gpuFormatsMutex);
+        return GPUPixelFormatRegistry::getInstance().s_gpuFormats.remove(format);
     }
 
     void PixelFormat::registerAllGPUFormats() {
@@ -90,10 +94,10 @@ namespace AVQt::common {
     }
 
     PixelFormat::PixelFormat(AVPixelFormat cpuFormat, AVPixelFormat gpuFormat) {
-        if (cpuFormat != AV_PIX_FMT_NONE && s_gpuFormats.contains(cpuFormat)) {
+        if (cpuFormat != AV_PIX_FMT_NONE && GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(cpuFormat)) {
             qWarning("PixelFormat: CPU format %s is a GPU format", av_get_pix_fmt_name(cpuFormat));
         }
-        if (gpuFormat != AV_PIX_FMT_NONE && !s_gpuFormats.contains(gpuFormat)) {
+        if (gpuFormat != AV_PIX_FMT_NONE && !GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(gpuFormat)) {
             qWarning("PixelFormat: GPU format %s is not a registered GPU format", av_get_pix_fmt_name(gpuFormat));
         }
         m_cpuFormat = cpuFormat;
@@ -101,16 +105,16 @@ namespace AVQt::common {
     }
 
     bool PixelFormat::isValid() const {
-        return (m_gpuFormat == AV_PIX_FMT_NONE || s_gpuFormats.contains(m_gpuFormat)) &&
-               (m_cpuFormat == AV_PIX_FMT_NONE || !s_gpuFormats.contains(m_cpuFormat));
+        return (m_gpuFormat == AV_PIX_FMT_NONE || GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(m_gpuFormat)) &&
+               (m_cpuFormat == AV_PIX_FMT_NONE || !GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(m_cpuFormat));
     }
 
     bool PixelFormat::isGPUFormat() const {
-        return m_gpuFormat != AV_PIX_FMT_NONE && s_gpuFormats.contains(m_gpuFormat);
+        return m_gpuFormat != AV_PIX_FMT_NONE && GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(m_gpuFormat);
     }
 
     bool PixelFormat::setCPUFormat(AVPixelFormat format) {
-        if (format == m_cpuFormat || s_gpuFormats.contains(format)) {
+        if (format == m_cpuFormat || GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(format)) {
             return false;
         }
         m_cpuFormat = format;
@@ -118,7 +122,7 @@ namespace AVQt::common {
     }
 
     bool PixelFormat::setGPUFormat(AVPixelFormat format) {
-        if (format == m_gpuFormat || !s_gpuFormats.contains(format)) {
+        if (format == m_gpuFormat || !GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(format)) {
             return false;
         }
         m_gpuFormat = format;
@@ -134,8 +138,8 @@ namespace AVQt::common {
     }
 
     PixelFormat PixelFormat::toNativeFormat() const {
-        if (s_gpuFormats.contains(m_gpuFormat)) {
-            auto gpuFormatInfo = s_gpuFormats.value(m_gpuFormat);
+        if (GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(m_gpuFormat)) {
+            auto gpuFormatInfo = GPUPixelFormatRegistry::getInstance().s_gpuFormats.value(m_gpuFormat);
             if (gpuFormatInfo.nativeFormat) {
                 return {gpuFormatInfo.nativeFormat(m_cpuFormat), m_gpuFormat};
             }
@@ -175,4 +179,13 @@ namespace AVQt::common {
     bool operator!=(const PixelFormat &lhs, const PixelFormat &rhs) {
         return lhs.m_cpuFormat != rhs.m_cpuFormat || lhs.m_gpuFormat != rhs.m_gpuFormat;
     }
+
+    PixelFormat::GPUPixelFormatRegistry &PixelFormat::GPUPixelFormatRegistry::getInstance() {
+        static PixelFormat::GPUPixelFormatRegistry instance;
+        return instance;
+    }
 }// namespace AVQt::common
+
+static_block {
+    AVQt::common::PixelFormat::registerAllGPUFormats();
+};

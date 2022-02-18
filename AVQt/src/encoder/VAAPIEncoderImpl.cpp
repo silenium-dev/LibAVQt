@@ -22,8 +22,9 @@
 //
 
 #include "VAAPIEncoderImpl.hpp"
-#include "AVQt/encoder/VideoEncoder.hpp"
 #include "private/VAAPIEncoderImpl_p.hpp"
+
+#include "AVQt/encoder/VideoEncoderFactory.hpp"
 
 #include <QImage>
 #include <QtConcurrent>
@@ -39,30 +40,33 @@ namespace AVQt {
             AV_PIX_FMT_YUV420P,
             AV_PIX_FMT_YUV420P10,
             AV_PIX_FMT_VAAPI};
-    const api::VideoEncoderInfo VAAPIEncoderImpl::info{
-            .metaObject = VAAPIEncoderImpl::staticMetaObject,
-            .name = "VAAPI",
-            .platforms = {
-                    common::Platform::Linux_Wayland,
-                    common::Platform::Linux_X11,
-            },
-            .supportedInputPixelFormats = {
-                    {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI_VLD},
-                    {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI_VLD},
-                    {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_NONE, AV_PIX_FMT_VAAPI},
-            },
-            .supportedCodecIds = {
-                    AV_CODEC_ID_H264,
-                    AV_CODEC_ID_HEVC,
-                    AV_CODEC_ID_VP8,
-                    AV_CODEC_ID_VP9,
-                    AV_CODEC_ID_MPEG2VIDEO,
-            },
-    };
+    const api::VideoEncoderInfo &VAAPIEncoderImpl::info() {
+        static const api::VideoEncoderInfo info{
+                .metaObject = VAAPIEncoderImpl::staticMetaObject,
+                .name = "VAAPI",
+                .platforms = {
+                        common::Platform::Linux_Wayland,
+                        common::Platform::Linux_X11,
+                },
+                .supportedInputPixelFormats = {
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI_VLD},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI_VLD},
+                        {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_NONE, AV_PIX_FMT_VAAPI},
+                },
+                .supportedCodecIds = {
+                        AV_CODEC_ID_H264,
+                        AV_CODEC_ID_HEVC,
+                        AV_CODEC_ID_VP8,
+                        AV_CODEC_ID_VP9,
+                        AV_CODEC_ID_MPEG2VIDEO,
+                },
+        };
+        return info;
+    }
 
     VAAPIEncoderImpl::VAAPIEncoderImpl(AVCodecID codec, EncodeParameters parameters)
         : QObject(),
@@ -569,3 +573,9 @@ namespace AVQt {
         }
     }
 }// namespace AVQt
+
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+static_block {
+    AVQt::VideoEncoderFactory::getInstance().registerEncoder(AVQt::VAAPIEncoderImpl::info());
+}
+#endif

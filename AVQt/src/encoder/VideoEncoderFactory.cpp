@@ -22,7 +22,6 @@
 //
 
 #include "AVQt/encoder/VideoEncoderFactory.hpp"
-#include "VAAPIEncoderImpl.hpp"
 
 #include <QtDebug>
 #include <QtConcurrent>
@@ -102,16 +101,6 @@ namespace AVQt {
                 qDebug() << "VideoEncoderFactory:" << encoder.name;
             }
             return {};
-        }
-    }
-
-    void VideoEncoderFactory::registerEncoders() {
-        static std::atomic_bool registered{false};
-        bool shouldBe = false;
-        if (registered.compare_exchange_strong(shouldBe, true)) {
-#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-            getInstance().registerEncoder(VAAPIEncoderImpl::info);
-#endif
         }
     }
 }// namespace AVQt

@@ -22,8 +22,10 @@
 //
 
 #include "VAAPIOpenGLRenderMapper.hpp"
-#include "global.hpp"
 #include "private/VAAPIOpenGLRenderMapper_p.hpp"
+
+#include "global.hpp"
+#include "renderers/OpenGLFrameMapperFactory.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -622,3 +624,9 @@ namespace AVQt {
         }
     }
 }// namespace AVQt
+
+#if defined(Q_OS_LINUX) && !defined(QT_OS_ANDROID)
+static_block {
+    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("VAAPI", AVQt::VAAPIOpenGLRenderMapper::staticMetaObject);
+};
+#endif

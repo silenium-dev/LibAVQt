@@ -17,6 +17,9 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#ifndef AVQT_AVQT_H
+#define AVQT_AVQT_H
+
 #include <qglobal.h>
 
 #include "communication/IComponent.hpp"
@@ -43,3 +46,5 @@
 #include "capture/IDesktopCaptureImpl.hpp"
 
 #include "debug/CommandConsumer.hpp"
+
+#endif//AVQT_AVQT_H

@@ -3,13 +3,8 @@
 //
 
 #include "AVQt/capture/DesktopCaptureFactory.hpp"
+
 #include "AVQt/capture/IDesktopCaptureImpl.hpp"
-
-#include "DummyDesktopCaptureImpl.hpp"
-#ifndef Q_OS_ANDROID
-#include "PipeWireDesktopCaptureImpl.hpp"
-#endif
-
 #include "global.hpp"
 
 #include <QtCore>
@@ -109,20 +104,4 @@ namespace AVQt {
         auto impl = qobject_cast<AVQt::api::IDesktopCaptureImpl *>(obj);
         return std::shared_ptr<api::IDesktopCaptureImpl>(impl);
     }
-
-    void DesktopCaptureFactory::registerCaptures() {
-        static std::atomic_bool registered{false};
-        bool shouldBe = false;
-        if (registered.compare_exchange_strong(shouldBe, true)) {
-            // Register capture implementations
-            getInstance().registerCapture({.metaObject = DummyDesktopCaptureImpl::staticMetaObject,
-                                           .name = "AVQt::DummyDesktopCapture",
-                                           .platform = common::Platform::All});
-#if defined(Q_OS_LINUX) and !defined(Q_OS_ANDROID)
-            getInstance().registerCapture({.metaObject = PipeWireDesktopCaptureImpl::staticMetaObject,
-                                           .name = "AVQt::PipeWireDesktopCapture",
-                                           .platform = common::Platform::Linux_Wayland});
-#endif
-        }
-    }// namespace AVQt
 }// namespace AVQt

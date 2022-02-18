@@ -41,7 +41,7 @@ namespace AVQt {
 
         [[nodiscard]] std::shared_ptr<api::IOpenGLFrameMapper> create(const QString &name);
 
-        static void registerDecoder();
+        static void registerRenderers();
 
     private:
         OpenGLFrameMapperFactory() = default;
@@ -49,8 +49,8 @@ namespace AVQt {
     };
 }// namespace AVQt
 
-static_block {
-    AVQt::OpenGLFrameMapperFactory::registerDecoder();
-}
+//static_block {
+//    AVQt::OpenGLFrameMapperFactory::registerRenderers();
+//}
 
 #endif//LIBAVQT_OPENGLFRAMEMAPPERFACTORY_HPP

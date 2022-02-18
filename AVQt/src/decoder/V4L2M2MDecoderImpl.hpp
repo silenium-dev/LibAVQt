@@ -14,8 +14,9 @@ namespace AVQt {
     class V4L2M2MDecoderImpl : public QObject, public api::IVideoDecoderImpl {
         Q_OBJECT
         Q_DECLARE_PRIVATE(V4L2M2MDecoderImpl)
+        Q_INTERFACES(AVQt::api::IVideoDecoderImpl)
     public:
-        static const api::VideoDecoderInfo info;
+        static const api::VideoDecoderInfo &info();
 
         Q_INVOKABLE explicit V4L2M2MDecoderImpl(AVCodecID codec);
         ~V4L2M2MDecoderImpl() override;

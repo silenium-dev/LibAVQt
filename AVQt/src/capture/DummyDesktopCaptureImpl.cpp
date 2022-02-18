@@ -4,6 +4,8 @@
 
 #include "DummyDesktopCaptureImpl.hpp"
 
+#include "capture/DesktopCaptureFactory.hpp"
+
 #include <QtDebug>
 
 extern "C" {
@@ -74,5 +76,10 @@ namespace AVQt {
         params.frameSize = {1920, 1080};
         return params;
     }
-
 }// namespace AVQt
+
+static_block {
+    AVQt::DesktopCaptureFactory::getInstance().registerCapture({.metaObject = AVQt::DummyDesktopCaptureImpl::staticMetaObject,
+                                                                .name = "AVQt::DummyDesktopCapture",
+                                                                .platform = AVQt::common::Platform::All});
+};

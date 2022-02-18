@@ -67,13 +67,12 @@ namespace AVQt::common {
         AVPixelFormat m_gpuFormat{AV_PIX_FMT_NONE};
         AVPixelFormat m_cpuFormat{AV_PIX_FMT_NONE};
 
-        static QMutex s_gpuFormatsMutex;
-        static QMap<AVPixelFormat, GPUPixelFormat> s_gpuFormats;
+        class GPUPixelFormatRegistry;
     };
 }// namespace AVQt::common
 
-static_block {
-    AVQt::common::PixelFormat::registerAllGPUFormats();
-};
+//static_block {
+//    AVQt::common::PixelFormat::registerAllGPUFormats();
+//};
 
 #endif//LIBAVQT_PIXELFORMAT_HPP

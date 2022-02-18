@@ -31,6 +31,7 @@
 
 extern "C" {
 #include <libavutil/pixdesc.h>
+#include <libavutil/hwcontext_drm.h>
 }
 
 std::atomic_uint32_t CommandConsumer::m_nextId{0};
@@ -49,7 +50,14 @@ void CommandConsumer::consume(int64_t pad, std::shared_ptr<pgraph::api::Data> da
             auto frame = message->getPayload("frame").value<std::shared_ptr<AVFrame>>();
             qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format));
         }
-        //            auto *frame = message->getPayloads().value("frame").value<AVFrame *>();
+        auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
+        if (frame && frame->format == AV_PIX_FMT_DRM_PRIME) {
+            qDebug() << "Frame size:" << frame->width << "x" << frame->height;
+            auto *desc = (AVDRMFrameDescriptor *) frame->data[0];
+            qDebug() << "Frame DRM descriptor:" << desc->objects[0].fd;
+            qDebug() << "Frame DRM nb_planes:" << desc->layers[0].nb_planes;
+            qDebug() << "Frame DRM size" << desc->objects[0].size;
+        }
         //            if (m_frameCount % 50 == 0) {
         //                AVFrame *swFrame = av_frame_alloc();
         //                if (0 == av_hwframe_transfer_data(swFrame, frame, 0)) {

@@ -22,8 +22,6 @@
 //
 
 #include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
-#include "FallbackFrameMapper.hpp"
-#include "VAAPIOpenGLRenderMapper.hpp"
 
 namespace AVQt {
     OpenGLFrameMapperFactory &OpenGLFrameMapperFactory::getInstance() {
@@ -41,16 +39,5 @@ namespace AVQt {
 
     std::shared_ptr<api::IOpenGLFrameMapper> OpenGLFrameMapperFactory::create(const QString &name) {
         return std::shared_ptr<api::IOpenGLFrameMapper>{qobject_cast<api::IOpenGLFrameMapper *>(m_renderers[name].newInstance())};
-    }
-
-    void OpenGLFrameMapperFactory::registerDecoder() {
-        static bool registered = false;
-        if (!registered) {
-            registered = true;
-#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
-            AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("VAAPI", VAAPIOpenGLRenderMapper::staticMetaObject);
-#endif
-            AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("FallbackMapper", FallbackFrameMapper::staticMetaObject);
-        }
     }
 }// namespace AVQt

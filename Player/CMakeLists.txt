@@ -9,6 +9,7 @@ function(list_transform_prepend var_out var_in prefix)
 endfunction()
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PROJECT_NAME Player)
 
@@ -56,7 +57,7 @@ if (WIN32)
     endforeach (QT_LIB)
 endif ()
 
-target_link_libraries(Player AVQtStatic)
+target_link_libraries(Player AVQtStatic atomic)
 #
 #if (LINUX)
 #    find_package(OpenAL)

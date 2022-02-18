@@ -5,6 +5,8 @@
 #include "PipeWireDesktopCaptureImpl.hpp"
 #include "private/PipeWireDesktopCaptureImpl_p.hpp"
 
+#include "capture/DesktopCaptureFactory.hpp"
+
 #include <libdrm/drm_fourcc.h>
 
 extern "C" {
@@ -145,3 +147,11 @@ namespace AVQt {
         return avFrame;
     }
 }// namespace AVQt
+
+#if defined(Q_OS_LINUX) && !defined(QT_OS_ANDROID)
+static_block {
+    AVQt::DesktopCaptureFactory::getInstance().registerCapture({.metaObject = AVQt::PipeWireDesktopCaptureImpl::staticMetaObject,
+                                                                .name = "AVQt::PipeWireDesktopCapture",
+                                                                .platform = AVQt::common::Platform::Linux_Wayland});
+};
+#endif

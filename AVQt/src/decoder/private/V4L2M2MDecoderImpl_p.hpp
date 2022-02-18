@@ -18,6 +18,20 @@ namespace AVQt {
     class V4L2M2MDecoderImplPrivate {
         Q_DECLARE_PUBLIC(V4L2M2MDecoderImpl)
     protected:
+        class FrameFetcher : public QThread {
+        public:
+            explicit FrameFetcher(V4L2M2MDecoderImplPrivate *parent);
+            void start();
+            void stop();
+
+        protected:
+            void run() override;
+
+        private:
+            V4L2M2MDecoderImplPrivate *p;
+            std::atomic_bool running{false};
+        };
+
         explicit V4L2M2MDecoderImplPrivate(V4L2M2MDecoderImpl *q) : q_ptr(q) {}
 
         void init();
@@ -26,7 +40,11 @@ namespace AVQt {
         static void destroyAVCodecParameters(AVCodecParameters *par);
         static void destroyAVBufferRef(AVBufferRef *buf);
 
+        static AVPixelFormat getFormat(AVCodecContext *ctx, const AVPixelFormat *fmt);
+
         V4L2M2MDecoderImpl *q_ptr;
+
+        QMutex codecMutex{};
 
         AVCodecID codecId{AV_CODEC_ID_NONE};
         AVCodec *codec{nullptr};
@@ -34,6 +52,12 @@ namespace AVQt {
         std::shared_ptr<AVCodecParameters> codecParameters{nullptr, &destroyAVCodecParameters};
         std::shared_ptr<AVBufferRef> hwDeviceContext{nullptr, &destroyAVBufferRef};
         std::shared_ptr<AVBufferRef> hwFramesContext{nullptr, &destroyAVBufferRef};
+
+        std::unique_ptr<FrameFetcher> frameFetcher{};
+
+        std::atomic_bool open{false};
+        std::atomic_bool firstFrame{true};
+        QWaitCondition firstFrameCond{};
     };
 }// namespace AVQt
 

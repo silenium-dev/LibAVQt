@@ -22,8 +22,10 @@
 //
 
 #include "DRM_OpenGL_RenderMapper.hpp"
-#include "global.hpp"
 #include "private/DRM_OpenGL_RenderMapper_p.hpp"
+
+#include "global.hpp"
+#include "renderers/OpenGLFrameMapperFactory.hpp"
 
 #include <QtCore>
 
@@ -502,3 +504,9 @@ namespace AVQt {
         fboPool.reset();
     }
 }// namespace AVQt
+
+#ifdef Q_OS_LINUX
+static_block {
+    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("DRM", AVQt::DRM_OpenGL_RenderMapper::staticMetaObject);
+};
+#endif

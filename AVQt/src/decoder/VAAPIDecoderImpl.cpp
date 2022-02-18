@@ -24,6 +24,8 @@
 #include "VAAPIDecoderImpl.hpp"
 #include "private/VAAPIDecoderImpl_p.hpp"
 
+#include "decoder/VideoDecoderFactory.hpp"
+
 #include <QImage>
 #include <QMetaType>
 #include <QtDebug>
@@ -33,28 +35,32 @@ extern "C" {
 }
 
 namespace AVQt {
-    const api::VideoDecoderInfo VAAPIDecoderImpl::info{
-            .metaObject = VAAPIDecoderImpl::staticMetaObject,
-            .name = "VAAPI",
-            .platforms = {common::Platform::Linux_X11, common::Platform::Linux_Wayland},
-            .supportedInputPixelFormats = {
-                    {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_YUV420P12, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_YUV420P14, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_YUV420P16, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
-                    {AV_PIX_FMT_P016, AV_PIX_FMT_NONE},
-            },
-            .supportedCodecIds = {
-                    AV_CODEC_ID_H264,
-                    AV_CODEC_ID_HEVC,
-                    AV_CODEC_ID_VP8,
-                    AV_CODEC_ID_VP9,
-                    AV_CODEC_ID_MPEG2VIDEO,
-                    AV_CODEC_ID_NONE,
-            }};
+    const api::VideoDecoderInfo &VAAPIDecoderImpl::info() {
+        static const api::VideoDecoderInfo info = {
+                .metaObject = VAAPIDecoderImpl::staticMetaObject,
+                .name = "VAAPI",
+                .platforms = {common::Platform::Linux_X11, common::Platform::Linux_Wayland},
+                .supportedInputPixelFormats = {
+                        {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_YUV420P12, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_YUV420P14, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_YUV420P16, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
+                        {AV_PIX_FMT_P016, AV_PIX_FMT_NONE},
+                },
+                .supportedCodecIds = {
+                        AV_CODEC_ID_H264,
+                        AV_CODEC_ID_HEVC,
+                        AV_CODEC_ID_VP8,
+                        AV_CODEC_ID_VP9,
+                        AV_CODEC_ID_MPEG2VIDEO,
+                        AV_CODEC_ID_NONE,
+                },
+        };
+        return info;
+    }
 
     VAAPIDecoderImpl::VAAPIDecoderImpl(AVCodecID codec) : QObject(nullptr), d_ptr(new VAAPIDecoderImplPrivate(this)) {
         Q_D(VAAPIDecoderImpl);
@@ -178,6 +184,7 @@ namespace AVQt {
         if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
             char errBuf[AV_ERROR_MAX_STRING_SIZE];
             qWarning() << "Could not send packet to decoder:" << av_make_error_string(errBuf, AV_ERROR_MAX_STRING_SIZE, ret);
+            return AVUNERROR(ret);
         }
 
         d->firstFrame = false;
@@ -289,7 +296,7 @@ namespace AVQt {
     }
 
     VAAPIDecoderImplPrivate::FrameFetcher::FrameFetcher(VAAPIDecoderImplPrivate *p) : p(p) {
-        setObjectName("AVQt::VAAPIDecoderImplPrivate::FrameFetcher");
+        setObjectName("AVQt::VAAPIDecoderImpl::FrameFetcher");
     }
 
     void VAAPIDecoderImplPrivate::FrameFetcher::run() {
@@ -384,3 +391,7 @@ namespace AVQt {
         }
     }
 }// namespace AVQt
+
+static_block {
+    AVQt::VideoDecoderFactory::getInstance().registerDecoder(AVQt::VAAPIDecoderImpl::info());
+}
