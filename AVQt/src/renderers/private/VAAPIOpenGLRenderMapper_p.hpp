@@ -41,8 +41,12 @@ extern "C" {
 #include <EGL/eglplatform.h>
 #include <GL/glu.h>
 
+#include <QOffscreenSurface>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
+#include <QOpenGLVertexArrayObject>
 #include <QtConcurrent>
-#include <QtOpenGL>
 #include <libavutil/hwcontext_vaapi.h>
 
 

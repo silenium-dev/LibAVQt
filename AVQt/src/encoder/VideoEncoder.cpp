@@ -296,7 +296,7 @@ namespace AVQt {
                 }
             }
         } else {
-            qWarning("VideoEncoder: Unknown pad %ld", pad);
+            qWarning("VideoEncoder: Unknown pad %lld", pad);
         }
     }
 

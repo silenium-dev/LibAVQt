@@ -55,11 +55,14 @@ namespace AVQt {
 
             void run() override;
 
+            void start();
+
             void stop();
 
         private:
             VAAPIDecoderImplPrivate *p;
             std::atomic_bool m_stop{false};
+            QThread *m_afterStopThread{nullptr};
         };
 
         VAAPIDecoderImpl *q_ptr;
@@ -71,6 +74,8 @@ namespace AVQt {
         std::shared_ptr<AVBufferRef> hwDeviceContext{};
         std::shared_ptr<AVBufferRef> hwFramesContext{};
 
+        QMutex decodedFramesMutex{};
+        QQueue<std::shared_ptr<AVFrame>> decodedFrames{};
         std::unique_ptr<FrameFetcher> frameFetcher{nullptr};
         std::shared_ptr<internal::FrameDestructor> frameDestructor{};
 

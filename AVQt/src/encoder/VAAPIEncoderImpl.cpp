@@ -264,7 +264,7 @@ namespace AVQt {
             auto t1 = std::chrono::high_resolution_clock::now();
             ret = avcodec_send_frame(d->codecContext.get(), d->hwFrame.get());
             auto t2 = std::chrono::high_resolution_clock::now();
-            qDebug("[AVQt::VAAPIEncoderImpl2] avcodec_send_frame took %ld ns", std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+            qDebug("[AVQt::VAAPIEncoderImpl2] avcodec_send_frame took %lld ns", std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         }
         d->hwFrame.reset();
         if (ret == AVERROR(EAGAIN)) {

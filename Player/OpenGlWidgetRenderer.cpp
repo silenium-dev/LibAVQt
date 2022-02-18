@@ -95,6 +95,7 @@ void OpenGLWidgetRenderer::consume(int64_t pad, std::shared_ptr<pgraph::api::Dat
                 if (d->mapper) {
                     auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
                     d->mapper->enqueueFrame(frame);
+                    update();
                 }
                 break;
             }
@@ -198,6 +199,7 @@ void OpenGLWidgetRenderer::onFrameReady(qint64 pts, const std::shared_ptr<QOpenG
     if (d->running) {
         d->renderQueue.enqueue({pts, fbo});
     }
+    update();
 }
 
 void OpenGLWidgetRenderer::closeEvent(QCloseEvent *event) {
@@ -307,11 +309,6 @@ int64_t OpenGLWidgetRendererPrivate::getTimestamp() {
         renderTimer.restart();
     }
     auto now = renderTimer.nsecsElapsed() / 1000;
-    static bool first = true;
-    if (now > 10000000 && !first) {
-        qDebug("Render timer reset");
-    }
-    first = false;
     if (!currentFrame.second) {
         return 0;
     } else if (paused) {

@@ -130,7 +130,7 @@ namespace AVQt {
                     return false;
                 }
                 d->outputPadIds.insert(si, padId);
-                qDebug("Creating pad %ld for stream %ld", d->outputPadIds[si], si);
+                qDebug("Creating pad %lld for stream %lld", d->outputPadIds[si], si);
             }
         } else {
             qWarning() << "Demuxer already initialized";

@@ -31,6 +31,10 @@
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
+#include <QOpenGLTexture>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
 
 extern "C" {
 #include <libavutil/frame.h>

@@ -105,7 +105,7 @@ namespace AVQt {
                 framesContext->height = codecParams->height;
                 framesContext->format = AV_PIX_FMT_VAAPI;
                 framesContext->sw_format = getSwOutputFormat(codecParams->format);
-                framesContext->initial_pool_size = 32;
+                framesContext->initial_pool_size = 48;
                 int ret = av_hwframe_ctx_init(hwFramesContext);
                 if (ret != 0) {
                     char strBuf[64];
@@ -133,6 +133,8 @@ namespace AVQt {
             d->frameFetcher = std::make_unique<VAAPIDecoderImplPrivate::FrameFetcher>(d);
             d->frameFetcher->start();
 
+            //            connect(this, &VAAPIDecoderImpl::triggerFetchFrames, d->frameFetcher.get(), &VAAPIDecoderImplPrivate::FrameFetcher::fetchFrames, Qt::DirectConnection);
+
             return true;
         }
         return false;
@@ -148,7 +150,6 @@ namespace AVQt {
 
         if (d->frameFetcher) {
             d->frameFetcher->stop();
-            d->frameFetcher->wait();
             d->frameFetcher.reset();
         }
 
@@ -168,24 +169,20 @@ namespace AVQt {
             return ENODEV;
         }
 
+        int ret = AVERROR(EXIT_SUCCESS);
+
         {
-            int ret;
-            {
-                QMutexLocker locker(&d->codecMutex);
-                ret = avcodec_send_packet(d->codecContext.get(), packet.get());
-            }
-            if (ret == AVERROR_EOF || ret == AVERROR(EAGAIN) || ret == AVERROR(ENOMEM)) {
-                return EAGAIN;
-            } else if (ret < 0) {
-                char strBuf[256];
-                qWarning("Could not send packet to encoder: %s", av_make_error_string(strBuf, sizeof(strBuf), ret));
-                return AVUNERROR(ret);
-            }
+            QMutexLocker lock(&d->codecMutex);
+            ret = avcodec_send_packet(d->codecContext.get(), packet.get());
+        }
+        if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
+            char errBuf[AV_ERROR_MAX_STRING_SIZE];
+            qWarning() << "Could not send packet to decoder:" << av_make_error_string(errBuf, AV_ERROR_MAX_STRING_SIZE, ret);
         }
 
         d->firstFrame = false;
 
-        return EXIT_SUCCESS;
+        return AVUNERROR(ret);
     }
 
     AVPixelFormat VAAPIDecoderImpl::getOutputFormat() const {
@@ -292,7 +289,7 @@ namespace AVQt {
     }
 
     VAAPIDecoderImplPrivate::FrameFetcher::FrameFetcher(VAAPIDecoderImplPrivate *p) : p(p) {
-        setObjectName("FrameFetcher");
+        setObjectName("AVQt::VAAPIDecoderImplPrivate::FrameFetcher");
     }
 
     void VAAPIDecoderImplPrivate::FrameFetcher::run() {
@@ -312,31 +309,60 @@ namespace AVQt {
                                               }};
             ret = avcodec_receive_frame(p->codecContext.get(), frame.get());
             //            qDebug("[AVQt::VAAPIDecoderImpl::Fetcher] Unlocked frame pool mutex: %p", hwFramesMutex);
-            inputLock.unlock();
             if (ret == 0) {
                 //                auto t = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
                 //                qWarning("Frame decoded at: %ld us since epoch", t);
                 //                frame->opaque = reinterpret_cast<void *>(t);
                 //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
-                qDebug("Publishing frame with PTS %ld", frame->pts);
+                qDebug("Publishing frame with PTS %lld", frame->pts);
                 QElapsedTimer timer;
                 timer.start();
                 p->q_func()->frameReady(frame);
+                inputLock.unlock();
                 //                qDebug("Frame ref count: %ld", sharedFrame.use_count());
                 qDebug("Frame callback runtime: %lld ms", timer.elapsed());
                 //                m_outputQueue.enqueue(frame);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret == AVERROR(ENOMEM)) {
                 frame.reset();
+                inputLock.unlock();
                 msleep(4);
             } else {
+                inputLock.unlock();
                 av_strerror(ret, strBuf, strBufSize);
                 qWarning("Error while receiving frame: %s", strBuf);
                 m_stop = true;
                 break;
             }
         }
+        //        exec();
+        //        if (m_afterStopThread) {
+        //            moveToThread(m_afterStopThread);
+        //        }
         qDebug() << "FrameFetcher stopped";
     }
+
+    //    void VAAPIDecoderImplPrivate::FrameFetcher::fetchFrames() {
+    //        int fetchRet;
+    //        while (true) {
+    //            std::shared_ptr<AVFrame> frame{av_frame_alloc(), *p->frameDestructor};
+    //            {
+    //                QMutexLocker lock(&p->codecMutex);
+    //                fetchRet = avcodec_receive_frame(p->codecContext.get(), frame.get());
+    //            }
+    //            if (fetchRet == 0) {
+    //                p->q_func()->frameReady(frame);
+    //            } else if (fetchRet == AVERROR(EAGAIN)) {
+    //                break;
+    //            } else if (fetchRet == AVERROR_EOF) {
+    //                qDebug() << "End of stream";
+    //                break;
+    //            } else {
+    //                char strBuf[AV_ERROR_MAX_STRING_SIZE];
+    //                qWarning() << "Could not receive frame:" << av_make_error_string(strBuf, AV_ERROR_MAX_STRING_SIZE, fetchRet);
+    //                break;
+    //            }
+    //        }
+    //    }
 
     void VAAPIDecoderImplPrivate::FrameFetcher::stop() {
         if (isRunning()) {
@@ -345,6 +371,16 @@ namespace AVQt {
             QThread::wait();
         } else {
             qWarning("FrameFetcher not running");
+        }
+    }
+
+    void VAAPIDecoderImplPrivate::FrameFetcher::start() {
+        if (!isRunning()) {
+            m_stop = false;
+            //            moveToThread(this);
+            QThread::start();
+        } else {
+            qWarning("FrameFetcher already running");
         }
     }
 }// namespace AVQt

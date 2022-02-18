@@ -27,11 +27,12 @@
 #include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 
 #include <QtCore>
+#include <QOpenGLFunctions>
 
 namespace AVQt {
     class DRM_OpenGL_RenderMapperPrivate;
 
-    class DRM_OpenGL_RenderMapper : public QThread, public api::IOpenGLFrameMapper, public QOpenGLFunctions {
+    class DRM_OpenGL_RenderMapper : public QThread, public api::IOpenGLFrameMapper, protected QOpenGLFunctions {
         Q_OBJECT
         Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
         Q_DECLARE_PRIVATE(DRM_OpenGL_RenderMapper)

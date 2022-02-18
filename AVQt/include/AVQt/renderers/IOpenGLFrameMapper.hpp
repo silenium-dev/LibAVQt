@@ -24,8 +24,9 @@
 #ifndef LIBAVQT_IOPENGLFRAMEMAPPER_HPP
 #define LIBAVQT_IOPENGLFRAMEMAPPER_HPP
 
-#include <QThread>
-#include <QtOpenGL>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLContext>
+#include <memory>
 extern "C" {
 #include <libavutil/frame.h>
 }

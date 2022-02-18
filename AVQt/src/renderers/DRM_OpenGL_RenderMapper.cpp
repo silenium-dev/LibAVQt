@@ -25,10 +25,7 @@
 #include "global.hpp"
 #include "private/DRM_OpenGL_RenderMapper_p.hpp"
 
-#include <QtConcurrent>
 #include <QtCore>
-#include <QtGui>
-#include <QtOpenGL>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>

@@ -8,6 +8,8 @@
 #include <QObject>
 #include <ScreenCapture/pipewire/PipeWireCapturer.hpp>
 
+#include <libdrm/drm_fourcc.h>
+
 namespace AVQt {
     class PipeWireDesktopCaptureImpl;
     class PipeWireDesktopCaptureImplPrivate : public ScreenCapture::PipeWireCapturer::Callback {

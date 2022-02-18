@@ -41,7 +41,6 @@ extern "C" {
 #include <GL/glu.h>
 
 #include <QtConcurrent>
-#include <QtOpenGL>
 
 
 namespace AVQt {

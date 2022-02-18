@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
     //    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
     decoder1InPad->link(demuxerOutPad);
-    //    encoderInPad->link(decoder1OutPad);
+    encoderInPad->link(decoder1OutPad);
     //    decoder2InPad->link(encoderOutPad);
     //    yuvrgbconverterInPad->link(decoder1OutPad);
     //    renderer2InPad->link(decoder1OutPad);

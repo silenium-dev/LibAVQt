@@ -30,7 +30,11 @@
 #include <EGL/eglext.h>
 
 #include <QObject>
-#include <QtOpenGL>
+#include <QOffscreenSurface>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
+#include <QOpenGLVertexArrayObject>
 
 extern "C" {
 #include <libavutil/avutil.h>

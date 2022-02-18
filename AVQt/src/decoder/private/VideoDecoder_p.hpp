@@ -64,7 +64,7 @@ namespace AVQt {
         int64_t outputPadId{pgraph::api::INVALID_PAD_ID};
 
         QMutex inputQueueMutex{};
-        QWaitCondition frameProcessed{}, frameAvailable{};
+        QWaitCondition packetProcessed{}, packetAvailable{};
         QQueue<std::shared_ptr<AVPacket>> inputQueue{};
 
         VideoDecoder::Config config{};

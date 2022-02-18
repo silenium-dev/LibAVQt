@@ -26,8 +26,9 @@
 
 #include "include/AVQt/renderers/IOpenGLFrameMapper.hpp"
 
-#include <QObject>
+#include <QThread>
 #include <QOpenGLContext>
+#include <QOpenGLFunctions>
 
 namespace AVQt {
     class VAAPIOpenGLRenderMapperPrivate;

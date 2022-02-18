@@ -245,9 +245,10 @@ namespace AVQt {
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
             d->paused = false;
+            d->pauseWaitCondition.wakeAll();
             produce(communication::Message::builder().withAction(communication::Message::Action::STOP).build(), d->outputPadId);
-            d->frameAvailable.wakeAll();
-            d->frameProcessed.wakeAll();
+            d->packetAvailable.wakeAll();
+            d->packetProcessed.wakeAll();
             QThread::quit();
             QThread::wait();
             {
@@ -282,7 +283,7 @@ namespace AVQt {
                 }
             }
             if (d->inputQueue.isEmpty()) {
-                d->frameAvailable.wait(&d->inputQueueMutex);
+                d->packetAvailable.wait(&d->inputQueueMutex);
                 if (!d->running) {
                     break;
                 }
@@ -303,7 +304,7 @@ namespace AVQt {
                 char strBuf[256];
                 qWarning() << "VideoDecoder error" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
             }
-            d->frameProcessed.wakeOne();
+            d->packetProcessed.wakeOne();
         }
     }
 
@@ -320,13 +321,9 @@ namespace AVQt {
     void VideoDecoderPrivate::enqueueData(const std::shared_ptr<AVPacket> &packet) {
         QMutexLocker lock(&inputQueueMutex);
         if (inputQueue.size() > 32) {
-            frameProcessed.wait(&inputQueueMutex);
-            if (inputQueue.size() > 32) {
-                qWarning() << "VideoDecoder input queue full, dropping packet";
-                return;
-            }
+            packetProcessed.wait(&inputQueueMutex);
         }
         inputQueue.enqueue(packet);
-        frameAvailable.wakeOne();
+        packetAvailable.wakeOne();
     }
 }// namespace AVQt

@@ -27,7 +27,7 @@
 #include "AVQt/common/PixelFormat.hpp"
 #include "AVQt/common/Platform.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
-#include <QObject>
+#include <QtCore>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -49,6 +49,7 @@ namespace AVQt::api {
         };
         [[nodiscard]] virtual bool isHWAccel() const = 0;
         [[nodiscard]] virtual communication::VideoPadParams getVideoParams() const = 0;
+
     signals:
         virtual void frameReady(std::shared_ptr<AVFrame> frame) = 0;
     };

@@ -131,7 +131,7 @@ set(SOURCES_LINUX
         src/renderers/DRM_OpenGL_RenderMapper.hpp
         src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
         src/renderers/DRM_OpenGL_RenderMapper.cpp
-        )
+        src/decoder/V4L2M2MDecoderImpl.cpp src/decoder/V4L2M2MDecoderImpl.hpp src/decoder/private/V4L2M2MDecoderImpl_p.hpp)
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp

@@ -52,14 +52,13 @@ namespace AVQt {
 
         [[nodiscard]] communication::VideoPadParams getVideoParams() const override;
 
-    signals:
-        void frameReady(std::shared_ptr<AVFrame> frame) override;
-
     protected:
         VAAPIDecoderImplPrivate *d_ptr;
 
         [[nodiscard]] static AVPixelFormat getSwOutputFormat(AVPixelFormat format);
         [[nodiscard]] static AVPixelFormat getSwOutputFormat(int format);
+    signals:
+        void frameReady(std::shared_ptr<AVFrame> frame) override;
     };
 }// namespace AVQt
 

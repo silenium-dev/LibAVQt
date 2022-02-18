@@ -5,6 +5,8 @@
 #include "PipeWireDesktopCaptureImpl.hpp"
 #include "private/PipeWireDesktopCaptureImpl_p.hpp"
 
+#include <libdrm/drm_fourcc.h>
+
 extern "C" {
 #include <libavutil/hwcontext_drm.h>
 }
