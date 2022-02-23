@@ -1,3 +1,7 @@
+[submodule "LibScreenCapture"]
+    path = LibScreenCapture
+    url = https://edugit.org/sdcieo0330/LibScreenCapture.git/
+    branch = main
 [submodule "libpgraph_network"]
 	path = libpgraph_network
 	url = https://edugit.org/sdcieo0330/libpgraph_network.git/
@@ -10,6 +14,3 @@
 	path = cpp-static-block
 	url = https://github.com/eyalroz/cpp-static-block
 	branch = master
-[submodule "LibScreenCapture"]
-    path = LibScreenCapture
-    url = https://edugit.org/sdcieo0330/LibScreenCapture.git/
