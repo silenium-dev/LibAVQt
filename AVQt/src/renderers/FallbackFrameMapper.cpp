@@ -22,8 +22,10 @@
 //
 
 #include "FallbackFrameMapper.hpp"
-#include "global.hpp"
 #include "private/FallbackFrameMapper_p.hpp"
+
+#include "global.hpp"
+#include "renderers/OpenGLFrameMapperFactory.hpp"
 
 extern "C" {
 #include <libavutil/imgutils.h>
@@ -32,7 +34,22 @@ extern "C" {
 
 #include <memory>
 
+#include <GL/gl.h>
+
+#include <QOpenGLDebugLogger>
+
 namespace AVQt {
+    const api::OpenGLFrameMapperInfo &FallbackFrameMapper::info() {
+        static const api::OpenGLFrameMapperInfo info{
+                .metaObject = FallbackFrameMapper::staticMetaObject,
+                .name = "SW",
+                .platforms = {common::Platform::All},
+                .supportedInputPixelFormats = {},
+                .isSupported = []() { return true; },
+        };
+        return info;
+    }
+
     FallbackFrameMapper::FallbackFrameMapper(QObject *parent)
         : QThread(parent), d_ptr(new FallbackFrameMapperPrivate(this)) {
         loadResources();
@@ -75,8 +92,8 @@ namespace AVQt {
             shaderVersionString = "#version 330 core\n";
         }
 
-        QFile vsh{":/shaders/textures.vsh"};
-        QFile fsh{":/shaders/textures.fsh"};
+        QFile vsh{":/shaders/texture.vsh"};
+        QFile fsh{":/shaders/texture.fsh"};
         vsh.open(QIODevice::ReadOnly);
         fsh.open(QIODevice::ReadOnly);
         QByteArray vertexShader = vsh.readAll().prepend(shaderVersionString);
@@ -264,7 +281,7 @@ namespace AVQt {
                 d->pSwsContext.reset(sws_getContext(swFrame->width, swFrame->height,
                                                     (AVPixelFormat) swFrame->format,
                                                     swFrame->width, swFrame->height,
-                                                    AV_PIX_FMT_BGRA,
+                                                    AV_PIX_FMT_RGBA,
                                                     0, nullptr, nullptr, nullptr));
                 if (!d->pSwsContext) {
                     qWarning() << "Failed to create sws context";
@@ -272,8 +289,6 @@ namespace AVQt {
                 }
             }
 
-            QOpenGLTexture::PixelType pixelType = QOpenGLTexture::UInt8;
-            QOpenGLTexture::TextureFormat textureFormat = QOpenGLTexture::RGBA8_UNorm;
             //            switch (swFrame->format) {
             //                case AV_PIX_FMT_YUV420P10:
             //                case AV_PIX_FMT_YUV420P12:
@@ -308,7 +323,7 @@ namespace AVQt {
             }
             frame->width = swFrame->width;
             frame->height = swFrame->height;
-            frame->format = AV_PIX_FMT_BGRA;
+            frame->format = AV_PIX_FMT_RGBA;
             frame->pts = swFrame->pts;
             if (av_frame_get_buffer(frame.get(), 1) < 0) {
                 qWarning() << "Failed to allocate frame buffer";
@@ -328,13 +343,13 @@ namespace AVQt {
 
             if (!d->texture) {
                 d->texture.reset(new QOpenGLTexture(QOpenGLTexture::Target2D));
-                d->texture->setFormat(textureFormat);
+                d->texture->setFormat(QOpenGLTexture::RGBA8_UNorm);
                 d->texture->setSize(frame->width, frame->height);
                 d->texture->setAutoMipMapGenerationEnabled(false);
                 d->texture->setMinificationFilter(QOpenGLTexture::Linear);
                 d->texture->setMagnificationFilter(QOpenGLTexture::Linear);
                 d->texture->setWrapMode(QOpenGLTexture::ClampToEdge);
-                d->texture->allocateStorage();
+                d->texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
             }
 
             if (!d->fboPool) {
@@ -342,7 +357,8 @@ namespace AVQt {
             }
 
             d->texture->bind(0);
-            d->texture->setData(QOpenGLTexture::BGRA, pixelType, const_cast<const uint8_t *>(frame->data[0]));
+            d->texture->setData(0, 0, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, const_cast<const uint8_t *>(frame->data[0]));
+            d->texture->release();
 
             auto fbo = d->fboPool->getFBO(1000);
             if (!fbo) {
@@ -411,7 +427,6 @@ namespace AVQt {
     void FallbackFrameMapperPrivate::destroySwsContext(SwsContext *swsContext) {
         if (swsContext) {
             sws_freeContext(swsContext);
-            swsContext = nullptr;
         }
     }
 
@@ -422,3 +437,7 @@ namespace AVQt {
         }
     }
 }// namespace AVQt
+
+static_block {
+    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer(AVQt::FallbackFrameMapper::info());
+}

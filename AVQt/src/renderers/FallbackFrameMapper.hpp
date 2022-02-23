@@ -36,6 +36,7 @@ namespace AVQt {
         Q_DECLARE_PRIVATE(FallbackFrameMapper)
         Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
     public:
+        static const api::OpenGLFrameMapperInfo &info();
         Q_INVOKABLE explicit FallbackFrameMapper(QObject *parent = nullptr);
         ~FallbackFrameMapper() override;
 
