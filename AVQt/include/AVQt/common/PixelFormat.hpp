@@ -42,6 +42,7 @@ namespace AVQt::common {
 
         [[nodiscard]] bool isValid() const;
         [[nodiscard]] bool isGPUFormat() const;
+        [[nodiscard]] bool isSupportedBy(const QList<PixelFormat> &formats) const;
 
         [[nodiscard]] QString toString() const;
 

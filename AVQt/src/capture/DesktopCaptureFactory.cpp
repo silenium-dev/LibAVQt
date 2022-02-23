@@ -29,7 +29,7 @@ namespace AVQt {
         return m_captureImpls.remove(name);
     }
 
-    bool DesktopCaptureFactory::isCaptureAvailable(common::Platform platform) {
+    bool DesktopCaptureFactory::isCaptureAvailable(common::Platform::Platform_t platform) {
         QMutexLocker locker(&m_mutex);
         return std::find_if(m_captureImpls.begin(), m_captureImpls.end(),
                             [platform](const CaptureImplInfo &info) {

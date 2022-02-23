@@ -37,7 +37,6 @@ list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::"
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
 find_package(PkgConfig REQUIRED)
-link_directories(/opt/android-libs/aarch64/lib)
 
 pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample zlib)
 
@@ -120,7 +119,7 @@ set(SOURCES
 
         src/capture/DummyDesktopCaptureImpl.hpp
         src/capture/DummyDesktopCaptureImpl.cpp
-        )
+        src/common/Platform.cpp)
 set(SOURCES_UNIX
         )
 set(SOURCES_LINUX
@@ -147,7 +146,11 @@ set(SOURCES_LINUX
         src/renderers/DRM_OpenGL_RenderMapper.hpp
         src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
         src/renderers/DRM_OpenGL_RenderMapper.cpp
-        src/decoder/V4L2M2MDecoderImpl.cpp src/decoder/V4L2M2MDecoderImpl.hpp src/decoder/private/V4L2M2MDecoderImpl_p.hpp)
+
+        src/decoder/V4L2M2MDecoderImpl.hpp
+        src/decoder/private/V4L2M2MDecoderImpl_p.hpp
+        src/decoder/V4L2M2MDecoderImpl.cpp
+        )
 set(SOURCES_WINDOWS
         decoder/DecoderDXVA2.hpp
         src/decoder/private/DecoderDXVA2_p.hpp
@@ -222,6 +225,9 @@ if (!WIN32)
             -Wstack-protector
             -Wdouble-promotion
             )
+    if (CMAKE_COMPILER_IS_GNUCXX)
+        target_compile_options(AVQtObject PRIVATE -Wno-psabi)
+    endif ()
 endif ()
 
 
@@ -250,7 +256,7 @@ if (WIN32)
 else ()
     list(APPEND LINK_LIBRARIES EGL)
     if (NOT ANDROID)
-        list(APPEND LINK_LIBRARIES GL va GLU)
+        list(APPEND LINK_LIBRARIES GL va va-drm GLU)
     else ()
         list(APPEND LINK_LIBRARIES GLESv2)
     endif ()

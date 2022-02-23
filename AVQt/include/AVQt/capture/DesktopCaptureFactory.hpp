@@ -23,11 +23,11 @@ namespace AVQt {
         struct CaptureImplInfo {
             QMetaObject metaObject;
             QString name;
-            common::Platform platform;
+            common::Platform::Platform_t platform;
         };
         static DesktopCaptureFactory &getInstance();
 
-        bool isCaptureAvailable(common::Platform platform);
+        bool isCaptureAvailable(common::Platform::Platform_t platform);
         bool registerCapture(const CaptureImplInfo &info);
         bool unregisterCapture(const QString &name);
 

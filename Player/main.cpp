@@ -85,6 +85,10 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, &signalHandler);
     signal(SIGTERM, &signalHandler);
 
+    //    QSurfaceFormat defaultFormat = QSurfaceFormat::defaultFormat();
+    //    defaultFormat.setOption(QSurfaceFormat::DebugContext);
+    //    QSurfaceFormat::setDefaultFormat(defaultFormat);
+
     //#ifdef QT_DEBUG
     //    av_log_set_level(AV_LOG_DEBUG);
     //    av_log_set_flags(AV_LOG_SKIP_REPEATED);
@@ -137,7 +141,7 @@ int main(int argc, char *argv[]) {
     //    auto decoder2 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
     //    auto encoder = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
-    //    auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
+    auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
     //    auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     //    auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
     //    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
@@ -153,7 +157,7 @@ int main(int argc, char *argv[]) {
     //    decoder2->init();
     //    decoder3->init();
     //    encoder->init();
-    //    renderer1->init();
+    renderer1->init();
     //    renderer2->init();
     //    yuvrgbconverter->init();
     //    frameSaver->init();
@@ -184,7 +188,7 @@ int main(int argc, char *argv[]) {
     //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
     //    auto encoderInPad = encoder->getInputPads().begin()->second;
     //    auto encoderOutPad = encoder->getOutputPads().begin()->second;
-    //    auto renderer1InPad = renderer1->getInputPads().begin()->second;
+    auto renderer1InPad = renderer1->getInputPads().begin()->second;
     //    auto renderer2InPad = renderer2->getInputPads().begin()->second;
     auto ccInPad = cc->getInputPads().begin()->second;
     //    auto cc2InPad = cc2->getInputPads().begin()->second;
@@ -203,13 +207,13 @@ int main(int argc, char *argv[]) {
     //    renderer2InPad->link(decoder1OutPad);
     //    renderer1InPad->link(yuvrgbconverterOutPad);
     //    decoder1OutPad->link(yuvrgbconverterInPad);
-    //    renderer1InPad->link(decoder1OutPad);
+    renderer1InPad->link(decoder1OutPad);
     //    renderer2InPad->link(decoder2OutPad);
     //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
     demuxer->open();
 
-    //    renderer1->resize(1280, 720);
+    renderer1->resize(1280, 720);
     //        renderer2->resize(1280, 720);
 
     demuxer->start();

@@ -36,13 +36,75 @@
 
 
 namespace AVQt {
-    DRM_OpenGL_RenderMapper::DRM_OpenGL_RenderMapper(QObject *parent)
-        : QThread(parent), d_ptr(new DRM_OpenGL_RenderMapperPrivate(this)) {
-        loadResources();
-        Q_D(DRM_OpenGL_RenderMapper);
+    const api::OpenGLFrameMapperInfo &DRM_OpenGL_RenderMapper::info() {
+        static const api::OpenGLFrameMapperInfo info{
+                .metaObject = DRM_OpenGL_RenderMapper::staticMetaObject,
+                .name = "DRM",
+                .platforms = {
+                        common::Platform::Linux_X11,
+                        common::Platform::Linux_Wayland,
+                        common::Platform::Android,
+                },
+                .supportedInputPixelFormats = {
+                        {AV_PIX_FMT_BGRA, AV_PIX_FMT_DRM_PRIME},
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_DRM_PRIME},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_DRM_PRIME},
+                },
+                .isSupported = [] {
+                    auto result = true;
+                    auto dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+                    if (!dpy) {
+                        return false;
+                    }
+                    if (!eglInitialize(dpy, nullptr, nullptr)) {
+                        return false;
+                    }
+                    if (!eglBindAPI(EGL_OPENGL_API)) {
+                        result = false;
+                        goto end;
+                    }
+
+                    {
+                        QString extensionStr = eglQueryString(dpy, EGL_EXTENSIONS);
+                        if (!extensionStr.contains("EGL_EXT_image_dma_buf_import")) {
+                            result = false;
+                            goto end;
+                        }
+                    }
+                end:
+                    eglTerminate(dpy);
+                    return result;
+                },
+        };
+        return info;
     }
 
-    DRM_OpenGL_RenderMapper::~DRM_OpenGL_RenderMapper() = default;
+    DRM_OpenGL_RenderMapper::DRM_OpenGL_RenderMapper(QObject *parent)
+        : QThread(parent), d_ptr(new DRM_OpenGL_RenderMapperPrivate(this)) {
+        Q_D(DRM_OpenGL_RenderMapper);
+        setObjectName("DRM_OpenGL_RenderMapper");
+        loadResources();
+    }
+
+    DRM_OpenGL_RenderMapper::~DRM_OpenGL_RenderMapper() {
+        Q_D(DRM_OpenGL_RenderMapper);
+
+        d->context->makeCurrent(d->surface.get());
+
+        glDeleteTextures(d->textures[1] > 0 ? 2 : 1, d->textures);
+
+        d->program.reset();
+        d->vbo->destroy();
+        d->vao->destroy();
+        d->ibo->destroy();
+
+        d->context->doneCurrent();
+        d->context.reset();
+        d->surface->destroy();
+        d->surface.reset();
+
+        eglTerminate(d->eglDisplay);
+    }
 
     void DRM_OpenGL_RenderMapper::initializeGL(QOpenGLContext *shareContext) {
         Q_D(DRM_OpenGL_RenderMapper);
@@ -80,6 +142,9 @@ namespace AVQt {
         QByteArray fshSource = fsh.readAll().prepend(shaderVersionString);
         vsh.close();
         fsh.close();
+
+        qDebug("Vertex shader:\n%s", vshSource.constData());
+        qDebug("Fragment shader:\n%s", fshSource.constData());
 
         d->program = std::make_unique<QOpenGLShaderProgram>();
         d->program->addCacheableShaderFromSourceCode(QOpenGLShader::Vertex, vshSource);
@@ -310,6 +375,7 @@ namespace AVQt {
                 }
             }
         }
+        // TODO: Implement YUV420P and YUV420P10, needed for RPi support
     }
 
     void DRM_OpenGL_RenderMapper::start() {
@@ -335,6 +401,24 @@ namespace AVQt {
             QThread::wait();
             QMutexLocker locker(&d->inputQueueMutex);
             d->inputQueue.clear();
+
+            d->context->makeCurrent(d->surface.get());
+
+            LOOKUP_FUNCTION(PFNEGLDESTROYIMAGEKHRPROC, eglDestroyImageKHR);
+            if (d->eglImages[0] != EGL_NO_IMAGE_KHR) {
+                eglDestroyImageKHR(d->eglDisplay, d->eglImages[0]);
+            }
+            if (d->eglImages[1] != EGL_NO_IMAGE_KHR) {
+                eglDestroyImageKHR(d->eglDisplay, d->eglImages[1]);
+            }
+            d->eglImages[0] = EGL_NO_IMAGE_KHR;
+            d->eglImages[1] = EGL_NO_IMAGE_KHR;
+
+            d->currentFrameMutex.lock();
+            d->currentFrame.reset();
+            d->currentFrameMutex.unlock();
+
+            d->context->doneCurrent();
         }
     }
 
@@ -507,6 +591,6 @@ namespace AVQt {
 
 #ifdef Q_OS_LINUX
 static_block {
-    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("DRM", AVQt::DRM_OpenGL_RenderMapper::staticMetaObject);
+    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer(AVQt::DRM_OpenGL_RenderMapper::info());
 };
 #endif

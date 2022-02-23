@@ -26,9 +26,9 @@
 
 #include "include/AVQt/renderers/IOpenGLFrameMapper.hpp"
 
-#include <QThread>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
+#include <QThread>
 
 namespace AVQt {
     class VAAPIOpenGLRenderMapperPrivate;
@@ -37,6 +37,8 @@ namespace AVQt {
         Q_DECLARE_PRIVATE(VAAPIOpenGLRenderMapper)
         Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
     public:
+        static const api::OpenGLFrameMapperInfo &info();
+
         Q_INVOKABLE explicit VAAPIOpenGLRenderMapper(QObject *parent = nullptr);
         ~VAAPIOpenGLRenderMapper() Q_DECL_OVERRIDE;
 

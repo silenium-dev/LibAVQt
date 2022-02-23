@@ -35,17 +35,16 @@ namespace AVQt {
     public:
         static OpenGLFrameMapperFactory &getInstance();
 
-        void registerRenderer(const QString &name, const QMetaObject &metaObject);
+        bool registerRenderer(const api::OpenGLFrameMapperInfo &info);
 
         void unregisterRenderer(const QString &name);
+        void unregisterRenderer(const api::OpenGLFrameMapperInfo &info);
 
-        [[nodiscard]] std::shared_ptr<api::IOpenGLFrameMapper> create(const QString &name);
-
-        static void registerRenderers();
+        [[nodiscard]] std::shared_ptr<api::IOpenGLFrameMapper> create(const common::PixelFormat &inputFormat, const QStringList &priority = {});
 
     private:
         OpenGLFrameMapperFactory() = default;
-        QMap<QString, QMetaObject> m_renderers;
+        QMap<QString, api::OpenGLFrameMapperInfo> m_renderers;
     };
 }// namespace AVQt
 

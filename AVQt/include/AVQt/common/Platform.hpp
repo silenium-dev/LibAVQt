@@ -5,17 +5,24 @@
 #ifndef LIBAVQT_PLATFORM_HPP
 #define LIBAVQT_PLATFORM_HPP
 
+#include <QList>
+
 namespace AVQt::common {
-    enum class Platform {
-        Windows,
-        Linux_Wayland,
-        Linux_X11,
-        MacOS,
-        Android,
-        iOS,
-        All,
-        Unknown
+    class Platform {
+    public:
+        enum Platform_t {
+            Windows,
+            Linux_Wayland,
+            Linux_X11,
+            MacOS,
+            Android,
+            iOS,
+            All,
+            Unknown
+        };
+        static Platform_t getPlatform();
+        static bool isAvailable(const QList<Platform_t> &platforms);
     };
-}
+}// namespace AVQt::common
 
 #endif//LIBAVQT_PLATFORM_HPP

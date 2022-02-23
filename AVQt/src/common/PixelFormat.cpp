@@ -113,6 +113,12 @@ namespace AVQt::common {
         return m_gpuFormat != AV_PIX_FMT_NONE && GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(m_gpuFormat);
     }
 
+    bool PixelFormat::isSupportedBy(const QList<PixelFormat> &formats) const {
+        return formats.isEmpty() || std::any_of(formats.begin(), formats.end(), [this](const PixelFormat &format) {
+                   return format == *this;
+               });
+    }
+
     bool PixelFormat::setCPUFormat(AVPixelFormat format) {
         if (format == m_cpuFormat || GPUPixelFormatRegistry::getInstance().s_gpuFormats.contains(format)) {
             return false;

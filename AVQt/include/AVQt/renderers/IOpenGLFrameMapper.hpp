@@ -24,12 +24,17 @@
 #ifndef LIBAVQT_IOPENGLFRAMEMAPPER_HPP
 #define LIBAVQT_IOPENGLFRAMEMAPPER_HPP
 
-#include <QOpenGLFramebufferObject>
-#include <QOpenGLContext>
+#include "AVQt/common/PixelFormat.hpp"
+#include "AVQt/common/Platform.hpp"
+
+#include <QObject>
 #include <memory>
 extern "C" {
 #include <libavutil/frame.h>
 }
+
+class QOpenGLContext;
+class QOpenGLFramebufferObject;
 
 namespace AVQt::api {
     class IOpenGLFrameMapper {
@@ -41,6 +46,14 @@ namespace AVQt::api {
         virtual void stop() = 0;
     signals:
         virtual void frameReady(qint64 pts, const std::shared_ptr<QOpenGLFramebufferObject> &fbo) = 0;
+    };
+
+    struct OpenGLFrameMapperInfo {
+        QMetaObject metaObject;
+        QString name;
+        QList<common::Platform::Platform_t> platforms;
+        QList<common::PixelFormat> supportedInputPixelFormats;
+        bool (*isSupported)();
     };
 }// namespace AVQt::api
 

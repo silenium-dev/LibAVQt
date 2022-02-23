@@ -57,7 +57,7 @@ namespace AVQt::api {
     struct VideoDecoderInfo {
         QMetaObject metaObject;
         QString name;
-        QList<common::Platform> platforms;
+        QList<common::Platform::Platform_t> platforms;
         QList<common::PixelFormat> supportedInputPixelFormats;
         QList<AVCodecID> supportedCodecIds;
         [[nodiscard]] common::PixelFormat outputPixelFormatFor(const common::PixelFormat &inputPixelFormat) const {

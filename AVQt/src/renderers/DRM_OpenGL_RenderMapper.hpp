@@ -37,6 +37,7 @@ namespace AVQt {
         Q_INTERFACES(AVQt::api::IOpenGLFrameMapper)
         Q_DECLARE_PRIVATE(DRM_OpenGL_RenderMapper)
     public:
+        static const api::OpenGLFrameMapperInfo &info();
         explicit DRM_OpenGL_RenderMapper(QObject *parent = nullptr);
         ~DRM_OpenGL_RenderMapper() override;
 

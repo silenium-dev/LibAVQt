@@ -29,15 +29,58 @@ namespace AVQt {
         return instance;
     }
 
-    void OpenGLFrameMapperFactory::registerRenderer(const QString &name, const QMetaObject &metaObject) {
-        m_renderers.insert(name, metaObject);
+    bool OpenGLFrameMapperFactory::registerRenderer(const api::OpenGLFrameMapperInfo &info) {
+        for (const auto &i : m_renderers) {
+            if (i.name == info.name) {
+                qWarning() << "OpenGLFrameMapperFactory::registerRenderer: Renderer with name " << info.name << " already registered";
+                return false;
+            }
+        }
+        if (info.isSupported()) {
+            m_renderers.insert(info.name, info);
+            return true;
+        }
+        return false;
     }
 
     void OpenGLFrameMapperFactory::unregisterRenderer(const QString &name) {
         m_renderers.remove(name);
     }
 
-    std::shared_ptr<api::IOpenGLFrameMapper> OpenGLFrameMapperFactory::create(const QString &name) {
-        return std::shared_ptr<api::IOpenGLFrameMapper>{qobject_cast<api::IOpenGLFrameMapper *>(m_renderers[name].newInstance())};
+    void OpenGLFrameMapperFactory::unregisterRenderer(const api::OpenGLFrameMapperInfo &info) {
+        m_renderers.remove(info.name);
+    }
+
+    std::shared_ptr<api::IOpenGLFrameMapper> OpenGLFrameMapperFactory::create(const common::PixelFormat &inputFormat, const QStringList &priority) {
+        QList<api::OpenGLFrameMapperInfo> possibleRenderers;
+        if (priority.isEmpty()) {
+            for (const auto &info : m_renderers) {
+                if (common::Platform::isAvailable(info.platforms) &&
+                    inputFormat.isSupportedBy(info.supportedInputPixelFormats)) {
+                    possibleRenderers.append(info);
+                }
+            }
+        } else {
+            for (const auto &prio : priority) {
+                if (m_renderers.contains(prio)) {
+                    auto info = m_renderers[prio];
+                    if (common::Platform::isAvailable(info.platforms) &&
+                        inputFormat.isSupportedBy(info.supportedInputPixelFormats)) {
+                        possibleRenderers.append(info);
+                    }
+                }
+            }
+        }
+        if (possibleRenderers.isEmpty()) {
+            return {};
+        }
+        auto obj = possibleRenderers.first().metaObject.newInstance();
+        if (obj) {
+            auto renderer = qobject_cast<api::IOpenGLFrameMapper *>(obj);
+            if (renderer) {
+                return std::shared_ptr<api::IOpenGLFrameMapper>(renderer);
+            }
+        }
+        return {};
     }
 }// namespace AVQt

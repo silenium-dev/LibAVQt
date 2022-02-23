@@ -35,6 +35,7 @@ extern "C" {
 #include <libdrm/drm_fourcc.h>
 #include <unistd.h>
 #include <va/va.h>
+#include <va/va_drm.h>
 #include <va/va_drmcommon.h>
 
 #include <EGL/egl.h>
@@ -42,10 +43,83 @@ extern "C" {
 #include <EGL/eglplatform.h>
 #include <GL/glu.h>
 
+#include <fcntl.h>
+
 #include <QtConcurrent>
 
 
 namespace AVQt {
+    const api::OpenGLFrameMapperInfo &VAAPIOpenGLRenderMapper::info() {
+        static const api::OpenGLFrameMapperInfo info{
+                .metaObject = VAAPIOpenGLRenderMapper::staticMetaObject,
+                .name = "VAAPI",
+                .platforms{
+                        common::Platform::Linux_X11,
+                        common::Platform::Linux_Wayland,
+                },
+                .supportedInputPixelFormats = {
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI_VLD},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI_VLD},
+                        {AV_PIX_FMT_BGRA, AV_PIX_FMT_VAAPI_VLD},
+                },
+                .isSupported = [] {
+                    auto result = true;
+                    auto dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+                    if (!dpy) {
+                        return false;
+                    }
+                    if (!eglInitialize(dpy, nullptr, nullptr)) {
+                        return false;
+                    }
+                    if (!eglBindAPI(EGL_OPENGL_API)) {
+                        result = false;
+                        goto end;
+                    }
+
+                    {
+                        QString extensionStr = eglQueryString(dpy, EGL_EXTENSIONS);
+                        if (!extensionStr.contains("EGL_EXT_image_dma_buf_import")) {
+                            result = false;
+                            goto end;
+                        }
+                    }
+                    {
+                        VADisplay vaDpy{nullptr};
+                        while (!vaDpy) {
+                            constexpr auto maxDevices = 8;
+                            int drmFd = 0;
+                            for (int i = 0; i < maxDevices; ++i) {
+                                drmFd = open(QString("/dev/dri/renderD%1").arg(128 + i).toStdString().c_str(), O_RDWR);
+                                if (drmFd < 0) {
+                                    qDebug() << "Cannot open drm device" << i;
+                                    break;
+                                }
+                                break;
+                            }
+                            if (drmFd < 0) {
+                                result = false;
+                                goto end;
+                            }
+                            vaDpy = vaGetDisplayDRM(drmFd);
+                            if (!vaDpy) {
+                                result = false;
+                                goto end;
+                            }
+                            int major, minor;
+                            if (VA_STATUS_SUCCESS != vaInitialize(vaDpy, &major, &minor)) {
+                                result = false;
+                                goto end;
+                            }
+                        }
+                        vaTerminate(vaDpy);
+                    }
+                end:
+                    eglTerminate(dpy);
+                    return result;
+                },
+        };
+        return info;
+    }
 
     VAAPIOpenGLRenderMapper::VAAPIOpenGLRenderMapper(QObject *parent)
         : QThread(parent),
@@ -627,6 +701,6 @@ namespace AVQt {
 
 #if defined(Q_OS_LINUX) && !defined(QT_OS_ANDROID)
 static_block {
-    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer("VAAPI", AVQt::VAAPIOpenGLRenderMapper::staticMetaObject);
-};
+    AVQt::OpenGLFrameMapperFactory::getInstance().registerRenderer(AVQt::VAAPIOpenGLRenderMapper::info());
+}
 #endif

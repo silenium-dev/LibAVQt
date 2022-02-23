@@ -24,7 +24,8 @@
 #ifndef LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP
 #define LIBAVQT_OPENGLWIDGETRENDERERPRIVATE_HPP
 
-#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
+#include <AVQt/renderers/IOpenGLFrameMapper.hpp>
+#include <AVQt/communication/VideoPadParams.hpp>
 #include <QObject>
 #include <QtOpenGL>
 #include <pgraph/api/PadFactory.hpp>
@@ -50,6 +51,8 @@ private:
 
     std::atomic_bool paused{false}, running{false};
     std::atomic_int64_t lastPaused{0};
+
+    AVQt::communication::VideoPadParams params{};
 
     const size_t id;
 

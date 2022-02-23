@@ -76,7 +76,7 @@ namespace AVQt {
         struct VideoEncoderInfo {
             QMetaObject metaObject;
             QString name;
-            QList<common::Platform> platforms;
+            QList<common::Platform::Platform_t> platforms;
             QList<common::PixelFormat> supportedInputPixelFormats;
             QList<AVCodecID> supportedCodecIds;
         };
