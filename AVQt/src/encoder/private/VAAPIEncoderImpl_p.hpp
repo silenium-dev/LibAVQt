@@ -59,17 +59,20 @@ namespace AVQt {
 
         std::shared_ptr<AVCodecParameters> codecParams{};
         std::unique_ptr<AVCodecContext, decltype(&destroyAVCodecContext)> codecContext{nullptr, &destroyAVCodecContext};
-        AVCodec *codec{nullptr};
+        const AVCodec *codec{nullptr};
 
         std::shared_ptr<AVBufferRef> hwDeviceContext{};
         std::shared_ptr<AVBufferRef> hwFramesContext{};
         std::shared_ptr<AVFrame> hwFrame{};
         std::atomic_bool derivedContext{false};
 
+        std::mutex inputQueueMutex{};
+        std::queue<std::shared_ptr<AVFrame *>> inputQueue{};
+        std::condition_variable frameProcessed{}, frameAvailable{};
         std::unique_ptr<internal::PacketFetcher> packetFetcher{};
 
         QMutex codecMutex;
-        std::atomic_bool initialized{false}, firstFrame{true};
+        std::atomic_bool initialized{false}, firstFrame{true}, running{false}, paused{false};
 
         const static QList<AVPixelFormat> supportedPixelFormats;
 

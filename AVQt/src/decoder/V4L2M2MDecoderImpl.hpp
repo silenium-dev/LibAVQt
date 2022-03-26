@@ -19,7 +19,7 @@ namespace AVQt {
         static const api::VideoDecoderInfo &info();
 
         Q_INVOKABLE explicit V4L2M2MDecoderImpl(AVCodecID codec);
-        ~V4L2M2MDecoderImpl() override;
+        ~V4L2M2MDecoderImpl() noexcept override;
 
         bool open(std::shared_ptr<AVCodecParameters> codecParams) override;
         void close() override;

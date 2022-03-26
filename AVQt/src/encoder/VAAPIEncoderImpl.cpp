@@ -29,7 +29,16 @@
 #include <QImage>
 #include <QtConcurrent>
 
+#include <va/va.h>
+#include <va/va_drmcommon.h>
+
+#include <iostream>
+#include <unistd.h>
+#include <cstdio>
+
 extern "C" {
+#include <libavutil/hwcontext_drm.h>
+#include <libavutil/hwcontext_vaapi.h>
 #include <libavutil/pixdesc.h>
 }
 
@@ -51,8 +60,8 @@ namespace AVQt {
                 .supportedInputPixelFormats = {
                         {AV_PIX_FMT_NV12, AV_PIX_FMT_NONE},
                         {AV_PIX_FMT_P010, AV_PIX_FMT_NONE},
-                        {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI_VLD},
-                        {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI_VLD},
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI},
                         {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
                         {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
                         {AV_PIX_FMT_NONE, AV_PIX_FMT_VAAPI},
@@ -140,7 +149,24 @@ namespace AVQt {
                 createContext = false;
                 d->derivedContext = false;
                 d->hwDeviceContext = params.hwDeviceContext;
-                d->hwFramesContext = params.hwFramesContext;
+
+                {
+                    AVBufferRef *hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext.get());
+                    auto *hwFramesContextCtx = (AVHWFramesContext *) hwFramesContext->data;
+                    hwFramesContextCtx->format = AV_PIX_FMT_VAAPI;
+                    hwFramesContextCtx->sw_format = params.swPixelFormat;
+                    hwFramesContextCtx->width = params.frameSize.width();
+                    hwFramesContextCtx->height = params.frameSize.height();
+                    hwFramesContextCtx->initial_pool_size = 32;
+
+                    ret = av_hwframe_ctx_init(hwFramesContext);
+                    if (ret < 0) {
+                        qWarning() << "Could not initialize the VAAPI frames context: " << av_make_error_string(strBuf, sizeof(strBuf), ret);
+                        goto fail;
+                    }
+
+                    d->hwFramesContext = {hwFramesContext, &VAAPIEncoderImplPrivate::destroyAVBufferRef};
+                }
             }
 
             if (createContext) {
@@ -152,6 +178,15 @@ namespace AVQt {
                         goto fail;
                     }
                     d->hwDeviceContext = {hwDeviceContext, &VAAPIEncoderImplPrivate::destroyAVBufferRef};
+
+                    AVBufferRef *hwFramesContext;
+                    ret = av_hwframe_ctx_create_derived(&hwFramesContext, AV_PIX_FMT_VAAPI, hwDeviceContext, params.hwFramesContext.get(), AV_HWFRAME_MAP_READ);
+                    if (ret < 0) {
+                        qWarning() << "Could not derive the VAAPI frames context: " << av_make_error_string(strBuf, sizeof(strBuf), ret);
+                        goto fail;
+                    }
+
+                    d->hwFramesContext = {hwFramesContext, &VAAPIEncoderImplPrivate::destroyAVBufferRef};
                 } else {
                     AVBufferRef *hwDeviceContext;
                     ret = av_hwdevice_ctx_create(&hwDeviceContext, AV_HWDEVICE_TYPE_VAAPI, nullptr, nullptr, 0);
@@ -235,7 +270,7 @@ namespace AVQt {
     int VAAPIEncoderImpl::encode(std::shared_ptr<AVFrame> frame) {
         Q_D(VAAPIEncoderImpl);
 
-        int ret = 0;
+        int ret;
         char strBuf[256];
 
         if (!d->codecContext) {
@@ -256,27 +291,25 @@ namespace AVQt {
             }
         }
 
-        d->hwFrame = frame;
-
-        if (ret < 0) {
-            qWarning() << "Could not map frame to hw:" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
-            return AVUNERROR(ret);
-        }
-
         {
             QMutexLocker codecLocker(&d->codecMutex);
             auto t1 = std::chrono::high_resolution_clock::now();
-            ret = avcodec_send_frame(d->codecContext.get(), d->hwFrame.get());
+            ret = avcodec_send_frame(d->codecContext.get(), frame.get());
             auto t2 = std::chrono::high_resolution_clock::now();
-            qDebug("[AVQt::VAAPIEncoderImpl2] avcodec_send_frame took %lld ns", std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+            qDebug("[AVQt::VAAPIEncoderImpl2] avcodec_send_frame took %ld ns", std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         }
-        d->hwFrame.reset();
         if (ret == AVERROR(EAGAIN)) {
             return EAGAIN;
         } else if (ret < 0) {
             qWarning() << "Could not send frame:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
             return AVUNERROR(ret);
         }
+
+        static size_t frameCount = 0;
+        if (frameCount % 100 == 0) {
+            qWarning("Encoded frame #%04zu", frameCount);
+        }
+        ++frameCount;
 
         d->firstFrame = false;
 
@@ -307,107 +340,123 @@ namespace AVQt {
 
     std::shared_ptr<AVFrame> VAAPIEncoderImpl::prepareFrame(std::shared_ptr<AVFrame> frame) {
         Q_D(VAAPIEncoderImpl);
-        if (!d->initialized) {
-            qWarning() << "VideoEncoder not initialized";
-            return nullptr;
-        }
-        if (!frame) {
-            qWarning() << "No frame";
-            return nullptr;
-        }
-
-        std::shared_ptr<AVFrame> queueFrame{};
-
-        switch (frame->format) {
-            case AV_PIX_FMT_DRM_PRIME:
-            case AV_PIX_FMT_CUDA:
-            case AV_PIX_FMT_OPENCL:
-            case AV_PIX_FMT_QSV:
-                qDebug("Transferring frame from GPU to CPU");
-                queueFrame = {av_frame_alloc(), &VAAPIEncoderImplPrivate::destroyAVFrame};
-                av_hwframe_transfer_data(queueFrame.get(), frame.get(), 0);
-                queueFrame->pts = frame->pts;
-                break;
-            default:
-                qDebug("Referencing frame");
-                queueFrame = frame;
-                break;
-        }
-
-        int ret;
-        char strBuf[256];
-
-        if (!d->hwFramesContext && queueFrame->hw_frames_ctx) {// If we don't have a hw context and the encoder is not open, we have to create a frames context first
-            if (queueFrame->format == AV_PIX_FMT_VAAPI) {
-                d->hwFramesContext = {av_buffer_ref(queueFrame->hw_frames_ctx), &VAAPIEncoderImplPrivate::destroyAVBufferRef};
-            } else {
-                AVBufferRef *hwFramesContext;
-                ret = av_hwframe_ctx_create_derived(&hwFramesContext, AV_PIX_FMT_VAAPI, d->hwDeviceContext.get(), queueFrame->hw_frames_ctx, AV_HWFRAME_MAP_READ);
-                if (ret < 0) {
-                    qWarning() << "Could not create hw frame context:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
-                    goto fail;
-                }
-                d->hwFramesContext = {hwFramesContext, &VAAPIEncoderImplPrivate::destroyAVBufferRef};
-            }
-            d->codecContext->hw_frames_ctx = av_buffer_ref(d->hwFramesContext.get());
-        } else if (!d->hwFramesContext && !queueFrame->hw_frames_ctx) {
-            qWarning() << "queueFrame does not have a hw context, but it is required by configured params";
-            auto hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext.get());
-            if (!hwFramesContext) {
-                qWarning() << "Could not create hw frame context";
-                goto fail;
-            }
-            auto framesContext = reinterpret_cast<AVHWFramesContext *>(d->hwFramesContext->data);
-            framesContext->format = AV_PIX_FMT_VAAPI;
-            framesContext->sw_format = static_cast<AVPixelFormat>(queueFrame->format);
-            framesContext->width = queueFrame->width;
-            framesContext->height = queueFrame->height;
-            framesContext->initial_pool_size = 10;
-
-            ret = av_hwframe_ctx_init(hwFramesContext);
-            if (ret < 0) {
-                qWarning() << "Could not initialize hw frame context:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
-                goto fail;
-            }
-            d->hwFramesContext = {hwFramesContext, VAAPIEncoderImplPrivate::destroyAVBufferRef};
-
-            d->codecContext->hw_frames_ctx = av_buffer_ref(d->hwFramesContext.get());
-        }
-
-        {
-            d->codecMutex.lock();
-            if (!avcodec_is_open(d->codecContext.get())) {
-                ret = avcodec_open2(d->codecContext.get(), d->codec, nullptr);
-                if (ret < 0) {
-                    qWarning() << "Could not open encoder:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
-                    goto fail;
-                }
-            }
-            d->codecMutex.unlock();
-        }
-
-        {
-            std::shared_ptr<AVFrame> result{};
-            ret = d->mapFrameToHW(result, queueFrame);
-            if (ret != EXIT_SUCCESS) {
-                qWarning() << "Could not map frame to hw:" << av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret));
-                goto fail;
-            }
-
-            return result;
-        }
-    fail:
-        return {};
+        std::shared_ptr<AVFrame> output{};
+        d->mapFrameToHW(output, frame);
+        return std::move(output);
     }
 
     int VAAPIEncoderImplPrivate::mapFrameToHW(std::shared_ptr<AVFrame> &output, const std::shared_ptr<AVFrame> &frame) {
         int ret;
         char strBuf[256];
 
-        std::shared_ptr<AVFrame> result{};
+        std::shared_ptr<AVFrame> result{nullptr, &VAAPIEncoderImplPrivate::destroyAVFrame};
 
         if (frame->format == AV_PIX_FMT_VAAPI) {
-            result = frame;
+            result.reset(av_frame_alloc());
+            result->format = AV_PIX_FMT_VAAPI;
+            result->width = frame->width;
+            result->height = frame->height;
+            result->hw_frames_ctx = av_buffer_ref(hwFramesContext.get());
+            av_frame_copy_props(result.get(), frame.get());
+            //            ret = av_hwframe_get_buffer(hwFramesContext.get(), result.get(), 0);
+            //            if (ret < 0) {
+            //                qWarning() << "Could not allocate HW frame: " << av_make_error_string(strBuf, sizeof(strBuf), ret);
+            //                result.reset();
+            //                return AVUNERROR(ret);
+            //            }
+
+            auto frameContext = reinterpret_cast<AVHWFramesContext *>(hwFramesContext->data);
+
+            auto *vaDeviceCtx = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(hwDeviceContext->data)->hwctx);
+            VADisplay vaDisplay = vaDeviceCtx->display;
+            VASurfaceID vaSurface = reinterpret_cast<intptr_t>(frame->data[3]);
+
+            VAStatus vaRet = vaSyncSurface(vaDisplay, vaSurface);
+            if (vaRet != VA_STATUS_SUCCESS) {
+                qWarning() << "Could not sync source VASurface: " << vaErrorStr(vaRet);
+                result.reset();
+                return EXIT_FAILURE;
+            }
+
+            VAImage sourceImage{};
+            vaRet = vaDeriveImage(vaDisplay, vaSurface, &sourceImage);
+            if (vaRet != VA_STATUS_SUCCESS) {
+                qWarning() << "Could not derive source VAImage: " << vaErrorStr(vaRet);
+                result.reset();
+                return EXIT_FAILURE;
+            }
+
+            VADRMPRIMESurfaceDescriptor srcDesc{};
+            if (vaExportSurfaceHandle(vaDisplay, vaSurface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2, VA_EXPORT_SURFACE_COMPOSED_LAYERS, &srcDesc) != VA_STATUS_SUCCESS) {
+                qWarning() << "Could not get DRM_PRIME descriptor from source VASurface";
+                result.reset();
+                return EXIT_FAILURE;
+            }
+
+            AVFrame *drmFrame = av_frame_alloc();
+            if (!drmFrame) {
+                qWarning() << "Could not allocate AVFrame";
+                result.reset();
+                return EXIT_FAILURE;
+            }
+
+            drmFrame->format = AV_PIX_FMT_DRM_PRIME;
+            drmFrame->width = frame->width;
+            drmFrame->height = frame->height;
+            drmFrame->pts = frame->pts;
+            drmFrame->pkt_dts = frame->pkt_dts;
+            drmFrame->pkt_duration = frame->pkt_duration;
+            drmFrame->pkt_pos = frame->pkt_pos;
+            drmFrame->pkt_size = frame->pkt_size;
+
+            auto drmDesc = new AVDRMFrameDescriptor{};
+            drmDesc->nb_objects = srcDesc.num_objects;
+            drmDesc->nb_layers = srcDesc.num_layers;
+            for (int i = 0; i < srcDesc.num_objects; i++) {
+                drmDesc->objects[i].fd = srcDesc.objects[i].fd;
+                drmDesc->objects[i].size = srcDesc.objects[i].size;
+                drmDesc->objects[i].format_modifier = srcDesc.objects[i].drm_format_modifier;
+            }
+            for (int i = 0; i < srcDesc.num_layers; i++) {
+                drmDesc->layers[i].nb_planes = srcDesc.layers[i].num_planes;
+                drmDesc->layers[i].format = srcDesc.layers[i].drm_format;
+                for (int j = 0; j < srcDesc.layers[i].num_planes; j++) {
+                    drmDesc->layers[i].planes[j].object_index = srcDesc.layers[i].object_index[j];
+                    drmDesc->layers[i].planes[j].offset = srcDesc.layers[i].offset[j];
+                    drmDesc->layers[i].planes[j].pitch = srcDesc.layers[i].pitch[j];
+                }
+            }
+            AVBufferRef *drmBuf = av_buffer_create(
+                    reinterpret_cast<uint8_t *>(drmDesc), sizeof(AVDRMFrameDescriptor),
+                    [](void *opaque, uint8_t *data) {
+                        auto *p = static_cast<VAAPIEncoderImplPrivate *>(opaque);
+                        auto *desc = reinterpret_cast<AVDRMFrameDescriptor *>(data);
+                        for (int i = 0; i < desc->nb_objects; i++) {
+                            if (desc->objects[i].fd != -1) {
+                                close(desc->objects[i].fd);
+                            }
+                        }
+                        delete desc;
+                    },
+                    this, 0);
+            if (!drmBuf) {
+                qWarning() << "Could not allocate AVBufferRef";
+                result.reset();
+                return EXIT_FAILURE;
+            }
+            drmFrame->data[0] = reinterpret_cast<uint8_t *>(drmDesc);
+            drmFrame->buf[0] = drmBuf;
+
+            ret = av_hwframe_map(result.get(), drmFrame, AV_HWFRAME_MAP_READ | AV_HWFRAME_MAP_DIRECT);
+            if (ret < 0) {
+                qWarning() << "Could not map AVFrame: " << av_make_error_string(strBuf, sizeof(strBuf), ret);
+                result.reset();
+                return AVUNERROR(ret);
+            }
+
+            av_frame_free(&drmFrame);
+
+            vaDestroyImage(vaDisplay, sourceImage.image_id);
         } else if (frame->hw_frames_ctx && derivedContext) {
             result = {av_frame_alloc(), &destroyAVFrame};
             result->format = AV_PIX_FMT_VAAPI;

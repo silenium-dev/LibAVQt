@@ -224,6 +224,7 @@ namespace AVQt {
                             .withAction(communication::Message::Action::STOP)
                             .build(),
                     d->outputPadId);
+            d->inputQueueCond.notify_all();
             QThread::quit();
             QThread::wait();
         } else {
@@ -251,6 +252,10 @@ namespace AVQt {
                             .withPayload("state", pause)
                             .build(),
                     d->outputPadId);
+
+            std::unique_lock pausedLock(d->pausedMutex);
+            d->paused = pause;
+            d->pausedCond.notify_all();
         } else {
             qWarning("VideoEncoder: Already %s", pause ? "paused" : "resumed");
         }
@@ -296,14 +301,55 @@ namespace AVQt {
                 }
             }
         } else {
-            qWarning("VideoEncoder: Unknown pad %lld", pad);
+            qWarning("VideoEncoder: Unknown pad %ld", pad);
         }
     }
 
     void VideoEncoder::run() {
         Q_D(VideoEncoder);
 
-        exec();
+        if (!d->running) {
+            qWarning("VideoEncoder: Not running");
+            return;
+        }
+
+        while (d->running) {
+            std::unique_lock pausedLock(d->pausedMutex);
+            if (d->paused) {
+                d->pausedCond.wait(pausedLock, [d] { return !d->paused || !d->running; });
+                if (!d->running) {
+                    break;
+                }
+            }
+            pausedLock.unlock();
+
+            std::unique_lock lock(d->inputQueueMutex);
+            d->inputQueueCond.wait(lock, [&] { return !d->inputQueue.empty() || !d->running; });
+            if (!d->running) {
+                break;
+            }
+
+            auto frame = d->inputQueue.front();
+            lock.unlock();
+
+            if (d->inputParams.frameSize.width() != frame->width || d->inputParams.frameSize.height() != frame->height) {
+                qWarning("VideoEncoder: Frame size mismatch");
+                continue;
+            }
+
+            int ret = d->impl->encode(frame);
+            if (ret == EAGAIN) {
+                qDebug("VideoEncoder: EAGAIN");
+            } else if (ret != EXIT_SUCCESS) {
+                char strBuf[AV_ERROR_MAX_STRING_SIZE];
+                qWarning("VideoEncoder: Failed to encode frame: %s", av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret)));
+            } else {
+                lock.lock();
+                d->inputQueue.pop();
+                d->inputQueueCond.notify_all();
+                lock.unlock();
+            }
+        }
     }
 
     void VideoEncoder::onPacketReady(const std::shared_ptr<AVPacket> &packet) {
@@ -312,13 +358,22 @@ namespace AVQt {
     }
 
     void VideoEncoderPrivate::enqueueData(const std::shared_ptr<AVFrame> &frame) {
-        int ret;
-        while ((ret = impl->encode(frame)) == EAGAIN) {
-            QThread::msleep(2);
+        auto preparedFrame = impl->prepareFrame(frame);
+        if (!preparedFrame) {
+            qWarning("VideoEncoder: Failed to prepare frame");
+            return;
         }
-        if (ret != EXIT_SUCCESS) {
-            char strBuf[256];
-            qWarning("VideoEncoder: Failed to encode frame: %s", av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret)));
+
+        {
+            std::unique_lock lock(inputQueueMutex);
+            if (inputQueue.size() >= 4) {
+                inputQueueCond.wait(lock, [this] { return inputQueue.size() < 4 || !running; });
+                if (!running) {
+                    return;
+                }
+            }
+            inputQueue.emplace(preparedFrame);
+            inputQueueCond.notify_all();
         }
     }
 }// namespace AVQt

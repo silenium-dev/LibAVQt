@@ -129,7 +129,7 @@ namespace AVQt {
             d->outputPadParams->swPixelFormat = AV_PIX_FMT_BGRA;
             d->outputPadParams->pixelFormat = AV_PIX_FMT_VAAPI;
             d->outputPadParams->isHWAccel = true;
-            produce(communication::Message::builder().withAction(communication::Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(d->outputPadParams)).build(), d->outputPadId);
+            produce(communication::Message::builder().withAction(communication::Message::Action::INIT).withPayload("videoParams", QVariant::fromValue(*d->outputPadParams)).build(), d->outputPadId);
             return true;
         } else {
             qWarning("Already initialized");
@@ -364,6 +364,7 @@ namespace AVQt {
                     if (ret != 0) {
                         qFatal("Could not link filters: %d", ret);
                     }
+                    d->pBufferSinkCtx.reset(pBufferSinkCtx);
 
                     ret = avfilter_link(d->pBufferSrcCtx.get(), 0, d->pInputs->filter_ctx, d->pInputs->pad_idx);
                     if (ret != 0) {

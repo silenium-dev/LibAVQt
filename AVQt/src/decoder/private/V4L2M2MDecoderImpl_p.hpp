@@ -47,7 +47,7 @@ namespace AVQt {
         QMutex codecMutex{};
 
         AVCodecID codecId{AV_CODEC_ID_NONE};
-        AVCodec *codec{nullptr};
+        const AVCodec *codec{nullptr};
         std::shared_ptr<AVCodecContext> codecContext{nullptr, &destroyAVCodecContext};
         std::shared_ptr<AVCodecParameters> codecParameters{nullptr, &destroyAVCodecParameters};
         std::shared_ptr<AVBufferRef> hwDeviceContext{nullptr, &destroyAVBufferRef};

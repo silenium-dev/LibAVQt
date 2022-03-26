@@ -321,7 +321,7 @@ namespace AVQt {
                 //                qWarning("Frame decoded at: %ld us since epoch", t);
                 //                frame->opaque = reinterpret_cast<void *>(t);
                 //                frame->pts = av_rescale_q(frame->pts, p->timeBase, av_make_q(1, 1000000));
-                qDebug("Publishing frame with PTS %lld", frame->pts);
+                qDebug("Publishing frame with PTS %ld", frame->pts);
                 QElapsedTimer timer;
                 timer.start();
                 p->q_func()->frameReady(frame);

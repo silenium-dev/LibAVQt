@@ -28,6 +28,8 @@
 #include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include <QtCore>
 
+#include <queue>
+
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -59,7 +61,13 @@ namespace AVQt {
         std::shared_ptr<communication::PacketPadParams> outputPadParams{};
         std::shared_ptr<communication::VideoPadParams> inputPadParams{};
 
+        std::mutex inputQueueMutex{};
+        std::condition_variable inputQueueCond{};
+        std::queue<std::shared_ptr<AVFrame>> inputQueue{};
+
         // Threading stuff
+        std::condition_variable pausedCond{};
+        std::mutex pausedMutex{};
         std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};
     };
 }// namespace AVQt

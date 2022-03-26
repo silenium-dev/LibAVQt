@@ -38,6 +38,8 @@ find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 
+include(CheckCXXSourceCompiles)
+
 pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample zlib)
 
 set(SOURCES
@@ -131,6 +133,11 @@ set(SOURCES_LINUX
         src/renderers/private/VAAPIOpenGLRenderMapper_p.hpp
         src/renderers/VAAPIOpenGLRenderMapper.cpp
 
+        ##      WIP
+        #        src/renderers/DRM_OpenGL_RenderMapper.hpp
+        #        src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
+        #        src/renderers/DRM_OpenGL_RenderMapper.cpp
+
         include/AVQt/filter/VaapiYuvToRgbMapper.hpp
         src/filter/private/VaapiYuvToRgbMapper_p.hpp
         src/filter/VaapiYuvToRgbMapper.cpp
@@ -142,10 +149,6 @@ set(SOURCES_LINUX
         src/capture/PipeWireDesktopCaptureImpl.hpp
         src/capture/private/PipeWireDesktopCaptureImpl_p.hpp
         src/capture/PipeWireDesktopCaptureImpl.cpp
-
-        src/renderers/DRM_OpenGL_RenderMapper.hpp
-        src/renderers/private/DRM_OpenGL_RenderMapper_p.hpp
-        src/renderers/DRM_OpenGL_RenderMapper.cpp
 
         src/decoder/V4L2M2MDecoderImpl.hpp
         src/decoder/private/V4L2M2MDecoderImpl_p.hpp

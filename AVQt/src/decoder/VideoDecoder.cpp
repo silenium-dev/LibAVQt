@@ -137,9 +137,6 @@ namespace AVQt {
                 return false;
             }
 
-            //            qWarning() << "Main thread: " << QApplication::instance()->thread();
-            //            qFatal("Current thread: %p", QThread::currentThread());
-            connect(this, &VideoDecoder::packetReady, d, &VideoDecoderPrivate::enqueueData, Qt::QueuedConnection);
             return true;
         } else {
             qWarning() << "VideoDecoder already initialized";
@@ -322,6 +319,9 @@ namespace AVQt {
         QMutexLocker lock(&inputQueueMutex);
         if (inputQueue.size() > 32) {
             packetProcessed.wait(&inputQueueMutex);
+            if (inputQueue.size() > 32) {
+                return;
+            }
         }
         inputQueue.enqueue(packet);
         packetAvailable.wakeOne();

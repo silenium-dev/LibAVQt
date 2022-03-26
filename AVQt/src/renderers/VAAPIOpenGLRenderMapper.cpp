@@ -58,9 +58,9 @@ namespace AVQt {
                         common::Platform::Linux_Wayland,
                 },
                 .supportedInputPixelFormats = {
-                        {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI_VLD},
-                        {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI_VLD},
-                        {AV_PIX_FMT_BGRA, AV_PIX_FMT_VAAPI_VLD},
+                        {AV_PIX_FMT_NV12, AV_PIX_FMT_VAAPI},
+                        {AV_PIX_FMT_P010, AV_PIX_FMT_VAAPI},
+                        {AV_PIX_FMT_BGRA, AV_PIX_FMT_VAAPI},
                 },
                 .isSupported = [] {
                     auto result = true;
@@ -563,7 +563,7 @@ namespace AVQt {
             if (d->renderQueue.isEmpty()) {
                 d->frameAvailable.wait(&d->renderQueueMutex, 200);
                 if (!d->running) {
-                    return;
+                    goto end;
                 }
                 if (d->renderQueue.isEmpty()) {
                     continue;

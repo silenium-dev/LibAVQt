@@ -116,8 +116,6 @@ namespace AVQt {
          */
         void paused(bool pause) Q_DECL_OVERRIDE;
 
-        void packetReady(std::shared_ptr<AVPacket> packet, QPrivateSignal);
-
     protected slots:
         void onFrameReady(const std::shared_ptr<AVFrame> &frame);
 

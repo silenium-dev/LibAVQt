@@ -69,7 +69,7 @@ namespace AVQt {
 
         std::shared_ptr<AVCodecParameters> codecParams{nullptr};
         std::unique_ptr<AVCodecContext, decltype(&destroyAVCodecContext)> codecContext{nullptr, &destroyAVCodecContext};
-        AVCodec *codec{nullptr};
+        const AVCodec *codec{nullptr};
 
         std::shared_ptr<AVBufferRef> hwDeviceContext{};
         std::shared_ptr<AVBufferRef> hwFramesContext{};

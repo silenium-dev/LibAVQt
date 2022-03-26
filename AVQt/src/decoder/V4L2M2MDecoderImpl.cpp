@@ -254,6 +254,7 @@ namespace AVQt {
             avcodec_parameters_free(&par);
         }
     }
+
     void V4L2M2MDecoderImplPrivate::destroyAVBufferRef(AVBufferRef *buf) {
         if (buf) {
             av_buffer_unref(&buf);

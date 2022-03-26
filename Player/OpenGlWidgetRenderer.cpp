@@ -160,7 +160,7 @@ void OpenGLWidgetRenderer::paintGL() {
                     if (d->renderQueue.first().first >= updateTimestamp || d->renderQueue.size() == 1) {
                         break;
                     } else {
-                        qDebug("Discarding video frame at PTS: %lld < PTS: %ld", static_cast<long long>(frame.first), updateTimestamp);
+                        qWarning("Discarding video frame at PTS: %lld < PTS: %ld", static_cast<long long>(frame.first), updateTimestamp);
                     }
                 }
                 frame = d->renderQueue.dequeue();
@@ -246,7 +246,8 @@ bool OpenGLWidgetRenderer::isPaused() const {
 bool OpenGLWidgetRenderer::open() {
     Q_D(OpenGLWidgetRenderer);
 
-    d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create({d->params.isHWAccel ? d->params.swPixelFormat : d->params.pixelFormat, d->params.isHWAccel ? d->params.pixelFormat : AV_PIX_FMT_NONE});
+    d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create({d->params.isHWAccel ? d->params.swPixelFormat : d->params.pixelFormat, d->params.isHWAccel ? d->params.pixelFormat : AV_PIX_FMT_NONE},
+                                                                     QStringList() << "VAAPI");
     // clang-format off
     // Preserve normalized form of Qt SIGNAL/SLOT macro
     connect(std::dynamic_pointer_cast<QObject>(d->mapper).get(), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),

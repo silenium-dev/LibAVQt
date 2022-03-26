@@ -2,5 +2,7 @@
     <qresource prefix="/shaders">
         <file>texture.vsh</file>
         <file>texture.fsh</file>
+        <file>textureDRM.vsh</file>
+        <file>textureDRM.fsh</file>
     </qresource>
 </RCC>

@@ -72,9 +72,7 @@ namespace AVQt::common {
         std::atomic_bool registered{false};
         bool shouldBe = false;
         if (registered.compare_exchange_strong(shouldBe, true)) {
-            AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_VAAPI_VLD, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
-            AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_VAAPI_IDCT, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
-            AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_VAAPI_MOCO, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
+            AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_VAAPI, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
 
             AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_D3D11VA_VLD, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
             AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_D3D11, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
