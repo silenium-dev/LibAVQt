@@ -51,7 +51,7 @@ namespace AVQt::communication {
 
             Action &operator=(Enum &type);
 
-            explicit operator Enum();
+            operator Enum();// NOLINT(google-explicit-constructor) // Is required
 
             friend bool operator==(const Action &lhs, const Enum &rhs);
             friend bool operator==(const Enum &lhs, const Action &rhs);
@@ -89,8 +89,8 @@ namespace AVQt::communication {
     public:
         MessageBuilder &withAction(Message::Action::Enum type);
         template<typename T, typename... Ts>
-        MessageBuilder &withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl);
-        MessageBuilder &withPayload(const QVariantMap &pl);
+        [[maybe_unused]] MessageBuilder &withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl);
+        [[maybe_unused]] MessageBuilder &withPayload(const QVariantMap &pl);
         MessageBuilder &withPayload(const QString &key, const QVariant &p);
 
         std::shared_ptr<Message> build();

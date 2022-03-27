@@ -118,7 +118,7 @@ namespace AVQt {
                 }
                 auto packetPadParams = std::make_shared<communication::PacketPadParams>();
                 packetPadParams->mediaType = d->pFormatCtx->streams[si]->codecpar->codec_type;
-                packetPadParams->codec = d->pFormatCtx->streams[si]->codecpar->codec_id;
+                packetPadParams->codec = avcodec_find_decoder(d->pFormatCtx->streams[si]->codecpar->codec_id);
                 packetPadParams->streamIdx = si;
                 packetPadParams->codecParams = std::shared_ptr<AVCodecParameters>(avcodec_parameters_alloc(), [](AVCodecParameters *p) {
                     avcodec_parameters_free(&p);

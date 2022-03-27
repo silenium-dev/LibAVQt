@@ -52,7 +52,7 @@ namespace AVQt::communication {
 
     public:
         AVMediaType mediaType{AVMEDIA_TYPE_UNKNOWN};
-        AVCodecID codec{AV_CODEC_ID_NONE};
+        const AVCodec *codec{nullptr};
         std::shared_ptr<AVCodecParameters> codecParams{};
         int64_t streamIdx{};
     };

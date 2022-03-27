@@ -53,6 +53,10 @@ set(SOURCES
         src/input/private/Demuxer_p.hpp
         src/input/Demuxer.cpp
 
+        include/AVQt/output/Muxer.hpp
+        src/output/private/Muxer_p.hpp
+        src/output/Muxer.cpp
+
         include/AVQt/communication/Message.hpp
         src/communication/Message.cpp
 
@@ -109,6 +113,9 @@ set(SOURCES
 
         include/AVQt/common/PixelFormat.hpp
         src/common/PixelFormat.cpp
+
+        include/AVQt/common/ContainerFormat.hpp
+        src/common/ContainerFormat.cpp
 
         include/AVQt/capture/IDesktopCaptureImpl.hpp
 

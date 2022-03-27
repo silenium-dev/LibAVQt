@@ -24,8 +24,10 @@
 #ifndef LIBAVQT_VAAPIENCODERIMPL_HPP
 #define LIBAVQT_VAAPIENCODERIMPL_HPP
 
-#include "AVQt/communication/VideoPadParams.hpp"
 #include "AVQt/encoder/IVideoEncoderImpl.hpp"
+
+#include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
 #include <QObject>
 
 
@@ -51,6 +53,8 @@ namespace AVQt {
 
         [[nodiscard]] QVector<AVPixelFormat> getInputFormats() const override;
         [[nodiscard]] std::shared_ptr<AVCodecParameters> getCodecParameters() const override;
+
+        [[nodiscard]] std::shared_ptr<communication::PacketPadParams> getPacketPadParams() const;
     signals:
         void packetReady(std::shared_ptr<AVPacket> packet) override;
 

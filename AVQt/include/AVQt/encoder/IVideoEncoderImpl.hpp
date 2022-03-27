@@ -45,8 +45,6 @@ namespace AVQt {
     };
     struct EncodeParameters {
         int32_t bitrate;
-        int32_t max_bitrate;
-        int32_t min_bitrate;
     };
     namespace api {
         class IVideoEncoderImpl {
@@ -66,6 +64,7 @@ namespace AVQt {
 
             [[nodiscard]] virtual QVector<AVPixelFormat> getInputFormats() const = 0;
             [[nodiscard]] virtual std::shared_ptr<AVCodecParameters> getCodecParameters() const = 0;
+            [[nodiscard]] virtual std::shared_ptr<communication::PacketPadParams> getPacketPadParams() const = 0;
         signals:
             virtual void packetReady(std::shared_ptr<AVPacket> packet) = 0;
 

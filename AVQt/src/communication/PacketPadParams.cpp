@@ -58,7 +58,7 @@ namespace AVQt::communication {
         QJsonObject obj, data;
         obj["type"] = Type.toString();
         data["mediaType"] = mediaType;
-        data["encoder"] = codec;
+        data["encoder"] = codec->name;
         data["streamIndex"] = static_cast<qint64>(streamIdx);
         obj["data"] = data;
         return obj;

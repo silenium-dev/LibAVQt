@@ -56,11 +56,11 @@ namespace AVQt {
         }
     }
 
-    int64_t VideoEncoder::getInputPadId() const {
+    [[maybe_unused]] int64_t VideoEncoder::getInputPadId() const {
         Q_D(const VideoEncoder);
         return d->inputPadId;
     }
-    int64_t VideoEncoder::getOutputPadId() const {
+    [[maybe_unused]] int64_t VideoEncoder::getOutputPadId() const {
         Q_D(const VideoEncoder);
         return d->outputPadId;
     }
@@ -132,10 +132,7 @@ namespace AVQt {
             connect(std::dynamic_pointer_cast<QObject>(d->impl).get(), SIGNAL(packetReady(std::shared_ptr<AVPacket>)),
                     this, SLOT(onPacketReady(std::shared_ptr<AVPacket>)), Qt::DirectConnection);
 
-            d->outputPadParams->codec = getCodecId(d->config.codec);
-            d->outputPadParams->mediaType = AVMEDIA_TYPE_VIDEO;
-
-            d->outputPadParams->codecParams = d->impl->getCodecParameters();
+            *d->outputPadParams = *d->impl->getPacketPadParams();
 
             pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
                                                            .withAction(communication::Message::Action::INIT)

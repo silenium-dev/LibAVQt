@@ -72,8 +72,8 @@ namespace AVQt {
         bool isOpen() const Q_DECL_OVERRIDE;
         bool isRunning() const Q_DECL_OVERRIDE;
 
-        [[nodiscard]] int64_t getInputPadId() const;
-        [[nodiscard]] int64_t getOutputPadId() const;
+        [[maybe_unused]] [[maybe_unused]] [[nodiscard]] int64_t getInputPadId() const;
+        [[maybe_unused]] [[nodiscard]] int64_t getOutputPadId() const;
 
         bool init() Q_DECL_OVERRIDE;
 

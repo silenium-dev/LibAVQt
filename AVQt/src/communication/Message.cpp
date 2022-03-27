@@ -60,7 +60,7 @@ namespace AVQt::communication {
         return *this;
     }
     template<typename T, typename... Ts>
-    MessageBuilder &MessageBuilder::withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl) {
+    [[maybe_unused]] MessageBuilder &MessageBuilder::withPayload(QPair<QString, T> p, QPair<QString, Ts>... pl) {
         m_payload.insert(p.first, p.second);
         m_payload.insert({{pl.first, pl.second}...});
         return *this;
@@ -69,7 +69,7 @@ namespace AVQt::communication {
         m_payload.insert(key, p);
         return *this;
     }
-    MessageBuilder &MessageBuilder::withPayload(const QVariantMap &pl) {
+    [[maybe_unused]] MessageBuilder &MessageBuilder::withPayload(const QVariantMap &pl) {
         m_payload.insert(pl);
         return *this;
     }

@@ -345,6 +345,16 @@ namespace AVQt {
         return std::move(output);
     }
 
+    std::shared_ptr<communication::PacketPadParams> VAAPIEncoderImpl::getPacketPadParams() const {
+        Q_D(const VAAPIEncoderImpl);
+        auto params = std::make_shared<communication::PacketPadParams>();
+        params->codec = d->codec;
+        params->codecParams = getCodecParameters();
+        params->mediaType = d->codec->type;
+
+        return params;
+    }
+
     int VAAPIEncoderImplPrivate::mapFrameToHW(std::shared_ptr<AVFrame> &output, const std::shared_ptr<AVFrame> &frame) {
         int ret;
         char strBuf[256];
@@ -410,18 +420,18 @@ namespace AVQt {
             drmFrame->pkt_size = frame->pkt_size;
 
             auto drmDesc = new AVDRMFrameDescriptor{};
-            drmDesc->nb_objects = srcDesc.num_objects;
-            drmDesc->nb_layers = srcDesc.num_layers;
+            drmDesc->nb_objects = static_cast<int>(srcDesc.num_objects);
+            drmDesc->nb_layers = static_cast<int>(srcDesc.num_layers);
             for (int i = 0; i < srcDesc.num_objects; i++) {
                 drmDesc->objects[i].fd = srcDesc.objects[i].fd;
                 drmDesc->objects[i].size = srcDesc.objects[i].size;
                 drmDesc->objects[i].format_modifier = srcDesc.objects[i].drm_format_modifier;
             }
             for (int i = 0; i < srcDesc.num_layers; i++) {
-                drmDesc->layers[i].nb_planes = srcDesc.layers[i].num_planes;
+                drmDesc->layers[i].nb_planes = static_cast<int>(srcDesc.layers[i].num_planes);
                 drmDesc->layers[i].format = srcDesc.layers[i].drm_format;
                 for (int j = 0; j < srcDesc.layers[i].num_planes; j++) {
-                    drmDesc->layers[i].planes[j].object_index = srcDesc.layers[i].object_index[j];
+                    drmDesc->layers[i].planes[j].object_index = static_cast<int>(srcDesc.layers[i].object_index[j]);
                     drmDesc->layers[i].planes[j].offset = srcDesc.layers[i].offset[j];
                     drmDesc->layers[i].planes[j].pitch = srcDesc.layers[i].pitch[j];
                 }

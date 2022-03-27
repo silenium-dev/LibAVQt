@@ -122,8 +122,6 @@ int main(int argc, char *argv[]) {
 
     AVQt::EncodeParameters encodeParams{};
     encodeParams.bitrate = 10000000;
-    encodeParams.min_bitrate = 8000000;
-    encodeParams.max_bitrate = 16000000;
     //    encodeParams.codec = AVQt::Codec::H264;
     AVQt::VideoEncoder::Config encoderConfig;
     encoderConfig.codec = AVQt::Codec::H264;

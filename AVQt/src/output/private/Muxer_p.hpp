@@ -1,74 +1,71 @@
-// Copyright (c) 2021.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute,
-// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
-// is furnished to do so, subject to the following conditions:
+// Created by silas on 27/03/2022.
 //
-// The above copyright notice and this permission notice shall be included in all copies or
-// substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
-// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "output/Muxer.hpp"
+#ifndef LIBAVQT_MUXERPRIVATE_HPP
+#define LIBAVQT_MUXERPRIVATE_HPP
+
+#include <QObject>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <set>
+
+#include <pgraph/api/Pad.hpp>
 
 extern "C" {
 #include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-}
-
-#include <QtCore>
-
-#ifndef LIBAVQT_MUXER_P_H
-#define LIBAVQT_MUXER_P_H
+#include <libavformat/avio.h>
+#include <libavutil/avutil.h>
+};
 
 namespace AVQt {
-    class MuxerPrivate : public QObject {
-        Q_DECLARE_PUBLIC(AVQt::Muxer)
-
+    class Muxer;
+    class MuxerPrivate {
+        Q_DECLARE_PUBLIC(Muxer)
     public:
-        MuxerPrivate(const MuxerPrivate &) = delete;
-
-        void operator=(const MuxerPrivate &) = delete;
+        static void destroyAVFormatContext(AVFormatContext *ctx);
+        static void destroyAVIOContext(AVIOContext *ctx);
 
     private:
-        explicit MuxerPrivate(Muxer *q) : q_ptr(q) {};
+        explicit MuxerPrivate(Muxer *q) : q_ptr(q) {}
 
-        Muxer *q_ptr;
-
-        QIODevice *m_outputDevice{nullptr};
-
-        Muxer::FORMAT m_format{Muxer::FORMAT::INVALID};
-
-        QMutex m_initMutex{}, m_ioMutex{};
-        static constexpr int64_t IOBUF_SIZE{4 * 1024};  // 4 KB
-        uint8_t *m_pIOBuffer{nullptr};
-        AVIOContext *m_pIOContext{nullptr};
-        AVFormatContext *m_pFormatContext{nullptr};
-        QMap<IPacketSource *, QMap<AVStream *, AVRational>> m_sourceStreamMap{};
-
-        QMutex m_inputQueueMutex{};
-        QQueue<QPair<AVPacket *, AVStream *>> m_inputQueue{};
-
-        std::atomic_bool m_running{false};
-        std::atomic_bool m_paused{false};
-        std::atomic_bool m_headerWritten{false};
-
-        friend class Muxer;
-
+        static int writeIO(void *opaque, uint8_t *buf, int buf_size);
         static int64_t seekIO(void *opaque, int64_t offset, int whence);
 
-        static int writeToIO(void *opaque, uint8_t *buf, int buf_size);
+        void init(AVQt::Muxer::Config config);
 
-        static bool packetQueueCompare(const QPair<AVPacket *, AVStream *> &packet1, const QPair<AVPacket *, AVStream *> &packet2);
+        bool initStream(int64_t padId, const std::shared_ptr<communication::PacketPadParams> &params);
+
+        bool startStream(int64_t padId);
+        void stopStream(int64_t padId);
+
+        void enqueueData(const std::shared_ptr<AVPacket> &packet);
+
+        constexpr static auto inputQueueMaxSize = 32;
+        std::mutex inputQueueMutex{};
+        std::condition_variable inputQueueCondition{};
+        std::deque<std::shared_ptr<AVPacket>> inputQueue{};
+
+        std::mutex pausedMutex{};
+        std::condition_variable pausedCond{};
+        std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};
+
+        std::map<int64_t, AVStream *> streams{};
+
+        static constexpr size_t BUFFER_SIZE{32 * 1024};// 32KB
+        uint8_t *pBuffer{nullptr};
+
+        std::unique_ptr<QIODevice> outputDevice{};
+        std::unique_ptr<AVFormatContext, decltype(&destroyAVFormatContext)> pFormatCtx{nullptr, &destroyAVFormatContext};
+        std::unique_ptr<AVIOContext, decltype(&destroyAVIOContext)> pIOCtx{nullptr, &destroyAVIOContext};
+        const AVOutputFormat *pOutputFormat{nullptr};
+
+        std::set<int64_t> startedStreams{};
+
+        Muxer *q_ptr;
     };
-}
+}// namespace AVQt
 
-#endif //LIBAVQT_MUXER_P_H
+
+#endif//LIBAVQT_MUXERPRIVATE_HPP

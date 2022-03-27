@@ -1,83 +1,76 @@
-// Copyright (c) 2021.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute,
-// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
-// is furnished to do so, subject to the following conditions:
+// Created by silas on 27/03/2022.
 //
-// The above copyright notice and this permission notice shall be included in all copies or
-// substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
-// THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "IPacketSink.hpp"
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "NotImplementedFunctions"
+#ifndef LIBAVQT_MUXER_HPP
+#define LIBAVQT_MUXER_HPP
+
+#include "AVQt/communication/IComponent.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
+
+#include <pgraph/api/Data.hpp>
+#include <pgraph/impl/SimpleConsumer.hpp>
 
 #include <QThread>
-#include <QIODevice>
 
-#ifndef LIBAVQT_MUXER_H
-#define LIBAVQT_MUXER_H
+extern "C" {
+#include <libavformat/avformat.h>
+}
 
 namespace AVQt {
     class MuxerPrivate;
-
-    class Muxer : public QThread, public IPacketSink {
-    Q_OBJECT
-        Q_INTERFACES(AVQt::IPacketSink)
-
-        Q_DECLARE_PRIVATE(AVQt::Muxer)
-
+    class Muxer : public QThread, public api::IComponent, public pgraph::impl::SimpleConsumer {
+        Q_OBJECT
+        Q_DECLARE_PRIVATE(Muxer)
     public:
-        enum class FORMAT {
-            MP4, MOV, MKV, WEBM, MPEGTS, INVALID
+        struct Config {
+            /**
+             * @brief any container format supported by libavformat, format specific limitations apply (e.g. mp3 cannot be used for video)
+             */
+            const char *containerFormat;
+
+            /**
+             * @brief An output device, must be writable, but not necessarily seekable. Muxer takes ownership of the pointer.
+             *
+             * @note The device will be closed when the muxer is destroyed.
+             */
+            std::unique_ptr<QIODevice> outputDevice;
         };
 
-        explicit Muxer(QIODevice *outputDevice, FORMAT format, QObject *parent = nullptr);
+        explicit Muxer(Config config, QObject *parent = nullptr);
+        ~Muxer() Q_DECL_OVERRIDE;
 
-        Muxer(Muxer &) = delete;
+        [[nodiscard]] bool isOpen() const Q_DECL_OVERRIDE;
+        [[nodiscard]] bool isRunning() const Q_DECL_OVERRIDE;
+        [[nodiscard]] bool isPaused() const Q_DECL_OVERRIDE;
+        bool init() Q_DECL_OVERRIDE;
 
-        Muxer(Muxer &&other) noexcept;
+        [[maybe_unused]] int64_t createStreamPad(const std::shared_ptr<communication::PacketPadParams> &padData);
+        [[maybe_unused]] void destroyStreamPad(int64_t padId);
 
-        bool isPaused() Q_DECL_OVERRIDE;
-
-        void init(IPacketSource *source, AVRational framerate, AVRational timebase, int64_t duration, AVCodecParameters *vParams,
-                  AVCodecParameters *aParams, AVCodecParameters *sParams) Q_DECL_OVERRIDE;
-
-        void deinit(IPacketSource *source) Q_DECL_OVERRIDE;
-
-        void start(IPacketSource *source) Q_DECL_OVERRIDE;
-
-        void stop(IPacketSource *source) Q_DECL_OVERRIDE;
-
-        void pause(bool p) Q_DECL_OVERRIDE;
-
-        void onPacket(IPacketSource *source, AVPacket *packet, int8_t packetType) Q_DECL_OVERRIDE;
-
-        void operator=(const Muxer &) = delete;
+        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
     protected:
+        bool open() Q_DECL_OVERRIDE;
+        void close() Q_DECL_OVERRIDE;
+        bool start() Q_DECL_OVERRIDE;
+        void stop() Q_DECL_OVERRIDE;
+        void pause(bool state) Q_DECL_OVERRIDE;
+
         void run() Q_DECL_OVERRIDE;
 
     signals:
-
         void started() Q_DECL_OVERRIDE;
-
         void stopped() Q_DECL_OVERRIDE;
-
-        void paused(bool pause) Q_DECL_OVERRIDE;
+        void paused(bool state) Q_DECL_OVERRIDE;
 
     protected:
-        [[maybe_unused]] explicit Muxer(MuxerPrivate &p);
-
-        MuxerPrivate *d_ptr;
+        [[maybe_unused]] explicit Muxer(Config config, MuxerPrivate *p, QObject *parent = nullptr);
+        QScopedPointer<MuxerPrivate> d_ptr;
     };
-}
+}// namespace AVQt
+#endif//LIBAVQT_MUXER_HPP
 
-#endif //LIBAVQT_MUXER_H
+#pragma clang diagnostic pop
