@@ -25,6 +25,7 @@
 #define LIBAVQT_IVIDEOENCODERIMPL_HPP
 
 #include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/common/PixelFormat.hpp"
 #include "AVQt/common/Platform.hpp"
 

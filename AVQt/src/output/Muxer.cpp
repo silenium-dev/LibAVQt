@@ -7,6 +7,8 @@
 #include "communication/Message.hpp"
 #include "communication/PacketPadParams.hpp"
 
+#include "global.hpp"
+
 #include <pgraph/api/PadUserData.hpp>
 
 extern "C" {
@@ -48,7 +50,7 @@ namespace AVQt {
         pIOCtx.reset(avio_alloc_context(pBuffer, MuxerPrivate::BUFFER_SIZE, AVIO_FLAG_WRITE, this, nullptr, MuxerPrivate::writeIO, MuxerPrivate::seekIO));
         pFormatCtx->pb = pIOCtx.get();
         pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
-        pFormatCtx->oformat = pOutputFormat;
+        pFormatCtx->oformat = const_cast<AVOutputFormat *>(pOutputFormat);
 
         int ret = avformat_init_output(pFormatCtx.get(), nullptr);
         if (ret < 0) {
@@ -213,7 +215,7 @@ namespace AVQt {
 
     bool Muxer::isOpen() const {
         Q_D(const Muxer);
-        return std::find_if(d->streams.begin(), d->streams.end(), [](const std::pair<int64_t, std::shared_ptr<AVStream>> &stream) {
+        return std::find_if(d->streams.begin(), d->streams.end(), [](const auto &stream) {
                    return stream.second == nullptr;
                }) == d->streams.end();// all streams are initialized
     }
