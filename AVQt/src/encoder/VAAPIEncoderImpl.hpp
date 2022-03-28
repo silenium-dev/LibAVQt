@@ -54,7 +54,7 @@ namespace AVQt {
         [[nodiscard]] QVector<AVPixelFormat> getInputFormats() const override;
         [[nodiscard]] std::shared_ptr<AVCodecParameters> getCodecParameters() const override;
 
-        [[nodiscard]] std::shared_ptr<communication::PacketPadParams> getPacketPadParams() const;
+        [[nodiscard]] std::shared_ptr<communication::PacketPadParams> getPacketPadParams() const override;
     signals:
         void packetReady(std::shared_ptr<AVPacket> packet) override;
 

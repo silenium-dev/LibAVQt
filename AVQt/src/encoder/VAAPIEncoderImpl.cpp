@@ -222,7 +222,7 @@ namespace AVQt {
             d->codecContext->width = params.frameSize.width();
             d->codecContext->height = params.frameSize.height();
             d->codecContext->max_b_frames = 0;
-            d->codecContext->gop_size = 100;
+            d->codecContext->gop_size = 20;
             d->codecContext->time_base = {1, 1000000};// microseconds
             d->codecContext->hw_device_ctx = av_buffer_ref(d->hwDeviceContext.get());
             d->codecContext->hw_frames_ctx = av_buffer_ref(d->hwFramesContext.get());
@@ -291,6 +291,9 @@ namespace AVQt {
             }
         }
 
+        frame->pts = av_rescale_q(frame->pts, {1, 1000000}, d->codecContext->time_base);
+        //        qWarning() << "Frame pts:" << frame->pts;
+
         {
             QMutexLocker codecLocker(&d->codecMutex);
             auto t1 = std::chrono::high_resolution_clock::now();
@@ -306,9 +309,9 @@ namespace AVQt {
         }
 
         static size_t frameCount = 0;
-        if (frameCount % 100 == 0) {
-            qWarning("Encoded frame #%04zu", frameCount);
-        }
+        //        if (frameCount % 100 == 0) {
+        qWarning("Encoded frame #%04zu with pts %ld", frameCount, frame->pts);
+        //        }
         ++frameCount;
 
         d->firstFrame = false;
@@ -610,11 +613,15 @@ namespace AVQt {
                 ret = avcodec_receive_packet(p->codecContext.get(), packet.get());
             }
 
+            av_packet_rescale_ts(packet.get(), p->codecContext->time_base, {1, 1000000});
+
             if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 msleep(1);
             } else if (ret < 0) {
                 qWarning() << "Could not receive packet:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
             } else {
+                static size_t packetCount = 0;
+                qWarning("Got packet #%04zu with pts %ld, dts %ld", packetCount++, packet->pts, packet->dts);
                 p->q_func()->packetReady(packet);
             }
         }

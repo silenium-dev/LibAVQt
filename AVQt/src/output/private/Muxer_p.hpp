@@ -35,7 +35,7 @@ namespace AVQt {
 
         void init(AVQt::Muxer::Config config);
 
-        bool initStream(int64_t padId, const std::shared_ptr<communication::PacketPadParams> &params);
+        bool initStream(int64_t padId, const std::shared_ptr<const communication::PacketPadParams> &params);
 
         bool startStream(int64_t padId);
         void stopStream(int64_t padId);

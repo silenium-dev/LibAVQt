@@ -27,7 +27,13 @@
 #include "communication/PacketPadParams.hpp"
 #include "communication/VideoPadParams.hpp"
 
+#include "common/ContainerFormat.hpp"
+#include "common/PixelFormat.hpp"
+#include "common/Platform.hpp"
+
 #include "input/Demuxer.hpp"
+
+#include "output/Muxer.hpp"
 
 #include "AVQt/decoder/VideoDecoder.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"

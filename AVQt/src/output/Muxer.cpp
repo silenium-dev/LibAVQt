@@ -11,17 +11,26 @@
 
 #include <pgraph/api/PadUserData.hpp>
 
+#include <pgraph_network/impl/RegisteringPadFactory.hpp>
+
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
 }
 
 namespace AVQt {
-    Muxer::Muxer(Config config, QObject *parent) : QThread(parent), d_ptr(new MuxerPrivate(this)) {
+    Muxer::Muxer(Config config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
+        : QThread(parent),
+          SimpleConsumer(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
+          d_ptr(new MuxerPrivate(this)) {
         Q_D(Muxer);
         d->init(std::move(config));
     }
 
-    Muxer::Muxer(Config config, MuxerPrivate *p, QObject *parent) : QThread(parent), d_ptr(p) {
+    Muxer::Muxer(Config config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, MuxerPrivate *p, QObject *parent)
+        : QThread(parent),
+          SimpleConsumer(pgraph::network::impl::RegisteringPadFactory::factoryFor(padRegistry)),
+          d_ptr(p) {
         Q_D(Muxer);
         d->init(std::move(config));
     }
@@ -45,27 +54,22 @@ namespace AVQt {
             return;
         }
 
-        pFormatCtx.reset(avformat_alloc_context());
+        AVFormatContext *formatContext = avformat_alloc_context();
+        int ret = avformat_alloc_output_context2(&formatContext, pOutputFormat, config.containerFormat, nullptr);
+        if (ret < 0) {
+            char strBuf[AV_ERROR_MAX_STRING_SIZE];
+            qWarning() << "[Muxer] Could not allocate output context: " << av_make_error_string(strBuf, AV_ERROR_MAX_STRING_SIZE, ret);
+            avformat_free_context(formatContext);
+            return;
+        }
+
+        pFormatCtx.reset(formatContext);
         pBuffer = static_cast<uint8_t *>(av_malloc(MuxerPrivate::BUFFER_SIZE));
         pIOCtx.reset(avio_alloc_context(pBuffer, MuxerPrivate::BUFFER_SIZE, AVIO_FLAG_WRITE, this, nullptr, MuxerPrivate::writeIO, MuxerPrivate::seekIO));
+
         pFormatCtx->pb = pIOCtx.get();
         pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
         pFormatCtx->oformat = const_cast<AVOutputFormat *>(pOutputFormat);
-
-        int ret = avformat_init_output(pFormatCtx.get(), nullptr);
-        if (ret < 0) {
-            char strBuf[AV_ERROR_MAX_STRING_SIZE];
-            qWarning() << "[Muxer] Could not init output:" << av_make_error_string(strBuf, AV_ERROR_MAX_STRING_SIZE, ret);
-            goto fail;
-        }
-
-        return;
-    fail:
-        qWarning() << "[Muxer] Could not initialize muxer";
-        av_free(pIOCtx->buffer);
-        pIOCtx.reset();
-        pFormatCtx.reset();
-        pBuffer = nullptr;
     }
 
     Muxer::~Muxer() {
@@ -74,14 +78,6 @@ namespace AVQt {
         if (d->running) {
             Muxer::stop();
         }
-
-        if (d->pBuffer) {
-            av_free(d->pBuffer);
-        }
-
-        d->pFormatCtx.reset();
-        d->pIOCtx.reset();
-        d->outputDevice->close();
     }
 
     bool Muxer::init() {
@@ -95,7 +91,13 @@ namespace AVQt {
     }
 
     void Muxer::close() {
-        // Empty
+        Q_D(Muxer);
+        printf("[Muxer] Destroying Muxer\n");
+        av_write_trailer(d->pFormatCtx.get());
+
+        d->pFormatCtx.reset();
+        d->pIOCtx.reset();
+        d->outputDevice->close();
     }
 
     bool Muxer::start() {
@@ -107,6 +109,7 @@ namespace AVQt {
             if (ret < 0) {
                 char strBuf[AV_ERROR_MAX_STRING_SIZE];
                 qWarning() << "[Muxer] Could not write header:" << av_make_error_string(strBuf, AV_ERROR_MAX_STRING_SIZE, ret);
+                d->running = false;
                 return false;
             }
             d->paused = false;
@@ -153,7 +156,7 @@ namespace AVQt {
             auto msg = std::dynamic_pointer_cast<communication::Message>(data);
             switch (msg->getAction()) {
                 case communication::Message::Action::INIT: {
-                    if (!d->initStream(pad, msg->getPayload("packetParams").value<std::shared_ptr<communication::PacketPadParams>>())) {
+                    if (!d->initStream(pad, msg->getPayload("packetParams").value<std::shared_ptr<const communication::PacketPadParams>>())) {
                         qWarning() << "[Muxer] failed to open stream" << pad;
                     }
                     break;
@@ -179,14 +182,18 @@ namespace AVQt {
                     d->enqueueData(packet);
                     break;
                 }
+                case communication::Message::Action::CLEANUP: {
+                    close();
+                    break;
+                }
                 // TODO: reset
-                default:// CLEANUP will be handled by the destructor
+                default:
                     break;
             }
         }
     }
 
-    [[maybe_unused]] int64_t Muxer::createStreamPad(const std::shared_ptr<communication::PacketPadParams> &padData) {
+    [[maybe_unused]] int64_t Muxer::createStreamPad() {
         Q_D(Muxer);
 
         if (d->running) {
@@ -194,7 +201,7 @@ namespace AVQt {
             return pgraph::api::INVALID_PAD_ID;
         }
 
-        auto padId = pgraph::impl::SimpleConsumer::createInputPad(padData);
+        auto padId = pgraph::impl::SimpleConsumer::createInputPad(pgraph::api::PadUserData::emptyUserData());
         if (padId == pgraph::api::INVALID_PAD_ID) {
             qWarning() << "[Muxer] failed to create pad";
             return pgraph::api::INVALID_PAD_ID;
@@ -265,6 +272,9 @@ namespace AVQt {
 
             lock.unlock();
 
+            av_packet_rescale_ts(packet.get(), {1, 1000000}, d->pFormatCtx->streams[packet->stream_index]->time_base);
+            qWarning() << "Muxing packet pts:" << packet->pts << "dts:" << packet->dts;
+
             int ret = av_interleaved_write_frame(d->pFormatCtx.get(), packet.get());
             if (ret == AVERROR(EAGAIN)) {
                 continue;
@@ -289,9 +299,7 @@ namespace AVQt {
 
     void MuxerPrivate::destroyAVIOContext(AVIOContext *ctx) {
         if (ctx) {
-            if (avio_closep(&ctx) != 0) {
-                qWarning() << "Error closing AVIOContext";
-            }
+            avio_context_free(&ctx);
         }
     }
 
@@ -342,7 +350,7 @@ namespace AVQt {
         return result ? d->outputDevice->pos() : AVERROR_UNKNOWN;
     }
 
-    bool MuxerPrivate::initStream(int64_t padId, const std::shared_ptr<communication::PacketPadParams> &params) {
+    bool MuxerPrivate::initStream(int64_t padId, const std::shared_ptr<const communication::PacketPadParams> &params) {
         Q_Q(Muxer);
 
         if (streams.find(padId) != streams.end() && streams[padId] != nullptr) {
@@ -355,6 +363,13 @@ namespace AVQt {
             qWarning() << "[Muxer] failed to create new stream";
             return false;
         }
+        stream->codecpar = avcodec_parameters_alloc();
+        if (!stream->codecpar) {
+            qWarning() << "[Muxer] failed to allocate codec parameters";
+            return false;
+        }
+        avcodec_parameters_copy(stream->codecpar, params->codecParams.get());
+        stream->time_base = {1, 1000000};// Microseconds
 
         streams[padId] = stream;
 

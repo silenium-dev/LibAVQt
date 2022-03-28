@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     encodeParams.bitrate = 10000000;
     //    encodeParams.codec = AVQt::Codec::H264;
     AVQt::VideoEncoder::Config encoderConfig;
-    encoderConfig.codec = AVQt::Codec::H264;
+    encoderConfig.codec = AVQt::Codec::VP9;
     encoderConfig.encodeParameters = encodeParams;
     encoderConfig.encoderPriority << "VAAPI";
 
@@ -133,7 +133,15 @@ int main(int argc, char *argv[]) {
     demuxerConfig.inputDevice->open(QIODevice::ReadWrite);
     demuxerConfig.loop = true;
 
+    auto *buffer = new QFile("output.ts");
+    buffer->open(QIODevice::WriteOnly);
+
     auto demuxer = std::make_shared<AVQt::Demuxer>(std::move(demuxerConfig), registry);
+
+    AVQt::Muxer::Config muxerConfig{};
+    muxerConfig.outputDevice = std::unique_ptr<QIODevice>(buffer);
+    muxerConfig.containerFormat = AVQt::common::ContainerFormat::MKV;
+    auto muxer = std::make_shared<AVQt::Muxer>(std::move(muxerConfig), registry);
 
     AVQt::VideoDecoder::Config videoDecoderConfig{};
     videoDecoderConfig.decoderPriority << "VAAPI";
@@ -150,113 +158,141 @@ int main(int argc, char *argv[]) {
 
     //    auto decImpl = AVQt::VideoDecoderFactory::getInstance().create({AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE}, AV_CODEC_ID_H264, {"V4L2"});
     //    qDebug() << "decImpl" << decImpl.get();
+    {
+        demuxer->init();
+        muxer->init();
+        //    transcoder->init();
+        decoder1->init();
+        decoder2->init();
+        //    decoder3->init();
+        encoder->init();
+        renderer1->init();
+        //    renderer2->init();
+        yuvrgbconverter->init();
+        //    frameSaver->init();
+        cc->init();
+        //    cc2->init();
 
-    demuxer->init();
-    //    transcoder->init();
-    decoder1->init();
-    decoder2->init();
-    //    decoder3->init();
-    encoder->init();
-    renderer1->init();
-    //    renderer2->init();
-    yuvrgbconverter->init();
-    //    frameSaver->init();
-    cc->init();
-    //    cc2->init();
+        //    pgraph::network::data::APIInfo apiInfo(registry);
 
-    //    pgraph::network::data::APIInfo apiInfo(registry);
+        //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
-    //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
-
-    std::shared_ptr<pgraph::api::Pad> demuxerOutPad{};
-    auto demuxerPads = demuxer->getOutputPads();
-    for (const auto &pad : demuxerPads) {
-        if (pad.second->getUserData()->getType() == AVQt::communication::PacketPadParams::Type) {
-            const auto padParams = std::dynamic_pointer_cast<const AVQt::communication::PacketPadParams>(pad.second->getUserData());
-            if (padParams->mediaType == AVMEDIA_TYPE_VIDEO) {
-                demuxerOutPad = pad.second;
-                break;
+        std::shared_ptr<pgraph::api::Pad> demuxerOutPad{};
+        auto demuxerPads = demuxer->getOutputPads();
+        for (const auto &pad : demuxerPads) {
+            if (pad.second->getUserData()->getType() == AVQt::communication::PacketPadParams::Type) {
+                const auto padParams = std::dynamic_pointer_cast<const AVQt::communication::PacketPadParams>(pad.second->getUserData());
+                if (padParams->mediaType == AVMEDIA_TYPE_VIDEO) {
+                    demuxerOutPad = pad.second;
+                    break;
+                }
             }
         }
+
+        auto decoder1InPad = decoder1->getInputPads().begin()->second;
+        auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
+        auto decoder2InPad = decoder2->getInputPads().begin()->second;
+        auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
+        //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
+        //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
+        auto encoderInPad = encoder->getInputPads().begin()->second;
+        auto encoderOutPad = encoder->getOutputPads().begin()->second;
+        auto renderer1InPad = renderer1->getInputPads().begin()->second;
+        //    auto renderer2InPad = renderer2->getInputPads().begin()->second;
+        auto ccInPad = cc->getInputPads().begin()->second;
+        //    auto cc2InPad = cc2->getInputPads().begin()->second;
+        auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
+        auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
+        //    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
+
+        auto muxerInPadId = muxer->createStreamPad();
+        auto muxerInPad = muxer->getInputPad(muxerInPadId);
+
+        //    cc2InPad->link(decoderOutPad);
+        //    decoder1InPad->link(transcoderPacketOutPad);
+        //    encoderInPad->link(decoder1OutPad);
+        //    decoder2InPad->link(encoderOutPad);
+        decoder1InPad->link(demuxerOutPad);
+        //    ccInPad->link(decoder1OutPad);
+        encoderInPad->link(decoder1OutPad);
+        //    yuvrgbconverterInPad->link(decoder1OutPad);
+        //    renderer2InPad->link(decoder1OutPad);
+        renderer1InPad->link(decoder1OutPad);
+        //    decoder1OutPad->link(yuvrgbconverterInPad);
+        //    renderer1InPad->link(decoder1OutPad);
+        //    renderer2InPad->link(decoder2OutPad);
+        //    yuvrgbconverterOutPad->link(frameSaverInPad);
+
+        muxerInPad->link(encoderOutPad);
+
+        demuxer->open();
+
+        renderer1->resize(1280, 720);
+        //        renderer2->resize(1280, 720);
+
+        demuxer->start();
+
+        QTimer::singleShot(5000, [demuxer]() {
+            QApplication::quit();
+        });
+
+        //    QTimer::singleShot(4000, [demuxer]{
+        //        demuxer->pause(true);
+        //        QTimer::singleShot(4000, [demuxer]{
+        //            demuxer->pause(false);
+        //    QTimer::singleShot(15000, [renderer1, renderer2] {
+        //        renderer1->close();
+        //        renderer2->close();
+        //    });
+        //        });
+        //    });
+
+        //    AVQt::api::IDesktopCaptureImpl::Config config{};
+        //    config.fps = 1;
+        //    config.sourceClass = AVQt::api::IDesktopCaptureImpl::SourceClass::Screen;
+        //    auto capturer = std::make_shared<AVQt::DesktopCapturer>(config, registry);
+        //    auto cc = std::make_shared<CommandConsumer>(registry);
+        //
+        //    capturer->init();
+        //    cc->init();
+        //
+        //    auto ccInPad = cc->getInputPads().begin()->second;
+        //    auto capturerOutPad = capturer->getOutputPads().begin()->second;
+        //
+        //    ccInPad->link(capturerOutPad);
+        //
+        //    capturer->open();
+        //    capturer->start();
+        //
+        QObject::connect(app, &QApplication::aboutToQuit, [demuxer /*, buffer, &muxer, &decoder1, &renderer1, &encoder*/] {
+            demuxer->close();
+            //        demuxer.reset();
+            //        decoder1.reset();
+            //        renderer1.reset();
+            //        encoder.reset();
+            //        muxer.reset();
+            //        std::cout << "Buffer size: " << buffer->size() << std::endl;
+            //        QFile output("output.ts");
+            //        output.open(QIODevice::WriteOnly);
+            //        output.write(buffer->data(), buffer->size());
+            //        output.close();
+            //        delete buffer;
+        });
+        //
+        //    QTimer::singleShot(15000, [] {
+        //        QApplication::quit();
+        //    });
     }
 
-    auto decoder1InPad = decoder1->getInputPads().begin()->second;
-    auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
-    auto decoder2InPad = decoder2->getInputPads().begin()->second;
-    auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
-    //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
-    //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
-    auto encoderInPad = encoder->getInputPads().begin()->second;
-    auto encoderOutPad = encoder->getOutputPads().begin()->second;
-    auto renderer1InPad = renderer1->getInputPads().begin()->second;
-    //    auto renderer2InPad = renderer2->getInputPads().begin()->second;
-    auto ccInPad = cc->getInputPads().begin()->second;
-    //    auto cc2InPad = cc2->getInputPads().begin()->second;
-    auto yuvrgbconverterInPad = yuvrgbconverter->getInputPads().begin()->second;
-    auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
-    //    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
-    //    cc2InPad->link(decoderOutPad);
-    //    decoder1InPad->link(transcoderPacketOutPad);
-    //    encoderInPad->link(decoder1OutPad);
-    //    decoder2InPad->link(encoderOutPad);
-    decoder1InPad->link(demuxerOutPad);
-    //    ccInPad->link(decoder1OutPad);
-    encoderInPad->link(decoder1OutPad);
-    //    decoder2InPad->link(encoderOutPad);
-    //    yuvrgbconverterInPad->link(decoder1OutPad);
-    //    renderer2InPad->link(decoder1OutPad);
-    renderer1InPad->link(decoder1OutPad);
-    //    decoder1OutPad->link(yuvrgbconverterInPad);
-    //    renderer1InPad->link(decoder1OutPad);
-    //    renderer2InPad->link(decoder2OutPad);
-    //    yuvrgbconverterOutPad->link(frameSaverInPad);
+    int ret = QApplication::exec();
+    demuxer.reset();
+    decoder1.reset();
+    decoder2.reset();
+    //    decoder3.reset();
+    encoder.reset();
+    renderer1.reset();
+    //    renderer2.reset();
+    muxer.reset();
 
-    demuxer->open();
-
-    renderer1->resize(1280, 720);
-    //        renderer2->resize(1280, 720);
-
-    demuxer->start();
-
-    //    QTimer::singleShot(5000, [demuxer]() {
-    //        QApplication::quit();
-    //    });
-
-    //    QTimer::singleShot(4000, [demuxer]{
-    //        demuxer->pause(true);
-    //        QTimer::singleShot(4000, [demuxer]{
-    //            demuxer->pause(false);
-    //    QTimer::singleShot(15000, [renderer1, renderer2] {
-    //        renderer1->close();
-    //        renderer2->close();
-    //    });
-    //        });
-    //    });
-
-    //    AVQt::api::IDesktopCaptureImpl::Config config{};
-    //    config.fps = 1;
-    //    config.sourceClass = AVQt::api::IDesktopCaptureImpl::SourceClass::Screen;
-    //    auto capturer = std::make_shared<AVQt::DesktopCapturer>(config, registry);
-    //    auto cc = std::make_shared<CommandConsumer>(registry);
-    //
-    //    capturer->init();
-    //    cc->init();
-    //
-    //    auto ccInPad = cc->getInputPads().begin()->second;
-    //    auto capturerOutPad = capturer->getOutputPads().begin()->second;
-    //
-    //    ccInPad->link(capturerOutPad);
-    //
-    //    capturer->open();
-    //    capturer->start();
-    //
-    QObject::connect(app, &QApplication::aboutToQuit, [demuxer] {
-        demuxer->close();
-    });
-    //
-    //    QTimer::singleShot(15000, [] {
-    //        QApplication::quit();
-    //    });
-
-    return QApplication::exec();
+    return ret;
 }

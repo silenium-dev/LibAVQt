@@ -13,6 +13,8 @@
 #include <pgraph/api/Data.hpp>
 #include <pgraph/impl/SimpleConsumer.hpp>
 
+#include <pgraph_network/api/PadRegistry.hpp>
+
 #include <QThread>
 
 extern "C" {
@@ -39,7 +41,7 @@ namespace AVQt {
             std::unique_ptr<QIODevice> outputDevice;
         };
 
-        explicit Muxer(Config config, QObject *parent = nullptr);
+        explicit Muxer(Config config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
         ~Muxer() Q_DECL_OVERRIDE;
 
         [[nodiscard]] bool isOpen() const Q_DECL_OVERRIDE;
@@ -47,7 +49,7 @@ namespace AVQt {
         [[nodiscard]] bool isPaused() const Q_DECL_OVERRIDE;
         bool init() Q_DECL_OVERRIDE;
 
-        [[maybe_unused]] int64_t createStreamPad(const std::shared_ptr<communication::PacketPadParams> &padData);
+        [[maybe_unused]] int64_t createStreamPad();
         [[maybe_unused]] void destroyStreamPad(int64_t padId);
 
         void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
@@ -67,7 +69,7 @@ namespace AVQt {
         void paused(bool state) Q_DECL_OVERRIDE;
 
     protected:
-        [[maybe_unused]] explicit Muxer(Config config, MuxerPrivate *p, QObject *parent = nullptr);
+        [[maybe_unused]] explicit Muxer(Config config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, MuxerPrivate *p, QObject *parent = nullptr);
         QScopedPointer<MuxerPrivate> d_ptr;
     };
 }// namespace AVQt
