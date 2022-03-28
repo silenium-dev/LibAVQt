@@ -55,7 +55,11 @@ namespace AVQt {
         }
 
         AVFormatContext *formatContext = avformat_alloc_context();
+#if LIBAVFORMAT_VERSION_MAJOR >= 59
         int ret = avformat_alloc_output_context2(&formatContext, pOutputFormat, config.containerFormat, nullptr);
+#else
+        int ret = avformat_alloc_output_context2(&formatContext, const_cast<AVOutputFormat *>(pOutputFormat), config.containerFormat, nullptr);
+#endif
         if (ret < 0) {
             char strBuf[AV_ERROR_MAX_STRING_SIZE];
             qWarning() << "[Muxer] Could not allocate output context: " << av_make_error_string(strBuf, AV_ERROR_MAX_STRING_SIZE, ret);
