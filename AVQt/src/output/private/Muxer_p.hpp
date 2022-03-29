@@ -36,6 +36,7 @@ namespace AVQt {
         void init(AVQt::Muxer::Config config);
 
         bool initStream(int64_t padId, const std::shared_ptr<const communication::PacketPadParams> &params);
+        void closeStream(int64_t padId);
 
         bool startStream(int64_t padId);
         void stopStream(int64_t padId);
@@ -61,7 +62,7 @@ namespace AVQt {
         std::unique_ptr<AVIOContext, decltype(&destroyAVIOContext)> pIOCtx{nullptr, &destroyAVIOContext};
         const AVOutputFormat *pOutputFormat{nullptr};
 
-        std::set<int64_t> startedStreams{};
+        std::set<int64_t> startedStreams{}, closedStreams{};
 
         Muxer *q_ptr;
     };

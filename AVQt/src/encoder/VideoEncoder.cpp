@@ -162,11 +162,11 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
-            d->impl->close();
             pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
                                                            .withAction(communication::Message::Action::CLEANUP)
                                                            .build(),
                                                    d->outputPadId);
+            d->impl->close();
             d->codecParams.reset();
         } else {
             qWarning("VideoEncoder: Not open");

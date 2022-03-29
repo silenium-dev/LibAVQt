@@ -69,7 +69,7 @@ namespace AVQt {
 
         pFormatCtx.reset(formatContext);
         pBuffer = static_cast<uint8_t *>(av_malloc(MuxerPrivate::BUFFER_SIZE));
-        pIOCtx.reset(avio_alloc_context(pBuffer, MuxerPrivate::BUFFER_SIZE, AVIO_FLAG_WRITE, this, nullptr, MuxerPrivate::writeIO, MuxerPrivate::seekIO));
+        pIOCtx.reset(avio_alloc_context(pBuffer, MuxerPrivate::BUFFER_SIZE, 1, this, nullptr, MuxerPrivate::writeIO, MuxerPrivate::seekIO));
 
         pFormatCtx->pb = pIOCtx.get();
         pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
@@ -90,18 +90,24 @@ namespace AVQt {
     }
 
     bool Muxer::open() {
-        // Empty
-        return true;
+        Q_D(Muxer);
+        if (!d->pFormatCtx) {
+            qFatal("[Muxer] Cannot reopen muxer after closed");
+        } else {
+            return true;
+        }
     }
 
     void Muxer::close() {
         Q_D(Muxer);
-        printf("[Muxer] Destroying Muxer\n");
-        av_write_trailer(d->pFormatCtx.get());
+        if (d->pFormatCtx) {
+            printf("[Muxer] Destroying Muxer\n");
+            av_write_trailer(d->pFormatCtx.get());
 
-        d->pFormatCtx.reset();
-        d->pIOCtx.reset();
-        d->outputDevice->close();
+            d->pFormatCtx.reset();
+            d->pIOCtx.reset();
+            d->outputDevice->close();
+        }
     }
 
     bool Muxer::start() {
@@ -187,7 +193,7 @@ namespace AVQt {
                     break;
                 }
                 case communication::Message::Action::CLEANUP: {
-                    close();
+                    d->closeStream(pad);
                     break;
                 }
                 // TODO: reset
@@ -277,7 +283,6 @@ namespace AVQt {
             lock.unlock();
 
             av_packet_rescale_ts(packet.get(), {1, 1000000}, d->pFormatCtx->streams[packet->stream_index]->time_base);
-            qWarning() << "Muxing packet pts:" << packet->pts << "dts:" << packet->dts;
 
             int ret = av_interleaved_write_frame(d->pFormatCtx.get(), packet.get());
             if (ret == AVERROR(EAGAIN)) {
@@ -285,7 +290,6 @@ namespace AVQt {
             } else if (ret < 0) {
                 char strBuf[AV_ERROR_MAX_STRING_SIZE];
                 qWarning() << "[Muxer] failed to write frame:" << av_make_error_string(strBuf, AV_ERROR_MAX_STRING_SIZE, ret);
-                d->running = false;
                 break;
             } else {
                 lock.lock();
@@ -415,6 +419,21 @@ namespace AVQt {
             qDebug() << "[Muxer] all streams stopped, stopping muxing";
 
             q->stop();
+        }
+    }
+
+    void MuxerPrivate::closeStream(int64_t padId) {
+        Q_Q(Muxer);
+        if (streams.find(padId) == streams.end() || streams[padId] == nullptr) {
+            qWarning() << "[Muxer] pad" << padId << "is not an initialized stream";
+            return;
+        }
+
+        closedStreams.emplace(padId);
+
+        if (closedStreams.size() == streams.size()) {
+            qDebug() << "[Muxer] all streams closed, closing muxer";
+            q->close();
         }
     }
 }// namespace AVQt

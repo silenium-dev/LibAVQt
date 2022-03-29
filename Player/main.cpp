@@ -91,10 +91,10 @@ int main(int argc, char *argv[]) {
     //    QSurfaceFormat::setDefaultFormat(defaultFormat);
 
     //#ifdef QT_DEBUG
-    //    av_log_set_level(AV_LOG_DEBUG);
-    //    av_log_set_flags(AV_LOG_SKIP_REPEATED);
+    av_log_set_level(AV_LOG_DEBUG);
+    av_log_set_flags(AV_LOG_SKIP_REPEATED);
     //#else
-    av_log_set_level(AV_LOG_WARNING);
+    //    av_log_set_level(AV_LOG_WARNING);
     //#endif
     //    signal(SIGQUIT, &signalHandler);
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     encodeParams.bitrate = 10000000;
     //    encodeParams.codec = AVQt::Codec::H264;
     AVQt::VideoEncoder::Config encoderConfig;
-    encoderConfig.codec = AVQt::Codec::VP9;
+    encoderConfig.codec = AVQt::Codec::VP8;
     encoderConfig.encodeParameters = encodeParams;
     encoderConfig.encoderPriority << "VAAPI";
 
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
     demuxerConfig.inputDevice->open(QIODevice::ReadWrite);
     demuxerConfig.loop = true;
 
-    auto *buffer = new QFile("output.ts");
+    auto *buffer = new QFile("output.mkv");
     buffer->open(QIODevice::WriteOnly);
 
     auto demuxer = std::make_shared<AVQt::Demuxer>(std::move(demuxerConfig), registry);
@@ -148,7 +148,8 @@ int main(int argc, char *argv[]) {
     auto decoder1 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     auto decoder2 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
-    auto encoder = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
+    auto encoder1 = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
+    auto encoder2 = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
     //    auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
@@ -165,7 +166,8 @@ int main(int argc, char *argv[]) {
         decoder1->init();
         decoder2->init();
         //    decoder3->init();
-        encoder->init();
+        encoder1->init();
+        encoder2->init();
         renderer1->init();
         //    renderer2->init();
         yuvrgbconverter->init();
@@ -195,8 +197,10 @@ int main(int argc, char *argv[]) {
         auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
         //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
         //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
-        auto encoderInPad = encoder->getInputPads().begin()->second;
-        auto encoderOutPad = encoder->getOutputPads().begin()->second;
+        auto encoder1InPad = encoder1->getInputPads().begin()->second;
+        auto encoder1OutPad = encoder1->getOutputPads().begin()->second;
+        auto encoder2InPad = encoder2->getInputPads().begin()->second;
+        auto encoder2OutPad = encoder2->getOutputPads().begin()->second;
         auto renderer1InPad = renderer1->getInputPads().begin()->second;
         //    auto renderer2InPad = renderer2->getInputPads().begin()->second;
         auto ccInPad = cc->getInputPads().begin()->second;
@@ -205,8 +209,11 @@ int main(int argc, char *argv[]) {
         auto yuvrgbconverterOutPad = yuvrgbconverter->getOutputPads().begin()->second;
         //    auto frameSaverInPad = frameSaver->getInputPads().begin()->second;
 
-        auto muxerInPadId = muxer->createStreamPad();
-        auto muxerInPad = muxer->getInputPad(muxerInPadId);
+        auto muxerInPad1Id = muxer->createStreamPad();
+        auto muxerInPad1 = muxer->getInputPad(muxerInPad1Id);
+
+        auto muxerInPad2Id = muxer->createStreamPad();
+        auto muxerInPad2 = muxer->getInputPad(muxerInPad2Id);
 
         //    cc2InPad->link(decoderOutPad);
         //    decoder1InPad->link(transcoderPacketOutPad);
@@ -214,7 +221,8 @@ int main(int argc, char *argv[]) {
         //    decoder2InPad->link(encoderOutPad);
         decoder1InPad->link(demuxerOutPad);
         //    ccInPad->link(decoder1OutPad);
-        encoderInPad->link(decoder1OutPad);
+        encoder1InPad->link(decoder1OutPad);
+        encoder2InPad->link(decoder1OutPad);
         //    yuvrgbconverterInPad->link(decoder1OutPad);
         //    renderer2InPad->link(decoder1OutPad);
         renderer1InPad->link(decoder1OutPad);
@@ -223,7 +231,8 @@ int main(int argc, char *argv[]) {
         //    renderer2InPad->link(decoder2OutPad);
         //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
-        muxerInPad->link(encoderOutPad);
+        muxerInPad1->link(encoder1OutPad);
+        muxerInPad2->link(encoder2OutPad);
 
         demuxer->open();
 
@@ -289,7 +298,8 @@ int main(int argc, char *argv[]) {
     decoder1.reset();
     decoder2.reset();
     //    decoder3.reset();
-    encoder.reset();
+    encoder1.reset();
+    encoder2.reset();
     renderer1.reset();
     //    renderer2.reset();
     muxer.reset();

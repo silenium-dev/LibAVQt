@@ -32,9 +32,9 @@
 #include <va/va.h>
 #include <va/va_drmcommon.h>
 
+#include <cstdio>
 #include <iostream>
 #include <unistd.h>
-#include <cstdio>
 
 extern "C" {
 #include <libavutil/hwcontext_drm.h>
@@ -309,9 +309,9 @@ namespace AVQt {
         }
 
         static size_t frameCount = 0;
-        //        if (frameCount % 100 == 0) {
-        qWarning("Encoded frame #%04zu with pts %ld", frameCount, frame->pts);
-        //        }
+        if (frameCount % 100 == 0) {
+            qDebug("Encoded frame #%04zu with pts %ld", frameCount, frame->pts);
+        }
         ++frameCount;
 
         d->firstFrame = false;
@@ -621,7 +621,6 @@ namespace AVQt {
                 qWarning() << "Could not receive packet:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
             } else {
                 static size_t packetCount = 0;
-                qWarning("Got packet #%04zu with pts %ld, dts %ld", packetCount++, packet->pts, packet->dts);
                 p->q_func()->packetReady(packet);
             }
         }
