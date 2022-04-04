@@ -62,7 +62,6 @@ namespace AVQt {
         private:
             VAAPIDecoderImplPrivate *p;
             std::atomic_bool m_stop{false};
-            QThread *m_afterStopThread{nullptr};
         };
 
         VAAPIDecoderImpl *q_ptr;

@@ -110,6 +110,7 @@ set(SOURCES
         src/common/FBOPool.cpp
 
         include/AVQt/common/Platform.hpp
+        src/common/Platform.cpp
 
         include/AVQt/common/PixelFormat.hpp
         src/common/PixelFormat.cpp
@@ -128,7 +129,11 @@ set(SOURCES
 
         src/capture/DummyDesktopCaptureImpl.hpp
         src/capture/DummyDesktopCaptureImpl.cpp
-        src/common/Platform.cpp)
+
+        src/decoder/QSVDecoderImpl.hpp
+        src/decoder/private/QSVDecoderImpl_p.hpp
+        src/decoder/QSVDecoderImpl.cpp
+        )
 set(SOURCES_UNIX
         )
 set(SOURCES_LINUX

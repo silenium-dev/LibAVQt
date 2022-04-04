@@ -56,7 +56,6 @@ namespace AVQt {
                         AV_CODEC_ID_VP8,
                         AV_CODEC_ID_VP9,
                         AV_CODEC_ID_MPEG2VIDEO,
-                        AV_CODEC_ID_NONE,
                 },
         };
         return info;
@@ -129,7 +128,7 @@ namespace AVQt {
 
             d->codecContext->hw_device_ctx = av_buffer_ref(d->hwDeviceContext.get());
             d->codecContext->get_format = &VAAPIDecoderImplPrivate::getFormat;
-            d->codecContext->opaque = this;
+            d->codecContext->opaque = d;
 
             if (avcodec_open2(d->codecContext.get(), d->codec, nullptr) < 0) {
                 qWarning() << "Could not open encoder";
@@ -198,22 +197,10 @@ namespace AVQt {
 
     AVPixelFormat VAAPIDecoderImpl::getSwOutputFormat() const {
         Q_D(const VAAPIDecoderImpl);
-        AVPixelFormat format;
-        if (d->codecContext->pix_fmt == AV_PIX_FMT_VAAPI) {
-            format = d->codecContext->sw_pix_fmt;
+        if (d->codecParams) {
+            return common::PixelFormat{static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_VAAPI}.toNativeFormat().getCPUFormat();
         } else {
-            format = d->codecContext->pix_fmt;
-        }
-        switch (format) {
-            case AV_PIX_FMT_NV12:
-            case AV_PIX_FMT_YUV420P:
-                return AV_PIX_FMT_NV12;
-            case AV_PIX_FMT_P010:
-            case AV_PIX_FMT_YUV420P10:
-                return AV_PIX_FMT_P010;
-            default:
-                qWarning() << "Unsupported output format" << av_get_pix_fmt_name(format);
-                return AV_PIX_FMT_NONE;
+            return AV_PIX_FMT_NONE;
         }
     }
 
@@ -252,22 +239,20 @@ namespace AVQt {
     }
 
     AVPixelFormat VAAPIDecoderImplPrivate::getFormat(AVCodecContext *ctx, const AVPixelFormat *pix_fmts) {
-        auto *decoder = reinterpret_cast<VAAPIDecoderImpl *>(ctx->opaque);
-        auto *iFmt = pix_fmts;
+        auto *d = reinterpret_cast<VAAPIDecoderImplPrivate *>(ctx->opaque);
         AVPixelFormat result = AV_PIX_FMT_NONE;
-        while (*iFmt != AV_PIX_FMT_NONE) {
-            if (*iFmt == AV_PIX_FMT_VAAPI) {
-                result = *iFmt;
+        for (int i = 0; pix_fmts[i] != AV_PIX_FMT_NONE; i++) {
+            if (pix_fmts[i] == AV_PIX_FMT_VAAPI) {
+                result = pix_fmts[i];
                 break;
             }
-            ++iFmt;
         }
         if (result == AV_PIX_FMT_NONE) {
             qWarning() << "No supported output format found";
             return AV_PIX_FMT_NONE;
         }
 
-        ctx->hw_frames_ctx = av_buffer_ref(decoder->d_func()->hwFramesContext.get());
+        ctx->hw_frames_ctx = av_buffer_ref(d->hwFramesContext.get());
         //        qDebug("[AVQt::VAAPIDecoderImpl] Frame pool size: %d", framesContext->initial_pool_size);
         //        framesContext->user_opaque = new HWContextSync(ctx->hw_frames_ctx);
         //        qDebug("[AVQt::VAAPIDecoderImpl] Frame pool mutex: %p", framesContext->user_opaque);

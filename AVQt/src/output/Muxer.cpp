@@ -171,6 +171,10 @@ namespace AVQt {
                     }
                     break;
                 }
+                case communication::Message::Action::CLEANUP: {
+                    d->closeStream(pad);
+                    break;
+                }
                 case communication::Message::Action::START: {
                     if (!d->startStream(pad)) {
                         qWarning() << "[Muxer] failed to start stream" << pad;
@@ -192,11 +196,10 @@ namespace AVQt {
                     d->enqueueData(packet);
                     break;
                 }
-                case communication::Message::Action::CLEANUP: {
-                    d->closeStream(pad);
-                    break;
+                case communication::Message::Action::RESET:
+                case communication::Message::Action::RESIZE: {
+                    qWarning() << "[Muxer] Unsupported action" << msg->getAction().name() << "please fix your code";
                 }
-                // TODO: reset
                 default:
                     break;
             }
