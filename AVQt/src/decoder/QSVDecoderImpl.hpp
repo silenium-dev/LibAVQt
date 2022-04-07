@@ -14,10 +14,11 @@ namespace AVQt {
     class QSVDecoderImpl : public QObject, public api::IVideoDecoderImpl {
         Q_OBJECT
         Q_DECLARE_PRIVATE(QSVDecoderImpl)
+        Q_INTERFACES(AVQt::api::IVideoDecoderImpl)
     public:
         static const api::VideoDecoderInfo &info();
 
-        explicit QSVDecoderImpl(AVCodecID codecId, QObject *parent = nullptr);
+        Q_INVOKABLE explicit QSVDecoderImpl(AVCodecID codecId, QObject *parent = nullptr);
         ~QSVDecoderImpl() override;
         bool open(std::shared_ptr<AVCodecParameters> codecParams) override;
         void close() override;

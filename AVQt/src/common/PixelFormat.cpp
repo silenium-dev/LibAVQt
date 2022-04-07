@@ -80,7 +80,7 @@ namespace AVQt::common {
 
             AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_MMAL, .nativeFormat = nullptr});
             AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_MEDIACODEC, .nativeFormat = nullptr});
-            AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_QSV, .nativeFormat = &FullFormatPixelFormatOf});
+            AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_QSV, .nativeFormat = &OneInterleavedPlanePixelFormatOf});
             AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_VDPAU, .nativeFormat = nullptr});
             AVQt::common::PixelFormat::registerGPUFormat({.format = AV_PIX_FMT_VIDEOTOOLBOX, .nativeFormat = nullptr});
 

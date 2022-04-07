@@ -6,13 +6,14 @@
 #include "private/QSVDecoderImpl_p.hpp"
 
 #include "common/PixelFormat.hpp"
+#include "decoder/VideoDecoderFactory.hpp"
 
 namespace AVQt {
     const api::VideoDecoderInfo &QSVDecoderImpl::info() {
         static const api::VideoDecoderInfo info = {
                 .metaObject = QSVDecoderImpl::staticMetaObject,
-                .name = "VAAPI",
-                .platforms = {common::Platform::Linux_X11, common::Platform::Linux_Wayland},
+                .name = "QSV",
+                .platforms = {common::Platform::Linux_X11, common::Platform::Linux_Wayland, common::Platform::Windows},
                 .supportedInputPixelFormats = {
                         {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE},
                         {AV_PIX_FMT_YUV420P10, AV_PIX_FMT_NONE},
@@ -102,7 +103,7 @@ namespace AVQt {
 
             auto *framesContext = reinterpret_cast<AVHWFramesContext *>(framesCtxRef->data);
             framesContext->format = AV_PIX_FMT_QSV;
-            framesContext->sw_format = static_cast<AVPixelFormat>(d->codecParams->format);
+            framesContext->sw_format = common::PixelFormat{static_cast<AVPixelFormat>(d->codecParams->format), AV_PIX_FMT_QSV}.toNativeFormat().getCPUFormat();
             framesContext->width = d->codecParams->width;
             framesContext->height = d->codecParams->height;
             framesContext->initial_pool_size = 32;
@@ -128,6 +129,13 @@ namespace AVQt {
                 goto fail;
             }
 
+            d->frameFetcher = std::make_unique<QSVDecoderImplPrivate::FrameFetcher>(d);
+            d->frameFetcher->start();
+            if (!d->frameFetcher->isRunning()) {
+                qWarning() << "[AVQt::QSVDecoderImpl] Failed to start frame fetcher";
+                goto fail;
+            }
+
             return true;
         } else {
             qWarning("[AVQt::QSVDecoderImpl] Already opened");
@@ -135,6 +143,7 @@ namespace AVQt {
         }
     fail:
         d->open = false;
+        d->frameFetcher.reset();
         d->codecContext.reset();
         d->hwDeviceContext.reset();
         d->hwFramesContext.reset();
@@ -146,6 +155,7 @@ namespace AVQt {
 
         bool shouldBe = false;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
+            d->frameFetcher.reset();
             d->codecContext.reset();
             d->hwDeviceContext.reset();
             d->hwFramesContext.reset();
@@ -308,3 +318,7 @@ namespace AVQt {
         qDebug() << "FrameFetcher stopped";
     }
 }// namespace AVQt
+
+static_block {
+    AVQt::VideoDecoderFactory::getInstance().registerDecoder(AVQt::QSVDecoderImpl::info());
+}

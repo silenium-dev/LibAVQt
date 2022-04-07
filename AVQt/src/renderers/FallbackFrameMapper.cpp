@@ -209,6 +209,7 @@ namespace AVQt {
         QMutexLocker lock(&d->renderMutex);
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
+            d->afterStopThread = QThread::currentThread();
             lock.unlock();
             QThread::quit();
             QThread::wait();
@@ -381,6 +382,9 @@ namespace AVQt {
             renderLock.unlock();
             emit frameReady(frame->pts, fbo);
             qDebug("Frame ready");
+        }
+        if (d->afterStopThread) {
+            d->context->moveToThread(d->afterStopThread);
         }
     }
 

@@ -246,8 +246,8 @@ bool OpenGLWidgetRenderer::isPaused() const {
 bool OpenGLWidgetRenderer::open() {
     Q_D(OpenGLWidgetRenderer);
 
-    d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance().create({d->params.isHWAccel ? d->params.swPixelFormat : d->params.pixelFormat, d->params.isHWAccel ? d->params.pixelFormat : AV_PIX_FMT_NONE},
-                                                                     QStringList() << "VAAPI");
+    d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance()
+                        .create({d->params.isHWAccel ? d->params.swPixelFormat : d->params.pixelFormat, d->params.isHWAccel ? d->params.pixelFormat : AV_PIX_FMT_NONE});
     // clang-format off
     // Preserve normalized form of Qt SIGNAL/SLOT macro
     connect(std::dynamic_pointer_cast<QObject>(d->mapper).get(), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),

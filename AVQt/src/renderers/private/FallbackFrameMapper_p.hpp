@@ -73,6 +73,8 @@ namespace AVQt {
         QOpenGLBuffer vbo{};
         QOpenGLBuffer ibo{};
 
+        QThread *afterStopThread{nullptr};
+
         std::unique_ptr<SwsContext, decltype(&destroySwsContext)> pSwsContext{nullptr, &destroySwsContext};
 
         std::atomic_bool paused{false}, firstFrame{true}, running{false};

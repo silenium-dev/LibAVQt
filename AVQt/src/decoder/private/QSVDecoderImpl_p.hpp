@@ -50,6 +50,8 @@ namespace AVQt {
         std::shared_ptr<AVBufferRef> hwFramesContext{nullptr, &destroyAVBufferRef};
 
         std::atomic_bool open{false}, firstFrame{true};
+
+        std::unique_ptr<FrameFetcher> frameFetcher{};
     };
 }// namespace AVQt
 

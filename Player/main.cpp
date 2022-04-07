@@ -53,9 +53,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-    //#ifndef QT_DEBUG
+#ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
-    //#endif
+#endif
     {
         QString output;
         QTextStream os(&output);
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     auto muxer = std::make_shared<AVQt::Muxer>(std::move(muxerConfig), registry);
 
     AVQt::VideoDecoder::Config videoDecoderConfig{};
-    videoDecoderConfig.decoderPriority << "VAAPI";
+    videoDecoderConfig.decoderPriority << "QSV";
     auto decoder1 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     auto decoder2 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
@@ -220,9 +220,9 @@ int main(int argc, char *argv[]) {
         //    encoderInPad->link(decoder1OutPad);
         //    decoder2InPad->link(encoderOutPad);
         decoder1InPad->link(demuxerOutPad);
-        //    ccInPad->link(decoder1OutPad);
-        encoder1InPad->link(decoder1OutPad);
-        encoder2InPad->link(decoder1OutPad);
+        ccInPad->link(decoder1OutPad);
+        //        encoder1InPad->link(decoder1OutPad);
+        //        encoder2InPad->link(decoder1OutPad);
         //    yuvrgbconverterInPad->link(decoder1OutPad);
         //    renderer2InPad->link(decoder1OutPad);
         renderer1InPad->link(decoder1OutPad);
@@ -231,8 +231,8 @@ int main(int argc, char *argv[]) {
         //    renderer2InPad->link(decoder2OutPad);
         //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
-        muxerInPad1->link(encoder1OutPad);
-        muxerInPad2->link(encoder2OutPad);
+        //        muxerInPad1->link(encoder1OutPad);
+        //        muxerInPad2->link(encoder2OutPad);
 
         demuxer->open();
 
@@ -241,9 +241,9 @@ int main(int argc, char *argv[]) {
 
         demuxer->start();
 
-        QTimer::singleShot(5000, [demuxer]() {
-            QApplication::quit();
-        });
+        //        QTimer::singleShot(5000, [demuxer]() {
+        //            QApplication::quit();
+        //        });
 
         //    QTimer::singleShot(4000, [demuxer]{
         //        demuxer->pause(true);
