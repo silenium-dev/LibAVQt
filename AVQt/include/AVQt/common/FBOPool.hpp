@@ -35,7 +35,11 @@
 #include <QtCore/QDeadlineTimer>
 #include <QtCore/QObject>
 #include <QtGui/QOpenGLContext>
+#if QT_VERSION_MAJOR > 5
+#include <QtOpenGL/QOpenGLFramebufferObject>
+#else
 #include <QtGui/QOpenGLFramebufferObject>
+#endif
 
 
 namespace AVQt::common {

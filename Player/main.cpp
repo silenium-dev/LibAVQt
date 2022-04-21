@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
     //    auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
     //    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
-    auto cc = std::make_shared<CommandConsumer>(registry);
+    auto cc = std::make_shared<AVQt::debug::CommandConsumer>(registry);
     //    auto cc2 = std::make_shared<CommandConsumer>(registry);
 
     //    auto decImpl = AVQt::VideoDecoderFactory::getInstance().create({AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE}, AV_CODEC_ID_H264, {"V4L2"});

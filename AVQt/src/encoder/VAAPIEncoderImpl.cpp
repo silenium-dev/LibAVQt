@@ -27,14 +27,14 @@
 #include "AVQt/encoder/VideoEncoderFactory.hpp"
 
 #include <QImage>
-#include <QtConcurrent>
 
 #include <va/va.h>
 #include <va/va_drmcommon.h>
 
-#include <cstdio>
 #include <iostream>
 #include <unistd.h>
+
+#include <static_block.hpp>
 
 extern "C" {
 #include <libavutil/hwcontext_drm.h>
