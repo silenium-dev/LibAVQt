@@ -19,9 +19,3 @@ build:
     - cd build-release
     - cmake -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=5 ..
     - cmake --build . -j1
-  artifacts:
-    paths:
-      - build/AVQt/libAVQt_static.a
-      - build/AVQt/libAVQt.so
-      - AVQt/
-    expire_in: 1 week
