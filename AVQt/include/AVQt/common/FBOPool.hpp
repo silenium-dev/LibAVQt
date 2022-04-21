@@ -35,7 +35,7 @@
 #include <QtCore/QDeadlineTimer>
 #include <QtCore/QObject>
 #include <QtGui/QOpenGLContext>
-#include <QtOpenGL/QOpenGLFramebufferObject>
+#include <QtGui/QOpenGLFramebufferObject>
 
 
 namespace AVQt::common {
