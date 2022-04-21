@@ -1,10 +1,10 @@
 [submodule "LibScreenCapture"]
     path = LibScreenCapture
-    url = https://edugit.org/sdcieo0330/LibScreenCapture.git/
+    url = https://gitlab.silenium-dev.net/silenium-dev/libscreencapture.git/
     branch = main
 [submodule "libpgraph_network"]
 	path = libpgraph_network
-	url = https://edugit.org/sdcieo0330/libpgraph_network.git/
+	url = https://gitlab.silenium-dev.net/silenium-dev/libpgraph-network.git/
 	branch = main
 [submodule "mfx_dispatch"]
 	path = mfx_dispatch
