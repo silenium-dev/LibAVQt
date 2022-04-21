@@ -26,7 +26,7 @@
 
 #include "AVQt/communication/VideoPadParams.hpp"
 
-#include <QObject>
+#include <QtCore/QObject>
 #include <memory>
 
 extern "C" {

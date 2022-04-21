@@ -34,8 +34,13 @@ extern "C" {
 
 #include <memory>
 
+#ifndef Q_OS_ANDROID
 #include <GL/gl.h>
+#else
+#include <GLES3/gl3.h>
+#endif
 
+#include <QFile>
 #include <QOpenGLDebugLogger>
 
 namespace AVQt {

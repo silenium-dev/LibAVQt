@@ -24,10 +24,11 @@
 #ifndef LIBAVQT_OPENGLFRAMEMAPPERFACTORY_HPP
 #define LIBAVQT_OPENGLFRAMEMAPPERFACTORY_HPP
 
-#include "IOpenGLFrameMapper.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 
-#include <QMap>
-#include <QObject>
+#include <QtCore/QMap>
+#include <QtCore/QObject>
+
 #include <static_block.hpp>
 
 namespace AVQt {

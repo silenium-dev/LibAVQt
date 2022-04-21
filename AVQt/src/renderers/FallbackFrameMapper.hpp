@@ -28,6 +28,7 @@
 #include "private/FallbackFrameMapper_p.hpp"
 
 #include <QOpenGLFunctions>
+#include <QThread>
 
 namespace AVQt {
     class FallbackFrameMapperPrivate;

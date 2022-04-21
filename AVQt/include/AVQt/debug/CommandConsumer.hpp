@@ -28,21 +28,23 @@
 #include "pgraph/impl/SimpleConsumer.hpp"
 #include "pgraph_network/api/PadRegistry.hpp"
 
-class CommandConsumer : public pgraph::impl::SimpleConsumer {
-public:
-    CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
-    ~CommandConsumer() override = default;
+namespace AVQt::debug {
+    class CommandConsumer : public pgraph::impl::SimpleConsumer {
+    public:
+        CommandConsumer(std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry);
+        ~CommandConsumer() override = default;
 
-    void init();
+        void init();
 
-    void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
+        void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) override;
 
-private:
-    int64_t m_commandInputPadId;
-    std::atomic_uint64_t m_frameCount;
-    uint32_t m_id;
-    static std::atomic_uint32_t m_nextId;
-};
+    private:
+        int64_t m_commandInputPadId;
+        std::atomic_uint64_t m_frameCount;
+        uint32_t m_id;
+        static std::atomic_uint32_t m_nextId;
+    };
+}// namespace AVQt::debug
 
 
 #endif//LIBAVQT_COMMANDCONSUMER_H

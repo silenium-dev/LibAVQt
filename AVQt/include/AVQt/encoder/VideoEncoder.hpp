@@ -24,12 +24,13 @@
 #ifndef LIBAVQT_VIDEOENCODER_HPP
 #define LIBAVQT_VIDEOENCODER_HPP
 
-#include "IVideoEncoderImpl.hpp"
 #include "AVQt/communication/IComponent.hpp"
-#include "pgraph_network/api/PadRegistry.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 
-#include <QtCore>
 #include <pgraph/impl/SimpleProcessor.hpp>
+#include <pgraph_network/api/PadRegistry.hpp>
+
+#include <QtCore/QThread>
 
 extern "C" {
 #include <libavcodec/avcodec.h>

@@ -20,8 +20,7 @@
 #include "AVQt/communication/IComponent.hpp"
 #include "AVQt/decoder/IVideoDecoderImpl.hpp"
 
-#include <QtCore>
-#include <QtGui>
+#include <QtCore/QThread>
 #include <pgraph/impl/SimpleProcessor.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
 

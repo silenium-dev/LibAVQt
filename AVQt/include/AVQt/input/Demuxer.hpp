@@ -22,14 +22,10 @@
 
 #include "AVQt/communication/IComponent.hpp"
 
-#include <QIODevice>
-#include <QThread>
+#include <QtCore/QIODevice>
+#include <QtCore/QThread>
 #include <pgraph/impl/SimpleProcessor.hpp>
 #include <pgraph_network/api/PadRegistry.hpp>
-
-extern "C" {
-#include <libavcodec/packet.h>
-}
 
 
 namespace AVQt {

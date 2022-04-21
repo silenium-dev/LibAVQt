@@ -26,9 +26,9 @@
 
 #include "AVQt/decoder/IVideoDecoderImpl.hpp"
 
-#include "static_block.hpp"
-#include <QMap>
 #include <string>
+
+#include <QtCore/QMap>
 
 namespace AVQt {
     class VideoDecoderFactory {
@@ -49,9 +49,5 @@ namespace AVQt {
         QList<api::VideoDecoderInfo> m_decoders;
     };
 }// namespace AVQt
-
-//static_block {
-//    AVQt::VideoDecoderFactory::registerDecoders();
-//}
 
 #endif//LIBAVQT_VIDEODECODERFACTORY_HPP

@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_PACKETPADPARAMS_H
 #define LIBAVQT_PACKETPADPARAMS_H
 
-#include <QMetaType>
+#include <QtCore/QMetaType>
 #include <pgraph/api/PadUserData.hpp>
 
 extern "C" {

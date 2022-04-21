@@ -26,8 +26,8 @@
 #define LIBAVQT_VIDEOPADPARAMS_HPP
 
 #include "pgraph/api/PadUserData.hpp"
-#include <QObject>
-#include <QSize>
+#include <QtCore/QObject>
+#include <QtCore/QSize>
 
 extern "C" {
 #include <libavutil/buffer.h>

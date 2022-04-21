@@ -24,10 +24,6 @@
 #ifndef LIBAVQT_FBOPOOL_HPP
 #define LIBAVQT_FBOPOOL_HPP
 
-
-#include <QOpenGLContext>
-#include <QOpenGLFramebufferObject>
-#include <QtCore>
 #include <condition_variable>
 #include <list>
 #include <memory>
@@ -35,6 +31,11 @@
 #include <queue>
 #include <set>
 #include <shared_mutex>
+
+#include <QtCore/QDeadlineTimer>
+#include <QtCore/QObject>
+#include <QtGui/QOpenGLContext>
+#include <QtOpenGL/QOpenGLFramebufferObject>
 
 
 namespace AVQt::common {

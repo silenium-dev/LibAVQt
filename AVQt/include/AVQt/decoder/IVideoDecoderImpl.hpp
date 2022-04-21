@@ -27,7 +27,9 @@
 #include "AVQt/common/PixelFormat.hpp"
 #include "AVQt/common/Platform.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
-#include <QtCore>
+#include <QtCore/QList>
+#include <QtCore/QObject>
+#include <QtCore/QString>
 
 extern "C" {
 #include <libavcodec/avcodec.h>

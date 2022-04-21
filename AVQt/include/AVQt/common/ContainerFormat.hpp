@@ -5,7 +5,7 @@
 #ifndef LIBAVQT_CONTAINERFORMAT_HPP
 #define LIBAVQT_CONTAINERFORMAT_HPP
 
-#include <QString>
+#include <QtCore/QString>
 
 extern "C" {
 #include <libavformat/avformat.h>

@@ -24,13 +24,11 @@
 #ifndef LIBAVQT_VIDEOENCODERFACTORY_HPP
 #define LIBAVQT_VIDEOENCODERFACTORY_HPP
 
-#include "IVideoEncoderImpl.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
 
-#include <static_block.hpp>
-
-#include <QMap>
-#include <QString>
+#include <QtCore/QMap>
+#include <QtCore/QString>
 
 
 namespace AVQt {
@@ -53,8 +51,5 @@ namespace AVQt {
     };
 }// namespace AVQt
 
-//static_block {
-//    AVQt::VideoEncoderFactory::registerEncoders();
-//};
 
 #endif//LIBAVQT_VIDEOENCODERFACTORY_HPP

@@ -24,17 +24,17 @@
 #ifndef LIBAVQT_IVIDEOENCODERIMPL_HPP
 #define LIBAVQT_IVIDEOENCODERIMPL_HPP
 
-#include "AVQt/communication/VideoPadParams.hpp"
-#include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/common/PixelFormat.hpp"
 #include "AVQt/common/Platform.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-#include <QObject>
-#include <QVector>
+#include <QtCore/QObject>
+#include <QtCore/QVector>
 
 namespace AVQt {
     enum class Codec {

@@ -5,7 +5,7 @@
 #ifndef LIBAVQT_PLATFORM_HPP
 #define LIBAVQT_PLATFORM_HPP
 
-#include <QList>
+#include <QtCore/QList>
 
 namespace AVQt::common {
     class Platform {

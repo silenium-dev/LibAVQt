@@ -22,10 +22,9 @@
 //
 
 #include "global.hpp"
-#include "AVQt/decoder/VideoDecoderFactory.hpp"
+#include "AVQt/capture/DesktopCaptureFactory.hpp"
 #include "AVQt/encoder/VideoEncoderFactory.hpp"
 #include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
-#include "AVQt/capture/DesktopCaptureFactory.hpp"
 
 void load_resources_impl() {
     Q_INIT_RESOURCE(AVQtShader);
@@ -99,3 +98,7 @@ namespace AVQt {
         }
     }
 }// namespace AVQt
+
+static_block {
+    AVQt::registerMetatypes();
+}

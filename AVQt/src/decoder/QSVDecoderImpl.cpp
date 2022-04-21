@@ -8,6 +8,9 @@
 #include "common/PixelFormat.hpp"
 #include "decoder/VideoDecoderFactory.hpp"
 
+#include <QElapsedTimer>
+#include <static_block.hpp>
+
 namespace AVQt {
     const api::VideoDecoderInfo &QSVDecoderImpl::info() {
         static const api::VideoDecoderInfo info = {

@@ -5,11 +5,10 @@
 #ifndef LIBAVQT_PIXELFORMAT_HPP
 #define LIBAVQT_PIXELFORMAT_HPP
 
-#include <QMutex>
-#include <QObject>
+#include <QtCore/QMutex>
+#include <QtCore/QObject>
 
-#include <QDebug>
-#include <static_block.hpp>
+#include <QtCore/QDebug>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -72,8 +71,5 @@ namespace AVQt::common {
     };
 }// namespace AVQt::common
 
-//static_block {
-//    AVQt::common::PixelFormat::registerAllGPUFormats();
-//};
 
 #endif//LIBAVQT_PIXELFORMAT_HPP

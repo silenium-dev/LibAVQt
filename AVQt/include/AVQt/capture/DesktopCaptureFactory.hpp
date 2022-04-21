@@ -8,8 +8,8 @@
 #include "AVQt/capture/IDesktopCaptureImpl.hpp"
 #include "AVQt/common/Platform.hpp"
 
-#include <QMap>
-#include <QMutex>
+#include <QtCore/QMap>
+#include <QtCore/QMutex>
 
 #include <static_block.hpp>
 

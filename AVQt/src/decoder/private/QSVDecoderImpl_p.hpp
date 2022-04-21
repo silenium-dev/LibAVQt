@@ -5,7 +5,8 @@
 #ifndef LIBAVQT_QSVDECODERIMPL_P_HPP
 #define LIBAVQT_QSVDECODERIMPL_P_HPP
 
-#include <QObject>
+#include <QMutex>
+#include <QThread>
 #include <memory>
 
 extern "C" {

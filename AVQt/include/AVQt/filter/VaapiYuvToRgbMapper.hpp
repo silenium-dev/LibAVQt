@@ -25,10 +25,12 @@
 #define LIBAVQT_VAAPIYUVTORGBMAPPER_HPP
 
 #include "AVQt/communication/IComponent.hpp"
-#include "pgraph/api/Data.hpp"
-#include "pgraph/impl/SimpleProcessor.hpp"
-#include "pgraph_network/api/PadRegistry.hpp"
-#include <QtCore>
+
+#include <pgraph/api/Data.hpp>
+#include <pgraph/impl/SimpleProcessor.hpp>
+#include <pgraph_network/api/PadRegistry.hpp>
+
+#include <QtCore/QThread>
 
 namespace AVQt {
     class VaapiYuvToRgbMapperPrivate;

@@ -27,7 +27,7 @@
 #include "AVQt/common/PixelFormat.hpp"
 #include "AVQt/common/Platform.hpp"
 
-#include <QObject>
+#include <QtCore/QObject>
 #include <memory>
 extern "C" {
 #include <libavutil/frame.h>

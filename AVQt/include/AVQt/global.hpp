@@ -23,12 +23,12 @@
 #include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
-#include <QMetaType>
-#include <QOpenGLFramebufferObject>
+
 #include <pgraph/impl/SimpleConsumer.hpp>
 #include <pgraph/impl/SimpleProducer.hpp>
+
+#include <QMetaType>
 #include <qglobal.h>
-#include <static_block.hpp>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -58,14 +58,12 @@ namespace AVQt {
     AVCodecID getCodecId(Codec codec);
 }// namespace AVQt
 
+class QOpenGLFramebufferObject;
+
 Q_DECLARE_METATYPE(pgraph::impl::SimpleProducer *)
 Q_DECLARE_METATYPE(pgraph::impl::SimpleConsumer *)
 Q_DECLARE_METATYPE(std::shared_ptr<QOpenGLFramebufferObject>)
 Q_DECLARE_METATYPE(std::shared_ptr<AVFrame>)
 Q_DECLARE_METATYPE(std::shared_ptr<AVPacket>)
-
-static_block {
-    AVQt::registerMetatypes();
-}
 
 #endif//LIBAVQT_GLOBAL_H

@@ -20,37 +20,37 @@
 #ifndef AVQT_AVQT_H
 #define AVQT_AVQT_H
 
-#include <qglobal.h>
+#include "AVQt/global.hpp"
 
-#include "communication/IComponent.hpp"
-#include "communication/Message.hpp"
-#include "communication/PacketPadParams.hpp"
-#include "communication/VideoPadParams.hpp"
+#include "AVQt/communication/IComponent.hpp"
+#include "AVQt/communication/Message.hpp"
+#include "AVQt/communication/PacketPadParams.hpp"
+#include "AVQt/communication/VideoPadParams.hpp"
 
-#include "common/ContainerFormat.hpp"
-#include "common/PixelFormat.hpp"
-#include "common/Platform.hpp"
+#include "AVQt/common/ContainerFormat.hpp"
+#include "AVQt/common/PixelFormat.hpp"
+#include "AVQt/common/Platform.hpp"
 
-#include "input/Demuxer.hpp"
+#include "AVQt/input/Demuxer.hpp"
 
-#include "output/Muxer.hpp"
+#include "AVQt/output/Muxer.hpp"
 
+#include "AVQt/decoder/IVideoDecoderImpl.hpp"
 #include "AVQt/decoder/VideoDecoder.hpp"
+#include "AVQt/decoder/VideoDecoderFactory.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
-#include "decoder/IVideoDecoderImpl.hpp"
-#include "decoder/VideoDecoderFactory.hpp"
-#include "encoder/IVideoEncoderImpl.hpp"
-#include "encoder/VideoEncoderFactory.hpp"
+#include "AVQt/encoder/VideoEncoderFactory.hpp"
 
-#include "filter/VaapiYuvToRgbMapper.hpp"
+#include "AVQt/filter/VaapiYuvToRgbMapper.hpp"
 
-#include "renderers/IOpenGLFrameMapper.hpp"
-#include "renderers/OpenGLFrameMapperFactory.hpp"
+#include "AVQt/renderers/IOpenGLFrameMapper.hpp"
+#include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
 
-#include "capture/DesktopCaptureFactory.hpp"
-#include "capture/DesktopCapturer.hpp"
-#include "capture/IDesktopCaptureImpl.hpp"
+#include "AVQt/capture/DesktopCaptureFactory.hpp"
+#include "AVQt/capture/DesktopCapturer.hpp"
+#include "AVQt/capture/IDesktopCaptureImpl.hpp"
 
-#include "debug/CommandConsumer.hpp"
+#include "AVQt/debug/CommandConsumer.hpp"
 
 #endif//AVQT_AVQT_H

@@ -22,9 +22,9 @@
  * \internal
  */
 
-#include "AVQt/decoder/VideoDecoder.hpp"
-#include "AVQt/decoder/IVideoDecoderImpl.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
+#include "AVQt/decoder/IVideoDecoderImpl.hpp"
+#include "AVQt/decoder/VideoDecoder.hpp"
 
 extern "C" {
 #include <libavutil/frame.h>
@@ -32,6 +32,10 @@ extern "C" {
 }
 
 #include <pgraph_network/api/PadRegistry.hpp>
+
+#include <QMutex>
+#include <QQueue>
+#include <QWaitCondition>
 
 
 #ifndef TRANSCODE_DECODERVAAPI_P_H

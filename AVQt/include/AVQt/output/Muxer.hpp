@@ -12,10 +12,9 @@
 
 #include <pgraph/api/Data.hpp>
 #include <pgraph/impl/SimpleConsumer.hpp>
-
 #include <pgraph_network/api/PadRegistry.hpp>
 
-#include <QThread>
+#include <QtCore/QThread>
 
 extern "C" {
 #include <libavformat/avformat.h>

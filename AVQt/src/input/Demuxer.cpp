@@ -89,7 +89,7 @@ namespace AVQt {
                                             d,
                                             &DemuxerPrivate::readFromIO,
                                             nullptr,
-                                            d->inputDevice->isSequential() ? nullptr : &DemuxerPrivate::seekIO),
+                                            &DemuxerPrivate::seekIO),
                          &DemuxerPrivate::destroyAVIOContext};
             d->pFormatCtx = {avformat_alloc_context(), &DemuxerPrivate::destroyAVFormatContext};
             d->pFormatCtx->pb = d->pIOCtx.get();
@@ -302,13 +302,15 @@ namespace AVQt {
 
     int DemuxerPrivate::readFromIO(void *opaque, uint8_t *buf, int bufSize) {
         auto *d = reinterpret_cast<DemuxerPrivate *>(opaque);
-
-        auto bytesRead = d->inputDevice->read(reinterpret_cast<char *>(buf), bufSize);
-        if (bytesRead == 0) {
-            return AVERROR_EOF;
-        } else {
-            return static_cast<int>(bytesRead);
+        if (buf && d && bufSize > 0) {
+            int bytesRead = d->inputDevice->read(reinterpret_cast<char *>(buf), bufSize);
+            if (bytesRead == 0) {
+                return AVERROR_EOF;
+            } else {
+                return static_cast<int>(bytesRead);
+            }
         }
+        return 0;
     }
 
     int64_t DemuxerPrivate::seekIO(void *opaque, int64_t pos, int whence) {

@@ -24,7 +24,7 @@
 #ifndef LIBAVQT_ICOMPONENT_HPP
 #define LIBAVQT_ICOMPONENT_HPP
 
-#include <QtCore>
+#include <QtCore/QObject>
 
 namespace AVQt::api {
     class IComponent {

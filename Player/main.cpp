@@ -53,9 +53,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-#ifndef QT_DEBUG
+    //#ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
-#endif
+    //#endif
     {
         QString output;
         QTextStream os(&output);
@@ -91,10 +91,10 @@ int main(int argc, char *argv[]) {
     //    QSurfaceFormat::setDefaultFormat(defaultFormat);
 
     //#ifdef QT_DEBUG
-    av_log_set_level(AV_LOG_DEBUG);
-    av_log_set_flags(AV_LOG_SKIP_REPEATED);
+    //    av_log_set_level(AV_LOG_DEBUG);
+    //    av_log_set_flags(AV_LOG_SKIP_REPEATED);
     //#else
-    //    av_log_set_level(AV_LOG_WARNING);
+    av_log_set_level(AV_LOG_WARNING);
     //#endif
     //    signal(SIGQUIT, &signalHandler);
 
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     auto muxer = std::make_shared<AVQt::Muxer>(std::move(muxerConfig), registry);
 
     AVQt::VideoDecoder::Config videoDecoderConfig{};
-    videoDecoderConfig.decoderPriority << "QSV";
+    videoDecoderConfig.decoderPriority << "VAAPI";
     auto decoder1 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     auto decoder2 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
@@ -212,26 +212,25 @@ int main(int argc, char *argv[]) {
         auto muxerInPad1Id = muxer->createStreamPad();
         auto muxerInPad1 = muxer->getInputPad(muxerInPad1Id);
 
-        auto muxerInPad2Id = muxer->createStreamPad();
-        auto muxerInPad2 = muxer->getInputPad(muxerInPad2Id);
+        //        auto muxerInPad2Id = muxer->createStreamPad();
+        //        auto muxerInPad2 = muxer->getInputPad(muxerInPad2Id);
 
         //    cc2InPad->link(decoderOutPad);
         //    decoder1InPad->link(transcoderPacketOutPad);
         //    encoderInPad->link(decoder1OutPad);
         //    decoder2InPad->link(encoderOutPad);
         decoder1InPad->link(demuxerOutPad);
-        ccInPad->link(decoder1OutPad);
-        //        encoder1InPad->link(decoder1OutPad);
+        //        ccInPad->link(decoder1OutPad);
+        encoder1InPad->link(decoder1OutPad);
         //        encoder2InPad->link(decoder1OutPad);
-        //    yuvrgbconverterInPad->link(decoder1OutPad);
+        yuvrgbconverterInPad->link(decoder1OutPad);
         //    renderer2InPad->link(decoder1OutPad);
-        renderer1InPad->link(decoder1OutPad);
-        //    decoder1OutPad->link(yuvrgbconverterInPad);
+        renderer1InPad->link(yuvrgbconverterOutPad);
         //    renderer1InPad->link(decoder1OutPad);
         //    renderer2InPad->link(decoder2OutPad);
         //    yuvrgbconverterOutPad->link(frameSaverInPad);
 
-        //        muxerInPad1->link(encoder1OutPad);
+        muxerInPad1->link(encoder1OutPad);
         //        muxerInPad2->link(encoder2OutPad);
 
         demuxer->open();

@@ -18,6 +18,8 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
+#include <QIODevice>
+
 namespace AVQt {
     Muxer::Muxer(Config config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent)
         : QThread(parent),

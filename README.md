@@ -2,6 +2,8 @@
 
 An object-oriented Qt interface for FFmpeg.
 
+# WARNING: This README is currently out of date
+
 ## Features
 
 ### Current

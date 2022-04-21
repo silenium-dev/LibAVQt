@@ -24,7 +24,11 @@
 #ifndef LIBAVQT_MESSAGE_H
 #define LIBAVQT_MESSAGE_H
 
-#include <QtCore>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QUuid>
+#include <QtCore/QVariant>
+#include <QtCore/QVariantMap>
 #include <pgraph/api/Data.hpp>
 
 

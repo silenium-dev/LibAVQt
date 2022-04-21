@@ -9,7 +9,6 @@ if (NOT QT_VERSION)
 endif ()
 set(PGRAPH_QT_VERSION "${QT_VERSION}" CACHE INTERNAL "PGRAPH_QT_VERSION")
 set(SC_QT_VERSION "${QT_VERSION}" CACHE INTERNAL "SC_QT_VERSION")
-set(CMAKE_PREFIX_PATH "/home/silas/ffmpeg_build/" CACHE INTERNAL "CMAKE_PREFIX_PATH")
 
 add_subdirectory(libpgraph_network)
 

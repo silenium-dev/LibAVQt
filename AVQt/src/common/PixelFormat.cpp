@@ -4,6 +4,8 @@
 
 #include "common/PixelFormat.hpp"
 
+#include <static_block.hpp>
+
 AVPixelFormat OneInterleavedPlanePixelFormatOf(AVPixelFormat format) {
     switch (format) {
         case AV_PIX_FMT_NV12:
@@ -192,4 +194,4 @@ namespace AVQt::common {
 
 static_block {
     AVQt::common::PixelFormat::registerAllGPUFormats();
-};
+}

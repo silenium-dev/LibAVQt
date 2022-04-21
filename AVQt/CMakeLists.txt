@@ -8,7 +8,7 @@ function(list_transform_prepend var_out var_in prefix)
     set(${var_out} "${temp}" PARENT_SCOPE)
 endfunction()
 
-set(PROJECT_NAME include/AVQt/AVQt)
+set(PROJECT_NAME AVQt)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_AUTOMOC on)
@@ -32,6 +32,7 @@ endif ()
 set(REQUIRED_LIBS Core Gui Concurrent OpenGL)
 
 set(REQUIRED_LIBS_QUALIFIED)
+
 list_transform_prepend(REQUIRED_LIBS_QUALIFIED REQUIRED_LIBS "Qt${QT_VERSION}::")
 
 find_package(Qt${QT_VERSION} COMPONENTS ${REQUIRED_LIBS} REQUIRED)
@@ -45,9 +46,11 @@ pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcod
 set(SOURCES
         AVQtShader.qrc
 
+        include/AVQt/AVQt
         include/AVQt/AVQt.h
-        global.hpp
-        global.cpp
+
+        include/AVQt/global.hpp
+        src/global.cpp
 
         include/AVQt/input/Demuxer.hpp
         src/input/private/Demuxer_p.hpp
@@ -244,7 +247,6 @@ if (!WIN32)
         target_compile_options(AVQtObject PRIVATE -Wno-psabi)
     endif ()
 endif ()
-
 
 add_library(AVQtStatic STATIC $<TARGET_OBJECTS:AVQtObject>)
 add_library(AVQt SHARED $<TARGET_OBJECTS:AVQtObject>)

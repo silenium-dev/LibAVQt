@@ -35,7 +35,7 @@ namespace AVQt {
         void frameReady(std::shared_ptr<AVFrame> frame) override;
 
     protected:
-        V4L2M2MDecoderImpl(AVCodecID codec, V4L2M2MDecoderImplPrivate &dd, QObject *parent = nullptr);
+        Q_INVOKABLE V4L2M2MDecoderImpl(AVCodecID codec, AVQt::V4L2M2MDecoderImplPrivate &dd, QObject *parent = nullptr);
 
         QScopedPointer<V4L2M2MDecoderImplPrivate> d_ptr;
     };

@@ -29,7 +29,7 @@
 #include <pgraph_network/api/PadRegistry.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
-#include <QApplication>
+#include <QCoreApplication>
 
 
 namespace AVQt {
@@ -165,6 +165,7 @@ namespace AVQt {
                     d->codecParams->codec_id, d->config.decoderPriority));
             if (!d->impl) {
                 qWarning("No VideoDecoderImpl found");
+                d->open = false;
                 return false;
             }
 

@@ -1,4 +1,4 @@
-*.user
+CMakeLists.txt.user*
 build*
 /cmake-build-*/
 /.vs/
