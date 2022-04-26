@@ -41,7 +41,7 @@ find_package(PkgConfig REQUIRED)
 
 include(CheckCXXSourceCompiles)
 
-pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample zlib)
+pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample)
 
 set(SOURCES
         AVQtShader.qrc
