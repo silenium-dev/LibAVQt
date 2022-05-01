@@ -12,7 +12,6 @@
 #include <pgraph/impl/SimplePadFactory.hpp>
 #include <pgraph_network/impl/RegisteringPadFactory.hpp>
 
-#include <QMutexLocker>
 #include <QThread>
 
 namespace AVQt {
@@ -98,7 +97,7 @@ namespace AVQt {
                     break;
                 case communication::Message::Action::DATA: {
                     auto packet = message->getPayload("packet").value<std::shared_ptr<AVPacket>>();
-                    QMutexLocker locker(&d->inputQueueMutex);
+                    std::unique_lock lock(d->inputQueueMutex);
                     d->inputQueue.push_back(std::move(packet));
                     d->inputQueueCond.notify_one();
                     break;
