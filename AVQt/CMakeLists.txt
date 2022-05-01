@@ -43,6 +43,14 @@ include(CheckCXXSourceCompiles)
 
 pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavutil libavformat libavcodec libavfilter libswscale libswresample)
 
+include(CheckTypeSize)
+
+check_type_size(__int128 SIZE__INT128)
+if (NOT ${SIZE__INT128} EQUAL 16)
+    message(FATAL_ERROR "__int128 is not supported by this compiler")
+    add_compile_definitions(NO_INT128)
+endif ()
+
 set(SOURCES
         AVQtShader.qrc
 
@@ -136,7 +144,25 @@ set(SOURCES
         src/decoder/QSVDecoderImpl.hpp
         src/decoder/private/QSVDecoderImpl_p.hpp
         src/decoder/QSVDecoderImpl.cpp
-        )
+
+        include/AVQt/decoder/IAudioDecoderImpl.hpp
+
+        include/AVQt/decoder/AudioDecoder.hpp
+        src/decoder/private/AudioDecoder_p.hpp
+        src/decoder/AudioDecoder.cpp
+
+        include/AVQt/common/AudioFormat.hpp
+        src/common/AudioFormat.cpp
+
+        include/AVQt/communication/AudioPadParams.hpp
+        src/communication/AudioPadParams.cpp
+
+        include/AVQt/decoder/AudioDecoderFactory.hpp
+        src/decoder/AudioDecoderFactory.cpp
+
+        src/decoder/GenericAudioDecoderImpl.hpp
+        src/decoder/GenericAudioDecoderImpl.cpp
+        src/decoder/private/GenericAudioDecoderImplPrivate.hpp)
 set(SOURCES_UNIX
         )
 set(SOURCES_LINUX
@@ -176,7 +202,7 @@ set(SOURCES_WINDOWS
 
         decoder/DecoderD3D11VA.hpp
 
-        src/renderers/private/windows/OpenGLRenderer_p.cpp)
+        src/renderers/private/windows/OpenGLRenderer_p.cpp src/decoder/AudioDecoderFactory.cpp include/AVQt/decoder/AudioDecoderFactory.hpp)
 
 if (WIN32) # LibAVQt only supports Windows 10 1809 and above
     if (${WINDOWS_VERSION} GREATER_EQUAL 10 AND ${WINDOWS_BUILD} GREATER_EQUAL 17763)

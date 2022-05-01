@@ -26,12 +26,11 @@
 
 #include "AVQt/decoder/IVideoDecoderImpl.hpp"
 
-#include <string>
-
 #include <QtCore/QMap>
 
 namespace AVQt {
     class VideoDecoderFactory {
+        Q_DISABLE_COPY_MOVE(VideoDecoderFactory)
     public:
         static VideoDecoderFactory &getInstance();
 
@@ -41,8 +40,6 @@ namespace AVQt {
         void unregisterDecoder(const api::VideoDecoderInfo &info);
 
         [[nodiscard]] std::shared_ptr<api::IVideoDecoderImpl> create(const common::PixelFormat &inputFormat, AVCodecID codec, const QStringList &priority = {});
-
-        static void registerDecoders();
 
     private:
         VideoDecoderFactory() = default;

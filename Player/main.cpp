@@ -53,9 +53,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
         logFile.open(QIODevice::WriteOnly);
     }
 
-    //#ifndef QT_DEBUG
+#ifndef QT_DEBUG
     if (type > QtMsgType::QtDebugMsg)
-    //#endif
+#endif
     {
         QString output;
         QTextStream os(&output);
@@ -147,6 +147,9 @@ int main(int argc, char *argv[]) {
     videoDecoderConfig.decoderPriority << "VAAPI";
     auto decoder1 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
     auto decoder2 = std::make_shared<AVQt::VideoDecoder>(videoDecoderConfig, registry);
+
+    AVQt::AudioDecoder::Config audioDecoderConfig{};
+    auto aDecoder = std::make_shared<AVQt::AudioDecoder>(audioDecoderConfig, registry);
     //    auto decoder3 = std::make_shared<AVQt::VideoDecoder>("VAAPI", registry);
     auto encoder1 = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
     auto encoder2 = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
@@ -165,6 +168,7 @@ int main(int argc, char *argv[]) {
         //    transcoder->init();
         decoder1->init();
         decoder2->init();
+        aDecoder->init();
         //    decoder3->init();
         encoder1->init();
         encoder2->init();
@@ -180,12 +184,18 @@ int main(int argc, char *argv[]) {
         //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
         std::shared_ptr<pgraph::api::Pad> demuxerOutPad{};
+        std::shared_ptr<pgraph::api::Pad> demuxerAOutPad{};
         auto demuxerPads = demuxer->getOutputPads();
         for (const auto &pad : demuxerPads) {
             if (pad.second->getUserData()->getType() == AVQt::communication::PacketPadParams::Type) {
                 const auto padParams = std::dynamic_pointer_cast<const AVQt::communication::PacketPadParams>(pad.second->getUserData());
-                if (padParams->mediaType == AVMEDIA_TYPE_VIDEO) {
+                if (padParams->mediaType == AVMEDIA_TYPE_VIDEO && !demuxerOutPad) {
                     demuxerOutPad = pad.second;
+                }
+                if (padParams->mediaType == AVMEDIA_TYPE_AUDIO && !demuxerAOutPad) {
+                    demuxerAOutPad = pad.second;
+                }
+                if (demuxerOutPad && demuxerAOutPad) {
                     break;
                 }
             }
@@ -195,6 +205,8 @@ int main(int argc, char *argv[]) {
         auto decoder1OutPad = decoder1->getOutputPads().begin()->second;
         auto decoder2InPad = decoder2->getInputPads().begin()->second;
         auto decoder2OutPad = decoder2->getOutputPads().begin()->second;
+        auto aDecoderInPad = aDecoder->getInputPads().begin()->second;
+        auto aDecoderOutPad = aDecoder->getOutputPads().begin()->second;
         //    auto decoder3InPad = decoder3->getInputPads().begin()->second;
         //    auto decoder3OutPad = decoder3->getOutputPads().begin()->second;
         auto encoder1InPad = encoder1->getInputPads().begin()->second;
@@ -219,13 +231,15 @@ int main(int argc, char *argv[]) {
         //    decoder1InPad->link(transcoderPacketOutPad);
         //    encoderInPad->link(decoder1OutPad);
         //    decoder2InPad->link(encoderOutPad);
-        decoder1InPad->link(demuxerOutPad);
+        aDecoderInPad->link(demuxerAOutPad);
+        ccInPad->link(aDecoderOutPad);
+        //        decoder1InPad->link(demuxerOutPad);
         //        ccInPad->link(decoder1OutPad);
-        encoder1InPad->link(decoder1OutPad);
+        //        encoder1InPad->link(decoder1OutPad);
         //        encoder2InPad->link(decoder1OutPad);
-        yuvrgbconverterInPad->link(decoder1OutPad);
+        //        yuvrgbconverterInPad->link(decoder1OutPad);
         //    renderer2InPad->link(decoder1OutPad);
-        renderer1InPad->link(yuvrgbconverterOutPad);
+        //        renderer1InPad->link(yuvrgbconverterOutPad);
         //    renderer1InPad->link(decoder1OutPad);
         //    renderer2InPad->link(decoder2OutPad);
         //    yuvrgbconverterOutPad->link(frameSaverInPad);

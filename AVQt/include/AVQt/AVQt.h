@@ -35,9 +35,14 @@
 
 #include "AVQt/output/Muxer.hpp"
 
+#include "AVQt/decoder/AudioDecoder.hpp"
+#include "AVQt/decoder/AudioDecoderFactory.hpp"
+#include "AVQt/decoder/IAudioDecoderImpl.hpp"
+
 #include "AVQt/decoder/IVideoDecoderImpl.hpp"
 #include "AVQt/decoder/VideoDecoder.hpp"
 #include "AVQt/decoder/VideoDecoderFactory.hpp"
+
 #include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
 #include "AVQt/encoder/VideoEncoderFactory.hpp"

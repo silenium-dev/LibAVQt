@@ -38,8 +38,8 @@ namespace AVQt::communication {
     class VideoPadParams : public pgraph::api::PadUserData {
     public:
         explicit VideoPadParams() = default;
-        VideoPadParams(const VideoPadParams &other);
-        VideoPadParams &operator=(const VideoPadParams &other);
+        VideoPadParams(const VideoPadParams &other) = default;
+        VideoPadParams &operator=(const VideoPadParams &other) = default;
 
         ~VideoPadParams() override = default;
         QUuid getType() const override;

@@ -1,4 +1,4 @@
-FROM sdc0/manjaro-qt6-ffmpeg
+FROM sdc0/manjaro-qt-ffmpeg:qt5
 
 COPY build.sh /
 

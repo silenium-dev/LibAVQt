@@ -28,4 +28,23 @@ namespace AVQt::common {
     bool Platform::isAvailable(const QList<Platform_t> &platforms) {
         return platforms.contains(All) || platforms.contains(getPlatform());
     }
+
+    std::string Platform::getName(const Platform::Platform_t &platform) {
+        switch (platform) {
+            case Platform::Windows:
+                return "Windows";
+            case Platform::MacOS:
+                return "MacOS";
+            case Platform::Linux_X11:
+                return "Linux (X11)";
+            case Platform::Linux_Wayland:
+                return "Linux (Wayland)";
+            case Platform::Android:
+                return "Android";
+            case Platform::iOS:
+                return "iOS";
+            default:
+                return "Unknown";
+        }
+    }
 }// namespace AVQt::common

@@ -33,10 +33,6 @@ extern "C" {
 namespace AVQt::communication {
     const QUuid VideoPadParams::Type = QUuid::fromString(QLatin1String{"1e8b93086ba59290a4ce4fec5b85bd80"});
 
-    VideoPadParams::VideoPadParams(const VideoPadParams &other) : PadUserData(other) {
-        *this = other;
-    }
-
     QUuid VideoPadParams::getType() const {
         return Type;
     }
@@ -55,18 +51,5 @@ namespace AVQt::communication {
         data["deviceType"] = reinterpret_cast<AVHWDeviceContext *>(hwDeviceContext->data)->type;
         obj["data"] = data;
         return obj;
-    }
-
-    VideoPadParams &VideoPadParams::operator=(const VideoPadParams &other) {
-        if (this == &other) {
-            return *this;
-        }
-        frameSize = other.frameSize;
-        pixelFormat = other.pixelFormat;
-        swPixelFormat = other.swPixelFormat;
-        isHWAccel = other.isHWAccel;
-        hwFramesContext = other.hwFramesContext;
-        hwDeviceContext = other.hwDeviceContext;
-        return *this;
     }
 }// namespace AVQt::communication

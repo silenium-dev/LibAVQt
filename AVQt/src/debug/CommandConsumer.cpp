@@ -49,7 +49,11 @@ namespace AVQt::debug {
             qDebug() << message->getPayloads();
             if (message->getPayloads().contains("frame")) {
                 auto frame = message->getPayload("frame").value<std::shared_ptr<AVFrame>>();
-                qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format));
+                if (frame->width > 0 && frame->height > 0) {
+                    qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format));
+                } else if (frame->nb_samples > 0) {
+                    qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame->format));
+                }
             }
             auto frame = message->getPayloads().value("frame").value<std::shared_ptr<AVFrame>>();
             if (frame && frame->format == AV_PIX_FMT_DRM_PRIME) {

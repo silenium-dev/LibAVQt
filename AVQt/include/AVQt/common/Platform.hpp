@@ -22,6 +22,7 @@ namespace AVQt::common {
         };
         static Platform_t getPlatform();
         static bool isAvailable(const QList<Platform_t> &platforms);
+        static std::string getName(const Platform_t &platform);
     };
 }// namespace AVQt::common
 

@@ -26,7 +26,7 @@ git clone --recursive https://edugit.org/sdcieo0330/LibAVQt.git LibAVQt
 cd LibAVQt || exit
 mkdir build && cd build || exit
 if [[ -e /usr/bin/g++-10 ]]; then
-  cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . -j4
+  cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 -DCMAKE_BUILD_TYPE=Debug -DQT_VERSION=5 .. && cmake --build . -j$(nproc)
 else
-  cmake -DCMAKE_BUILD_TYPE=Debug .. && cmake --build . -j4
+  cmake -DCMAKE_BUILD_TYPE=Debug .. -DQT_VERSION=5 && cmake --build . -j$(nproc)
 fi
