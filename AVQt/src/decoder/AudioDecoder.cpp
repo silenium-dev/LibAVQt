@@ -1,6 +1,8 @@
 #include "AVQt/decoder/AudioDecoder.hpp"
 #include "private/AudioDecoder_p.hpp"
 
+#include "global.hpp"
+
 #include "communication/AudioPadParams.hpp"
 #include "communication/Message.hpp"
 #include "communication/PacketPadParams.hpp"
