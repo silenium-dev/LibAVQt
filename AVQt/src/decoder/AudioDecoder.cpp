@@ -134,6 +134,12 @@ namespace AVQt {
                     d,
                     SLOT(onFrame(std::shared_ptr<AVFrame>)),
                     Qt::DirectConnection);
+
+            pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
+                                                           .withAction(communication::Message::Action::INIT)
+                                                           .withPayload("audioParams", QVariant::fromValue(*d->outputPadParams))
+                                                           .build(),
+                                                   d->outputPadId);
             return true;
         } else {
             qWarning() << "AudioDecoder already open";
@@ -150,6 +156,10 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
+            pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
+                                                           .withAction(communication::Message::Action::CLEANUP)
+                                                           .build(),
+                                                   d->outputPadId);
             d->impl->close();
             d->impl.reset();
             d->outputPadParams->format = common::AudioFormat{0, 0, AV_SAMPLE_FMT_NONE, 0};
@@ -169,6 +179,10 @@ namespace AVQt {
         bool shouldBe = false;
         if (d->running.compare_exchange_strong(shouldBe, true)) {
             d->paused = false;
+            pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
+                                                           .withAction(communication::Message::Action::START)
+                                                           .build(),
+                                                   d->outputPadId);
             QThread::start();
 
             return true;
@@ -184,6 +198,10 @@ namespace AVQt {
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
             d->paused = false;
+            pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
+                                                           .withAction(communication::Message::Action::STOP)
+                                                           .build(),
+                                                   d->outputPadId);
             d->pausedCond.notify_all();
             QThread::quit();
             QThread::wait();
@@ -201,6 +219,11 @@ namespace AVQt {
         Q_D(AudioDecoder);
         bool shouldBe = !state;
         if (d->paused.compare_exchange_strong(shouldBe, state)) {
+            pgraph::impl::SimpleProcessor::produce(communication::Message::builder()
+                                                           .withAction(communication::Message::Action::PAUSE)
+                                                           .withPayload("state", state)
+                                                           .build(),
+                                                   d->outputPadId);
             emit paused(state);
         } else {
             qDebug() << "AudioDecoder::pause: state already" << state;

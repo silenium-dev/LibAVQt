@@ -11,6 +11,7 @@ extern "C" {
 namespace AVQt::common {
     class AudioFormat {
     public:
+        explicit AudioFormat() = default;
         AudioFormat(int sampleRate, int channels, AVSampleFormat sampleFormat);
         AudioFormat(int sampleRate, int channels, AVSampleFormat sampleFormat, uint64_t channelLayout);
         AudioFormat(const AudioFormat &other) = default;
@@ -24,19 +25,21 @@ namespace AVQt::common {
         [[nodiscard]] AVSampleFormat sampleFormat() const;
         [[nodiscard]] uint64_t channelLayout() const;
 
+        [[nodiscard]] bool isSupportedBy(QList<AudioFormat> supportedFormats) const;
+
         bool operator==(const AudioFormat &other) const;
         bool operator!=(const AudioFormat &other) const;
 
     private:
-        AVSampleFormat m_format;
-        int m_channels;
+        AVSampleFormat m_format{AV_SAMPLE_FMT_NONE};
+        int m_channels{-1};
 #if NO_INT128
-        int64_t m_channelLayout;
+        int64_t m_channelLayout{-1};
 #else
-        __int128 m_channelLayout;
+        __int128 m_channelLayout{-1};
 #endif
-        int m_sampleRate;
-        int m_bytesPerSample;
+        int m_sampleRate{-1};
+        int m_bytesPerSample{-1};
     };
 }// namespace AVQt::common
 

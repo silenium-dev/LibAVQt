@@ -47,4 +47,11 @@ namespace AVQt::common {
     bool AudioFormat::operator!=(const AudioFormat &other) const {
         return !(*this == other);
     }
+
+    bool AudioFormat::isSupportedBy(QList<AudioFormat> supportedFormats) const {
+        return supportedFormats.isEmpty() ||
+               std::any_of(supportedFormats.begin(), supportedFormats.end(), [this](const AudioFormat &format) {
+                   return *this == format;
+               });
+    }
 }// namespace AVQt::common

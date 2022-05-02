@@ -49,6 +49,10 @@
 
 #include "AVQt/filter/VaapiYuvToRgbMapper.hpp"
 
+#include "AVQt/renderers/AudioOutput.hpp"
+#include "AVQt/renderers/AudioOutputFactory.hpp"
+#include "AVQt/renderers/IAudioOutputImpl.hpp"
+
 #include "AVQt/renderers/IOpenGLFrameMapper.hpp"
 #include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
 

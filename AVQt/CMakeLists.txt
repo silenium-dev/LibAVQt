@@ -29,7 +29,7 @@ if (WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS on)
 endif ()
 
-set(REQUIRED_LIBS Core Gui Concurrent OpenGL)
+set(REQUIRED_LIBS Core Gui Concurrent OpenGL Multimedia)
 
 set(REQUIRED_LIBS_QUALIFIED)
 
@@ -162,7 +162,7 @@ set(SOURCES
 
         src/decoder/GenericAudioDecoderImpl.hpp
         src/decoder/GenericAudioDecoderImpl.cpp
-        src/decoder/private/GenericAudioDecoderImplPrivate.hpp)
+        src/decoder/private/GenericAudioDecoderImplPrivate.hpp include/AVQt/renderers/IAudioOutputImpl.hpp include/AVQt/renderers/AudioOutputFactory.hpp src/renderers/AudioOutputFactory.cpp src/renderers/QtAudioOutputImpl.cpp src/renderers/QtAudioOutputImpl.hpp src/renderers/private/QtAudioOutputImpl_p.hpp src/renderers/AudioOutput.cpp include/AVQt/renderers/AudioOutput.hpp src/renderers/private/AudioOutput_p.hpp)
 set(SOURCES_UNIX
         )
 set(SOURCES_LINUX

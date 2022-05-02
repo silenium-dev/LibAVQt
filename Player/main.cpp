@@ -154,6 +154,7 @@ int main(int argc, char *argv[]) {
     auto encoder1 = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
     auto encoder2 = std::make_shared<AVQt::VideoEncoder>(encoderConfig, registry);
     auto renderer1 = std::make_shared<OpenGLWidgetRenderer>(registry);
+    auto aoutput = std::make_shared<AVQt::AudioOutput>(registry);
     //    auto renderer2 = std::make_shared<OpenGLWidgetRenderer>(registry);
     auto yuvrgbconverter = std::make_shared<AVQt::VaapiYuvToRgbMapper>(registry);
     //    auto frameSaver = std::make_shared<FrameSaverAccelerated>(registry);
@@ -173,6 +174,7 @@ int main(int argc, char *argv[]) {
         encoder1->init();
         encoder2->init();
         renderer1->init();
+        aoutput->init();
         //    renderer2->init();
         yuvrgbconverter->init();
         //    frameSaver->init();
@@ -183,21 +185,22 @@ int main(int argc, char *argv[]) {
 
         //    std::cout << QJsonDocument::fromJson(QByteArray::fromStdString(apiInfo.toString())).toJson(QJsonDocument::Indented).toStdString() << std::endl;
 
-        std::shared_ptr<pgraph::api::Pad> demuxerOutPad{};
+        //        std::shared_ptr<pgraph::api::Pad> demuxerOutPad{};
         std::shared_ptr<pgraph::api::Pad> demuxerAOutPad{};
         auto demuxerPads = demuxer->getOutputPads();
         for (const auto &pad : demuxerPads) {
             if (pad.second->getUserData()->getType() == AVQt::communication::PacketPadParams::Type) {
                 const auto padParams = std::dynamic_pointer_cast<const AVQt::communication::PacketPadParams>(pad.second->getUserData());
-                if (padParams->mediaType == AVMEDIA_TYPE_VIDEO && !demuxerOutPad) {
-                    demuxerOutPad = pad.second;
-                }
+                //                if (padParams->mediaType == AVMEDIA_TYPE_VIDEO && !demuxerOutPad) {
+                //                    demuxerOutPad = pad.second;
+                //                }
                 if (padParams->mediaType == AVMEDIA_TYPE_AUDIO && !demuxerAOutPad) {
                     demuxerAOutPad = pad.second;
-                }
-                if (demuxerOutPad && demuxerAOutPad) {
                     break;
                 }
+                //                if (demuxerOutPad && demuxerAOutPad) {
+                //                    break;
+                //                }
             }
         }
 
@@ -214,6 +217,7 @@ int main(int argc, char *argv[]) {
         auto encoder2InPad = encoder2->getInputPads().begin()->second;
         auto encoder2OutPad = encoder2->getOutputPads().begin()->second;
         auto renderer1InPad = renderer1->getInputPads().begin()->second;
+        auto aoutputInPad = aoutput->getInputPads().begin()->second;
         //    auto renderer2InPad = renderer2->getInputPads().begin()->second;
         auto ccInPad = cc->getInputPads().begin()->second;
         //    auto cc2InPad = cc2->getInputPads().begin()->second;
@@ -233,6 +237,7 @@ int main(int argc, char *argv[]) {
         //    decoder2InPad->link(encoderOutPad);
         aDecoderInPad->link(demuxerAOutPad);
         ccInPad->link(aDecoderOutPad);
+        aoutputInPad->link(aDecoderOutPad);
         //        decoder1InPad->link(demuxerOutPad);
         //        ccInPad->link(decoder1OutPad);
         //        encoder1InPad->link(decoder1OutPad);
@@ -301,9 +306,9 @@ int main(int argc, char *argv[]) {
             //        delete buffer;
         });
         //
-        //    QTimer::singleShot(15000, [] {
-        //        QApplication::quit();
-        //    });
+        //        QTimer::singleShot(2000, [] {
+        //            QApplication::quit();
+        //        });
     }
 
     int ret = QApplication::exec();

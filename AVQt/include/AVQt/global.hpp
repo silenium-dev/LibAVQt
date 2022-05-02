@@ -20,6 +20,7 @@
 #ifndef LIBAVQT_GLOBAL_H
 #define LIBAVQT_GLOBAL_H
 
+#include "AVQt/communication/AudioPadParams.hpp"
 #include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
