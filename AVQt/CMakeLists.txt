@@ -161,8 +161,32 @@ set(SOURCES
         src/decoder/AudioDecoderFactory.cpp
 
         src/decoder/GenericAudioDecoderImpl.hpp
+        src/decoder/private/GenericAudioDecoderImplPrivate.hpp
         src/decoder/GenericAudioDecoderImpl.cpp
-        src/decoder/private/GenericAudioDecoderImplPrivate.hpp include/AVQt/renderers/IAudioOutputImpl.hpp include/AVQt/renderers/AudioOutputFactory.hpp src/renderers/AudioOutputFactory.cpp src/renderers/QtAudioOutputImpl.cpp src/renderers/QtAudioOutputImpl.hpp src/renderers/private/QtAudioOutputImpl_p.hpp src/renderers/AudioOutput.cpp include/AVQt/renderers/AudioOutput.hpp src/renderers/private/AudioOutput_p.hpp)
+
+        include/AVQt/renderers/IAudioOutputImpl.hpp
+
+        include/AVQt/renderers/AudioOutputFactory.hpp
+        src/renderers/AudioOutputFactory.cpp
+
+        include/AVQt/renderers/AudioOutput.hpp
+        src/renderers/private/AudioOutput_p.hpp
+        src/renderers/AudioOutput.cpp
+        )
+if (${QT_VERSION} STREQUAL "6")
+    list(APPEND SOURCES
+            src/renderers/Qt6AudioOutputImpl.hpp
+            src/renderers/private/Qt6AudioOutputImpl_p.hpp
+            src/renderers/Qt6AudioOutputImpl.cpp
+            )
+elseif (${QT_VERSION} STREQUAL "5")
+    list(APPEND SOURCES
+            src/renderers/Qt5AudioOutputImpl.hpp
+            src/renderers/private/Qt5AudioOutputImpl_p.hpp
+            src/renderers/Qt5AudioOutputImpl.cpp
+            )
+endif ()
+
 set(SOURCES_UNIX
         )
 set(SOURCES_LINUX

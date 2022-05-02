@@ -224,6 +224,8 @@ namespace AVQt {
                                                            .withPayload("state", state)
                                                            .build(),
                                                    d->outputPadId);
+            std::unique_lock pausedLock(d->pausedMutex);
+            d->pausedCond.notify_all();
             emit paused(state);
         } else {
             qDebug() << "AudioDecoder::pause: state already" << state;

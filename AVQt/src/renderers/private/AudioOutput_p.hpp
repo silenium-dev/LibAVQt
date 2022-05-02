@@ -1,11 +1,14 @@
 #ifndef LIBAVQT_AUDIOOUTPUT_P_HPP
 #define LIBAVQT_AUDIOOUTPUT_P_HPP
 
+#include "communication/AudioPadParams.hpp"
 #include "renderers/IAudioOutputImpl.hpp"
 
 #include <pgraph/api/Pad.hpp>
 
 #include <QObject>
+
+#include <optional>
 
 namespace AVQt {
     class AudioOutput;

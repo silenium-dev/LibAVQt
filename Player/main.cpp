@@ -259,9 +259,12 @@ int main(int argc, char *argv[]) {
 
         demuxer->start();
 
-        //        QTimer::singleShot(5000, [demuxer]() {
-        //            QApplication::quit();
-        //        });
+        QTimer::singleShot(5000, [demuxer]() {
+            demuxer->pause(true);
+            QTimer::singleShot(2000, [demuxer]() {
+                demuxer->pause(false);
+            });
+        });
 
         //    QTimer::singleShot(4000, [demuxer]{
         //        demuxer->pause(true);
@@ -306,9 +309,9 @@ int main(int argc, char *argv[]) {
             //        delete buffer;
         });
         //
-        //        QTimer::singleShot(2000, [] {
-        //            QApplication::quit();
-        //        });
+        QTimer::singleShot(10000, [] {
+            QApplication::quit();
+        });
     }
 
     int ret = QApplication::exec();

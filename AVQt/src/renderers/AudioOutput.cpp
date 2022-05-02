@@ -1,6 +1,8 @@
 #include "renderers/AudioOutput.hpp"
 #include "private/AudioOutput_p.hpp"
 
+#include "global.hpp"
+
 #include "communication/AudioPadParams.hpp"
 #include "communication/Message.hpp"
 #include "renderers/AudioOutputFactory.hpp"
@@ -176,9 +178,7 @@ namespace AVQt {
         if (d->running) {
             bool shouldBe = !state;
             if (d->paused.compare_exchange_strong(shouldBe, state)) {
-                if (state) {
-                    d->impl->resetBuffer();
-                }
+                d->impl->pause(state);
                 emit paused(state);
             } else {
                 qWarning() << "AudioOutput::pause() called multiple times";

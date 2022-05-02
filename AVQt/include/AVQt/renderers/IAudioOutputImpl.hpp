@@ -18,6 +18,7 @@ namespace AVQt::api {
         virtual void close() = 0;
         virtual void write(const std::shared_ptr<AVFrame> &frame) = 0;
         virtual void resetBuffer() = 0;
+        virtual void pause(bool state) = 0;
     };
 
     struct AudioOutputImplInfo {

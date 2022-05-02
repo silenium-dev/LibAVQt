@@ -1,9 +1,10 @@
-#ifndef LIBAVQT_QTAUDIOOUTPUTIMPL_P_HPP
-#define LIBAVQT_QTAUDIOOUTPUTIMPL_P_HPP
+#ifndef LIBAVQT_QT6AUDIOOUTPUTIMPL_P_HPP
+#define LIBAVQT_QT6AUDIOOUTPUTIMPL_P_HPP
 
 #include "common/AudioFormat.hpp"
 
 #include <QObject>
+#include <QTimer>
 
 #include <QAudioDevice>
 #include <QAudioFormat>
@@ -13,20 +14,21 @@
 #include <mutex>
 
 namespace AVQt {
-    class QtAudioOutputImpl;
-    class QtAudioOutputImplPrivate : public QObject {
+    class Qt6AudioOutputImpl;
+    class Qt6AudioOutputImplPrivate : public QObject {
         Q_OBJECT
-        Q_DECLARE_PUBLIC(QtAudioOutputImpl)
+        Q_DECLARE_PUBLIC(Qt6AudioOutputImpl)
     private slots:
         void trySendData();
 
     private:
-        explicit QtAudioOutputImplPrivate(QtAudioOutputImpl *q);
-        QtAudioOutputImpl *q_ptr;
+        explicit Qt6AudioOutputImplPrivate(Qt6AudioOutputImpl *q);
+        Qt6AudioOutputImpl *q_ptr;
 
         std::optional<common::AudioFormat> audioFormat{};
         std::unique_ptr<QAudioSink> audioSink{};
         QIODevice *audioOutputDevice{};
+        std::unique_ptr<QTimer> audioOutputTimer{};
 
         static constexpr int bufferSize = 65536;
         std::mutex inputMutex{};
@@ -68,4 +70,4 @@ namespace AVQt {
 }// namespace AVQt
 
 
-#endif//LIBAVQT_QTAUDIOOUTPUTIMPL_P_HPP
+#endif//LIBAVQT_QT6AUDIOOUTPUTIMPL_P_HPP
