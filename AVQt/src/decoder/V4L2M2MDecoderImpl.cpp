@@ -149,7 +149,7 @@ namespace AVQt {
         }
 
         if (!d->codecContext) {
-            qWarning() << "Codec context not initialized";
+            qWarning() << "VideoCodec context not initialized";
             return ENODEV;
         }
 

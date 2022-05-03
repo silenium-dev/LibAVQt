@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #ifndef LIBAVQT_VIDEOENCODER_HPP
 #define LIBAVQT_VIDEOENCODER_HPP
@@ -45,12 +42,12 @@ namespace AVQt {
     public:
         struct Config {
             QStringList encoderPriority{};
-            Codec codec{};
-            EncodeParameters encodeParameters{};
+            VideoCodec codec{};
+            VideoEncodeParameters encodeParameters{};
         };
 
         VideoEncoder(const Config &config, std::shared_ptr<pgraph::network::api::PadRegistry> padRegistry, QObject *parent = nullptr);
-        VideoEncoder(const Config &config, QObject *parent = nullptr);
+        explicit VideoEncoder(const Config &config, QObject *parent = nullptr);
 
         /*!
          * \private

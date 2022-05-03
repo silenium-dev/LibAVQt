@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 18.12.21.
-//
 
 #include "FrameSaverAccelerated.hpp"
 #include "global.hpp"

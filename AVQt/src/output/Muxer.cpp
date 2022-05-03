@@ -139,7 +139,7 @@ namespace AVQt {
         bool shouldBe = true;
         if (d->running.compare_exchange_strong(shouldBe, false)) {
             d->paused = false;
-            d->inputQueueCondition.notify_all();
+            d->inputQueueCond.notify_all();
             QThread::quit();
             QThread::wait();
             d->inputQueue.clear();
@@ -199,6 +199,8 @@ namespace AVQt {
                     break;
                 }
                 case communication::Message::Action::RESET:
+                    d->resetStream(pad);
+                    break;
                 case communication::Message::Action::RESIZE: {
                     qWarning() << "[Muxer] Unsupported action" << msg->getAction().name() << "please fix your code";
                 }
@@ -270,7 +272,8 @@ namespace AVQt {
 
             std::unique_lock<std::mutex> lock(d->inputQueueMutex);
             if (d->inputQueue.empty()) {
-                d->inputQueueCondition.wait(lock, [d] {
+                d->inputQueueCond.notify_all();
+                d->inputQueueCond.wait(lock, [d] {
                     return !d->inputQueue.empty() || !d->running;
                 });
                 if (!d->running) {
@@ -278,18 +281,41 @@ namespace AVQt {
                 }
             }
 
-            auto packet = d->inputQueue.front();
+            auto nextPacket = d->inputQueue.front();
 
-            if (!packet) {
+            if (!nextPacket) {
                 d->inputQueue.pop_front();
                 continue;
             }
+            //            if (d->lastPackets.find(nextPacket->stream_index) != d->lastPackets.end()) {
+            //                std::unique_lock streamResetLock{d->streamResetMutex};
+            //                if (d->streamResetFlags[d->streamToPadMap[nextPacket->stream_index]] > 0) {
+            //                    --d->streamResetFlags[d->streamToPadMap[nextPacket->stream_index]];
+            //                    d->streamPts[d->streamToPadMap[nextPacket->stream_index]] = d->lastPackets[nextPacket->stream_index]->pts;
+            //                }
+            //            }
+            auto si = nextPacket->stream_index;
+            std::unique_lock tsLock{d->streamResetMutex};
+            if (d->lastPackets.find(nextPacket->stream_index) != d->lastPackets.end()) {
+                nextPacket->dts = d->streamDts[d->streamToPadMap[si]];
+                d->streamDts[d->streamToPadMap[si]] += nextPacket->duration;
+                nextPacket->pts = d->streamPts[d->streamToPadMap[si]];
+                d->streamPts[d->streamToPadMap[si]] += nextPacket->duration;
+            } else {
+                d->streamDts[d->streamToPadMap[nextPacket->stream_index]] = nextPacket->dts;
+                d->streamPts[d->streamToPadMap[nextPacket->stream_index]] = nextPacket->pts;
+            }
+            d->lastPackets[nextPacket->stream_index] = std::move(nextPacket);
 
             lock.unlock();
 
-            av_packet_rescale_ts(packet.get(), {1, 1000000}, d->pFormatCtx->streams[packet->stream_index]->time_base);
+            qDebug("Packet (Stream %s) pts: %ld, dts: %ld", d->pFormatCtx->streams[si]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO ? "Audio" : "Video", d->lastPackets[si]->pts, d->lastPackets[si]->dts);
 
-            int ret = av_interleaved_write_frame(d->pFormatCtx.get(), packet.get());
+            AVPacket *pkt = av_packet_clone(d->lastPackets[si].get());
+            av_packet_rescale_ts(pkt, {1, 1000000}, d->pFormatCtx->streams[si]->time_base);
+
+            int ret = av_interleaved_write_frame(d->pFormatCtx.get(), pkt);
+            av_packet_free(&pkt);
             if (ret == AVERROR(EAGAIN)) {
                 continue;
             } else if (ret < 0) {
@@ -300,7 +326,7 @@ namespace AVQt {
                 lock.lock();
                 d->inputQueue.pop_front();
             }
-            d->inputQueueCondition.notify_all();
+            d->inputQueueCond.notify_all();
         }
     }
 
@@ -316,17 +342,21 @@ namespace AVQt {
         }
     }
 
-    void MuxerPrivate::enqueueData(const std::shared_ptr<AVPacket> &packet) {
+    void MuxerPrivate::enqueueData(const std::shared_ptr<AVPacket> &newPacket) {
         std::unique_lock<std::mutex> lock(inputQueueMutex);
+        if (!running) {
+            qDebug() << "[Muxer] muxer is not running, dropping newPacket";
+            return;
+        }
         if (inputQueue.size() >= inputQueueMaxSize) {
             qDebug() << "[Muxer] input queue full";
-            inputQueueCondition.wait(lock, [this] { return inputQueue.size() < inputQueueMaxSize || !running; });
+            inputQueueCond.wait(lock, [this] { return inputQueue.size() < inputQueueMaxSize || !running; });
             if (!running) {
                 return;
             }
         }
-        inputQueue.push_back(packet);
-        inputQueueCondition.notify_all();
+        inputQueue.push_back(newPacket);
+        inputQueueCond.notify_all();
     }
 
     int MuxerPrivate::writeIO(void *opaque, uint8_t *buf, int buf_size) {
@@ -385,6 +415,10 @@ namespace AVQt {
         stream->time_base = {1, 1000000};// Microseconds
 
         streams[padId] = stream;
+        streamToPadMap[stream->index] = padId;
+        streamResetFlags[padId] = false;
+        streamPts[padId] = 0;
+        streamDts[padId] = 0;
 
         if (std::find_if(streams.begin(), streams.end(), [](const auto &pair) { return pair.second == nullptr; }) == streams.end()) {
             qDebug() << "[Muxer] all streams initialized";
@@ -440,5 +474,19 @@ namespace AVQt {
             qDebug() << "[Muxer] all streams closed, closing muxer";
             q->close();
         }
+    }
+
+    void MuxerPrivate::resetStream(int64_t padId) {
+        //        Q_Q(Muxer);
+        if (streams.find(padId) == streams.end() || streams[padId] == nullptr) {
+            qWarning() << "[Muxer] pad" << padId << "is not an initialized stream";
+            return;
+        }
+        //
+        //        std::unique_lock queueLock{inputQueueMutex};
+        //        inputQueueCond.wait(queueLock, [this] { return inputQueue.empty(); });
+        //
+        //        std::unique_lock lock{streamResetMutex};
+        //        ++streamResetFlags[padId];
     }
 }// namespace AVQt

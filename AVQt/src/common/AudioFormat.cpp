@@ -21,7 +21,7 @@ namespace AVQt::common {
         return m_format;
     }
 
-    uint64_t AudioFormat::channelLayout() const {
+    __int128 AudioFormat::channelLayout() const {
         return m_channelLayout;
     }
 
@@ -53,5 +53,13 @@ namespace AVQt::common {
                std::any_of(supportedFormats.begin(), supportedFormats.end(), [this](const AudioFormat &format) {
                    return *this == format;
                });
+    }
+
+    QString AudioFormat::toString() const {
+        char strBuf[256];
+        if (m_channelLayout >= 0) {
+            av_get_channel_layout_string(strBuf, sizeof(strBuf), m_channels, m_channelLayout);
+        }
+        return QString("%1 Hz, %2 channels, %3, %4").arg(QString::number(m_sampleRate), QString::number(m_channels), av_get_sample_fmt_name(m_format), strBuf);
     }
 }// namespace AVQt::common

@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #ifndef LIBAVQT_IVIDEOENCODERIMPL_HPP
 #define LIBAVQT_IVIDEOENCODERIMPL_HPP
@@ -37,23 +34,23 @@ extern "C" {
 #include <QtCore/QVector>
 
 namespace AVQt {
-    enum class Codec {
+    enum class VideoCodec {
         H264,
         HEVC,
         VP8,
         VP9,
         MPEG2
     };
-    struct EncodeParameters {
+    struct VideoEncodeParameters {
         int32_t bitrate;
     };
     namespace api {
         class IVideoEncoderImpl {
         public:
-            explicit IVideoEncoderImpl(const EncodeParameters &parameters);
+            explicit IVideoEncoderImpl(const VideoEncodeParameters &parameters);
             virtual ~IVideoEncoderImpl() = default;
 
-            [[nodiscard]] virtual EncodeParameters getEncodeParameters() const;
+            [[nodiscard]] virtual VideoEncodeParameters getEncodeParameters() const;
 
             virtual bool open(const communication::VideoPadParams &params) = 0;
             virtual void close() = 0;
@@ -70,7 +67,7 @@ namespace AVQt {
             virtual void packetReady(std::shared_ptr<AVPacket> packet) = 0;
 
         private:
-            EncodeParameters m_encodeParameters;
+            VideoEncodeParameters m_encodeParameters;
         };
 
         struct VideoEncoderInfo {
@@ -85,6 +82,6 @@ namespace AVQt {
 
 Q_DECLARE_INTERFACE(AVQt::api::IVideoEncoderImpl, "AVQt.IVideoEncoderImpl")
 
-Q_DECLARE_METATYPE(AVQt::EncodeParameters)
+Q_DECLARE_METATYPE(AVQt::VideoEncodeParameters)
 
 #endif//LIBAVQT_IVIDEOENCODERIMPL_HPP

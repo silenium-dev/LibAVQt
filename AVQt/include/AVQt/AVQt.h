@@ -43,6 +43,10 @@
 #include "AVQt/decoder/VideoDecoder.hpp"
 #include "AVQt/decoder/VideoDecoderFactory.hpp"
 
+#include "AVQt/encoder/AudioEncoder.hpp"
+#include "AVQt/encoder/AudioEncoderFactory.hpp"
+#include "AVQt/encoder/IAudioEncoderImpl.hpp"
+
 #include "AVQt/encoder/IVideoEncoderImpl.hpp"
 #include "AVQt/encoder/VideoEncoder.hpp"
 #include "AVQt/encoder/VideoEncoderFactory.hpp"

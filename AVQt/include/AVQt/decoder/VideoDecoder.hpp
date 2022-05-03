@@ -93,7 +93,7 @@ namespace AVQt {
 
         void stop() Q_DECL_OVERRIDE;
 
-        void pause(bool pause) Q_DECL_OVERRIDE;
+        void pause(bool state) Q_DECL_OVERRIDE;
 
         void consume(int64_t pad, std::shared_ptr<pgraph::api::Data> data) Q_DECL_OVERRIDE;
 

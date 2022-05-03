@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #ifndef LIBAVQT_VAAPIENCODERIMPL_HPP
 #define LIBAVQT_VAAPIENCODERIMPL_HPP
@@ -40,7 +37,7 @@ namespace AVQt {
     public:
         static const api::VideoEncoderInfo &info();
 
-        Q_INVOKABLE VAAPIEncoderImpl(AVCodecID codec, AVQt::EncodeParameters parameters);
+        Q_INVOKABLE VAAPIEncoderImpl(AVCodecID codec, AVQt::VideoEncodeParameters parameters);
         ~VAAPIEncoderImpl() override;
 
         bool open(const communication::VideoPadParams &params) override;

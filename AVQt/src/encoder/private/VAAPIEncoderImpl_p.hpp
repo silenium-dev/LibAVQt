@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #ifndef LIBAVQT_VAAPIENCODERIMPL_P_HPP
 #define LIBAVQT_VAAPIENCODERIMPL_P_HPP
@@ -55,7 +52,7 @@ namespace AVQt {
 
         int allocateHWFrame(std::shared_ptr<AVFrame> &output);
 
-        EncodeParameters encodeParameters{};
+        VideoEncodeParameters encodeParameters{};
 
         std::shared_ptr<AVCodecParameters> codecParams{};
         std::unique_ptr<AVCodecContext, decltype(&destroyAVCodecContext)> codecContext{nullptr, &destroyAVCodecContext};
@@ -91,6 +88,7 @@ namespace AVQt {
         private:
             VAAPIEncoderImplPrivate *p;
             bool m_stop{false};
+            std::shared_ptr<AVPacket> packet{};
         };
     }// namespace internal
 }// namespace AVQt

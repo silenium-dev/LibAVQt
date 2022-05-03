@@ -17,11 +17,9 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 19.12.21.
-//
 
 #include "global.hpp"
+
 #include "AVQt/capture/DesktopCaptureFactory.hpp"
 #include "AVQt/encoder/VideoEncoderFactory.hpp"
 #include "AVQt/renderers/OpenGLFrameMapperFactory.hpp"
@@ -81,18 +79,35 @@ namespace AVQt {
         qRegisterMetaType<std::shared_ptr<AVFrame>>();
     }
 
-    AVCodecID getCodecId(Codec codec) {
+    AVCodecID getVideoCodecId(VideoCodec codec) {
         switch (codec) {
-            case Codec::H264:
+            case VideoCodec::H264:
                 return AV_CODEC_ID_H264;
-            case Codec::HEVC:
+            case VideoCodec::HEVC:
                 return AV_CODEC_ID_HEVC;
-            case Codec::VP8:
+            case VideoCodec::VP8:
                 return AV_CODEC_ID_VP8;
-            case Codec::VP9:
+            case VideoCodec::VP9:
                 return AV_CODEC_ID_VP9;
-            case Codec::MPEG2:
+            case VideoCodec::MPEG2:
                 return AV_CODEC_ID_MPEG2VIDEO;
+            default:
+                return AV_CODEC_ID_NONE;
+        }
+    }
+
+    AVCodecID getAudioCodecId(AudioCodec codec) {
+        switch (codec) {
+            case AudioCodec::MP3:
+                return AV_CODEC_ID_MP3;
+            case AudioCodec::AAC:
+                return AV_CODEC_ID_AAC;
+            case AudioCodec::VORBIS:
+                return AV_CODEC_ID_VORBIS;
+            case AudioCodec::OPUS:
+                return AV_CODEC_ID_OPUS;
+            case AudioCodec::FLAC:
+                return AV_CODEC_ID_FLAC;
             default:
                 return AV_CODEC_ID_NONE;
         }

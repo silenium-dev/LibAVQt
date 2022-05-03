@@ -5,8 +5,11 @@
 #ifndef LIBAVQT_MUXERPRIVATE_HPP
 #define LIBAVQT_MUXERPRIVATE_HPP
 
+#include <QIODevice>
 #include <QObject>
+
 #include <condition_variable>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <set>
@@ -40,19 +43,28 @@ namespace AVQt {
 
         bool startStream(int64_t padId);
         void stopStream(int64_t padId);
+        void resetStream(int64_t padId);
 
-        void enqueueData(const std::shared_ptr<AVPacket> &packet);
+        void enqueueData(const std::shared_ptr<AVPacket> &newPacket);
 
         constexpr static auto inputQueueMaxSize = 32;
         std::mutex inputQueueMutex{};
-        std::condition_variable inputQueueCondition{};
+        std::condition_variable inputQueueCond{};
         std::deque<std::shared_ptr<AVPacket>> inputQueue{};
+
+        std::map<int, std::shared_ptr<AVPacket>> lastPackets{};
 
         std::mutex pausedMutex{};
         std::condition_variable pausedCond{};
         std::atomic_bool running{false}, paused{false}, open{false}, initialized{false};
 
         std::map<int64_t, AVStream *> streams{};
+        std::map<int, int64_t> streamToPadMap{};
+
+        std::mutex streamResetMutex{};
+        std::map<int64_t, int> streamResetFlags{};
+        std::map<int64_t, int64_t> streamPts{};
+        std::map<int64_t, int64_t> streamDts{};
 
         static constexpr size_t BUFFER_SIZE{32 * 1024};// 32KB
         uint8_t *pBuffer{nullptr};

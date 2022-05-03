@@ -75,7 +75,7 @@ namespace AVQt {
                     auto packetParams = message->getPayload("packetParams").value<std::shared_ptr<const communication::PacketPadParams>>();
                     d->codecParams = packetParams->codecParams;
                     if (!open()) {
-                        qWarning() << "Failed to open decoder";
+                        qWarning() << "Failed to open audio decoder";
                         return;
                     }
                     break;
@@ -98,12 +98,26 @@ namespace AVQt {
                 case communication::Message::Action::DATA: {
                     auto packet = message->getPayload("packet").value<std::shared_ptr<AVPacket>>();
                     std::unique_lock lock(d->inputQueueMutex);
-                    d->inputQueue.push_back(std::move(packet));
-                    d->inputQueueCond.notify_one();
+                    d->inputQueue.push(std::move(packet));
+                    d->inputQueueCond.notify_all();
+                    break;
+                }
+                case communication::Message::Action::RESET: {
+                    if (d->open) {
+                        std::unique_lock lock(d->inputQueueMutex);
+                        if (!d->inputQueue.empty()) {
+                            d->inputQueueCond.wait(lock, [d] { return d->inputQueue.empty(); });
+                        }
+                        d->impl->close();
+                        pgraph::impl::SimpleProcessor::produce(communication::Message::builder().withAction(communication::Message::Action::RESET).build(), d->outputPadId);
+                        if (!d->impl->open(d->inputPadParams->codecParams)) {
+                            qWarning() << "Failed to open audio decoder";
+                            close();
+                        }
+                    }
                     break;
                 }
                 case communication::Message::Action::RESIZE:
-                case communication::Message::Action::RESET:
                 case communication::Message::Action::NONE:
                     break;
             }
@@ -185,6 +199,7 @@ namespace AVQt {
                                                    d->outputPadId);
             QThread::start();
 
+            emit started();
             return true;
         } else {
             qWarning() << "AudioDecoder already running";
@@ -203,13 +218,16 @@ namespace AVQt {
                                                            .build(),
                                                    d->outputPadId);
             d->pausedCond.notify_all();
+            d->inputQueueCond.notify_all();
             QThread::quit();
             QThread::wait();
 
             std::unique_lock lock(d->inputQueueMutex);
             while (!d->inputQueue.empty()) {
-                d->inputQueue.pop_front();
+                d->inputQueue.pop();
             }
+
+            emit stopped();
         } else {
             qWarning() << "AudioDecoder already stopped";
         }
@@ -252,15 +270,19 @@ namespace AVQt {
                 }
             }
             std::shared_ptr<AVPacket> packet = d->inputQueue.front();
-            d->inputQueue.pop_front();
             inputLock.unlock();
             auto ret = d->impl->decode(packet);
             if (ret == EAGAIN) {
                 inputLock.lock();
-                d->inputQueue.push_front(packet);
+                d->inputQueue.pop();
             } else if (ret != EXIT_SUCCESS) {
                 char err[AV_ERROR_MAX_STRING_SIZE];
                 qWarning() << "AudioDecoder::run: error decoding packet" << av_make_error_string(err, AV_ERROR_MAX_STRING_SIZE, AVERROR(ret));
+                break;
+            } else {
+                inputLock.lock();
+                d->inputQueue.pop();
+                d->inputQueueCond.notify_all();
             }
         }
     }
@@ -274,6 +296,9 @@ namespace AVQt {
 
     void AudioDecoderPrivate::onFrame(const std::shared_ptr<AVFrame> &frame) {
         Q_Q(AudioDecoder);
+        if (!running) {
+            return;
+        }
         if (frame) {
             auto message = communication::Message::builder().withAction(communication::Message::Action::DATA).withPayload("frame", QVariant::fromValue(frame)).build();
             std::unique_lock pausedLock{pausedMutex};

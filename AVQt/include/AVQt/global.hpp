@@ -23,7 +23,8 @@
 #include "AVQt/communication/AudioPadParams.hpp"
 #include "AVQt/communication/PacketPadParams.hpp"
 #include "AVQt/communication/VideoPadParams.hpp"
-#include "AVQt/encoder/VideoEncoder.hpp"
+#include "AVQt/encoder/IAudioEncoderImpl.hpp"
+#include "AVQt/encoder/IVideoEncoderImpl.hpp"
 
 #include <pgraph/impl/SimpleConsumer.hpp>
 #include <pgraph/impl/SimpleProducer.hpp>
@@ -56,7 +57,8 @@ std::string eglErrorString(EGLint error);
 namespace AVQt {
     void loadResources();
     void registerMetatypes();
-    AVCodecID getCodecId(Codec codec);
+    AVCodecID getVideoCodecId(VideoCodec codec);
+    AVCodecID getAudioCodecId(AudioCodec codec);
 }// namespace AVQt
 
 class QOpenGLFramebufferObject;

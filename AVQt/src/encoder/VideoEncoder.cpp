@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #include "AVQt/encoder/VideoEncoder.hpp"
 #include "private/VideoEncoder_p.hpp"
@@ -116,7 +113,7 @@ namespace AVQt {
                     d->inputParams.isHWAccel
                             ? common::PixelFormat{d->inputParams.swPixelFormat, d->inputParams.pixelFormat}
                             : common::PixelFormat{d->inputParams.swPixelFormat, AV_PIX_FMT_NONE};
-            d->impl = VideoEncoderFactory::getInstance().create(inputFormat, getCodecId(d->config.codec), d->config.encodeParameters, d->config.encoderPriority);
+            d->impl = VideoEncoderFactory::getInstance().create(inputFormat, getVideoCodecId(d->config.codec), d->config.encodeParameters, d->config.encoderPriority);
 
             if (!d->impl) {
                 qFatal("No VideoEncoderImpl found");
@@ -271,6 +268,7 @@ namespace AVQt {
                 auto message = std::static_pointer_cast<communication::Message>(data);
                 switch (static_cast<AVQt::communication::Message::Action::Enum>(message->getAction())) {
                     case communication::Message::Action::INIT:
+                        qDebug("VideoEncoder: Received INIT");
                         d->inputParams = message->getPayload("videoParams").value<communication::VideoPadParams>();
                         if (!open()) {
                             qWarning("VideoEncoder: Failed to open");
@@ -280,6 +278,7 @@ namespace AVQt {
                         close();
                         break;
                     case communication::Message::Action::START:
+                        qDebug("VideoEncoder: Received START");
                         if (!start()) {
                             qWarning("VideoEncoder: Failed to start");
                         }
@@ -293,6 +292,21 @@ namespace AVQt {
                     case communication::Message::Action::DATA:
                         d->enqueueData(message->getPayload("frame").value<std::shared_ptr<AVFrame>>());
                         break;
+                    case communication::Message::Action::RESET: {
+                        if (d->open) {
+                            std::unique_lock lock{d->inputQueueMutex};
+                            if (!d->inputQueue.empty()) {
+                                d->inputQueueCond.wait(lock, [d] { return d->inputQueue.empty() || !d->running; });
+                            }
+                            d->impl->close();
+                            pgraph::impl::SimpleProcessor::produce(communication::Message::builder().withAction(communication::Message::Action::RESET).build(), d->outputPadId);
+                            if (!d->impl->open(d->inputParams)) {
+                                qWarning("VideoEncoder: Failed to open");
+                                close();
+                            }
+                        }
+                        break;
+                    }
                     default:
                         qFatal("Unimplemented action %s", message->getAction().name().toLocal8Bit().data());
                 }
@@ -321,9 +335,12 @@ namespace AVQt {
             pausedLock.unlock();
 
             std::unique_lock lock(d->inputQueueMutex);
-            d->inputQueueCond.wait(lock, [&] { return !d->inputQueue.empty() || !d->running; });
-            if (!d->running) {
-                break;
+            if (d->inputQueue.empty()) {
+                d->inputQueueCond.notify_all();
+                d->inputQueueCond.wait(lock, [&] { return !d->inputQueue.empty() || !d->running; });
+                if (!d->running) {
+                    break;
+                }
             }
 
             auto frame = d->inputQueue.front();
@@ -336,7 +353,7 @@ namespace AVQt {
 
             int ret = d->impl->encode(frame);
             if (ret == EAGAIN) {
-                qDebug("VideoEncoder: EAGAIN");
+                continue;
             } else if (ret != EXIT_SUCCESS) {
                 char strBuf[AV_ERROR_MAX_STRING_SIZE];
                 qWarning("VideoEncoder: Failed to encode frame: %s", av_make_error_string(strBuf, sizeof(strBuf), AVERROR(ret)));
@@ -364,12 +381,14 @@ namespace AVQt {
         {
             std::unique_lock lock(inputQueueMutex);
             if (inputQueue.size() >= 4) {
+                inputQueueCond.notify_all();
                 inputQueueCond.wait(lock, [this] { return inputQueue.size() < 4 || !running; });
                 if (!running) {
+                    qDebug("VideoEncoder: Stopped");
                     return;
                 }
             }
-            inputQueue.emplace(preparedFrame);
+            inputQueue.push(preparedFrame);
             inputQueueCond.notify_all();
         }
     }

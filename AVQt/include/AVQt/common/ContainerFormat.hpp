@@ -23,7 +23,7 @@ namespace AVQt::common {
         [[maybe_unused]] static constexpr const char *MKV = "matroska";
         [[maybe_unused]] static constexpr const char *WEBM = "webm";
         [[maybe_unused]] static constexpr const char *MP3 = "mp3";
-        [[maybe_unused]] static constexpr const char *M4A = "m4a";
+        [[maybe_unused]] static constexpr const char *M4A = "mp4";
 
         [[maybe_unused]] static uint8_t getCapabilities(const char *formatName);
         [[maybe_unused]] static uint8_t getCapabilities(const AVOutputFormat *fmt);

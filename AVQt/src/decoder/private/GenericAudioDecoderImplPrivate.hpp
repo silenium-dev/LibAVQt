@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+#include <mutex>
+
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
@@ -23,6 +25,7 @@ namespace AVQt {
         void init(AVCodecID codecId);
 
         const AVCodec *codec{nullptr};
+        std::mutex codecMutex;
         std::unique_ptr<AVCodecContext, decltype(&destroyAVCodecContext)> codecContext{nullptr, destroyAVCodecContext};
         std::shared_ptr<AVCodecParameters> codecParameters{};
 

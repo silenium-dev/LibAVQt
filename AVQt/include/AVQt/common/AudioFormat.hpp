@@ -23,9 +23,11 @@ namespace AVQt::common {
         [[nodiscard]] int channels() const;
         [[nodiscard]] int bytesPerSample() const;
         [[nodiscard]] AVSampleFormat sampleFormat() const;
-        [[nodiscard]] uint64_t channelLayout() const;
+        [[nodiscard]] __int128_t channelLayout() const;
 
         [[nodiscard]] bool isSupportedBy(QList<AudioFormat> supportedFormats) const;
+
+        [[nodiscard]] QString toString() const;
 
         bool operator==(const AudioFormat &other) const;
         bool operator!=(const AudioFormat &other) const;

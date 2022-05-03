@@ -77,7 +77,7 @@ namespace AVQt {
         return info;
     }
 
-    VAAPIEncoderImpl::VAAPIEncoderImpl(AVCodecID codec, EncodeParameters parameters)
+    VAAPIEncoderImpl::VAAPIEncoderImpl(AVCodecID codec, VideoEncodeParameters parameters)
         : QObject(),
           IVideoEncoderImpl(parameters),
           d_ptr(new VAAPIEncoderImplPrivate(this)) {
@@ -226,6 +226,7 @@ namespace AVQt {
             d->codecContext->time_base = {1, 1000000};// microseconds
             d->codecContext->hw_device_ctx = av_buffer_ref(d->hwDeviceContext.get());
             d->codecContext->hw_frames_ctx = av_buffer_ref(d->hwFramesContext.get());
+            d->codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
             ret = avcodec_open2(d->codecContext.get(), d->codec, nullptr);
             if (ret < 0) {
@@ -299,7 +300,7 @@ namespace AVQt {
             auto t1 = std::chrono::high_resolution_clock::now();
             ret = avcodec_send_frame(d->codecContext.get(), frame.get());
             auto t2 = std::chrono::high_resolution_clock::now();
-            qDebug("[AVQt::VAAPIEncoderImpl2] avcodec_send_frame took %ld ns", std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
+            //            qDebug("[AVQt::VAAPIEncoderImpl2] avcodec_send_frame took %ld ns", std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count());
         }
         if (ret == AVERROR(EAGAIN)) {
             return EAGAIN;
@@ -600,29 +601,41 @@ namespace AVQt {
             QElapsedTimer timer;
             timer.start();
 
-            std::shared_ptr<AVPacket> packet{av_packet_alloc(), [](AVPacket *pak) {
-                                                 av_packet_free(&pak);
-                                             }};
-            if (!packet) {
-                qWarning() << "Could not allocate packet";
+            std::shared_ptr<AVPacket> nextPacket{av_packet_alloc(), [](AVPacket *pak) {
+                                                     av_packet_free(&pak);
+                                                 }};
+            if (!nextPacket) {
+                qWarning() << "Could not allocate nextPacket";
                 return;
             }
 
             {
                 QMutexLocker codecLock(&p->codecMutex);
-                ret = avcodec_receive_packet(p->codecContext.get(), packet.get());
+                ret = avcodec_receive_packet(p->codecContext.get(), nextPacket.get());
             }
 
-            av_packet_rescale_ts(packet.get(), p->codecContext->time_base, {1, 1000000});
+            av_packet_rescale_ts(nextPacket.get(), p->codecContext->time_base, {1, 1000000});
 
             if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
                 msleep(1);
             } else if (ret < 0) {
-                qWarning() << "Could not receive packet:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
+                qWarning() << "Could not receive nextPacket:" << av_make_error_string(strBuf, sizeof(strBuf), ret);
             } else {
-                static size_t packetCount = 0;
-                p->q_func()->packetReady(packet);
+                if (packet) {
+                    //                    qDebug() << "Packet duration:" << nextPacket->duration << "us";
+                    auto newDuration = nextPacket->pts - packet->pts;
+                    if (newDuration > 0) {
+                        packet->duration = newDuration;
+                        nextPacket->duration = newDuration;
+                    }
+                    p->q_func()->packetReady(packet);
+                }
+                packet = std::move(nextPacket);
             }
+        }
+
+        if (packet) {
+            p->q_func()->packetReady(packet);
         }
 
         qDebug() << "PacketFetcher stopped";

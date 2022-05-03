@@ -6,6 +6,23 @@
 #include <static_block.hpp>
 
 namespace AVQt {
+    const api::AudioDecoderInfo GenericAudioDecoderImpl::info() {// NOLINT(readability-const-return-type)
+        static const api::AudioDecoderInfo info{
+                .metaObject = staticMetaObject,
+                .name = "Generic",
+                .platforms = {
+                        common::Platform::All,
+                },
+                .supportedInputAudioFormats = {
+                        // Empty => all formats are supported
+                },
+                .supportedCodecIds = {
+                        // Empty => all codecs are supported
+                },
+        };
+        return info;
+    }
+
     GenericAudioDecoderImpl::GenericAudioDecoderImpl(AVCodecID codecId, QObject *parent)
         : QObject(parent),
           d_ptr(new GenericAudioDecoderImplPrivate(this)) {
@@ -46,6 +63,7 @@ namespace AVQt {
 
         bool shouldBe = true;
         if (d->open.compare_exchange_strong(shouldBe, false)) {
+            std::unique_lock codecLock{d->codecMutex};
             avcodec_send_packet(d->codecContext.get(), nullptr);
             std::shared_ptr<AVFrame> frame{av_frame_alloc(), &GenericAudioDecoderImplPrivate::destroyAVFrame};
             while (avcodec_receive_frame(d->codecContext.get(), frame.get()) == 0) {
@@ -75,13 +93,17 @@ namespace AVQt {
 
     int GenericAudioDecoderImpl::decode(std::shared_ptr<AVPacket> packet) {
         Q_D(GenericAudioDecoderImpl);
-        if (!d->codecContext) {
-            throw std::runtime_error{"Decoder is not open"};
+
+        std::unique_lock codecLock{d->codecMutex};
+
+        if (!d->open) {
+            return ENODEV;
         }
 
         int ret = avcodec_send_packet(d->codecContext.get(), packet.get());
         if (ret < 0) {
-            throw std::runtime_error{"Could not send packet to decoder"};
+            char err[AV_ERROR_MAX_STRING_SIZE];
+            throw std::runtime_error{std::string{"Could not send packet to decoder: "} + av_make_error_string(err, AV_ERROR_MAX_STRING_SIZE, ret)};
         }
 
         std::shared_ptr<AVFrame> frame{av_frame_alloc(), &GenericAudioDecoderImplPrivate::destroyAVFrame};
@@ -98,30 +120,13 @@ namespace AVQt {
         return EXIT_SUCCESS;
     }
 
-    const api::AudioDecoderInfo GenericAudioDecoderImpl::info() {// NOLINT(readability-const-return-type)
-        static const api::AudioDecoderInfo info{
-                .metaObject = staticMetaObject,
-                .name = "Generic",
-                .platforms = {
-                        common::Platform::All,
-                },
-                .supportedInputAudioFormats = {
-                        // Empty => all formats are supported
-                },
-                .supportedCodecIds = {
-                        // Empty => all codecs are supported
-                },
-        };
-        return info;
-    }
-
     GenericAudioDecoderImplPrivate::GenericAudioDecoderImplPrivate(GenericAudioDecoderImpl *q) : q_ptr(q) {}
 
     void GenericAudioDecoderImplPrivate::init(const AVCodecID codecId) {
         Q_Q(GenericAudioDecoderImpl);
         codec = avcodec_find_decoder(codecId);
         if (!codec) {
-            throw std::runtime_error{"Codec not found"};
+            throw std::runtime_error{"VideoCodec not found"};
         }
     }
 

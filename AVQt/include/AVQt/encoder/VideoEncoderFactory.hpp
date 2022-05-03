@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #ifndef LIBAVQT_VIDEOENCODERFACTORY_HPP
 #define LIBAVQT_VIDEOENCODERFACTORY_HPP
@@ -41,9 +38,7 @@ namespace AVQt {
         void unregisterEncoder(const QString &name);
         void unregisterEncoder(const api::VideoEncoderInfo &info);
 
-        [[nodiscard]] std::shared_ptr<api::IVideoEncoderImpl> create(const common::PixelFormat &inputFormat, AVCodecID codec, const EncodeParameters &encodeParams, const QStringList &priority = {});
-
-        static void registerEncoders();
+        [[nodiscard]] std::shared_ptr<api::IVideoEncoderImpl> create(const common::PixelFormat &inputFormat, AVCodecID codec, const VideoEncodeParameters &encodeParams, const QStringList &priority = {});
 
     private:
         VideoEncoderFactory() = default;

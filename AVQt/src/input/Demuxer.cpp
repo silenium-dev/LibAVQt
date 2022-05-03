@@ -280,6 +280,9 @@ namespace AVQt {
                         qWarning() << Q_FUNC_INFO << "Error while seeking";
                         break;
                     }
+                    for (const auto &padId : d->outputPadIds) {
+                        pgraph::impl::SimpleProducer::produce(communication::Message::builder().withAction(communication::Message::Action::RESET).build(), padId);
+                    }
                     continue;
                 } else {
                     break;

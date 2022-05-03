@@ -17,18 +17,15 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #include "AVQt/encoder/IVideoEncoderImpl.hpp"
 
 namespace AVQt::api {
-    IVideoEncoderImpl::IVideoEncoderImpl(const EncodeParameters &parameters)
+    IVideoEncoderImpl::IVideoEncoderImpl(const VideoEncodeParameters &parameters)
         : m_encodeParameters(parameters) {
     }
 
-    EncodeParameters IVideoEncoderImpl::getEncodeParameters() const {
+    VideoEncodeParameters IVideoEncoderImpl::getEncodeParameters() const {
         return m_encodeParameters;
     }
 }// namespace AVQt::api

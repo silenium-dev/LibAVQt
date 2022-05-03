@@ -172,6 +172,20 @@ set(SOURCES
         include/AVQt/renderers/AudioOutput.hpp
         src/renderers/private/AudioOutput_p.hpp
         src/renderers/AudioOutput.cpp
+
+        include/AVQt/encoder/IAudioEncoderImpl.hpp
+        src/encoder/IAudioEncoderImpl.cpp
+
+        include/AVQt/encoder/AudioEncoderFactory.hpp
+        src/encoder/AudioEncoderFactory.cpp
+
+        src/encoder/GenericAudioEncoderImpl.hpp
+        src/encoder/private/GenericAudioEncoderImpl_p.hpp
+        src/encoder/GenericAudioEncoderImpl.cpp
+
+        include/AVQt/encoder/AudioEncoder.hpp
+        src/encoder/private/AudioEncoder_p.hpp
+        src/encoder/AudioEncoder.cpp
         )
 if (${QT_VERSION} STREQUAL "6")
     list(APPEND SOURCES

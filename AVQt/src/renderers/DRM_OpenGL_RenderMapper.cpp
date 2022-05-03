@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 23.01.22.
-//
 
 #include "DRM_OpenGL_RenderMapper.hpp"
 #include "private/DRM_OpenGL_RenderMapper_p.hpp"

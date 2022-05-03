@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 24.12.21.
-//
 
 #include "OpenGlWidgetRenderer.hpp"
 #include "AVQt/communication/Message.hpp"
@@ -247,8 +244,7 @@ bool OpenGLWidgetRenderer::open() {
     Q_D(OpenGLWidgetRenderer);
 
     d->mapper = AVQt::OpenGLFrameMapperFactory::getInstance()
-                        .create({d->params.isHWAccel ? d->params.swPixelFormat : d->params.pixelFormat, d->params.isHWAccel ? d->params.pixelFormat : AV_PIX_FMT_NONE},
-                                QStringList() << "VAAPI");
+                        .create({d->params.isHWAccel ? d->params.swPixelFormat : d->params.pixelFormat, d->params.isHWAccel ? d->params.pixelFormat : AV_PIX_FMT_NONE}, {"VAAPI"});
     // clang-format off
     // Preserve normalized form of Qt SIGNAL/SLOT macro
     connect(std::dynamic_pointer_cast<QObject>(d->mapper).get(), SIGNAL(frameReady(qint64,std::shared_ptr<QOpenGLFramebufferObject>)),

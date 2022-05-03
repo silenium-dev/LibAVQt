@@ -17,14 +17,11 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 28.12.21.
-//
 
 #include "AVQt/encoder/VideoEncoderFactory.hpp"
 
-#include <QtDebug>
 #include <QtConcurrent>
+#include <QtDebug>
 
 namespace AVQt {
     VideoEncoderFactory &VideoEncoderFactory::getInstance() {
@@ -51,7 +48,7 @@ namespace AVQt {
         QtConcurrent::blockingFilter(m_encoders, [&](const api::VideoEncoderInfo &i) { return i.name != info.name; });
     }
 
-    std::shared_ptr<api::IVideoEncoderImpl> VideoEncoderFactory::create(const common::PixelFormat &inputFormat, AVCodecID codec, const EncodeParameters &encodeParams, const QStringList &priority) {
+    std::shared_ptr<api::IVideoEncoderImpl> VideoEncoderFactory::create(const common::PixelFormat &inputFormat, AVCodecID codec, const VideoEncodeParameters &encodeParams, const QStringList &priority) {
         auto platform = common::Platform::Unknown;
 #if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
         bool isWayland = QProcessEnvironment::systemEnvironment().value("XDG_SESSION_TYPE", "").toLower() == "wayland";
@@ -70,7 +67,9 @@ namespace AVQt {
 
         QList<api::VideoEncoderInfo> possibleEncoders;
         for (auto &encoder : m_encoders) {
-            if (encoder.platforms.contains(platform) && encoder.supportedInputPixelFormats.contains(inputFormat) && encoder.supportedCodecIds.contains(codec)) {
+            if ((encoder.platforms.contains(common::Platform::All) || encoder.platforms.contains(platform)) &&
+                (encoder.supportedInputPixelFormats.isEmpty() || encoder.supportedInputPixelFormats.contains(inputFormat)) &&
+                (encoder.supportedCodecIds.isEmpty() || encoder.supportedCodecIds.contains(codec))) {
                 possibleEncoders.append(encoder);
             }
         }
@@ -82,7 +81,7 @@ namespace AVQt {
 
         if (priority.isEmpty()) {
             auto inst = possibleEncoders.first().metaObject.newInstance(Q_ARG(AVCodecID, codec),
-                                                                        Q_ARG(AVQt::EncodeParameters, encodeParams));
+                                                                        Q_ARG(AVQt::VideoEncodeParameters, encodeParams));
             return std::shared_ptr<api::IVideoEncoderImpl>(qobject_cast<api::IVideoEncoderImpl *>(inst));
         } else {
             for (const auto &encoderName : priority) {
@@ -91,7 +90,7 @@ namespace AVQt {
                         return std::shared_ptr<api::IVideoEncoderImpl>(
                                 qobject_cast<api::IVideoEncoderImpl *>(
                                         info.metaObject.newInstance(Q_ARG(AVCodecID, codec),
-                                                                    Q_ARG(AVQt::EncodeParameters, encodeParams))));
+                                                                    Q_ARG(AVQt::VideoEncodeParameters, encodeParams))));
                     }
                 }
             }

@@ -111,6 +111,17 @@ namespace AVQt {
                     d->enqueueData(packet);
                     break;
                 }
+                case communication::Message::Action::RESET: {
+                    if (d->open) {
+                        QMutexLocker locker(&d->inputQueueMutex);
+                        while (!d->inputQueue.empty()) {
+                            qDebug() << "Waiting for input queue to be empty" << d->inputQueue.size();
+                            d->packetProcessed.wait(&d->inputQueueMutex);
+                        }
+                        pgraph::impl::SimpleProcessor::produce(communication::Message::builder().withAction(communication::Message::Action::RESET).build(), d->outputPadId);
+                    }
+                    break;
+                }
                 default:
                     qFatal("Unimplemented action %s", message->getAction().name().toLocal8Bit().data());
             }

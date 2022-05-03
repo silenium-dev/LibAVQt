@@ -36,7 +36,7 @@ namespace AVQt {
 
         std::mutex inputQueueMutex;
         std::condition_variable inputQueueCond;
-        std::deque<std::shared_ptr<AVPacket>> inputQueue;
+        std::queue<std::shared_ptr<AVPacket>> inputQueue;
 
         std::mutex pausedMutex;
         std::condition_variable pausedCond;

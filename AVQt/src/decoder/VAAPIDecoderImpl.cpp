@@ -17,9 +17,6 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 // THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//
-// Created by silas on 12.12.21.
-//
 
 #include "VAAPIDecoderImpl.hpp"
 #include "private/VAAPIDecoderImpl_p.hpp"
@@ -151,26 +148,29 @@ namespace AVQt {
 
     void VAAPIDecoderImpl::close() {
         Q_D(VAAPIDecoderImpl);
-        qDebug() << "Stopping decoder";
+        bool shouldBe = true;
+        if (d->initialized.compare_exchange_strong(shouldBe, false)) {
+            qDebug() << "Stopping decoder";
 
-        if (d->frameFetcher) {
-            d->frameFetcher->stop();
-            d->frameFetcher.reset();
+            if (d->frameFetcher) {
+                d->frameFetcher->stop();
+                d->frameFetcher.reset();
+            }
+
+            d->codecContext.reset();
+            d->codecParams.reset();
+
+            d->hwDeviceContext.reset();
+            d->hwFramesContext.reset();
+        } else {
+            qDebug() << "Decoder already stopped";
         }
-
-        d->codecContext.reset();
-        d->codecParams.reset();
-
-        d->hwDeviceContext.reset();
-        d->hwFramesContext.reset();
-
-        d->codec = nullptr;
     }
 
     int VAAPIDecoderImpl::decode(std::shared_ptr<AVPacket> packet) {
         Q_D(VAAPIDecoderImpl);
         if (!d->codecContext) {
-            qWarning() << "Codec context not initialized";
+            qWarning() << "VideoCodec context not initialized";
             return ENODEV;
         }
 
@@ -289,6 +289,7 @@ namespace AVQt {
         int ret;
         constexpr size_t strBufSize = 256;
         char strBuf[strBufSize];
+
         while (!m_stop) {
             QMutexLocker inputLock(&p->codecMutex);
             if (p->firstFrame) {
@@ -312,7 +313,7 @@ namespace AVQt {
                 p->q_func()->frameReady(frame);
                 inputLock.unlock();
                 //                qDebug("Frame ref count: %ld", sharedFrame.use_count());
-                qDebug("Frame callback runtime: %lld ms", timer.elapsed());
+                //                qDebug("Frame callback runtime: %lld ms", timer.elapsed());
                 //                m_outputQueue.enqueue(frame);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF || ret == AVERROR(ENOMEM)) {
                 frame.reset();
