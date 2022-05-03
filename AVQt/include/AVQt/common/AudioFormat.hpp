@@ -23,7 +23,11 @@ namespace AVQt::common {
         [[nodiscard]] int channels() const;
         [[nodiscard]] int bytesPerSample() const;
         [[nodiscard]] AVSampleFormat sampleFormat() const;
+#if NO_INT128
+        [[nodiscard]] int64_t channelLayout() const;
+#else
         [[nodiscard]] __int128_t channelLayout() const;
+#endif
 
         [[nodiscard]] bool isSupportedBy(QList<AudioFormat> supportedFormats) const;
 
@@ -45,5 +49,8 @@ namespace AVQt::common {
     };
 }// namespace AVQt::common
 
+#if not NO_INT128
+Q_DECLARE_METATYPE(__int128)
+#endif
 
 #endif//LIBAVQT_AUDIOFORMAT_HPP
