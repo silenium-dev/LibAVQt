@@ -1,21 +1,29 @@
 default:
-  image:
-    name: sdc0/manjaro-qt-ffmpeg:qt5
-    entrypoint: ["/bin/sh", "-c"]
   tags:
     - amd64
 
-build:
+build-qt5:
   stage: build
+  image:
+    name: sdc0/manjaro-qt-ffmpeg:qt5
+    entrypoint: [ "/bin/sh", "-c" ]
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
     - mkdir build
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DQT_VERSION=5 ..
-    - cmake --build . -j$(nproc)
-    - cd ..
-    - mkdir build-release
-    - cd build-release
-    - cmake -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=5 ..
-    - cmake --build . -j$(nproc)
+    - cmake --build . -j2
+
+build-qt6:
+  stage: build
+  image:
+    name: sdc0/manjaro-qt-ffmpeg:qt6
+    entrypoint: [ "/bin/sh", "-c" ]
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DQT_VERSION=6 ..
+    - cmake --build . -j2

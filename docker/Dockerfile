@@ -1,5 +1,5 @@
-FROM manjaro-qt6-ffmpeg
+FROM sdc0/manjaro-qt-ffmpeg:qt5
 
 COPY build.sh /
 
-CMD ["/build.sh"]
+ENTRYPOINT ["/build.sh"]

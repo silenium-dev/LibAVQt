@@ -1,9 +1,9 @@
-*.user
+CMakeLists.txt.user*
 build*
 /cmake-build-*/
 /.vs/
 /.idea_/
+/.idea/
 /out/
 /LibAVQt.code-workspace
-
-/mfx_dispatch
+/.kdev4/
